@@ -144,6 +144,10 @@ func parse_block(ob *bytes.Buffer, rndr *render, data []byte) {
 			data = data[parse_list(ob, rndr, data, 0):]
 			continue
 		}
+		if prefix_oli(data) > 0 {
+			data = data[parse_list(ob, rndr, data, MKD_LIST_ORDERED):]
+			continue
+		}
 
 		data = data[parse_paragraph(ob, rndr, data):]
 	}
@@ -194,35 +198,37 @@ func parse_atxheader(ob *bytes.Buffer, rndr *render, data []byte) int {
 }
 
 func is_headerline(data []byte) int {
-    i := 0
+	i := 0
 
-    // test of level 1 header
-    if data[i] == '=' {
-        for i = 1; i < len(data) && data[i] == '='; i++ {}
-        for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
-            i++
-        }
-        if i >= len(data) || data[i] == '\n' {
-            return 1
-        } else {
-            return 0
-        }
-    }
+	// test of level 1 header
+	if data[i] == '=' {
+		for i = 1; i < len(data) && data[i] == '='; i++ {
+		}
+		for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
+			i++
+		}
+		if i >= len(data) || data[i] == '\n' {
+			return 1
+		} else {
+			return 0
+		}
+	}
 
-    // test of level 2 header
-    if data[i] == '-' {
-        for i = 1; i < len(data) && data[i] == '-'; i++ {}
-        for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
-            i++
-        }
-        if i >= len(data) || data[i] == '\n' {
-            return 2
-        } else {
-            return 0
-        }
-    }
+	// test of level 2 header
+	if data[i] == '-' {
+		for i = 1; i < len(data) && data[i] == '-'; i++ {
+		}
+		for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
+			i++
+		}
+		if i >= len(data) || data[i] == '\n' {
+			return 2
+		} else {
+			return 0
+		}
+	}
 
-    return 0
+	return 0
 }
 
 func parse_htmlblock(ob *bytes.Buffer, rndr *render, data []byte, do_render bool) int {
@@ -867,7 +873,7 @@ func prefix_oli(data []byte) int {
 func parse_list(ob *bytes.Buffer, rndr *render, data []byte, flags int) int {
 	work := bytes.NewBuffer(nil)
 
-	i, j, flags := 0, 0, 0
+	i, j := 0, 0
 	for i < len(data) {
 		j, flags = parse_listitem(work, rndr, data[i:], flags)
 		i += j
@@ -1013,83 +1019,84 @@ func parse_listitem(ob *bytes.Buffer, rndr *render, data []byte, flags_in int) (
 }
 
 func parse_paragraph(ob *bytes.Buffer, rndr *render, data []byte) int {
-    i, end, level := 0, 0, 0
+	i, end, level := 0, 0, 0
 
-    for i < len(data) {
-        for end = i + 1; end < len(data) && data[end-1] != '\n'; end++ {}
+	for i < len(data) {
+		for end = i + 1; end < len(data) && data[end-1] != '\n'; end++ {
+		}
 
-        if is_empty(data[i:]) > 0 {
-            break
-        }
-        if level = is_headerline(data[i:]); level > 0 {
-            break
-        }
+		if is_empty(data[i:]) > 0 {
+			break
+		}
+		if level = is_headerline(data[i:]); level > 0 {
+			break
+		}
 
-        if rndr.ext_flags & MKDEXT_LAX_HTML_BLOCKS  != 0 {
-            if data[i] == '<' && rndr.mk.blockhtml != nil && parse_htmlblock(ob, rndr, data[i:], false) > 0 {
-                end = i
-                break
-            }
-        }
+		if rndr.ext_flags&MKDEXT_LAX_HTML_BLOCKS != 0 {
+			if data[i] == '<' && rndr.mk.blockhtml != nil && parse_htmlblock(ob, rndr, data[i:], false) > 0 {
+				end = i
+				break
+			}
+		}
 
-        if is_atxheader(rndr, data[i:]) || is_hrule(data[i:]) {
-            end = i
-            break
-        }
+		if is_atxheader(rndr, data[i:]) || is_hrule(data[i:]) {
+			end = i
+			break
+		}
 
-        i = end
-    }
+		i = end
+	}
 
-    work := data
-    size := i
-    for size > 0 && work[size-1] == '\n' {
-        size--
-    }
-    
-    if level == 0 {
-        tmp := bytes.NewBuffer(nil)
-        parse_inline(tmp, rndr, work[:size])
-        if rndr.mk.paragraph != nil {
-            rndr.mk.paragraph(ob, tmp.Bytes(), rndr.mk.opaque)
-        }
-    } else {
-        if size > 0 {
-            beg := 0
-            i = size
-            size--
+	work := data
+	size := i
+	for size > 0 && work[size-1] == '\n' {
+		size--
+	}
 
-            for size > 0 && work[size] != '\n' {
-                size--
-            }
+	if level == 0 {
+		tmp := bytes.NewBuffer(nil)
+		parse_inline(tmp, rndr, work[:size])
+		if rndr.mk.paragraph != nil {
+			rndr.mk.paragraph(ob, tmp.Bytes(), rndr.mk.opaque)
+		}
+	} else {
+		if size > 0 {
+			beg := 0
+			i = size
+			size--
 
-            beg = size + 1
-            for size > 0 && work[size-1] == '\n' {
-                size--
-            }
+			for size > 0 && work[size] != '\n' {
+				size--
+			}
 
-            if size > 0 {
-                tmp := bytes.NewBuffer(nil)
-                parse_inline(tmp, rndr, work[:size])
-                if rndr.mk.paragraph != nil {
-                    rndr.mk.paragraph(ob, tmp.Bytes(), rndr.mk.opaque)
-                }
+			beg = size + 1
+			for size > 0 && work[size-1] == '\n' {
+				size--
+			}
 
-                work = work[beg:]
-                size = i - beg
-            } else {
-                size = i
-            }
-        }
+			if size > 0 {
+				tmp := bytes.NewBuffer(nil)
+				parse_inline(tmp, rndr, work[:size])
+				if rndr.mk.paragraph != nil {
+					rndr.mk.paragraph(ob, tmp.Bytes(), rndr.mk.opaque)
+				}
 
-        header_work := bytes.NewBuffer(nil)
-        parse_inline(header_work, rndr, work[:size])
+				work = work[beg:]
+				size = i - beg
+			} else {
+				size = i
+			}
+		}
 
-        if rndr.mk.header != nil {
-            rndr.mk.header(ob, header_work.Bytes(), level, rndr.mk.opaque)
-        }
-    }
+		header_work := bytes.NewBuffer(nil)
+		parse_inline(header_work, rndr, work[:size])
 
-    return end
+		if rndr.mk.header != nil {
+			rndr.mk.header(ob, header_work.Bytes(), level, rndr.mk.opaque)
+		}
+	}
+
+	return end
 }
 
 
@@ -1282,48 +1289,48 @@ func rndr_listitem(ob *bytes.Buffer, text []byte, flags int, opaque interface{})
 
 func rndr_paragraph(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	options := opaque.(*html_renderopts)
-    i := 0
+	i := 0
 
-    if ob.Len() > 0 {
-        ob.WriteByte('\n')
-    }
+	if ob.Len() > 0 {
+		ob.WriteByte('\n')
+	}
 
-    if len(text) == 0 {
-        return
-    }
+	if len(text) == 0 {
+		return
+	}
 
-    for i < len(text) && unicode.IsSpace(int(text[i])) {
-        i++
-    }
+	for i < len(text) && unicode.IsSpace(int(text[i])) {
+		i++
+	}
 
-    if i == len(text) {
-        return
-    }
+	if i == len(text) {
+		return
+	}
 
-    ob.WriteString("<p>")
-    if options.flags & HTML_HARD_WRAP != 0 {
-        for i < len(text) {
-            org := i
-            for i < len(text) && text[i] != '\n' {
-                i++
-            }
+	ob.WriteString("<p>")
+	if options.flags&HTML_HARD_WRAP != 0 {
+		for i < len(text) {
+			org := i
+			for i < len(text) && text[i] != '\n' {
+				i++
+			}
 
-            if i > org {
-                ob.Write(text[org:i])
-            }
+			if i > org {
+				ob.Write(text[org:i])
+			}
 
-            if i >= len(text) {
-                break
-            }
+			if i >= len(text) {
+				break
+			}
 
-            ob.WriteString("<br>")
-            ob.WriteString(options.close_tag)
-            i++
-        }
-    } else {
-        ob.Write(text[i:])
-    }
-    ob.WriteString("</p>\n")
+			ob.WriteString("<br>")
+			ob.WriteString(options.close_tag)
+			i++
+		}
+	} else {
+		ob.Write(text[i:])
+	}
+	ob.WriteString("</p>\n")
 }
 
 
@@ -1403,7 +1410,7 @@ func main() {
 	rndrer.hrule = rndr_hrule
 	rndrer.list = rndr_list
 	rndrer.listitem = rndr_listitem
-    rndrer.paragraph = rndr_paragraph
+	rndrer.paragraph = rndr_paragraph
 	rndrer.table = rndr_table
 	rndrer.table_row = rndr_tablerow
 	rndrer.table_cell = rndr_tablecell
