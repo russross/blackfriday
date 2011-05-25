@@ -145,7 +145,7 @@ func parse_block(ob *bytes.Buffer, rndr *render, data []byte) {
 			continue
 		}
 
-		data = data[1:]
+		data = data[parse_paragraph(ob, rndr, data):]
 	}
 }
 
@@ -191,6 +191,38 @@ func parse_atxheader(ob *bytes.Buffer, rndr *render, data []byte) int {
 		}
 	}
 	return skip
+}
+
+func is_headerline(data []byte) int {
+    i := 0
+
+    // test of level 1 header
+    if data[i] == '=' {
+        for i = 1; i < len(data) && data[i] == '='; i++ {}
+        for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
+            i++
+        }
+        if i >= len(data) || data[i] == '\n' {
+            return 1
+        } else {
+            return 0
+        }
+    }
+
+    // test of level 2 header
+    if data[i] == '-' {
+        for i = 1; i < len(data) && data[i] == '-'; i++ {}
+        for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
+            i++
+        }
+        if i >= len(data) || data[i] == '\n' {
+            return 2
+        } else {
+            return 0
+        }
+    }
+
+    return 0
 }
 
 func parse_htmlblock(ob *bytes.Buffer, rndr *render, data []byte, do_render bool) int {
@@ -851,18 +883,213 @@ func parse_list(ob *bytes.Buffer, rndr *render, data []byte, flags int) int {
 	return i
 }
 
+// parsing a single list item
+// assuming initial prefix is already removed
 func parse_listitem(ob *bytes.Buffer, rndr *render, data []byte, flags_in int) (size int, flags int) {
 	size, flags = 0, flags_in
 
 	// keeping book of the first indentation prefix
-	beg, end, pre, sublist, orgpre, i := 0, 0, 0, 0, 0
+	beg, end, pre, sublist, orgpre, i := 0, 0, 0, 0, 0, 0
 
 	for orgpre < 3 && orgpre < len(data) && data[orgpre] == ' ' {
 		orgpre++
 	}
 
-	// TODO: stopped here
+	beg = prefix_uli(data)
+	if beg == 0 {
+		beg = prefix_oli(data)
+	}
+	if beg == 0 {
+		return
+	}
+
+	// skipping to the beginning of the following line
+	end = beg
+	for end < len(data) && data[end-1] != '\n' {
+		end++
+	}
+
+	// getting working buffers
+	work := bytes.NewBuffer(nil)
+	inter := bytes.NewBuffer(nil)
+
+	// putting the first line into the working buffer
+	work.Write(data[beg:end])
+	beg = end
+
+	// process the following lines
+	in_empty, has_inside_empty := false, false
+	for beg < len(data) {
+		end++
+
+		for end < len(data) && data[end-1] != '\n' {
+			end++
+		}
+
+		// process an empty line
+		if is_empty(data[beg:end]) > 0 {
+			in_empty = true
+			beg = end
+			continue
+		}
+
+		// calculating the indentation
+		i = 0
+		for i < 4 && beg+i < end && data[beg+i] == ' ' {
+			i++
+		}
+
+		pre = i
+		if data[beg] == '\t' {
+			i = 1
+			pre = 8
+		}
+
+		// checking for a new item
+		chunk := data[beg+i : end]
+		if (prefix_uli(chunk) > 0 && !is_hrule(chunk)) || prefix_oli(chunk) > 0 {
+			if in_empty {
+				has_inside_empty = true
+			}
+
+			if pre == orgpre { // the following item must have
+				break // the same indentation
+			}
+
+			if sublist == 0 {
+				sublist = work.Len()
+			}
+		} else {
+			// joining only indented stuff after empty lines
+			if in_empty && i < 4 && data[beg] != '\t' {
+				flags |= MKD_LI_END
+				break
+			} else {
+				if in_empty {
+					work.WriteByte('\n')
+					has_inside_empty = true
+				}
+			}
+		}
+
+		in_empty = false
+
+		// adding the line without prefix into the working buffer
+		work.Write(data[beg+i : end])
+		beg = end
+	}
+
+	// render of li contents
+	if has_inside_empty {
+		flags |= MKD_LI_BLOCK
+	}
+
+	workbytes := work.Bytes()
+	if flags&MKD_LI_BLOCK != 0 {
+		// intermediate render of block li
+		if sublist > 0 && sublist < len(workbytes) {
+			parse_block(inter, rndr, workbytes[:sublist])
+			parse_block(inter, rndr, workbytes[sublist:])
+		} else {
+			parse_block(inter, rndr, workbytes)
+		}
+	} else {
+		// intermediate render of inline li
+		if sublist > 0 && sublist < len(workbytes) {
+			parse_inline(inter, rndr, workbytes[:sublist])
+			parse_inline(inter, rndr, workbytes[sublist:])
+		} else {
+			parse_inline(inter, rndr, workbytes)
+		}
+	}
+
+	// render of li itself
+	if rndr.mk.listitem != nil {
+		rndr.mk.listitem(ob, inter.Bytes(), flags, rndr.mk.opaque)
+	}
+
+	size = beg
 	return
+}
+
+func parse_paragraph(ob *bytes.Buffer, rndr *render, data []byte) int {
+    i, end, level := 0, 0, 0
+
+    for i < len(data) {
+        for end = i + 1; end < len(data) && data[end-1] != '\n'; end++ {}
+
+        if is_empty(data[i:]) > 0 {
+            break
+        }
+        if level = is_headerline(data[i:]); level > 0 {
+            break
+        }
+
+        if rndr.ext_flags & MKDEXT_LAX_HTML_BLOCKS  != 0 {
+            if data[i] == '<' && rndr.mk.blockhtml != nil && parse_htmlblock(ob, rndr, data[i:], false) > 0 {
+                end = i
+                break
+            }
+        }
+
+        if is_atxheader(rndr, data[i:]) || is_hrule(data[i:]) {
+            end = i
+            break
+        }
+
+        i = end
+    }
+
+    work := data
+    size := i
+    for size > 0 && work[size-1] == '\n' {
+        size--
+    }
+    
+    if level == 0 {
+        tmp := bytes.NewBuffer(nil)
+        parse_inline(tmp, rndr, work[:size])
+        if rndr.mk.paragraph != nil {
+            rndr.mk.paragraph(ob, tmp.Bytes(), rndr.mk.opaque)
+        }
+    } else {
+        if size > 0 {
+            beg := 0
+            i = size
+            size--
+
+            for size > 0 && work[size] != '\n' {
+                size--
+            }
+
+            beg = size + 1
+            for size > 0 && work[size-1] == '\n' {
+                size--
+            }
+
+            if size > 0 {
+                tmp := bytes.NewBuffer(nil)
+                parse_inline(tmp, rndr, work[:size])
+                if rndr.mk.paragraph != nil {
+                    rndr.mk.paragraph(ob, tmp.Bytes(), rndr.mk.opaque)
+                }
+
+                work = work[beg:]
+                size = i - beg
+            } else {
+                size = i
+            }
+        }
+
+        header_work := bytes.NewBuffer(nil)
+        parse_inline(header_work, rndr, work[:size])
+
+        if rndr.mk.header != nil {
+            rndr.mk.header(ob, header_work.Bytes(), level, rndr.mk.opaque)
+        }
+    }
+
+    return end
 }
 
 
@@ -1026,6 +1253,80 @@ func rndr_tablecell(ob *bytes.Buffer, text []byte, align int, opaque interface{}
 	ob.WriteString("</td>")
 }
 
+func rndr_list(ob *bytes.Buffer, text []byte, flags int, opaque interface{}) {
+	if ob.Len() > 0 {
+		ob.WriteByte('\n')
+	}
+	if flags&MKD_LIST_ORDERED != 0 {
+		ob.WriteString("<ol>\n")
+	} else {
+		ob.WriteString("<ul>\n")
+	}
+	ob.Write(text)
+	if flags&MKD_LIST_ORDERED != 0 {
+		ob.WriteString("</ol>\n")
+	} else {
+		ob.WriteString("</ul>\n")
+	}
+}
+
+func rndr_listitem(ob *bytes.Buffer, text []byte, flags int, opaque interface{}) {
+	ob.WriteString("<li>")
+	size := len(text)
+	for size > 0 && text[size-1] == '\n' {
+		size--
+	}
+	ob.Write(text[:size])
+	ob.WriteString("</li>\n")
+}
+
+func rndr_paragraph(ob *bytes.Buffer, text []byte, opaque interface{}) {
+	options := opaque.(*html_renderopts)
+    i := 0
+
+    if ob.Len() > 0 {
+        ob.WriteByte('\n')
+    }
+
+    if len(text) == 0 {
+        return
+    }
+
+    for i < len(text) && unicode.IsSpace(int(text[i])) {
+        i++
+    }
+
+    if i == len(text) {
+        return
+    }
+
+    ob.WriteString("<p>")
+    if options.flags & HTML_HARD_WRAP != 0 {
+        for i < len(text) {
+            org := i
+            for i < len(text) && text[i] != '\n' {
+                i++
+            }
+
+            if i > org {
+                ob.Write(text[org:i])
+            }
+
+            if i >= len(text) {
+                break
+            }
+
+            ob.WriteString("<br>")
+            ob.WriteString(options.close_tag)
+            i++
+        }
+    } else {
+        ob.Write(text[i:])
+    }
+    ob.WriteString("</p>\n")
+}
+
+
 func main() {
 	ob := bytes.NewBuffer(nil)
 	input := "##Header##\n"
@@ -1100,6 +1401,9 @@ func main() {
 	rndrer.blockhtml = rndr_raw_block
 	rndrer.header = rndr_header
 	rndrer.hrule = rndr_hrule
+	rndrer.list = rndr_list
+	rndrer.listitem = rndr_listitem
+    rndrer.paragraph = rndr_paragraph
 	rndrer.table = rndr_table
 	rndrer.table_row = rndr_tablerow
 	rndrer.table_cell = rndr_tablecell
