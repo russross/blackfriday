@@ -399,11 +399,80 @@ func char_emphasis(ob *bytes.Buffer, rndr *render, data []byte, offset int) int 
 
 func char_codespan(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	data = data[offset:]
-	return 0
+
+	nb := 0
+
+	// counting the number of backticks in the delimiter
+	for nb < len(data) && data[nb] == '`' {
+		nb++
+	}
+
+	// finding the next delimiter
+	i, end := 0, 0
+	for end = nb; end < len(data) && i < nb; end++ {
+		if data[end] == '`' {
+			i++
+		} else {
+			i = 0
+		}
+	}
+
+	if i < nb && end >= len(data) {
+		return 0 // no matching delimiter
+	}
+
+	// trim outside whitespace
+	f_begin := nb
+	for f_begin < end && (data[f_begin] == ' ' || data[f_begin] == '\t') {
+		f_begin++
+	}
+
+	f_end := end - nb
+	for f_end > nb && (data[f_end-1] == ' ' || data[f_end-1] == '\t') {
+		f_end--
+	}
+
+	// real code span
+	if rndr.mk.codespan == nil {
+		return 0
+	}
+	if f_begin < f_end {
+		if rndr.mk.codespan(ob, data[f_end:f_end], rndr.mk.opaque) == 0 {
+			end = 0
+		}
+	} else {
+		if rndr.mk.codespan(ob, nil, rndr.mk.opaque) == 0 {
+			end = 0
+		}
+	}
+
+	return end
+
 }
 
+// '\n' preceded by two spaces
 func char_linebreak(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
-	data = data[offset:]
+	if offset < 2 || data[offset-1] != ' ' || data[offset-2] != ' ' {
+		return 0
+	}
+
+	// remove trailing spaces from ob and render
+	ob_bytes := ob.Bytes()
+	end := len(ob_bytes)
+	for end > 0 && ob_bytes[end-1] == ' ' {
+		end--
+	}
+	ob.Truncate(end)
+
+	if rndr.mk.linebreak == nil {
+		return 0
+	}
+	if rndr.mk.linebreak(ob, rndr.mk.opaque) > 0 {
+		return 1
+	} else {
+		return 0
+	}
+
 	return 0
 }
 
@@ -412,19 +481,79 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	return 0
 }
 
+// '<' when tags or autolinks are allowed
 func char_langle_tag(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	data = data[offset:]
-	return 0
+	altype := MKDA_NOT_AUTOLINK
+	end := tag_length(data, &altype)
+	ret := 0
+
+	if end > 2 {
+		switch {
+		case rndr.mk.autolink != nil && altype != MKDA_NOT_AUTOLINK:
+			u_link := bytes.NewBuffer(nil)
+			unscape_text(u_link, data[1:end-2])
+			ret = rndr.mk.autolink(ob, u_link.Bytes(), altype, rndr.mk.opaque)
+		case rndr.mk.raw_html_tag != nil:
+			ret = rndr.mk.raw_html_tag(ob, data[:end], rndr.mk.opaque)
+		}
+	}
+
+	if ret == 0 {
+		return 0
+	}
+	return end
 }
+
+// '\\' backslash escape
+var escape_chars = []byte("\\`*_{}[]()#+-.!:|&<>")
 
 func char_escape(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	data = data[offset:]
-	return 0
+
+	if len(data) > 1 {
+		if bytes.IndexByte(escape_chars, data[1]) < 0 {
+			return 0
+		}
+
+		if rndr.mk.normal_text != nil {
+			rndr.mk.normal_text(ob, data[1:2], rndr.mk.opaque)
+		} else {
+			ob.WriteByte(data[1])
+		}
+	}
+
+	return 2
 }
 
+// '&' escaped when it doesn't belong to an entity
+// valid entities are assumed to be anything matching &#?[A-Za-z0-9]+;
 func char_entity(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	data = data[offset:]
-	return 0
+
+	end := 1
+
+	if end < len(data) && data[end] == '#' {
+		end++
+	}
+
+	for end < len(data) && (unicode.IsDigit(int(data[end])) || unicode.IsLetter(int(data[end]))) {
+		end++
+	}
+
+	if end < len(data) && data[end] == ';' {
+		end++ // real entity
+	} else {
+		return 0 // lone '&'
+	}
+
+	if rndr.mk.entity != nil {
+		rndr.mk.entity(ob, data[:end], rndr.mk.opaque)
+	} else {
+		ob.Write(data[:end])
+	}
+
+	return end
 }
 
 func char_autolink(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
@@ -441,6 +570,122 @@ func ispunct(c int) bool {
 		}
 	}
 	return false
+}
+
+// return the length of the given tag, or 0 is it's not valid
+func tag_length(data []byte, autolink *int) int {
+	var i, j int
+
+	// a valid tag can't be shorter than 3 chars
+	if len(data) < 3 {
+		return 0
+	}
+
+	// begins with a '<' optionally followed by '/', followed by letter or number
+	if data[0] != '<' {
+		return 0
+	}
+	if data[1] == '/' {
+		i = 2
+	} else {
+		i = 1
+	}
+
+	if !unicode.IsDigit(int(data[i])) && !unicode.IsLetter(int(data[i])) {
+		return 0
+	}
+
+	// scheme test
+	*autolink = MKDA_NOT_AUTOLINK
+
+	// try to find the beggining of an URI
+	for i < len(data) && ((unicode.IsLetter(int(data[i])) || unicode.IsDigit(int(data[i]))) || data[i] == '.' || data[i] == '+' || data[i] == '-') {
+		i++
+	}
+
+	if i > 1 && data[i] == '@' {
+		if j = is_mail_autolink(data[i:]); j != 0 {
+			*autolink = MKDA_EMAIL
+			return i + j
+		}
+	}
+
+	if i > 2 && data[i] == ':' {
+		*autolink = MKDA_NORMAL
+		i++
+	}
+
+	// complete autolink test: no whitespace or ' or "
+	switch {
+	case i >= len(data):
+		*autolink = MKDA_NOT_AUTOLINK
+	case *autolink != 0:
+		j = i
+
+		for i < len(data) {
+			if data[i] == '\\' {
+				i += 2
+			} else {
+				if data[i] == '>' || data[i] == '\'' || data[i] == '"' || unicode.IsSpace(int(data[i])) {
+					break
+				} else {
+					i++
+				}
+			}
+
+		}
+
+		if i >= len(data) {
+			return 0
+		}
+		if i > j && data[i] == '>' {
+			return i + 1
+		}
+
+		// one of the forbidden chars has been found
+		*autolink = MKDA_NOT_AUTOLINK
+	}
+
+	// looking for sometinhg looking like a tag end
+	for i < len(data) && data[i] != '>' {
+		i++
+	}
+	if i >= len(data) {
+		return 0
+	}
+	return i + 1
+}
+
+// look for the address part of a mail autolink and '>'
+// this is less strict than the original markdown e-mail address matching
+func is_mail_autolink(data []byte) int {
+	nb := 0
+
+	// address is assumed to be: [-@._a-zA-Z0-9]+ with exactly one '@'
+	for i := 0; i < len(data); i++ {
+		if unicode.IsLetter(int(data[i])) || unicode.IsDigit(int(data[i])) {
+			continue
+		}
+
+		switch data[i] {
+		case '@':
+			nb++
+
+		case '-', '.', '_':
+			break
+
+		case '>':
+			if nb == 1 {
+				return i + 1
+			} else {
+				return 0
+			}
+		default:
+			return 0
+		}
+	}
+
+	return 0
 }
 
 // look for the next emph char, skipping other constructs
@@ -1692,6 +1937,27 @@ type html_renderopts struct {
 
 func attr_escape(ob *bytes.Buffer, src []byte) {
 	ob.WriteString(html.EscapeString(string(src)))
+}
+
+func unscape_text(ob *bytes.Buffer, src []byte) {
+	i := 0
+	for i < len(src) {
+		org := i
+		for i < len(src) && src[i] != '\\' {
+			i++
+		}
+
+		if i > org {
+			ob.Write(src[org:i])
+		}
+
+		if i+1 >= len(src) {
+			break
+		}
+
+		ob.WriteByte(src[i+1])
+		i += 2
+	}
 }
 
 func rndr_header(ob *bytes.Buffer, text []byte, level int, opaque interface{}) {
