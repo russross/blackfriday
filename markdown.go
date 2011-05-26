@@ -115,8 +115,10 @@ func (elt link_ref_array) Len() int {
 }
 
 func (elt link_ref_array) Less(i, j int) bool {
-	a, b := elt[i].id, elt[j].id
+	return byteslice_less(elt[i].id, elt[j].id)
+}
 
+func byteslice_less(a []byte, b []byte) bool {
 	// adapted from bytes.Compare in stdlib
 	m := len(a)
 	if m > len(b) {
@@ -476,8 +478,258 @@ func char_linebreak(ob *bytes.Buffer, rndr *render, data []byte, offset int) int
 	return 0
 }
 
+// '[': parsing a link or an image
 func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+	is_img := offset > 0 && data[offset-1] == '!'
+
 	data = data[offset:]
+
+	i := 1
+	var title, link []byte
+	text_has_nl := false
+
+	// checking whether the correct renderer exists
+	if (is_img && rndr.mk.image == nil) || (!is_img && rndr.mk.link == nil) {
+		return 0
+	}
+
+	// looking for the matching closing bracket
+	for level := 1; level > 0 && i < len(data); i++ {
+		switch {
+		case data[i] == '\n':
+			text_has_nl = true
+
+		case data[i-1] == '\\':
+			continue
+
+		case data[i] == '[':
+			level++
+
+		case data[i] == ']':
+			level--
+		}
+	}
+
+	if i >= len(data) {
+		return 0
+	}
+
+	txt_e := i
+	i++
+
+	// skip any amount of whitespace or newline
+	// (this is much more laxist than original markdown syntax)
+	for i < len(data) && unicode.IsSpace(int(data[i])) {
+		i++
+	}
+
+	// inline style link
+	switch {
+	case i < len(data) && data[i] == '(':
+		// skipping initial whitespace
+		i++
+
+		for i < len(data) && unicode.IsSpace(int(data[i])) {
+			i++
+		}
+
+		link_b := i
+
+		// looking for link end: ' " )
+		for i < len(data) {
+			if data[i] == '\\' {
+				i += 2
+			} else {
+				if data[i] == ')' || data[i] == '\'' || data[i] == '"' {
+					break
+				}
+				i++
+			}
+		}
+
+		if i >= len(data) {
+			return 0
+		}
+		link_e := i
+
+		// looking for title end if present
+		title_b, title_e := 0, 0
+		if data[i] == '\'' || data[i] == '"' {
+			i++
+			title_b = i
+
+			for i < len(data) {
+				if data[i] == '\\' {
+					i += 2
+				} else {
+					if data[i] == ')' {
+						break
+					}
+					i++
+				}
+			}
+
+			if i >= len(data) {
+				return 0
+			}
+
+			// skipping whitespaces after title
+			title_e = i - 1
+			for title_e > title_b && unicode.IsSpace(int(data[title_e])) {
+				title_e--
+			}
+
+			// checking for closing quote presence
+			if data[title_e] != '\'' && data[title_e] != '"' {
+				title_b, title_e = 0, 0
+				link_e = i
+			}
+		}
+
+		// remove whitespace at the end of the link
+		for link_e > link_b && unicode.IsSpace(int(data[link_e-1])) {
+			link_e--
+		}
+
+		// remove optional angle brackets around the link
+		if data[link_b] == '<' {
+			link_b++
+		}
+		if data[link_e-1] == '>' {
+			link_e--
+		}
+
+		// building escaped link and title
+		if link_e > link_b {
+			link = data[link_b:link_e]
+		}
+
+		if title_e > title_b {
+			title = data[title_b:title_e]
+		}
+
+		i++
+
+	// reference style link
+	case i < len(data) && data[i] == '[':
+		var id []byte
+
+		// looking for the id
+		i++
+		link_b := i
+		for i < len(data) && data[i] != ']' {
+			i++
+		}
+		if i >= len(data) {
+			return 0
+		}
+		link_e := i
+
+		// find the link_ref
+		if link_b == link_e {
+			if text_has_nl {
+				b := bytes.NewBuffer(nil)
+
+				for j := 1; j < txt_e; j++ {
+					switch {
+					case data[j] != '\n':
+						b.WriteByte(data[j])
+					case data[j-1] != ' ':
+						b.WriteByte(' ')
+					}
+				}
+
+				id = b.Bytes()
+			} else {
+				id = data[1:txt_e]
+			}
+		} else {
+			id = data[link_b:link_e]
+		}
+
+		// find the link_ref with matching id
+		index := sort.Search(len(rndr.refs), func(i int) bool { return !byteslice_less(rndr.refs[i].id, id) })
+		if index >= len(rndr.refs) || !bytes.Equal(rndr.refs[index].id, id) {
+			return 0
+		}
+		lr := rndr.refs[index]
+
+		// keep link and title from link_ref
+		link = lr.link
+		title = lr.title
+		i++
+
+	// shortcut reference style link
+	default:
+		var id []byte
+
+		// crafting the id
+		if text_has_nl {
+			b := bytes.NewBuffer(nil)
+
+			for j := 1; j < txt_e; j++ {
+				switch {
+				case data[j] != '\n':
+					b.WriteByte(data[j])
+				case data[j-1] != ' ':
+					b.WriteByte(' ')
+				}
+			}
+
+			id = b.Bytes()
+		} else {
+			id = data[1:txt_e]
+		}
+
+		// find the link_ref with matching id
+		index := sort.Search(len(rndr.refs), func(i int) bool { return !byteslice_less(rndr.refs[i].id, id) })
+		if index >= len(rndr.refs) || !bytes.Equal(rndr.refs[index].id, id) {
+			return 0
+		}
+		lr := rndr.refs[index]
+
+		// keep link and title from link_ref
+		link = lr.link
+		title = lr.title
+
+		// rewinding the whitespace
+		i = txt_e + 1
+	}
+
+	// building content: img alt is escaped, link content is parsed
+	content := bytes.NewBuffer(nil)
+	if txt_e > 1 {
+		if is_img {
+			content.Write(data[1:txt_e])
+		} else {
+			parse_inline(content, rndr, data[1:txt_e])
+		}
+	}
+
+	var u_link []byte
+	if len(link) > 0 {
+		u_link_buf := bytes.NewBuffer(nil)
+		unscape_text(u_link_buf, link)
+		u_link = u_link_buf.Bytes()
+	}
+
+	// calling the relevant rendering function
+	ret := 0
+	if is_img {
+		ob_size := ob.Len()
+		ob_bytes := ob.Bytes()
+		if ob_size > 0 && ob_bytes[ob_size-1] == '!' {
+			ob.Truncate(ob_size - 1)
+		}
+
+		ret = rndr.mk.image(ob, u_link, title, content.Bytes(), rndr.mk.opaque)
+	} else {
+		ret = rndr.mk.link(ob, u_link, title, content.Bytes(), rndr.mk.opaque)
+	}
+
+	if ret > 0 {
+		return i
+	}
 	return 0
 }
 
@@ -557,10 +809,110 @@ func char_entity(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 }
 
 func char_autolink(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
-	//orig_data := data
+	orig_data := data
 	data = data[offset:]
-	return 0
+
+	if offset > 0 {
+		if !unicode.IsSpace(int(orig_data[offset-1])) && !ispunct(int(orig_data[offset-1])) {
+			return 0
+		}
+	}
+
+	if !is_safe_link(data) {
+		return 0
+	}
+
+	link_end := 0
+	for link_end < len(data) && !unicode.IsSpace(int(data[link_end])) {
+		link_end++
+	}
+
+	// Skip punctuation at the end of the link
+	if (data[link_end-1] == '.' || data[link_end-1] == ',' || data[link_end-1] == ';') && data[link_end-2] != '\\' {
+		link_end--
+	}
+
+	// See if the link finishes with a punctuation sign that can be closed.
+	var copen byte
+	switch data[link_end-1] {
+	case '"':
+		copen = '"'
+	case '\'':
+		copen = '\''
+	case ')':
+		copen = '('
+	case ']':
+		copen = '['
+	case '}':
+		copen = '{'
+	default:
+		copen = 0
+	}
+
+	if copen != 0 {
+		buf_end := offset + link_end - 2
+
+		open_delim := 1
+
+		/* Try to close the final punctuation sign in this same line;
+		 * if we managed to close it outside of the URL, that means that it's
+		 * not part of the URL. If it closes inside the URL, that means it
+		 * is part of the URL.
+		 *
+		 * Examples:
+		 *
+		 *      foo http://www.pokemon.com/Pikachu_(Electric) bar
+		 *              => http://www.pokemon.com/Pikachu_(Electric)
+		 *
+		 *      foo (http://www.pokemon.com/Pikachu_(Electric)) bar
+		 *              => http://www.pokemon.com/Pikachu_(Electric)
+		 *
+		 *      foo http://www.pokemon.com/Pikachu_(Electric)) bar
+		 *              => http://www.pokemon.com/Pikachu_(Electric))
+		 *
+		 *      (foo http://www.pokemon.com/Pikachu_(Electric)) bar
+		 *              => foo http://www.pokemon.com/Pikachu_(Electric)
+		 */
+
+		for buf_end >= 0 && orig_data[buf_end] != '\n' && open_delim != 0 {
+			if orig_data[buf_end] == data[link_end-1] {
+				open_delim++
+			}
+
+			if orig_data[buf_end] == copen {
+				open_delim--
+			}
+
+			buf_end--
+		}
+
+		if open_delim == 0 {
+			link_end--
+		}
+	}
+
+	if rndr.mk.autolink != nil {
+		u_link := bytes.NewBuffer(nil)
+		unscape_text(u_link, data[:link_end])
+
+		rndr.mk.autolink(ob, u_link.Bytes(), MKDA_NORMAL, rndr.mk.opaque)
+	}
+
+	return link_end
 }
+
+var valid_uris = [][]byte{[]byte("http://"), []byte("https://"), []byte("ftp://"), []byte("mailto://")}
+
+func is_safe_link(link []byte) bool {
+	for _, prefix := range valid_uris {
+		if len(link) > len(prefix) && !byteslice_less(link[:len(prefix)], prefix) && !byteslice_less(prefix, link[:len(prefix)]) && (unicode.IsLetter(int(link[len(prefix)])) || unicode.IsDigit(int(link[len(prefix)]))) {
+			return true
+		}
+	}
+
+	return false
+}
+
 
 // taken from regexp in the stdlib
 func ispunct(c int) bool {
@@ -696,6 +1048,9 @@ func find_emph_char(data []byte, c byte) int {
 		for i < len(data) && data[i] != c && data[i] != '`' && data[i] != '[' {
 			i++
 		}
+        if i >= len(data) {
+            return 0
+        }
 		if data[i] == c {
 			return i
 		}
@@ -2161,6 +2516,16 @@ func rndr_paragraph(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	ob.WriteString("</p>\n")
 }
 
+func rndr_emphasis(ob *bytes.Buffer, text []byte, opaque interface{}) int {
+    if len(text) == 0 {
+        return 0
+    }
+    ob.WriteString("<em>")
+    ob.Write(text)
+    ob.WriteString("</em>")
+    return 1
+}
+
 
 func main() {
 	ob := bytes.NewBuffer(nil)
@@ -2243,6 +2608,9 @@ func main() {
 	rndrer.table = rndr_table
 	rndrer.table_row = rndr_tablerow
 	rndrer.table_cell = rndr_tablecell
+
+    rndrer.emphasis = rndr_emphasis
+
 	rndrer.opaque = &html_renderopts{close_tag: " />"}
 	var extensions uint32 = MKDEXT_FENCED_CODE | MKDEXT_TABLES
 	Markdown(ob, ib, rndrer, extensions)
