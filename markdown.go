@@ -78,16 +78,16 @@ type mkd_renderer struct {
 	table_cell func(ob *bytes.Buffer, text []byte, flags int, opaque interface{})
 
 	// span-level callbacks---nil or return 0 prints the span verbatim
-	autolink        func(ob *bytes.Buffer, link []byte, kind int, opaque interface{})
-	codespan        func(ob *bytes.Buffer, text []byte, opaque interface{})
-	double_emphasis func(ob *bytes.Buffer, text []byte, opaque interface{})
-	emphasis        func(ob *bytes.Buffer, text []byte, opaque interface{})
-	image           func(ob *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{})
-	linebreak       func(ob *bytes.Buffer, opaque interface{})
-	link            func(ob *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{})
-	raw_html_tag    func(ob *bytes.Buffer, tag []byte, opaque interface{})
-	triple_emphasis func(ob *bytes.Buffer, text []byte, opaque interface{})
-	strikethrough   func(ob *bytes.Buffer, text []byte, opaque interface{})
+	autolink        func(ob *bytes.Buffer, link []byte, kind int, opaque interface{}) int
+	codespan        func(ob *bytes.Buffer, text []byte, opaque interface{}) int
+	double_emphasis func(ob *bytes.Buffer, text []byte, opaque interface{}) int
+	emphasis        func(ob *bytes.Buffer, text []byte, opaque interface{}) int
+	image           func(ob *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{}) int
+	linebreak       func(ob *bytes.Buffer, opaque interface{}) int
+	link            func(ob *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{}) int
+	raw_html_tag    func(ob *bytes.Buffer, tag []byte, opaque interface{}) int
+	triple_emphasis func(ob *bytes.Buffer, text []byte, opaque interface{}) int
+	strikethrough   func(ob *bytes.Buffer, text []byte, opaque interface{}) int
 
 	// low-level callbacks---nil copies input directly into the output
 	entity      func(ob *bytes.Buffer, entity []byte, opaque interface{})
@@ -310,17 +310,9 @@ const (
 //   returns the number of chars taken care of
 //   data is the complete block being rendered
 //   offset is the number of valid chars before the data
-var markdown_char_ptrs = [...]func(ob *bytes.Buffer, rndr *render, data []byte, offset int) int{
-	nil,
-	char_emphasis,
-	char_codespan,
-	char_linebreak,
-	char_link,
-	char_langle_tag,
-	char_escape,
-	char_entity,
-	char_autolink,
-}
+//
+// Note: this is filled in in Markdown to prevent an initilization loop
+var markdown_char_ptrs [9]func(ob *bytes.Buffer, rndr *render, data []byte, offset int) int
 
 func parse_inline(ob *bytes.Buffer, rndr *render, data []byte) {
 	if rndr.nesting >= rndr.max_nesting {
@@ -361,38 +353,303 @@ func parse_inline(ob *bytes.Buffer, rndr *render, data []byte) {
 	rndr.nesting--
 }
 
+// single and double emphasis parsing
 func char_emphasis(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+	data = data[offset:]
+	c := data[0]
+	ret := 0
+
+	if len(data) > 2 && data[1] != c {
+		// whitespace cannot follow an opening emphasis;
+		// strikethrough only takes two characters '~~'
+		if c == '~' || unicode.IsSpace(int(data[1])) {
+			return 0
+		}
+		if ret = parse_emph1(ob, rndr, data[1:], c); ret == 0 {
+			return 0
+		}
+
+		return ret + 1
+	}
+
+	if len(data) > 3 && data[1] == c && data[2] != c {
+		if unicode.IsSpace(int(data[2])) {
+			return 0
+		}
+		if ret = parse_emph2(ob, rndr, data[2:], c); ret == 0 {
+			return 0
+		}
+
+		return ret + 2
+	}
+
+	if len(data) > 4 && data[1] == c && data[2] == c && data[3] != c {
+		if c == '~' || unicode.IsSpace(int(data[3])) {
+			return 0
+		}
+		if ret = parse_emph3(ob, rndr, data, 3, c); ret == 0 {
+			return 0
+		}
+
+		return ret + 3
+	}
+
 	return 0
 }
 
 func char_codespan(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+	data = data[offset:]
 	return 0
 }
 
 func char_linebreak(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+	data = data[offset:]
 	return 0
 }
 
 func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+	data = data[offset:]
 	return 0
 }
 
 func char_langle_tag(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+	data = data[offset:]
 	return 0
 }
 
 func char_escape(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+	data = data[offset:]
 	return 0
 }
 
 func char_entity(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+	data = data[offset:]
 	return 0
 }
 
 func char_autolink(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+	//orig_data := data
+	data = data[offset:]
 	return 0
 }
 
+// taken from regexp in the stdlib
+func ispunct(c int) bool {
+	for _, r := range "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~" {
+		if c == r {
+			return true
+		}
+	}
+	return false
+}
+
+// look for the next emph char, skipping other constructs
+func find_emph_char(data []byte, c byte) int {
+	i := 1
+
+	for i < len(data) {
+		for i < len(data) && data[i] != c && data[i] != '`' && data[i] != '[' {
+			i++
+		}
+		if data[i] == c {
+			return i
+		}
+
+		// do not count escaped chars
+		if i != 0 && data[i-1] == '\\' {
+			i++
+			continue
+		}
+
+		if data[i] == '`' {
+			// skip a code span
+			tmp_i := 0
+			i++
+			for i < len(data) && data[i] != '`' {
+				if tmp_i == 0 && data[i] == c {
+					tmp_i = i
+				}
+				i++
+			}
+			if i >= len(data) {
+				return tmp_i
+			}
+			i++
+		} else {
+			if data[i] == '[' {
+				// skip a link
+				tmp_i := 0
+				i++
+				for i < len(data) && data[i] != ']' {
+					if tmp_i == 0 && data[i] == c {
+						tmp_i = i
+					}
+					i++
+				}
+				i++
+				for i < len(data) && (data[i] == ' ' || data[i] == '\t' || data[i] == '\n') {
+					i++
+				}
+				if i >= len(data) {
+					return tmp_i
+				}
+				if data[i] != '[' && data[i] != '(' { // not a link
+					if tmp_i > 0 {
+						return tmp_i
+					} else {
+						continue
+					}
+				}
+				cc := data[i]
+				i++
+				for i < len(data) && data[i] != cc {
+					if tmp_i == 0 && data[i] == c {
+						tmp_i = i
+					}
+					i++
+				}
+				if i >= len(data) {
+					return tmp_i
+				}
+				i++
+			}
+		}
+	}
+	return 0
+}
+
+func parse_emph1(ob *bytes.Buffer, rndr *render, data []byte, c byte) int {
+	i := 0
+
+	if rndr.mk.emphasis == nil {
+		return 0
+	}
+
+	// skip one symbol if coming from emph3
+	if len(data) > 1 && data[0] == c && data[1] == c {
+		i = 1
+	}
+
+	for i < len(data) {
+		length := find_emph_char(data[i:], c)
+		if length == 0 {
+			return 0
+		}
+		i += length
+		if i >= len(data) {
+			return 0
+		}
+
+		if i+1 < len(data) && data[i+1] == c {
+			i++
+			continue
+		}
+
+		if data[i] == c && !unicode.IsSpace(int(data[i-1])) {
+
+			if rndr.ext_flags&MKDEXT_NO_INTRA_EMPHASIS != 0 {
+				if !(i+1 == len(data) || unicode.IsSpace(int(data[i+1])) || ispunct(int(data[i+1]))) {
+					continue
+				}
+			}
+
+			work := bytes.NewBuffer(nil)
+			parse_inline(work, rndr, data[:i])
+			r := rndr.mk.emphasis(ob, work.Bytes(), rndr.mk.opaque)
+			if r > 0 {
+				return i + 1
+			} else {
+				return 0
+			}
+		}
+	}
+
+	return 0
+}
+
+func parse_emph2(ob *bytes.Buffer, rndr *render, data []byte, c byte) int {
+	render_method := rndr.mk.double_emphasis
+	if c == '~' {
+		render_method = rndr.mk.strikethrough
+	}
+
+	if render_method == nil {
+		return 0
+	}
+
+	i := 0
+
+	for i < len(data) {
+		length := find_emph_char(data[i:], c)
+		if length == 0 {
+			return 0
+		}
+		i += length
+
+		if i+1 < len(data) && data[i] == c && data[i+1] == c && i > 0 && !unicode.IsSpace(int(data[i-1])) {
+			work := bytes.NewBuffer(nil)
+			parse_inline(work, rndr, data[:i])
+			r := render_method(ob, work.Bytes(), rndr.mk.opaque)
+			if r > 0 {
+				return i + 2
+			} else {
+				return 0
+			}
+		}
+		i++
+	}
+	return 0
+}
+
+func parse_emph3(ob *bytes.Buffer, rndr *render, data []byte, offset int, c byte) int {
+	i := 0
+	orig_data := data
+	data = data[offset:]
+
+	for i < len(data) {
+		length := find_emph_char(data[i:], c)
+		if length == 0 {
+			return 0
+		}
+		i += length
+
+		// skip whitespace preceded symbols
+		if data[i] != c || unicode.IsSpace(int(data[i-1])) {
+			continue
+		}
+
+		switch {
+		case (i+2 < len(data) && data[i+1] == c && data[i+2] == c && rndr.mk.triple_emphasis != nil):
+			// triple symbol found
+			work := bytes.NewBuffer(nil)
+
+			parse_inline(work, rndr, data[:i])
+			r := rndr.mk.triple_emphasis(ob, work.Bytes(), rndr.mk.opaque)
+			if r > 0 {
+				return i + 3
+			} else {
+				return 0
+			}
+		case (i+1 < len(data) && data[i+1] == c):
+			// double symbol found, handing over to emph1
+			length = parse_emph1(ob, rndr, orig_data[offset-2:], c)
+			if length == 0 {
+				return 0
+			} else {
+				return length - 2
+			}
+		default:
+			// single symbol found, handing over to emph2
+			length = parse_emph2(ob, rndr, orig_data[offset-1:], c)
+			if length == 0 {
+				return 0
+			} else {
+				return length - 1
+			}
+		}
+	}
+	return 0
+}
 
 // parse block-level data
 func parse_block(ob *bytes.Buffer, rndr *render, data []byte) {
@@ -1761,6 +2018,17 @@ func Markdown(ob *bytes.Buffer, ib []byte, rndrer *mkd_renderer, extensions uint
 	if rndrer == nil {
 		return
 	}
+
+	// fill in the character-level parsers
+	markdown_char_ptrs[MD_CHAR_NONE] = nil
+	markdown_char_ptrs[MD_CHAR_EMPHASIS] = char_emphasis
+	markdown_char_ptrs[MD_CHAR_CODESPAN] = char_codespan
+	markdown_char_ptrs[MD_CHAR_LINEBREAK] = char_linebreak
+	markdown_char_ptrs[MD_CHAR_LINK] = char_link
+	markdown_char_ptrs[MD_CHAR_LANGLE] = char_langle_tag
+	markdown_char_ptrs[MD_CHAR_ESCAPE] = char_escape
+	markdown_char_ptrs[MD_CHAR_ENTITITY] = char_entity
+	markdown_char_ptrs[MD_CHAR_AUTOLINK] = char_autolink
 
 	// fill in the render structure
 	rndr := new(render)
