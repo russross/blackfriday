@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"html"
+	"sort"
 	"unicode"
 )
 
@@ -76,24 +77,194 @@ type mkd_renderer struct {
 	table_row  func(ob *bytes.Buffer, text []byte, opaque interface{})
 	table_cell func(ob *bytes.Buffer, text []byte, flags int, opaque interface{})
 
+	// span-level callbacks---nil or return 0 prints the span verbatim
+	autolink        func(ob *bytes.Buffer, link []byte, kind int, opaque interface{})
+	codespan        func(ob *bytes.Buffer, text []byte, opaque interface{})
+	double_emphasis func(ob *bytes.Buffer, text []byte, opaque interface{})
+	emphasis        func(ob *bytes.Buffer, text []byte, opaque interface{})
+	image           func(ob *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{})
+	linebreak       func(ob *bytes.Buffer, opaque interface{})
+	link            func(ob *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{})
+	raw_html_tag    func(ob *bytes.Buffer, tag []byte, opaque interface{})
+	triple_emphasis func(ob *bytes.Buffer, text []byte, opaque interface{})
+	strikethrough   func(ob *bytes.Buffer, text []byte, opaque interface{})
+
+	// low-level callbacks---nil copies input directly into the output
+	entity      func(ob *bytes.Buffer, entity []byte, opaque interface{})
+	normal_text func(ob *bytes.Buffer, text []byte, opaque interface{})
+
+	// header and footer
+	doc_header func(ob *bytes.Buffer, opaque interface{})
+	doc_footer func(ob *bytes.Buffer, opaque interface{})
+
 	// user data---passed back to every callback
 	opaque interface{}
 }
 
-type render struct {
-	mk        mkd_renderer
-	ext_flags uint32
-	// ...
+type link_ref struct {
+	id    []byte
+	link  []byte
+	title []byte
 }
 
-func parse_inline(work *bytes.Buffer, rndr *render, data []byte) {
-	// TODO: inline rendering
-	work.Write(data)
+type link_ref_array []*link_ref
+
+// implement the sorting interface
+func (elt link_ref_array) Len() int {
+	return len(elt)
 }
+
+func (elt link_ref_array) Less(i, j int) bool {
+	a, b := elt[i].id, elt[j].id
+
+	// adapted from bytes.Compare in stdlib
+	m := len(a)
+	if m > len(b) {
+		m = len(b)
+	}
+	for i, ac := range a[0:m] {
+		// do a case-insensitive comparison
+		ai, bi := unicode.ToLower(int(ac)), unicode.ToLower(int(b[i]))
+		switch {
+		case ai > bi:
+			return false
+		case ai < bi:
+			return true
+		}
+	}
+	switch {
+	case len(a) < len(b):
+		return true
+	case len(a) > len(b):
+		return false
+	}
+	return false
+}
+
+func (elt link_ref_array) Swap(i, j int) {
+	elt[i], elt[j] = elt[j], elt[i]
+}
+
+func is_ref(data []byte, beg int, last *int, rndr *render) bool {
+	// TODO: stopped here
+	return false
+}
+
+type render struct {
+	mk          *mkd_renderer
+	refs        link_ref_array
+	active_char [256]int
+	ext_flags   uint32
+	nesting     int
+	max_nesting int
+}
+
+const (
+	MD_CHAR_NONE = iota
+	MD_CHAR_EMPHASIS
+	MD_CHAR_CODESPAN
+	MD_CHAR_LINEBREAK
+	MD_CHAR_LINK
+	MD_CHAR_LANGLE
+	MD_CHAR_ESCAPE
+	MD_CHAR_ENTITITY
+	MD_CHAR_AUTOLINK
+)
+
+// closures to render active chars, each:
+//   returns the number of chars taken care of
+//   data is the complete block being rendered
+//   offset is the number of valid chars before the data
+var markdown_char_ptrs = [...]func(ob *bytes.Buffer, rndr *render, data []byte, offset int) int{
+	nil,
+	char_emphasis,
+	char_codespan,
+	char_linebreak,
+	char_link,
+	char_langle_tag,
+	char_escape,
+	char_entity,
+	char_autolink,
+}
+
+func parse_inline(ob *bytes.Buffer, rndr *render, data []byte) {
+	if rndr.nesting >= rndr.max_nesting {
+		return
+	}
+	rndr.nesting++
+
+	i, end := 0, 0
+	for i < len(data) {
+		// copy inactive chars into the output
+		for end < len(data) && rndr.active_char[data[end]] == 0 {
+			end++
+		}
+
+		if rndr.mk.normal_text != nil {
+			rndr.mk.normal_text(ob, data[i:], rndr.mk.opaque)
+		} else {
+			ob.Write(data[i:])
+		}
+
+		if end >= len(data) {
+			break
+		}
+		i = end
+
+		// call the trigger
+		action := rndr.active_char[data[end]]
+		end = markdown_char_ptrs[action](ob, rndr, data, i)
+
+		if end == 0 { // no action from the callback
+			end = i + 1
+		} else {
+			i += end
+			end = i
+		}
+	}
+
+	rndr.nesting--
+}
+
+func char_emphasis(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+	return 0
+}
+
+func char_codespan(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+	return 0
+}
+
+func char_linebreak(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+	return 0
+}
+
+func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+	return 0
+}
+
+func char_langle_tag(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+	return 0
+}
+
+func char_escape(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+	return 0
+}
+
+func char_entity(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+	return 0
+}
+
+func char_autolink(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+	return 0
+}
+
 
 // parse block-level data
 func parse_block(ob *bytes.Buffer, rndr *render, data []byte) {
-	// TODO: quit if max_nesting exceeded
+	if rndr.nesting >= rndr.max_nesting {
+		return
+	}
+	rndr.nesting++
 
 	for len(data) > 0 {
 		if is_atxheader(rndr, data) {
@@ -151,6 +322,8 @@ func parse_block(ob *bytes.Buffer, rndr *render, data []byte) {
 
 		data = data[parse_paragraph(ob, rndr, data):]
 	}
+
+	rndr.nesting--
 }
 
 func is_atxheader(rndr *render, data []byte) bool {
@@ -234,13 +407,13 @@ func is_headerline(data []byte) int {
 func parse_htmlblock(ob *bytes.Buffer, rndr *render, data []byte, do_render bool) int {
 	var i, j int
 
-	// identification of the opening tag
+	// identify the opening tag
 	if len(data) < 2 || data[0] != '<' {
 		return 0
 	}
 	curtag, tagfound := find_block_tag(data[1:])
 
-	// handling of special cases
+	// handle special cases
 	if !tagfound {
 
 		// HTML comment, laxist form
@@ -289,12 +462,12 @@ func parse_htmlblock(ob *bytes.Buffer, rndr *render, data []byte, do_render bool
 		return 0
 	}
 
-	// looking for an unindented matching closing tag
+	// look for an unindented matching closing tag
 	//      followed by a blank line
 	i = 1
 	found := false
 
-	// if not found, trying a second pass looking for indented match
+	// if not found, try a second pass looking for indented match
 	// but not if tag is "ins" or "del" (following original Markdown.pl)
 	if curtag != "ins" && curtag != "del" {
 		i = 1
@@ -346,14 +519,14 @@ func find_block_tag(data []byte) (string, bool) {
 }
 
 func htmlblock_end(tag string, rndr *render, data []byte) int {
-	// assuming data[0] == '<' && data[1] == '/' already tested
+	// assume data[0] == '<' && data[1] == '/' already tested
 
-	// checking tag is a match
+	// check if tag is a match
 	if len(tag)+3 >= len(data) || bytes.Compare(data[2:2+len(tag)], []byte(tag)) != 0 || data[len(tag)+2] != '>' {
 		return 0
 	}
 
-	// checking white lines
+	// check white lines
 	i := len(tag) + 3
 	w := 0
 	if i < len(data) {
@@ -390,7 +563,7 @@ func is_empty(data []byte) int {
 }
 
 func is_hrule(data []byte) bool {
-	// skipping initial spaces
+	// skip initial spaces
 	if len(data) < 3 {
 		return false
 	}
@@ -405,7 +578,7 @@ func is_hrule(data []byte) bool {
 		}
 	}
 
-	// looking at the hrule char
+	// look at the hrule char
 	if i+2 >= len(data) || (data[i] != '*' && data[i] != '-' && data[i] != '_') {
 		return false
 	}
@@ -429,7 +602,7 @@ func is_hrule(data []byte) bool {
 func is_codefence(data []byte, syntax **string) int {
 	i, n := 0, 0
 
-	// skipping initial spaces
+	// skip initial spaces
 	if len(data) < 3 {
 		return 0
 	}
@@ -443,7 +616,7 @@ func is_codefence(data []byte, syntax **string) int {
 		}
 	}
 
-	// looking at the hrule char
+	// look at the hrule char
 	if i+2 >= len(data) || !(data[i] == '~' || data[i] == '`') {
 		return 0
 	}
@@ -759,7 +932,7 @@ func parse_blockquote(ob *bytes.Buffer, rndr *render, data []byte) int {
 		}
 
 		if pre := prefix_quote(data[beg:]); pre > 0 {
-			beg += pre // skipping prefix
+			beg += pre // skip prefix
 		} else {
 			// empty line followed by non-quote line
 			if is_empty(data[beg:]) > 0 && (end >= len(data) || (prefix_quote(data[end:]) == 0 && is_empty(data[end:]) == 0)) {
@@ -875,7 +1048,7 @@ func parse_list(ob *bytes.Buffer, rndr *render, data []byte, flags int) int {
 
 	i, j := 0, 0
 	for i < len(data) {
-		j, flags = parse_listitem(work, rndr, data[i:], flags)
+		j = parse_listitem(work, rndr, data[i:], &flags)
 		i += j
 
 		if j == 0 || flags&MKD_LI_END != 0 {
@@ -889,12 +1062,10 @@ func parse_list(ob *bytes.Buffer, rndr *render, data []byte, flags int) int {
 	return i
 }
 
-// parsing a single list item
-// assuming initial prefix is already removed
-func parse_listitem(ob *bytes.Buffer, rndr *render, data []byte, flags_in int) (size int, flags int) {
-	size, flags = 0, flags_in
-
-	// keeping book of the first indentation prefix
+// parse a single list item
+// assumes initial prefix is already removed
+func parse_listitem(ob *bytes.Buffer, rndr *render, data []byte, flags *int) int {
+	// keep track of the first indentation prefix
 	beg, end, pre, sublist, orgpre, i := 0, 0, 0, 0, 0, 0
 
 	for orgpre < 3 && orgpre < len(data) && data[orgpre] == ' ' {
@@ -906,20 +1077,20 @@ func parse_listitem(ob *bytes.Buffer, rndr *render, data []byte, flags_in int) (
 		beg = prefix_oli(data)
 	}
 	if beg == 0 {
-		return
+		return 0
 	}
 
-	// skipping to the beginning of the following line
+	// skip to the beginning of the following line
 	end = beg
 	for end < len(data) && data[end-1] != '\n' {
 		end++
 	}
 
-	// getting working buffers
+	// get working buffers
 	work := bytes.NewBuffer(nil)
 	inter := bytes.NewBuffer(nil)
 
-	// putting the first line into the working buffer
+	// put the first line into the working buffer
 	work.Write(data[beg:end])
 	beg = end
 
@@ -939,7 +1110,7 @@ func parse_listitem(ob *bytes.Buffer, rndr *render, data []byte, flags_in int) (
 			continue
 		}
 
-		// calculating the indentation
+		// calculate the indentation
 		i = 0
 		for i < 4 && beg+i < end && data[beg+i] == ' ' {
 			i++
@@ -951,24 +1122,24 @@ func parse_listitem(ob *bytes.Buffer, rndr *render, data []byte, flags_in int) (
 			pre = 8
 		}
 
-		// checking for a new item
+		// check for a new item
 		chunk := data[beg+i : end]
 		if (prefix_uli(chunk) > 0 && !is_hrule(chunk)) || prefix_oli(chunk) > 0 {
 			if in_empty {
 				has_inside_empty = true
 			}
 
-			if pre == orgpre { // the following item must have
-				break // the same indentation
+			if pre == orgpre { // the following item must have the same indentation
+				break
 			}
 
 			if sublist == 0 {
 				sublist = work.Len()
 			}
 		} else {
-			// joining only indented stuff after empty lines
+			// only join indented stuff after empty lines
 			if in_empty && i < 4 && data[beg] != '\t' {
-				flags |= MKD_LI_END
+				*flags |= MKD_LI_END
 				break
 			} else {
 				if in_empty {
@@ -980,18 +1151,18 @@ func parse_listitem(ob *bytes.Buffer, rndr *render, data []byte, flags_in int) (
 
 		in_empty = false
 
-		// adding the line without prefix into the working buffer
+		// add the line into the working buffer without prefix
 		work.Write(data[beg+i : end])
 		beg = end
 	}
 
-	// render of li contents
+	// render li contents
 	if has_inside_empty {
-		flags |= MKD_LI_BLOCK
+		*flags |= MKD_LI_BLOCK
 	}
 
 	workbytes := work.Bytes()
-	if flags&MKD_LI_BLOCK != 0 {
+	if *flags&MKD_LI_BLOCK != 0 {
 		// intermediate render of block li
 		if sublist > 0 && sublist < len(workbytes) {
 			parse_block(inter, rndr, workbytes[:sublist])
@@ -1009,13 +1180,12 @@ func parse_listitem(ob *bytes.Buffer, rndr *render, data []byte, flags_in int) (
 		}
 	}
 
-	// render of li itself
+	// render li itself
 	if rndr.mk.listitem != nil {
-		rndr.mk.listitem(ob, inter.Bytes(), flags, rndr.mk.opaque)
+		rndr.mk.listitem(ob, inter.Bytes(), *flags, rndr.mk.opaque)
 	}
 
-	size = beg
-	return
+	return beg
 }
 
 func parse_paragraph(ob *bytes.Buffer, rndr *render, data []byte) int {
@@ -1416,18 +1586,136 @@ func main() {
 	rndrer.table_cell = rndr_tablecell
 	rndrer.opaque = &html_renderopts{close_tag: " />"}
 	var extensions uint32 = MKDEXT_FENCED_CODE | MKDEXT_TABLES
-	Ups_markdown(ob, ib, rndrer, extensions)
+	Markdown(ob, ib, rndrer, extensions)
 	fmt.Print(ob.String())
 }
 
-func Ups_markdown(ob *bytes.Buffer, ib []byte, rndrer *mkd_renderer, extensions uint32) {
+func expand_tabs(ob *bytes.Buffer, line []byte) {
+	i, tab := 0, 0
 
-	/* filling the render structure */
+	for i < len(line) {
+		org := i
+		for i < len(line) && line[i] != '\t' {
+			i++
+			tab++
+		}
+
+		if i > org {
+			ob.Write(line[org:i])
+		}
+
+		if i >= len(line) {
+			break
+		}
+
+		for {
+			ob.WriteByte(' ')
+			tab++
+			if tab%4 == 0 {
+				break
+			}
+		}
+
+		i++
+	}
+}
+
+func Markdown(ob *bytes.Buffer, ib []byte, rndrer *mkd_renderer, extensions uint32) {
+	// no point in parsing if we can't render
 	if rndrer == nil {
 		return
 	}
 
-	rndr := &render{*rndrer, extensions}
+	// fill in the render structure
+	rndr := new(render)
+	rndr.mk = rndrer
+	rndr.ext_flags = extensions
+	rndr.max_nesting = 16
 
-	parse_block(ob, rndr, ib)
+	if rndr.mk.emphasis != nil || rndr.mk.double_emphasis != nil || rndr.mk.triple_emphasis != nil {
+		rndr.active_char['*'] = MD_CHAR_EMPHASIS
+		rndr.active_char['_'] = MD_CHAR_EMPHASIS
+		if extensions&MKDEXT_STRIKETHROUGH != 0 {
+			rndr.active_char['~'] = MD_CHAR_EMPHASIS
+		}
+	}
+	if rndr.mk.codespan != nil {
+		rndr.active_char['`'] = MD_CHAR_CODESPAN
+	}
+	if rndr.mk.linebreak != nil {
+		rndr.active_char['\n'] = MD_CHAR_LINEBREAK
+	}
+	if rndr.mk.image != nil || rndr.mk.link != nil {
+		rndr.active_char['['] = MD_CHAR_LINK
+	}
+	rndr.active_char['<'] = MD_CHAR_LANGLE
+	rndr.active_char['\\'] = MD_CHAR_ESCAPE
+	rndr.active_char['&'] = MD_CHAR_ENTITITY
+
+	if extensions&MKDEXT_AUTOLINK != 0 {
+		rndr.active_char['h'] = MD_CHAR_AUTOLINK // http, https
+		rndr.active_char['H'] = MD_CHAR_AUTOLINK
+
+		rndr.active_char['f'] = MD_CHAR_AUTOLINK // ftp
+		rndr.active_char['F'] = MD_CHAR_AUTOLINK
+
+		rndr.active_char['m'] = MD_CHAR_AUTOLINK // mailto
+		rndr.active_char['M'] = MD_CHAR_AUTOLINK
+	}
+
+	// first pass: look for references, copying everything else
+	text := bytes.NewBuffer(make([]byte, len(ib)))
+	beg, end := 0, 0
+	for beg < len(ib) { // iterate over lines
+		if is_ref(ib, beg, &end, rndr) {
+			beg = end
+		} else { // skip to the next line
+			end = beg
+			for end < len(ib) && ib[end] != '\n' && ib[end] != '\r' {
+				end++
+			}
+
+			// add the line body if present
+			if end > beg {
+				expand_tabs(text, ib[beg:end])
+			}
+
+			for end < len(ib) && (ib[end] == '\n' || ib[end] == '\r') {
+				// add one \n per newline
+				if ib[end] == '\n' || (end+1 < len(ib) && ib[end+1] != '\n') {
+					text.WriteByte('\n')
+				}
+				end++
+			}
+
+			beg = end
+		}
+	}
+
+	// sort the reference array
+	if len(rndr.refs) > 1 {
+		sort.Sort(rndr.refs)
+	}
+
+	// second pass: actual rendering
+	if rndr.mk.doc_header != nil {
+		rndr.mk.doc_header(ob, rndr.mk.opaque)
+	}
+
+	if text.Len() > 0 {
+		// add a final newline if not already present
+		finalchar := text.Bytes()[text.Len()-1]
+		if finalchar != '\n' && finalchar != '\r' {
+			text.WriteByte('\n')
+		}
+		parse_block(ob, rndr, text.Bytes())
+	}
+
+	if rndr.mk.doc_footer != nil {
+		rndr.mk.doc_footer(ob, rndr.mk.opaque)
+	}
+
+	if rndr.nesting != 0 {
+		panic("Nesting level did not end at zero")
+	}
 }
