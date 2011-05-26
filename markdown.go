@@ -145,9 +145,144 @@ func (elt link_ref_array) Swap(i, j int) {
 	elt[i], elt[j] = elt[j], elt[i]
 }
 
+// returns whether or not a line is a reference
 func is_ref(data []byte, beg int, last *int, rndr *render) bool {
-	// TODO: stopped here
-	return false
+	// up to 3 optional leading spaces
+	if beg+3 > len(data) {
+		return false
+	}
+	i := 0
+	if data[beg] == ' ' {
+		i++
+		if data[beg+1] == ' ' {
+			i++
+			if data[beg+2] == ' ' {
+				i++
+				if data[beg+3] == ' ' {
+					return false
+				}
+			}
+		}
+	}
+	i += beg
+
+	// id part: anything but a newline between brackets
+	if data[i] != '[' {
+		return false
+	}
+	i++
+	id_offset := i
+	for i < len(data) && data[i] != '\n' && data[i] != '\r' && data[i] != ']' {
+		i++
+	}
+	if i >= len(data) || data[i] != ']' {
+		return false
+	}
+	id_end := i
+
+	// spacer: colon (space | tab)* newline? (space | tab)*
+	i++
+	if i >= len(data) || data[i] != ':' {
+		return false
+	}
+	i++
+	for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
+		i++
+	}
+	if i < len(data) && (data[i] == '\n' || data[i] == '\r') {
+		i++
+		if i < len(data) && data[i] == '\r' && data[i-1] == '\n' {
+			i++
+		}
+	}
+	for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
+		i++
+	}
+	if i >= len(data) {
+		return false
+	}
+
+	// link: whitespace-free sequence, optionally between angle brackets
+	if data[i] == '<' {
+		i++
+	}
+	link_offset := i
+	for i < len(data) && data[i] != ' ' && data[i] != '\t' && data[i] != '\n' && data[i] != '\r' {
+		i++
+	}
+	var link_end int
+	if data[i-1] == '>' {
+		link_end = i - 1
+	} else {
+		link_end = i
+	}
+
+	// optional spacer: (space | tab)* (newline | '\'' | '"' | '(' )
+	for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
+		i++
+	}
+	if i < len(data) && data[i] != '\n' && data[i] != '\r' && data[i] != '\'' && data[i] != '"' && data[i] != '(' {
+		return false
+	}
+
+	// compute end-of-line
+	line_end := 0
+	if i >= len(data) || data[i] == '\r' || data[i] == '\n' {
+		line_end = i
+	}
+	if i+1 < len(data) && data[i] == '\n' && data[i+1] == '\r' {
+		line_end = i + 1
+	}
+
+	// optional (space|tab)* spacer after a newline
+	if line_end > 0 {
+		i = line_end + 1
+		for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
+			i++
+		}
+	}
+
+	// optional title: any non-newline sequence enclosed in '"() alone on its line
+	title_offset, title_end := 0, 0
+	if i+1 < len(data) && (data[i] == '\'' || data[i] == '"' || data[i] == '(') {
+		i++
+		title_offset = i
+
+		// looking for EOL
+		for i < len(data) && data[i] != '\n' && data[i] != '\r' {
+			i++
+		}
+		if i+1 < len(data) && data[i] == '\n' && data[i+1] == '\r' {
+			title_end = i + 1
+		} else {
+			title_end = i
+		}
+
+		// stepping back
+		i--
+		for i > title_offset && (data[i] == ' ' || data[i] == '\t') {
+			i--
+		}
+		if i > title_offset && (data[i] == '\'' || data[i] == '"' || data[i] == ')') {
+			line_end = title_end
+			title_end = i
+		}
+	}
+	if line_end == 0 { // garbage after the link
+		return false
+	}
+
+	// a valid ref has been found; fill in return structures
+	if last != nil {
+		*last = line_end
+	}
+	if rndr == nil {
+		return true
+	}
+	item := &link_ref{id: data[id_offset:id_end], link: data[link_offset:link_end], title: data[title_offset:title_end]}
+	rndr.refs = append(rndr.refs, item)
+
+	return true
 }
 
 type render struct {
@@ -1506,7 +1641,8 @@ func rndr_paragraph(ob *bytes.Buffer, text []byte, opaque interface{}) {
 
 func main() {
 	ob := bytes.NewBuffer(nil)
-	input := "##Header##\n"
+	input := ""
+	input += "##Header##\n"
 	input += "\n"
 	input += "----------\n"
 	input += "\n"
@@ -1664,7 +1800,7 @@ func Markdown(ob *bytes.Buffer, ib []byte, rndrer *mkd_renderer, extensions uint
 	}
 
 	// first pass: look for references, copying everything else
-	text := bytes.NewBuffer(make([]byte, len(ib)))
+	text := bytes.NewBuffer(nil)
 	beg, end := 0, 0
 	for beg < len(ib) { // iterate over lines
 		if is_ref(ib, beg, &end, rndr) {
