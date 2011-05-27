@@ -364,7 +364,7 @@ func char_emphasis(ob *bytes.Buffer, rndr *render, data []byte, offset int) int 
 	if len(data) > 2 && data[1] != c {
 		// whitespace cannot follow an opening emphasis;
 		// strikethrough only takes two characters '~~'
-		if c == '~' || unicode.IsSpace(int(data[1])) {
+		if c == '~' || isspace(data[1]) {
 			return 0
 		}
 		if ret = parse_emph1(ob, rndr, data[1:], c); ret == 0 {
@@ -375,7 +375,7 @@ func char_emphasis(ob *bytes.Buffer, rndr *render, data []byte, offset int) int 
 	}
 
 	if len(data) > 3 && data[1] == c && data[2] != c {
-		if unicode.IsSpace(int(data[2])) {
+		if isspace(data[2]) {
 			return 0
 		}
 		if ret = parse_emph2(ob, rndr, data[2:], c); ret == 0 {
@@ -386,7 +386,7 @@ func char_emphasis(ob *bytes.Buffer, rndr *render, data []byte, offset int) int 
 	}
 
 	if len(data) > 4 && data[1] == c && data[2] == c && data[3] != c {
-		if c == '~' || unicode.IsSpace(int(data[3])) {
+		if c == '~' || isspace(data[3]) {
 			return 0
 		}
 		if ret = parse_emph3(ob, rndr, data, 3, c); ret == 0 {
@@ -507,6 +507,9 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 
 		case data[i] == ']':
 			level--
+			if level <= 0 {
+				i-- // compensate for extra i++ in for loop
+			}
 		}
 	}
 
@@ -518,8 +521,8 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	i++
 
 	// skip any amount of whitespace or newline
-	// (this is much more laxist than original markdown syntax)
-	for i < len(data) && unicode.IsSpace(int(data[i])) {
+	// (this is much more lax than original markdown syntax)
+	for i < len(data) && isspace(data[i]) {
 		i++
 	}
 
@@ -529,7 +532,7 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 		// skipping initial whitespace
 		i++
 
-		for i < len(data) && unicode.IsSpace(int(data[i])) {
+		for i < len(data) && isspace(data[i]) {
 			i++
 		}
 
@@ -575,7 +578,7 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 
 			// skipping whitespaces after title
 			title_e = i - 1
-			for title_e > title_b && unicode.IsSpace(int(data[title_e])) {
+			for title_e > title_b && isspace(data[title_e]) {
 				title_e--
 			}
 
@@ -587,7 +590,7 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 		}
 
 		// remove whitespace at the end of the link
-		for link_e > link_b && unicode.IsSpace(int(data[link_e-1])) {
+		for link_e > link_b && isspace(data[link_e-1]) {
 			link_e--
 		}
 
@@ -648,7 +651,9 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 		}
 
 		// find the link_ref with matching id
-		index := sort.Search(len(rndr.refs), func(i int) bool { return !byteslice_less(rndr.refs[i].id, id) })
+		index := sort.Search(len(rndr.refs), func(i int) bool {
+			return !byteslice_less(rndr.refs[i].id, id)
+		})
 		if index >= len(rndr.refs) || !bytes.Equal(rndr.refs[index].id, id) {
 			return 0
 		}
@@ -682,7 +687,9 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 		}
 
 		// find the link_ref with matching id
-		index := sort.Search(len(rndr.refs), func(i int) bool { return !byteslice_less(rndr.refs[i].id, id) })
+		index := sort.Search(len(rndr.refs), func(i int) bool {
+			return !byteslice_less(rndr.refs[i].id, id)
+		})
 		if index >= len(rndr.refs) || !bytes.Equal(rndr.refs[index].id, id) {
 			return 0
 		}
@@ -789,7 +796,7 @@ func char_entity(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 		end++
 	}
 
-	for end < len(data) && (unicode.IsDigit(int(data[end])) || unicode.IsLetter(int(data[end]))) {
+	for end < len(data) && isalnum(data[end]) {
 		end++
 	}
 
@@ -813,7 +820,7 @@ func char_autolink(ob *bytes.Buffer, rndr *render, data []byte, offset int) int 
 	data = data[offset:]
 
 	if offset > 0 {
-		if !unicode.IsSpace(int(orig_data[offset-1])) && !ispunct(int(orig_data[offset-1])) {
+		if !isspace(orig_data[offset-1]) && !ispunct(orig_data[offset-1]) {
 			return 0
 		}
 	}
@@ -823,7 +830,7 @@ func char_autolink(ob *bytes.Buffer, rndr *render, data []byte, offset int) int 
 	}
 
 	link_end := 0
-	for link_end < len(data) && !unicode.IsSpace(int(data[link_end])) {
+	for link_end < len(data) && !isspace(data[link_end]) {
 		link_end++
 	}
 
@@ -905,7 +912,7 @@ var valid_uris = [][]byte{[]byte("http://"), []byte("https://"), []byte("ftp://"
 
 func is_safe_link(link []byte) bool {
 	for _, prefix := range valid_uris {
-		if len(link) > len(prefix) && !byteslice_less(link[:len(prefix)], prefix) && !byteslice_less(prefix, link[:len(prefix)]) && (unicode.IsLetter(int(link[len(prefix)])) || unicode.IsDigit(int(link[len(prefix)]))) {
+		if len(link) > len(prefix) && !byteslice_less(link[:len(prefix)], prefix) && !byteslice_less(prefix, link[:len(prefix)]) && isalnum(link[len(prefix)]) {
 			return true
 		}
 	}
@@ -915,13 +922,21 @@ func is_safe_link(link []byte) bool {
 
 
 // taken from regexp in the stdlib
-func ispunct(c int) bool {
-	for _, r := range "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~" {
+func ispunct(c byte) bool {
+	for _, r := range []byte("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~") {
 		if c == r {
 			return true
 		}
 	}
 	return false
+}
+
+func isspace(c byte) bool {
+	return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v'
+}
+
+func isalnum(c byte) bool {
+	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
 }
 
 // return the length of the given tag, or 0 is it's not valid
@@ -943,7 +958,7 @@ func tag_length(data []byte, autolink *int) int {
 		i = 1
 	}
 
-	if !unicode.IsDigit(int(data[i])) && !unicode.IsLetter(int(data[i])) {
+	if !isalnum(data[i]) {
 		return 0
 	}
 
@@ -951,7 +966,7 @@ func tag_length(data []byte, autolink *int) int {
 	*autolink = MKDA_NOT_AUTOLINK
 
 	// try to find the beggining of an URI
-	for i < len(data) && ((unicode.IsLetter(int(data[i])) || unicode.IsDigit(int(data[i]))) || data[i] == '.' || data[i] == '+' || data[i] == '-') {
+	for i < len(data) && (isalnum(data[i]) || data[i] == '.' || data[i] == '+' || data[i] == '-') {
 		i++
 	}
 
@@ -978,7 +993,7 @@ func tag_length(data []byte, autolink *int) int {
 			if data[i] == '\\' {
 				i += 2
 			} else {
-				if data[i] == '>' || data[i] == '\'' || data[i] == '"' || unicode.IsSpace(int(data[i])) {
+				if data[i] == '>' || data[i] == '\'' || data[i] == '"' || isspace(data[i]) {
 					break
 				} else {
 					i++
@@ -1015,7 +1030,7 @@ func is_mail_autolink(data []byte) int {
 
 	// address is assumed to be: [-@._a-zA-Z0-9]+ with exactly one '@'
 	for i := 0; i < len(data); i++ {
-		if unicode.IsLetter(int(data[i])) || unicode.IsDigit(int(data[i])) {
+		if isalnum(data[i]) {
 			continue
 		}
 
@@ -1145,10 +1160,10 @@ func parse_emph1(ob *bytes.Buffer, rndr *render, data []byte, c byte) int {
 			continue
 		}
 
-		if data[i] == c && !unicode.IsSpace(int(data[i-1])) {
+		if data[i] == c && !isspace(data[i-1]) {
 
 			if rndr.ext_flags&MKDEXT_NO_INTRA_EMPHASIS != 0 {
-				if !(i+1 == len(data) || unicode.IsSpace(int(data[i+1])) || ispunct(int(data[i+1]))) {
+				if !(i+1 == len(data) || isspace(data[i+1]) || ispunct(data[i+1])) {
 					continue
 				}
 			}
@@ -1186,7 +1201,7 @@ func parse_emph2(ob *bytes.Buffer, rndr *render, data []byte, c byte) int {
 		}
 		i += length
 
-		if i+1 < len(data) && data[i] == c && data[i+1] == c && i > 0 && !unicode.IsSpace(int(data[i-1])) {
+		if i+1 < len(data) && data[i] == c && data[i+1] == c && i > 0 && !isspace(data[i-1]) {
 			work := bytes.NewBuffer(nil)
 			parse_inline(work, rndr, data[:i])
 			r := render_method(ob, work.Bytes(), rndr.mk.opaque)
@@ -1214,7 +1229,7 @@ func parse_emph3(ob *bytes.Buffer, rndr *render, data []byte, offset int, c byte
 		i += length
 
 		// skip whitespace preceded symbols
-		if data[i] != c || unicode.IsSpace(int(data[i-1])) {
+		if data[i] != c || isspace(data[i-1]) {
 			continue
 		}
 
@@ -1649,18 +1664,18 @@ func is_codefence(data []byte, syntax **string) int {
 
 			// string all whitespace at the beginning and the end
 			// of the {} block
-			for syn > 0 && unicode.IsSpace(int(data[syntax_start])) {
+			for syn > 0 && isspace(data[syntax_start]) {
 				syntax_start++
 				syn--
 			}
 
-			for syn > 0 && unicode.IsSpace(int(data[syntax_start+syn-1])) {
+			for syn > 0 && isspace(data[syntax_start+syn-1]) {
 				syn--
 			}
 
 			i++
 		} else {
-			for i < len(data) && !unicode.IsSpace(int(data[i])) {
+			for i < len(data) && !isspace(data[i]) {
 				syn++
 				i++
 			}
@@ -1671,7 +1686,7 @@ func is_codefence(data []byte, syntax **string) int {
 	}
 
 	for i < len(data) && data[i] != '\n' {
-		if !unicode.IsSpace(int(data[i])) {
+		if !isspace(data[i]) {
 			return 0
 		}
 		i++
@@ -1853,7 +1868,7 @@ func parse_table_row(ob *bytes.Buffer, rndr *render, data []byte, columns int, c
 	}
 
 	for col = 0; col < columns && i < len(data); col++ {
-		for i < len(data) && unicode.IsSpace(int(data[i])) {
+		for i < len(data) && isspace(data[i]) {
 			i++
 		}
 
@@ -1865,7 +1880,7 @@ func parse_table_row(ob *bytes.Buffer, rndr *render, data []byte, columns int, c
 
 		cell_end := i - 1
 
-		for cell_end > cell_start && unicode.IsSpace(int(data[cell_end])) {
+		for cell_end > cell_start && isspace(data[cell_end]) {
 			cell_end--
 		}
 
@@ -2371,13 +2386,13 @@ func rndr_blockcode(ob *bytes.Buffer, text []byte, lang string, opaque interface
 		ob.WriteString("<pre><code class=\"")
 
 		for i, cls := 0, 0; i < len(lang); i, cls = i+1, cls+1 {
-			for i < len(lang) && unicode.IsSpace(int(lang[i])) {
+			for i < len(lang) && isspace(lang[i]) {
 				i++
 			}
 
 			if i < len(lang) {
 				org := i
-				for i < len(lang) && !unicode.IsSpace(int(lang[i])) {
+				for i < len(lang) && !isspace(lang[i]) {
 					i++
 				}
 
@@ -2488,7 +2503,7 @@ func rndr_paragraph(ob *bytes.Buffer, text []byte, opaque interface{}) {
 		return
 	}
 
-	for i < len(text) && unicode.IsSpace(int(text[i])) {
+	for i < len(text) && isspace(text[i]) {
 		i++
 	}
 
@@ -2522,7 +2537,36 @@ func rndr_paragraph(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	ob.WriteString("</p>\n")
 }
 
-func rndr_autolink(ob *bytes.Buffer, text []byte, kind int, opaque interface{}) int {
+func rndr_autolink(ob *bytes.Buffer, link []byte, kind int, opaque interface{}) int {
+	options := opaque.(*html_renderopts)
+
+	if len(link) == 0 {
+		return 0
+	}
+	if options.flags&HTML_SAFELINK != 0 && !is_safe_link(link) && kind != MKDA_EMAIL {
+		return 0
+	}
+
+	ob.WriteString("<a href=\"")
+	if kind == MKDA_EMAIL {
+		ob.WriteString("mailto:")
+	}
+	ob.Write(link)
+	ob.WriteString("\">")
+
+	/*
+	 * Pretty printing: if we get an email address as
+	 * an actual URI, e.g. `mailto:foo@bar.com`, we don't
+	 * want to print the `mailto:` prefix
+	 */
+	if bytes.HasPrefix(link, []byte("mailto:")) {
+		attr_escape(ob, link[7:])
+	} else {
+		attr_escape(ob, link)
+	}
+
+	ob.WriteString("</a>")
+
 	return 1
 }
 
@@ -2554,6 +2598,23 @@ func rndr_emphasis(ob *bytes.Buffer, text []byte, opaque interface{}) int {
 }
 
 func rndr_image(ob *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{}) int {
+	options := opaque.(*html_renderopts)
+	if len(link) == 0 {
+		return 0
+	}
+	ob.WriteString("<img src=\"")
+	attr_escape(ob, link)
+	ob.WriteString("\" alt=\"")
+	if len(alt) > 0 {
+		attr_escape(ob, alt)
+	}
+	if len(title) > 0 {
+		ob.WriteString("\" title=\"")
+		attr_escape(ob, title)
+	}
+
+	ob.WriteByte('"')
+	ob.WriteString(options.close_tag)
 	return 1
 }
 
@@ -2565,6 +2626,25 @@ func rndr_linebreak(ob *bytes.Buffer, opaque interface{}) int {
 }
 
 func rndr_link(ob *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{}) int {
+	options := opaque.(*html_renderopts)
+
+	if options.flags&HTML_SAFELINK != 0 && !is_safe_link(link) {
+		return 0
+	}
+
+	ob.WriteString("<a href=\"")
+	if len(link) > 0 {
+		ob.Write(link)
+	}
+	if len(title) > 0 {
+		ob.WriteString("\" title=\"")
+		attr_escape(ob, title)
+	}
+	ob.WriteString("\">")
+	if len(content) > 0 {
+		ob.Write(content)
+	}
+	ob.WriteString("</a>")
 	return 1
 }
 
@@ -2616,7 +2696,7 @@ func is_html_tag(tag []byte, tagname string) bool {
 		return false
 	}
 	i++
-	for i < len(tag) && unicode.IsSpace(int(tag[i])) {
+	for i < len(tag) && isspace(tag[i]) {
 		i++
 	}
 
@@ -2624,7 +2704,7 @@ func is_html_tag(tag []byte, tagname string) bool {
 		i++
 	}
 
-	for i < len(tag) && unicode.IsSpace(int(tag[i])) {
+	for i < len(tag) && isspace(tag[i]) {
 		i++
 	}
 
@@ -2643,7 +2723,7 @@ func is_html_tag(tag []byte, tagname string) bool {
 		return false
 	}
 
-	return unicode.IsSpace(int(tag[i])) || tag[i] == '>'
+	return isspace(tag[i]) || tag[i] == '>'
 }
 
 
@@ -2656,68 +2736,72 @@ func is_html_tag(tag []byte, tagname string) bool {
 func main() {
 	ob := bytes.NewBuffer(nil)
 	input := ""
-	input += "##Header##\n"
-	input += "\n"
-	input += "----------\n"
-	input += "\n"
-	input += "Underlined header\n"
-	input += "-----------------\n"
-	input += "\n"
-	input += "<p>Some block html\n"
-	input += "</p>\n"
-	input += "\n"
-	input += "Score | Grade\n"
-	input += "------|------\n"
-	input += "94    | A\n"
-	input += "85    | B\n"
-	input += "74    | C\n"
-	input += "65    | D\n"
-	input += "\n"
-	input += "``` go\n"
-	input += "func fib(n int) int {\n"
-	input += "    if n <= 1 {\n"
-	input += "        return n\n"
-	input += "    }\n"
-	input += "    return n * fib(n-1)\n"
-	input += "}\n"
-	input += "```\n"
-	input += "\n"
-	input += "> A blockquote\n"
-	input += "> or something like that\n"
-	input += "> With a table | of two columns\n"
-	input += "> -------------|---------------\n"
-	input += "> key          | value \n"
-	input += "\n"
-	input += "\n"
+	//	input += "##Header##\n"
+	//	input += "\n"
+	//	input += "----------\n"
+	//	input += "\n"
+	//	input += "Underlined header\n"
+	//	input += "-----------------\n"
+	//	input += "\n"
+	//	input += "<p>Some block html\n"
+	//	input += "</p>\n"
+	//	input += "\n"
+	//	input += "Score | Grade\n"
+	//	input += "------|------\n"
+	//	input += "94    | A\n"
+	//	input += "85    | B\n"
+	//	input += "74    | C\n"
+	//	input += "65    | D\n"
+	//	input += "\n"
+	//	input += "``` go\n"
+	//	input += "func fib(n int) int {\n"
+	//	input += "    if n <= 1 {\n"
+	//	input += "        return n\n"
+	//	input += "    }\n"
+	//	input += "    return n * fib(n-1)\n"
+	//	input += "}\n"
+	//	input += "```\n"
+	//	input += "\n"
+	//	input += "> A blockquote\n"
+	//	input += "> or something like that\n"
+	//	input += "> With a table | of two columns\n"
+	//	input += "> -------------|---------------\n"
+	//	input += "> key          | value \n"
+	//	input += "\n"
+	//	input += "\n"
 	input += "Some **bold** Some *italic* and [a link][1] \n"
-	input += "\n"
-	input += "A little code sample\n"
-	input += "\n"
-	input += "    </head>\n"
-	input += "    <title>Web Page Title</title>\n"
-	input += "    </head>\n"
-	input += "\n"
-	input += "A picture\n"
-	input += "\n"
-	input += "![alt text][2]\n"
-	input += "\n"
-	input += "A list\n"
-	input += "\n"
-	input += "- apples\n"
-	input += "- oranges\n"
-	input += "- eggs\n"
-	input += "\n"
-	input += "A numbered list\n"
-	input += "\n"
-	input += "1. a\n"
-	input += "2. b\n"
-	input += "3. c\n"
-	input += "\n"
-	input += "A little quote\n"
-	input += "\n"
-	input += "> It is now time for all good men to come to the aid of their country. \n"
-	input += "\n"
-	input += "A final paragraph. `code this` fool\n"
+	//	input += "\n"
+	//	input += "A little code sample\n"
+	//	input += "\n"
+	//	input += "    </head>\n"
+	//	input += "    <title>Web Page Title</title>\n"
+	//	input += "    </head>\n"
+	//	input += "\n"
+	//	input += "A picture\n"
+	//	input += "\n"
+	//	input += "![alt text][2]\n"
+	//	input += "\n"
+	//	input += "A list\n"
+	//	input += "\n"
+	//	input += "- apples\n"
+	//	input += "- oranges\n"
+	//	input += "- eggs\n"
+	//	input += "\n"
+	//	input += "A numbered list\n"
+	//	input += "\n"
+	//	input += "1. a\n"
+	//	input += "2. b\n"
+	//	input += "3. c\n"
+	//	input += "\n"
+	//	input += "A little quote\n"
+	//	input += "\n"
+	//	input += "> It is now time for all good men to come to the aid of their country. \n"
+	//	input += "\n"
+	//	input += "A final paragraph. `code this` fool\n"
+	//	input += "\n"
+	//	input += "Click [here](http:google.com)\n"
+	//	input += "\n"
+	//	input += "\n"
 	input += "\n"
 	input += "  [1]: http://www.google.com\n"
 	input += "  [2]: http://www.google.com/intl/en_ALL/images/logo.gif\n"
@@ -2749,9 +2833,9 @@ func main() {
 
 	rndrer.normal_text = rndr_normal_text
 
-	rndrer.opaque = &html_renderopts{close_tag: " />"}
+	rndrer.opaque = &html_renderopts{close_tag: ">\n"}
 
-	var extensions uint32 = MKDEXT_FENCED_CODE | MKDEXT_TABLES
+	var extensions uint32 = MKDEXT_NO_INTRA_EMPHASIS | MKDEXT_TABLES | MKDEXT_FENCED_CODE | MKDEXT_AUTOLINK | MKDEXT_STRIKETHROUGH | MKDEXT_LAX_HTML_BLOCKS | MKDEXT_SPACE_HEADERS
 
 	// call the main rendered function
 	Markdown(ob, ib, rndrer, extensions)
