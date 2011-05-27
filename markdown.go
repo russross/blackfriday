@@ -330,9 +330,9 @@ func parse_inline(ob *bytes.Buffer, rndr *render, data []byte) {
 		}
 
 		if rndr.mk.normal_text != nil {
-			rndr.mk.normal_text(ob, data[i:], rndr.mk.opaque)
+			rndr.mk.normal_text(ob, data[i:end], rndr.mk.opaque)
 		} else {
-			ob.Write(data[i:])
+			ob.Write(data[i:end])
 		}
 
 		if end >= len(data) {
@@ -439,7 +439,7 @@ func char_codespan(ob *bytes.Buffer, rndr *render, data []byte, offset int) int 
 		return 0
 	}
 	if f_begin < f_end {
-		if rndr.mk.codespan(ob, data[f_end:f_end], rndr.mk.opaque) == 0 {
+		if rndr.mk.codespan(ob, data[f_begin:f_end], rndr.mk.opaque) == 0 {
 			end = 0
 		}
 	} else {
@@ -1048,9 +1048,9 @@ func find_emph_char(data []byte, c byte) int {
 		for i < len(data) && data[i] != c && data[i] != '`' && data[i] != '[' {
 			i++
 		}
-        if i >= len(data) {
-            return 0
-        }
+		if i >= len(data) {
+			return 0
+		}
 		if data[i] == c {
 			return i
 		}
@@ -2404,6 +2404,12 @@ func rndr_blockcode(ob *bytes.Buffer, text []byte, lang string, opaque interface
 	ob.WriteString("</code></pre>\n")
 }
 
+func rndr_blockquote(ob *bytes.Buffer, text []byte, opaque interface{}) {
+	ob.WriteString("<blockquote>\n")
+	ob.Write(text)
+	ob.WriteString("</blockquote>\n")
+}
+
 func rndr_table(ob *bytes.Buffer, header []byte, body []byte, opaque interface{}) {
 	if ob.Len() > 0 {
 		ob.WriteByte('\n')
@@ -2516,16 +2522,136 @@ func rndr_paragraph(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	ob.WriteString("</p>\n")
 }
 
-func rndr_emphasis(ob *bytes.Buffer, text []byte, opaque interface{}) int {
-    if len(text) == 0 {
-        return 0
-    }
-    ob.WriteString("<em>")
-    ob.Write(text)
-    ob.WriteString("</em>")
-    return 1
+func rndr_autolink(ob *bytes.Buffer, text []byte, kind int, opaque interface{}) int {
+	return 1
 }
 
+func rndr_codespan(ob *bytes.Buffer, text []byte, opaque interface{}) int {
+	ob.WriteString("<code>")
+	attr_escape(ob, text)
+	ob.WriteString("</code>")
+	return 1
+}
+
+func rndr_double_emphasis(ob *bytes.Buffer, text []byte, opaque interface{}) int {
+	if len(text) == 0 {
+		return 0
+	}
+	ob.WriteString("<strong>")
+	ob.Write(text)
+	ob.WriteString("</strong>")
+	return 1
+}
+
+func rndr_emphasis(ob *bytes.Buffer, text []byte, opaque interface{}) int {
+	if len(text) == 0 {
+		return 0
+	}
+	ob.WriteString("<em>")
+	ob.Write(text)
+	ob.WriteString("</em>")
+	return 1
+}
+
+func rndr_image(ob *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{}) int {
+	return 1
+}
+
+func rndr_linebreak(ob *bytes.Buffer, opaque interface{}) int {
+	options := opaque.(*html_renderopts)
+	ob.WriteString("<br")
+	ob.WriteString(options.close_tag)
+	return 1
+}
+
+func rndr_link(ob *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{}) int {
+	return 1
+}
+
+func rndr_raw_html_tag(ob *bytes.Buffer, text []byte, opaque interface{}) int {
+	options := opaque.(*html_renderopts)
+	if options.flags&HTML_SKIP_HTML != 0 {
+		return 1
+	}
+	if options.flags&HTML_SKIP_STYLE != 0 && is_html_tag(text, "style") {
+		return 1
+	}
+	if options.flags&HTML_SKIP_LINKS != 0 && is_html_tag(text, "a") {
+		return 1
+	}
+	if options.flags&HTML_SKIP_IMAGES != 0 && is_html_tag(text, "img") {
+		return 1
+	}
+	ob.Write(text)
+	return 1
+}
+
+func rndr_triple_emphasis(ob *bytes.Buffer, text []byte, opaque interface{}) int {
+	if len(text) == 0 {
+		return 0
+	}
+	ob.WriteString("<strong><em>")
+	ob.Write(text)
+	ob.WriteString("</em></strong>")
+	return 1
+}
+
+func rndr_strikethrough(ob *bytes.Buffer, text []byte, opaque interface{}) int {
+	if len(text) == 0 {
+		return 0
+	}
+	ob.WriteString("<del>")
+	ob.Write(text)
+	ob.WriteString("</del>")
+	return 1
+}
+
+func rndr_normal_text(ob *bytes.Buffer, text []byte, opaque interface{}) {
+	attr_escape(ob, text)
+}
+
+func is_html_tag(tag []byte, tagname string) bool {
+	i := 0
+	if i < len(tag) && tag[0] != '<' {
+		return false
+	}
+	i++
+	for i < len(tag) && unicode.IsSpace(int(tag[i])) {
+		i++
+	}
+
+	if i < len(tag) && tag[i] == '/' {
+		i++
+	}
+
+	for i < len(tag) && unicode.IsSpace(int(tag[i])) {
+		i++
+	}
+
+	tag_i := i
+	for ; i < len(tag); i, tag_i = i+1, tag_i+1 {
+		if tag_i >= len(tagname) {
+			break
+		}
+
+		if tag[i] != tagname[tag_i] {
+			return false
+		}
+	}
+
+	if i == len(tag) {
+		return false
+	}
+
+	return unicode.IsSpace(int(tag[i])) || tag[i] == '>'
+}
+
+
+//
+//
+// Main and public interface
+//
+//
 
 func main() {
 	ob := bytes.NewBuffer(nil)
@@ -2591,14 +2717,15 @@ func main() {
 	input += "\n"
 	input += "> It is now time for all good men to come to the aid of their country. \n"
 	input += "\n"
-	input += "A final paragraph.\n"
+	input += "A final paragraph. `code this` fool\n"
 	input += "\n"
 	input += "  [1]: http://www.google.com\n"
 	input += "  [2]: http://www.google.com/intl/en_ALL/images/logo.gif\n"
-
 	ib := []byte(input)
+
 	rndrer := new(mkd_renderer)
 	rndrer.blockcode = rndr_blockcode
+	rndrer.blockquote = rndr_blockquote
 	rndrer.blockhtml = rndr_raw_block
 	rndrer.header = rndr_header
 	rndrer.hrule = rndr_hrule
@@ -2609,11 +2736,27 @@ func main() {
 	rndrer.table_row = rndr_tablerow
 	rndrer.table_cell = rndr_tablecell
 
-    rndrer.emphasis = rndr_emphasis
+	rndrer.autolink = rndr_autolink
+	rndrer.codespan = rndr_codespan
+	rndrer.double_emphasis = rndr_double_emphasis
+	rndrer.emphasis = rndr_emphasis
+	rndrer.image = rndr_image
+	rndrer.linebreak = rndr_linebreak
+	rndrer.link = rndr_link
+	rndrer.raw_html_tag = rndr_raw_html_tag
+	rndrer.triple_emphasis = rndr_triple_emphasis
+	rndrer.strikethrough = rndr_strikethrough
+
+	rndrer.normal_text = rndr_normal_text
 
 	rndrer.opaque = &html_renderopts{close_tag: " />"}
+
 	var extensions uint32 = MKDEXT_FENCED_CODE | MKDEXT_TABLES
+
+	// call the main rendered function
 	Markdown(ob, ib, rndrer, extensions)
+
+	// print the result
 	fmt.Print(ob.String())
 }
 
