@@ -1,9 +1,16 @@
+//
+// Black Friday Markdown Processor
+// Ported to Go from http://github.com/tanoku/upskirt
+// by Russ Ross <russ@russross.com>
+//
+
 package main
 
 import (
 	"bytes"
 	"fmt"
-	"html"
+	"io/ioutil"
+	"os"
 	"sort"
 	"unicode"
 )
@@ -651,7 +658,7 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 		}
 
 		// find the link_ref with matching id
-		index := sort.Search(len(rndr.refs), func(i int) bool {
+		index := sortDotSearch(len(rndr.refs), func(i int) bool {
 			return !byteslice_less(rndr.refs[i].id, id)
 		})
 		if index >= len(rndr.refs) || !bytes.Equal(rndr.refs[index].id, id) {
@@ -687,7 +694,7 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 		}
 
 		// find the link_ref with matching id
-		index := sort.Search(len(rndr.refs), func(i int) bool {
+		index := sortDotSearch(len(rndr.refs), func(i int) bool {
 			return !byteslice_less(rndr.refs[i].id, id)
 		})
 		if index >= len(rndr.refs) || !bytes.Equal(rndr.refs[index].id, id) {
@@ -751,7 +758,7 @@ func char_langle_tag(ob *bytes.Buffer, rndr *render, data []byte, offset int) in
 		switch {
 		case rndr.mk.autolink != nil && altype != MKDA_NOT_AUTOLINK:
 			u_link := bytes.NewBuffer(nil)
-			unscape_text(u_link, data[1:end-2])
+			unscape_text(u_link, data[1:end+1-2])
 			ret = rndr.mk.autolink(ob, u_link.Bytes(), altype, rndr.mk.opaque)
 		case rndr.mk.raw_html_tag != nil:
 			ret = rndr.mk.raw_html_tag(ob, data[:end], rndr.mk.opaque)
@@ -929,6 +936,25 @@ func ispunct(c byte) bool {
 		}
 	}
 	return false
+}
+
+// this is sort.Search, reproduced here because an older
+// version of the library had a bug
+func sortDotSearch(n int, f func(int) bool) int {
+	// Define f(-1) == false and f(n) == true.
+	// Invariant: f(i-1) == false, f(j) == true.
+	i, j := 0, n
+	for i < j {
+		h := i + (j-i)/2 // avoid overflow when computing h
+		// i ≤ h < j
+		if !f(h) {
+			i = h + 1 // preserves f(i-1) == false
+		} else {
+			j = h // preserves f(j) == true
+		}
+	}
+	// i == j, f(i-1) == false, and f(j) (= f(i)) == true  =>  answer is i.
+	return i
 }
 
 func isspace(c byte) bool {
@@ -1446,7 +1472,7 @@ func parse_htmlblock(ob *bytes.Buffer, rndr *render, data []byte, do_render bool
 		}
 
 		// HR, which is the only self-closing block tag considered
-		if len(data) > 4 && (data[i] == 'h' || data[1] == 'H') && (data[2] == 'r' || data[2] == 'R') {
+		if len(data) > 4 && (data[1] == 'h' || data[1] == 'H') && (data[2] == 'r' || data[2] == 'R') {
 			i = 3
 			for i < len(data) && data[i] != '>' {
 				i++
@@ -1979,11 +2005,10 @@ func parse_blockcode(ob *bytes.Buffer, rndr *render, data []byte) int {
 		for end = beg + 1; end < len(data) && data[end-1] != '\n'; end++ {
 		}
 
-		chunk := data[beg:end]
-		if pre := prefix_code(chunk); pre > 0 {
+		if pre := prefix_code(data[beg:end]); pre > 0 {
 			beg += pre
 		} else {
-			if is_empty(chunk) == 0 {
+			if is_empty(data[beg:end]) == 0 {
 				// non-empty non-prefixed line breaks the pre
 				break
 			}
@@ -1991,10 +2016,10 @@ func parse_blockcode(ob *bytes.Buffer, rndr *render, data []byte) int {
 
 		if beg < end {
 			// verbatim copy to the working buffer, escaping entities
-			if is_empty(chunk) > 0 {
+			if is_empty(data[beg:end]) > 0 {
 				work.WriteByte('\n')
 			} else {
-				work.Write(chunk)
+				work.Write(data[beg:end])
 			}
 		}
 		beg = end
@@ -2181,7 +2206,7 @@ func parse_listitem(ob *bytes.Buffer, rndr *render, data []byte, flags *int) int
 		// intermediate render of inline li
 		if sublist > 0 && sublist < len(workbytes) {
 			parse_inline(inter, rndr, workbytes[:sublist])
-			parse_inline(inter, rndr, workbytes[sublist:])
+			parse_block(inter, rndr, workbytes[sublist:])
 		} else {
 			parse_inline(inter, rndr, workbytes)
 		}
@@ -2306,7 +2331,31 @@ type html_renderopts struct {
 }
 
 func attr_escape(ob *bytes.Buffer, src []byte) {
-	ob.WriteString(html.EscapeString(string(src)))
+	for i := 0; i < len(src); i++ {
+		// directly copy unescaped characters
+		org := i
+		for i < len(src) && src[i] != '<' && src[i] != '>' && src[i] != '&' && src[i] != '"' {
+			i++
+		}
+		if i > org {
+			ob.Write(src[org:i])
+		}
+
+		// escaping
+		if i >= len(src) {
+			break
+		}
+		switch src[i] {
+		case '<':
+			ob.WriteString("&lt;")
+		case '>':
+			ob.WriteString("&gt;")
+		case '&':
+			ob.WriteString("&amp;")
+		case '"':
+			ob.WriteString("&quot;")
+		}
+	}
 }
 
 func unscape_text(ob *bytes.Buffer, src []byte) {
@@ -2422,7 +2471,7 @@ func rndr_blockcode(ob *bytes.Buffer, text []byte, lang string, opaque interface
 func rndr_blockquote(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	ob.WriteString("<blockquote>\n")
 	ob.Write(text)
-	ob.WriteString("</blockquote>\n")
+	ob.WriteString("</blockquote>")
 }
 
 func rndr_table(ob *bytes.Buffer, header []byte, body []byte, opaque interface{}) {
@@ -2729,120 +2778,9 @@ func is_html_tag(tag []byte, tagname string) bool {
 
 //
 //
-// Main and public interface
+// Public interface
 //
 //
-
-func main() {
-	ob := bytes.NewBuffer(nil)
-	input := ""
-	//	input += "##Header##\n"
-	//	input += "\n"
-	//	input += "----------\n"
-	//	input += "\n"
-	//	input += "Underlined header\n"
-	//	input += "-----------------\n"
-	//	input += "\n"
-	//	input += "<p>Some block html\n"
-	//	input += "</p>\n"
-	//	input += "\n"
-	//	input += "Score | Grade\n"
-	//	input += "------|------\n"
-	//	input += "94    | A\n"
-	//	input += "85    | B\n"
-	//	input += "74    | C\n"
-	//	input += "65    | D\n"
-	//	input += "\n"
-	//	input += "``` go\n"
-	//	input += "func fib(n int) int {\n"
-	//	input += "    if n <= 1 {\n"
-	//	input += "        return n\n"
-	//	input += "    }\n"
-	//	input += "    return n * fib(n-1)\n"
-	//	input += "}\n"
-	//	input += "```\n"
-	//	input += "\n"
-	//	input += "> A blockquote\n"
-	//	input += "> or something like that\n"
-	//	input += "> With a table | of two columns\n"
-	//	input += "> -------------|---------------\n"
-	//	input += "> key          | value \n"
-	//	input += "\n"
-	//	input += "\n"
-	input += "Some **bold** Some *italic* and [a link][1] \n"
-	//	input += "\n"
-	//	input += "A little code sample\n"
-	//	input += "\n"
-	//	input += "    </head>\n"
-	//	input += "    <title>Web Page Title</title>\n"
-	//	input += "    </head>\n"
-	//	input += "\n"
-	//	input += "A picture\n"
-	//	input += "\n"
-	//	input += "![alt text][2]\n"
-	//	input += "\n"
-	//	input += "A list\n"
-	//	input += "\n"
-	//	input += "- apples\n"
-	//	input += "- oranges\n"
-	//	input += "- eggs\n"
-	//	input += "\n"
-	//	input += "A numbered list\n"
-	//	input += "\n"
-	//	input += "1. a\n"
-	//	input += "2. b\n"
-	//	input += "3. c\n"
-	//	input += "\n"
-	//	input += "A little quote\n"
-	//	input += "\n"
-	//	input += "> It is now time for all good men to come to the aid of their country. \n"
-	//	input += "\n"
-	//	input += "A final paragraph. `code this` fool\n"
-	//	input += "\n"
-	//	input += "Click [here](http:google.com)\n"
-	//	input += "\n"
-	//	input += "\n"
-	input += "\n"
-	input += "  [1]: http://www.google.com\n"
-	input += "  [2]: http://www.google.com/intl/en_ALL/images/logo.gif\n"
-	ib := []byte(input)
-
-	rndrer := new(mkd_renderer)
-	rndrer.blockcode = rndr_blockcode
-	rndrer.blockquote = rndr_blockquote
-	rndrer.blockhtml = rndr_raw_block
-	rndrer.header = rndr_header
-	rndrer.hrule = rndr_hrule
-	rndrer.list = rndr_list
-	rndrer.listitem = rndr_listitem
-	rndrer.paragraph = rndr_paragraph
-	rndrer.table = rndr_table
-	rndrer.table_row = rndr_tablerow
-	rndrer.table_cell = rndr_tablecell
-
-	rndrer.autolink = rndr_autolink
-	rndrer.codespan = rndr_codespan
-	rndrer.double_emphasis = rndr_double_emphasis
-	rndrer.emphasis = rndr_emphasis
-	rndrer.image = rndr_image
-	rndrer.linebreak = rndr_linebreak
-	rndrer.link = rndr_link
-	rndrer.raw_html_tag = rndr_raw_html_tag
-	rndrer.triple_emphasis = rndr_triple_emphasis
-	rndrer.strikethrough = rndr_strikethrough
-
-	rndrer.normal_text = rndr_normal_text
-
-	rndrer.opaque = &html_renderopts{close_tag: ">\n"}
-
-	var extensions uint32 = MKDEXT_NO_INTRA_EMPHASIS | MKDEXT_TABLES | MKDEXT_FENCED_CODE | MKDEXT_AUTOLINK | MKDEXT_STRIKETHROUGH | MKDEXT_LAX_HTML_BLOCKS | MKDEXT_SPACE_HEADERS
-
-	// call the main rendered function
-	Markdown(ob, ib, rndrer, extensions)
-
-	// print the result
-	fmt.Print(ob.String())
-}
 
 func expand_tabs(ob *bytes.Buffer, line []byte) {
 	i, tab := 0, 0
@@ -2982,5 +2920,81 @@ func Markdown(ob *bytes.Buffer, ib []byte, rndrer *mkd_renderer, extensions uint
 
 	if rndr.nesting != 0 {
 		panic("Nesting level did not end at zero")
+	}
+}
+
+func main() {
+	// configure the rendering engine
+	rndrer := new(mkd_renderer)
+	rndrer.blockcode = rndr_blockcode
+	rndrer.blockquote = rndr_blockquote
+	rndrer.blockhtml = rndr_raw_block
+	rndrer.header = rndr_header
+	rndrer.hrule = rndr_hrule
+	rndrer.list = rndr_list
+	rndrer.listitem = rndr_listitem
+	rndrer.paragraph = rndr_paragraph
+	rndrer.table = rndr_table
+	rndrer.table_row = rndr_tablerow
+	rndrer.table_cell = rndr_tablecell
+
+	rndrer.autolink = rndr_autolink
+	rndrer.codespan = rndr_codespan
+	rndrer.double_emphasis = rndr_double_emphasis
+	rndrer.emphasis = rndr_emphasis
+	rndrer.image = rndr_image
+	rndrer.linebreak = rndr_linebreak
+	rndrer.link = rndr_link
+	rndrer.raw_html_tag = rndr_raw_html_tag
+	rndrer.triple_emphasis = rndr_triple_emphasis
+	rndrer.strikethrough = rndr_strikethrough
+
+	rndrer.normal_text = rndr_normal_text
+
+	rndrer.opaque = &html_renderopts{close_tag: ">\n"}
+
+	var extensions uint32
+	extensions |= MKDEXT_NO_INTRA_EMPHASIS
+	extensions |= MKDEXT_TABLES
+	extensions |= MKDEXT_FENCED_CODE
+	extensions |= MKDEXT_AUTOLINK
+	extensions |= MKDEXT_STRIKETHROUGH
+	extensions |= MKDEXT_LAX_HTML_BLOCKS
+	extensions |= MKDEXT_SPACE_HEADERS
+
+	// read the input
+	var ib []byte
+	var err os.Error
+	switch len(os.Args) {
+	case 1:
+		if ib, err = ioutil.ReadAll(os.Stdin); err != nil {
+			fmt.Fprintln(os.Stderr, "Error reading from Stdin:", err)
+			os.Exit(-1)
+		}
+	case 2, 3:
+		if ib, err = ioutil.ReadFile(os.Args[1]); err != nil {
+			fmt.Fprintln(os.Stderr, "Error reading from", os.Args[1], ":", err)
+			os.Exit(-1)
+		}
+	default:
+		fmt.Fprintln(os.Stderr, "Usage:", os.Args[0], "[inputfile [outputfile]]")
+		os.Exit(-1)
+	}
+
+	// call the main renderer function
+	ob := bytes.NewBuffer(nil)
+	Markdown(ob, ib, rndrer, extensions)
+
+	// output the result
+	if len(os.Args) == 3 {
+		if err = ioutil.WriteFile(os.Args[2], ob.Bytes(), 0644); err != nil {
+			fmt.Fprintln(os.Stderr, "Error writing to", os.Args[2], ":", err)
+			os.Exit(-1)
+		}
+	} else {
+		if _, err = os.Stdout.Write(ob.Bytes()); err != nil {
+			fmt.Fprintln(os.Stderr, "Error writing to Stdout:", err)
+			os.Exit(-1)
+		}
 	}
 }
