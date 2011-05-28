@@ -44,29 +44,29 @@ const (
 	MKD_TABLE_ALIGN_CENTER = (MKD_TABLE_ALIGN_L | MKD_TABLE_ALIGN_R)
 )
 
-var block_tags = map[string]int{
-	"p":          1, // 0
-	"dl":         2,
-	"h1":         2,
-	"h2":         2,
-	"h3":         2,
-	"h4":         2,
-	"h5":         2,
-	"h6":         2,
-	"ol":         2,
-	"ul":         2,
-	"del":        3, // 10
-	"div":        3,
-	"ins":        3, // 12
-	"pre":        3,
-	"form":       4,
-	"math":       4,
-	"table":      5,
-	"iframe":     6,
-	"script":     6,
-	"fieldset":   8,
-	"noscript":   8,
-	"blockquote": 10,
+var block_tags = map[string]bool{
+	"p":          true,
+	"dl":         true,
+	"h1":         true,
+	"h2":         true,
+	"h3":         true,
+	"h4":         true,
+	"h5":         true,
+	"h6":         true,
+	"ol":         true,
+	"ul":         true,
+	"del":        true,
+	"div":        true,
+	"ins":        true,
+	"pre":        true,
+	"form":       true,
+	"math":       true,
+	"table":      true,
+	"iframe":     true,
+	"script":     true,
+	"fieldset":   true,
+	"noscript":   true,
+	"blockquote": true,
 }
 
 // functions for rendering parsed data
@@ -257,7 +257,7 @@ func is_ref(data []byte, beg int, last *int, rndr *render) bool {
 		i++
 		title_offset = i
 
-		// looking for EOL
+		// look for EOL
 		for i < len(data) && data[i] != '\n' && data[i] != '\r' {
 			i++
 		}
@@ -267,7 +267,7 @@ func is_ref(data []byte, beg int, last *int, rndr *render) bool {
 			title_end = i
 		}
 
-		// stepping back
+		// step back
 		i--
 		for i > title_offset && (data[i] == ' ' || data[i] == '\t') {
 			i--
@@ -411,12 +411,12 @@ func char_codespan(ob *bytes.Buffer, rndr *render, data []byte, offset int) int 
 
 	nb := 0
 
-	// counting the number of backticks in the delimiter
+	// count the number of backticks in the delimiter
 	for nb < len(data) && data[nb] == '`' {
 		nb++
 	}
 
-	// finding the next delimiter
+	// find the next delimiter
 	i, end := 0, 0
 	for end = nb; end < len(data) && i < nb; end++ {
 		if data[end] == '`' {
@@ -485,7 +485,7 @@ func char_linebreak(ob *bytes.Buffer, rndr *render, data []byte, offset int) int
 	return 0
 }
 
-// '[': parsing a link or an image
+// '[': parse a link or an image
 func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	is_img := offset > 0 && data[offset-1] == '!'
 
@@ -495,12 +495,12 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	var title, link []byte
 	text_has_nl := false
 
-	// checking whether the correct renderer exists
+	// check whether the correct renderer exists
 	if (is_img && rndr.mk.image == nil) || (!is_img && rndr.mk.link == nil) {
 		return 0
 	}
 
-	// looking for the matching closing bracket
+	// look for the matching closing bracket
 	for level := 1; level > 0 && i < len(data); i++ {
 		switch {
 		case data[i] == '\n':
@@ -536,7 +536,7 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	// inline style link
 	switch {
 	case i < len(data) && data[i] == '(':
-		// skipping initial whitespace
+		// skip initial whitespace
 		i++
 
 		for i < len(data) && isspace(data[i]) {
@@ -545,7 +545,7 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 
 		link_b := i
 
-		// looking for link end: ' " )
+		// look for link end: ' " )
 		for i < len(data) {
 			if data[i] == '\\' {
 				i += 2
@@ -562,7 +562,7 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 		}
 		link_e := i
 
-		// looking for title end if present
+		// look for title end if present
 		title_b, title_e := 0, 0
 		if data[i] == '\'' || data[i] == '"' {
 			i++
@@ -583,13 +583,13 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 				return 0
 			}
 
-			// skipping whitespaces after title
+			// skip whitespace after title
 			title_e = i - 1
 			for title_e > title_b && isspace(data[title_e]) {
 				title_e--
 			}
 
-			// checking for closing quote presence
+			// check for closing quote presence
 			if data[title_e] != '\'' && data[title_e] != '"' {
 				title_b, title_e = 0, 0
 				link_e = i
@@ -609,7 +609,7 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 			link_e--
 		}
 
-		// building escaped link and title
+		// build escaped link and title
 		if link_e > link_b {
 			link = data[link_b:link_e]
 		}
@@ -624,7 +624,7 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	case i < len(data) && data[i] == '[':
 		var id []byte
 
-		// looking for the id
+		// look for the id
 		i++
 		link_b := i
 		for i < len(data) && data[i] != ']' {
@@ -675,7 +675,7 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	default:
 		var id []byte
 
-		// crafting the id
+		// craft the id
 		if text_has_nl {
 			b := bytes.NewBuffer(nil)
 
@@ -706,11 +706,11 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 		link = lr.link
 		title = lr.title
 
-		// rewinding the whitespace
+		// rewind the whitespace
 		i = txt_e + 1
 	}
 
-	// building content: img alt is escaped, link content is parsed
+	// build content: img alt is escaped, link content is parsed
 	content := bytes.NewBuffer(nil)
 	if txt_e > 1 {
 		if is_img {
@@ -723,11 +723,11 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	var u_link []byte
 	if len(link) > 0 {
 		u_link_buf := bytes.NewBuffer(nil)
-		unscape_text(u_link_buf, link)
+		unescape_text(u_link_buf, link)
 		u_link = u_link_buf.Bytes()
 	}
 
-	// calling the relevant rendering function
+	// call the relevant rendering function
 	ret := 0
 	if is_img {
 		ob_size := ob.Len()
@@ -758,7 +758,7 @@ func char_langle_tag(ob *bytes.Buffer, rndr *render, data []byte, offset int) in
 		switch {
 		case rndr.mk.autolink != nil && altype != MKDA_NOT_AUTOLINK:
 			u_link := bytes.NewBuffer(nil)
-			unscape_text(u_link, data[1:end+1-2])
+			unescape_text(u_link, data[1:end+1-2])
 			ret = rndr.mk.autolink(ob, u_link.Bytes(), altype, rndr.mk.opaque)
 		case rndr.mk.raw_html_tag != nil:
 			ret = rndr.mk.raw_html_tag(ob, data[:end], rndr.mk.opaque)
@@ -907,7 +907,7 @@ func char_autolink(ob *bytes.Buffer, rndr *render, data []byte, offset int) int 
 
 	if rndr.mk.autolink != nil {
 		u_link := bytes.NewBuffer(nil)
-		unscape_text(u_link, data[:link_end])
+		unescape_text(u_link, data[:link_end])
 
 		rndr.mk.autolink(ob, u_link.Bytes(), MKDA_NORMAL, rndr.mk.opaque)
 	}
@@ -1039,7 +1039,7 @@ func tag_length(data []byte, autolink *int) int {
 		*autolink = MKDA_NOT_AUTOLINK
 	}
 
-	// looking for sometinhg looking like a tag end
+	// look for something looking like a tag end
 	for i < len(data) && data[i] != '>' {
 		i++
 	}
@@ -1272,7 +1272,7 @@ func parse_emph3(ob *bytes.Buffer, rndr *render, data []byte, offset int, c byte
 				return 0
 			}
 		case (i+1 < len(data) && data[i+1] == c):
-			// double symbol found, handing over to emph1
+			// double symbol found, hand over to emph1
 			length = parse_emph1(ob, rndr, orig_data[offset-2:], c)
 			if length == 0 {
 				return 0
@@ -1280,7 +1280,7 @@ func parse_emph3(ob *bytes.Buffer, rndr *render, data []byte, offset int, c byte
 				return length - 2
 			}
 		default:
-			// single symbol found, handing over to emph2
+			// single symbol found, hand over to emph2
 			length = parse_emph2(ob, rndr, orig_data[offset-1:], c)
 			if length == 0 {
 				return 0
@@ -1545,7 +1545,7 @@ func find_block_tag(data []byte) (string, bool) {
 		return "", false
 	}
 	key := string(data[:i])
-	if _, ok := block_tags[key]; ok {
+	if block_tags[key] {
 		return key, true
 	}
 	return "", false
@@ -1955,7 +1955,7 @@ func prefix_quote(data []byte) int {
 	return 0
 }
 
-// handles parsing of a blockquote fragment
+// parse a blockquote fragment
 func parse_blockquote(ob *bytes.Buffer, rndr *render, data []byte) int {
 	out := bytes.NewBuffer(nil)
 	work := bytes.NewBuffer(nil)
@@ -2074,7 +2074,7 @@ func prefix_oli(data []byte) int {
 	return i + 2
 }
 
-// parsing ordered or unordered list block
+// parse ordered or unordered list block
 func parse_list(ob *bytes.Buffer, rndr *render, data []byte, flags int) int {
 	work := bytes.NewBuffer(nil)
 
@@ -2110,6 +2110,11 @@ func parse_listitem(ob *bytes.Buffer, rndr *render, data []byte, flags *int) int
 	}
 	if beg == 0 {
 		return 0
+	}
+
+	// skip leading whitespace on first line
+	for beg < len(data) && data[beg] == ' ' {
+		beg++
 	}
 
 	// skip to the beginning of the following line
@@ -2341,7 +2346,7 @@ func attr_escape(ob *bytes.Buffer, src []byte) {
 			ob.Write(src[org:i])
 		}
 
-		// escaping
+		// escape a character
 		if i >= len(src) {
 			break
 		}
@@ -2358,7 +2363,7 @@ func attr_escape(ob *bytes.Buffer, src []byte) {
 	}
 }
 
-func unscape_text(ob *bytes.Buffer, src []byte) {
+func unescape_text(ob *bytes.Buffer, src []byte) {
 	i := 0
 	for i < len(src) {
 		org := i
@@ -2604,7 +2609,7 @@ func rndr_autolink(ob *bytes.Buffer, link []byte, kind int, opaque interface{}) 
 	ob.WriteString("\">")
 
 	/*
-	 * Pretty printing: if we get an email address as
+	 * Pretty print: if we get an email address as
 	 * an actual URI, e.g. `mailto:foo@bar.com`, we don't
 	 * want to print the `mailto:` prefix
 	 */
@@ -2866,7 +2871,7 @@ func Markdown(ob *bytes.Buffer, ib []byte, rndrer *mkd_renderer, extensions uint
 		rndr.active_char['M'] = MD_CHAR_AUTOLINK
 	}
 
-	// first pass: look for references, copying everything else
+	// first pass: look for references, copy everything else
 	text := bytes.NewBuffer(nil)
 	beg, end := 0, 0
 	for beg < len(ib) { // iterate over lines
@@ -2923,7 +2928,7 @@ func Markdown(ob *bytes.Buffer, ib []byte, rndrer *mkd_renderer, extensions uint
 	}
 }
 
-func main() {
+func Config_html() *mkd_renderer {
 	// configure the rendering engine
 	rndrer := new(mkd_renderer)
 	rndrer.blockcode = rndr_blockcode
@@ -2951,17 +2956,11 @@ func main() {
 
 	rndrer.normal_text = rndr_normal_text
 
-	rndrer.opaque = &html_renderopts{close_tag: ">\n"}
+	rndrer.opaque = &html_renderopts{close_tag: " />\n"}
+	return rndrer
+}
 
-	var extensions uint32
-	extensions |= MKDEXT_NO_INTRA_EMPHASIS
-	extensions |= MKDEXT_TABLES
-	extensions |= MKDEXT_FENCED_CODE
-	extensions |= MKDEXT_AUTOLINK
-	extensions |= MKDEXT_STRIKETHROUGH
-	extensions |= MKDEXT_LAX_HTML_BLOCKS
-	extensions |= MKDEXT_SPACE_HEADERS
-
+func main() {
 	// read the input
 	var ib []byte
 	var err os.Error
@@ -2983,7 +2982,17 @@ func main() {
 
 	// call the main renderer function
 	ob := bytes.NewBuffer(nil)
-	Markdown(ob, ib, rndrer, extensions)
+	var extensions uint32
+	extensions |= MKDEXT_NO_INTRA_EMPHASIS
+	extensions |= MKDEXT_TABLES
+	extensions |= MKDEXT_FENCED_CODE
+	extensions |= MKDEXT_AUTOLINK
+	extensions |= MKDEXT_STRIKETHROUGH
+	extensions |= MKDEXT_LAX_HTML_BLOCKS
+	extensions |= MKDEXT_SPACE_HEADERS
+	extensions = 0
+
+	Markdown(ob, ib, Config_html(), extensions)
 
 	// output the result
 	if len(os.Args) == 3 {
