@@ -70,7 +70,7 @@ var block_tags = map[string]bool{
 }
 
 // functions for rendering parsed data
-type mkd_renderer struct {
+type Renderer struct {
 	// block-level callbacks---nil skips the block
 	blockcode  func(ob *bytes.Buffer, text []byte, lang string, opaque interface{})
 	blockquote func(ob *bytes.Buffer, text []byte, opaque interface{})
@@ -154,30 +154,28 @@ func (elt link_ref_array) Swap(i, j int) {
 	elt[i], elt[j] = elt[j], elt[i]
 }
 
-// returns whether or not a line is a reference
-func is_ref(data []byte, beg int, last *int, rndr *render) bool {
+// is_ref checks whether or not data starts with a reference line.
+// For example:
+//
+//    [1]: http://www.google.com/
+//    [2]: http://www.github.com/
+//
+func is_ref(rndr *render, data []byte) int {
 	// up to 3 optional leading spaces
-	if beg+3 > len(data) {
-		return false
+	if len(data) < 4 {
+		return 0
 	}
 	i := 0
-	if data[beg] == ' ' {
+	for i < 3 && data[i] == ' ' {
 		i++
-		if data[beg+1] == ' ' {
-			i++
-			if data[beg+2] == ' ' {
-				i++
-				if data[beg+3] == ' ' {
-					return false
-				}
-			}
-		}
 	}
-	i += beg
+	if data[i] == ' ' {
+		return 0
+	}
 
 	// id part: anything but a newline between brackets
 	if data[i] != '[' {
-		return false
+		return 0
 	}
 	i++
 	id_offset := i
@@ -185,14 +183,14 @@ func is_ref(data []byte, beg int, last *int, rndr *render) bool {
 		i++
 	}
 	if i >= len(data) || data[i] != ']' {
-		return false
+		return 0
 	}
 	id_end := i
 
 	// spacer: colon (space | tab)* newline? (space | tab)*
 	i++
 	if i >= len(data) || data[i] != ':' {
-		return false
+		return 0
 	}
 	i++
 	for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
@@ -200,7 +198,7 @@ func is_ref(data []byte, beg int, last *int, rndr *render) bool {
 	}
 	if i < len(data) && (data[i] == '\n' || data[i] == '\r') {
 		i++
-		if i < len(data) && data[i] == '\r' && data[i-1] == '\n' {
+		if i < len(data) && data[i] == '\n' && data[i-1] == '\r' {
 			i++
 		}
 	}
@@ -208,7 +206,7 @@ func is_ref(data []byte, beg int, last *int, rndr *render) bool {
 		i++
 	}
 	if i >= len(data) {
-		return false
+		return 0
 	}
 
 	// link: whitespace-free sequence, optionally between angle brackets
@@ -219,11 +217,10 @@ func is_ref(data []byte, beg int, last *int, rndr *render) bool {
 	for i < len(data) && data[i] != ' ' && data[i] != '\t' && data[i] != '\n' && data[i] != '\r' {
 		i++
 	}
-	var link_end int
-	if data[i-1] == '>' {
-		link_end = i - 1
-	} else {
-		link_end = i
+	link_end := i
+	if data[link_offset] == '<' && data[link_end-1] == '>' {
+		link_offset++
+		link_end--
 	}
 
 	// optional spacer: (space | tab)* (newline | '\'' | '"' | '(' )
@@ -231,7 +228,7 @@ func is_ref(data []byte, beg int, last *int, rndr *render) bool {
 		i++
 	}
 	if i < len(data) && data[i] != '\n' && data[i] != '\r' && data[i] != '\'' && data[i] != '"' && data[i] != '(' {
-		return false
+		return 0
 	}
 
 	// compute end-of-line
@@ -239,8 +236,8 @@ func is_ref(data []byte, beg int, last *int, rndr *render) bool {
 	if i >= len(data) || data[i] == '\r' || data[i] == '\n' {
 		line_end = i
 	}
-	if i+1 < len(data) && data[i] == '\n' && data[i+1] == '\r' {
-		line_end = i + 1
+	if i+1 < len(data) && data[i] == '\r' && data[i+1] == '\n' {
+		line_end++
 	}
 
 	// optional (space|tab)* spacer after a newline
@@ -278,24 +275,21 @@ func is_ref(data []byte, beg int, last *int, rndr *render) bool {
 		}
 	}
 	if line_end == 0 { // garbage after the link
-		return false
+		return 0
 	}
 
-	// a valid ref has been found; fill in return structures
-	if last != nil {
-		*last = line_end
-	}
+	// a valid ref has been found
 	if rndr == nil {
-		return true
+		return line_end
 	}
 	item := &link_ref{id: data[id_offset:id_end], link: data[link_offset:link_end], title: data[title_offset:title_end]}
 	rndr.refs = append(rndr.refs, item)
 
-	return true
+	return line_end
 }
 
 type render struct {
-	mk          *mkd_renderer
+	mk          *Renderer
 	refs        link_ref_array
 	active_char [256]int
 	ext_flags   uint32
@@ -2326,13 +2320,13 @@ const (
 	HTML_USE_XHTML
 )
 
-type html_renderopts struct {
-	toc_data struct {
+type HtmlOptions struct {
+	Flags     int
+	close_tag string // how to end singleton tags: usually " />\n", possibly ">\n"
+	toc_data  struct {
 		header_count  int
 		current_level int
 	}
-	flags     uint32
-	close_tag string
 }
 
 func attr_escape(ob *bytes.Buffer, src []byte) {
@@ -2385,13 +2379,13 @@ func unescape_text(ob *bytes.Buffer, src []byte) {
 }
 
 func rndr_header(ob *bytes.Buffer, text []byte, level int, opaque interface{}) {
-	options := opaque.(*html_renderopts)
+	options := opaque.(*HtmlOptions)
 
 	if ob.Len() > 0 {
 		ob.WriteByte('\n')
 	}
 
-	if options.flags&HTML_TOC != 0 {
+	if options.Flags&HTML_TOC != 0 {
 		ob.WriteString(fmt.Sprintf("<h%d id=\"toc_%d\">", level, options.toc_data.header_count))
 		options.toc_data.header_count++
 	} else {
@@ -2422,7 +2416,7 @@ func rndr_raw_block(ob *bytes.Buffer, text []byte, opaque interface{}) {
 }
 
 func rndr_hrule(ob *bytes.Buffer, opaque interface{}) {
-	options := opaque.(*html_renderopts)
+	options := opaque.(*HtmlOptions)
 
 	if ob.Len() > 0 {
 		ob.WriteByte('\n')
@@ -2546,7 +2540,7 @@ func rndr_listitem(ob *bytes.Buffer, text []byte, flags int, opaque interface{})
 }
 
 func rndr_paragraph(ob *bytes.Buffer, text []byte, opaque interface{}) {
-	options := opaque.(*html_renderopts)
+	options := opaque.(*HtmlOptions)
 	i := 0
 
 	if ob.Len() > 0 {
@@ -2566,7 +2560,7 @@ func rndr_paragraph(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	}
 
 	ob.WriteString("<p>")
-	if options.flags&HTML_HARD_WRAP != 0 {
+	if options.Flags&HTML_HARD_WRAP != 0 {
 		for i < len(text) {
 			org := i
 			for i < len(text) && text[i] != '\n' {
@@ -2592,12 +2586,12 @@ func rndr_paragraph(ob *bytes.Buffer, text []byte, opaque interface{}) {
 }
 
 func rndr_autolink(ob *bytes.Buffer, link []byte, kind int, opaque interface{}) int {
-	options := opaque.(*html_renderopts)
+	options := opaque.(*HtmlOptions)
 
 	if len(link) == 0 {
 		return 0
 	}
-	if options.flags&HTML_SAFELINK != 0 && !is_safe_link(link) && kind != MKDA_EMAIL {
+	if options.Flags&HTML_SAFELINK != 0 && !is_safe_link(link) && kind != MKDA_EMAIL {
 		return 0
 	}
 
@@ -2652,7 +2646,7 @@ func rndr_emphasis(ob *bytes.Buffer, text []byte, opaque interface{}) int {
 }
 
 func rndr_image(ob *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{}) int {
-	options := opaque.(*html_renderopts)
+	options := opaque.(*HtmlOptions)
 	if len(link) == 0 {
 		return 0
 	}
@@ -2673,16 +2667,16 @@ func rndr_image(ob *bytes.Buffer, link []byte, title []byte, alt []byte, opaque 
 }
 
 func rndr_linebreak(ob *bytes.Buffer, opaque interface{}) int {
-	options := opaque.(*html_renderopts)
+	options := opaque.(*HtmlOptions)
 	ob.WriteString("<br")
 	ob.WriteString(options.close_tag)
 	return 1
 }
 
 func rndr_link(ob *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{}) int {
-	options := opaque.(*html_renderopts)
+	options := opaque.(*HtmlOptions)
 
-	if options.flags&HTML_SAFELINK != 0 && !is_safe_link(link) {
+	if options.Flags&HTML_SAFELINK != 0 && !is_safe_link(link) {
 		return 0
 	}
 
@@ -2703,17 +2697,17 @@ func rndr_link(ob *bytes.Buffer, link []byte, title []byte, content []byte, opaq
 }
 
 func rndr_raw_html_tag(ob *bytes.Buffer, text []byte, opaque interface{}) int {
-	options := opaque.(*html_renderopts)
-	if options.flags&HTML_SKIP_HTML != 0 {
+	options := opaque.(*HtmlOptions)
+	if options.Flags&HTML_SKIP_HTML != 0 {
 		return 1
 	}
-	if options.flags&HTML_SKIP_STYLE != 0 && is_html_tag(text, "style") {
+	if options.Flags&HTML_SKIP_STYLE != 0 && is_html_tag(text, "style") {
 		return 1
 	}
-	if options.flags&HTML_SKIP_LINKS != 0 && is_html_tag(text, "a") {
+	if options.Flags&HTML_SKIP_LINKS != 0 && is_html_tag(text, "a") {
 		return 1
 	}
-	if options.flags&HTML_SKIP_IMAGES != 0 && is_html_tag(text, "img") {
+	if options.Flags&HTML_SKIP_IMAGES != 0 && is_html_tag(text, "img") {
 		return 1
 	}
 	ob.Write(text)
@@ -2817,7 +2811,7 @@ func expand_tabs(ob *bytes.Buffer, line []byte) {
 	}
 }
 
-func Markdown(ob *bytes.Buffer, ib []byte, rndrer *mkd_renderer, extensions uint32) {
+func Markdown(ob *bytes.Buffer, ib []byte, rndrer *Renderer, extensions uint32) {
 	// no point in parsing if we can't render
 	if rndrer == nil {
 		return
@@ -2875,8 +2869,8 @@ func Markdown(ob *bytes.Buffer, ib []byte, rndrer *mkd_renderer, extensions uint
 	text := bytes.NewBuffer(nil)
 	beg, end := 0, 0
 	for beg < len(ib) { // iterate over lines
-		if is_ref(ib, beg, &end, rndr) {
-			beg = end
+		if end = is_ref(rndr, ib[beg:]); end > 0 {
+			beg += end
 		} else { // skip to the next line
 			end = beg
 			for end < len(ib) && ib[end] != '\n' && ib[end] != '\r' {
@@ -2928,50 +2922,54 @@ func Markdown(ob *bytes.Buffer, ib []byte, rndrer *mkd_renderer, extensions uint
 	}
 }
 
-func Config_html() *mkd_renderer {
+func HtmlRenderer(flags int) *Renderer {
 	// configure the rendering engine
-	rndrer := new(mkd_renderer)
-	rndrer.blockcode = rndr_blockcode
-	rndrer.blockquote = rndr_blockquote
-	rndrer.blockhtml = rndr_raw_block
-	rndrer.header = rndr_header
-	rndrer.hrule = rndr_hrule
-	rndrer.list = rndr_list
-	rndrer.listitem = rndr_listitem
-	rndrer.paragraph = rndr_paragraph
-	rndrer.table = rndr_table
-	rndrer.table_row = rndr_tablerow
-	rndrer.table_cell = rndr_tablecell
+	r := new(Renderer)
+	r.blockcode = rndr_blockcode
+	r.blockquote = rndr_blockquote
+	r.blockhtml = rndr_raw_block
+	r.header = rndr_header
+	r.hrule = rndr_hrule
+	r.list = rndr_list
+	r.listitem = rndr_listitem
+	r.paragraph = rndr_paragraph
+	r.table = rndr_table
+	r.table_row = rndr_tablerow
+	r.table_cell = rndr_tablecell
 
-	rndrer.autolink = rndr_autolink
-	rndrer.codespan = rndr_codespan
-	rndrer.double_emphasis = rndr_double_emphasis
-	rndrer.emphasis = rndr_emphasis
-	rndrer.image = rndr_image
-	rndrer.linebreak = rndr_linebreak
-	rndrer.link = rndr_link
-	rndrer.raw_html_tag = rndr_raw_html_tag
-	rndrer.triple_emphasis = rndr_triple_emphasis
-	rndrer.strikethrough = rndr_strikethrough
+	r.autolink = rndr_autolink
+	r.codespan = rndr_codespan
+	r.double_emphasis = rndr_double_emphasis
+	r.emphasis = rndr_emphasis
+	r.image = rndr_image
+	r.linebreak = rndr_linebreak
+	r.link = rndr_link
+	r.raw_html_tag = rndr_raw_html_tag
+	r.triple_emphasis = rndr_triple_emphasis
+	r.strikethrough = rndr_strikethrough
 
-	rndrer.normal_text = rndr_normal_text
+	r.normal_text = rndr_normal_text
 
-	rndrer.opaque = &html_renderopts{close_tag: " />\n"}
-	return rndrer
+	close_tag := ">\n"
+	if flags&HTML_USE_XHTML != 0 {
+		close_tag = " />\n"
+	}
+	r.opaque = &HtmlOptions{Flags: flags, close_tag: close_tag}
+	return r
 }
 
 func main() {
 	// read the input
-	var ib []byte
+	var input []byte
 	var err os.Error
 	switch len(os.Args) {
 	case 1:
-		if ib, err = ioutil.ReadAll(os.Stdin); err != nil {
+		if input, err = ioutil.ReadAll(os.Stdin); err != nil {
 			fmt.Fprintln(os.Stderr, "Error reading from Stdin:", err)
 			os.Exit(-1)
 		}
 	case 2, 3:
-		if ib, err = ioutil.ReadFile(os.Args[1]); err != nil {
+		if input, err = ioutil.ReadFile(os.Args[1]); err != nil {
 			fmt.Fprintln(os.Stderr, "Error reading from", os.Args[1], ":", err)
 			os.Exit(-1)
 		}
@@ -2981,27 +2979,25 @@ func main() {
 	}
 
 	// call the main renderer function
-	ob := bytes.NewBuffer(nil)
+	output := bytes.NewBuffer(nil)
 	var extensions uint32
 	extensions |= MKDEXT_NO_INTRA_EMPHASIS
 	extensions |= MKDEXT_TABLES
 	extensions |= MKDEXT_FENCED_CODE
 	extensions |= MKDEXT_AUTOLINK
 	extensions |= MKDEXT_STRIKETHROUGH
-	extensions |= MKDEXT_LAX_HTML_BLOCKS
 	extensions |= MKDEXT_SPACE_HEADERS
-	extensions = 0
 
-	Markdown(ob, ib, Config_html(), extensions)
+	Markdown(output, input, HtmlRenderer(HTML_USE_XHTML), extensions)
 
 	// output the result
 	if len(os.Args) == 3 {
-		if err = ioutil.WriteFile(os.Args[2], ob.Bytes(), 0644); err != nil {
+		if err = ioutil.WriteFile(os.Args[2], output.Bytes(), 0644); err != nil {
 			fmt.Fprintln(os.Stderr, "Error writing to", os.Args[2], ":", err)
 			os.Exit(-1)
 		}
 	} else {
-		if _, err = os.Stdout.Write(ob.Bytes()); err != nil {
+		if _, err = os.Stdout.Write(output.Bytes()); err != nil {
 			fmt.Fprintln(os.Stderr, "Error writing to Stdout:", err)
 			os.Exit(-1)
 		}
