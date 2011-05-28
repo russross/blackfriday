@@ -1,6 +1,6 @@
 //
 // Black Friday Markdown Processor
-// Ported to Go from http://github.com/tanoku/upskirt
+// Originally based on http://github.com/tanoku/upskirt
 // by Russ Ross <russ@russross.com>
 //
 
@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"os"
 	"sort"
+	"strconv"
 	"unicode"
 )
 
@@ -2318,6 +2319,9 @@ const (
 	HTML_HARD_WRAP
 	HTML_GITHUB_BLOCKCODE
 	HTML_USE_XHTML
+	HTML_USE_SMARTYPANTS
+	HTML_SMARTYPANTS_FRACTIONS
+	HTML_SMARTYPANTS_LATEX_DASHES
 )
 
 type HtmlOptions struct {
@@ -2327,6 +2331,7 @@ type HtmlOptions struct {
 		header_count  int
 		current_level int
 	}
+	smartypants *SmartypantsRenderer
 }
 
 func attr_escape(ob *bytes.Buffer, src []byte) {
@@ -2466,6 +2471,56 @@ func rndr_blockcode(ob *bytes.Buffer, text []byte, lang string, opaque interface
 
 	ob.WriteString("</code></pre>\n")
 }
+
+/*
+ * GitHub style code block:
+ *
+ *              <pre lang="LANG"><code>
+ *              ...
+ *              </pre></code>
+ *
+ * Unlike other parsers, we store the language identifier in the <pre>,
+ * and don't let the user generate custom classes.
+ *
+ * The language identifier in the <pre> block gets postprocessed and all
+ * the code inside gets syntax highlighted with Pygments. This is much safer
+ * than letting the user specify a CSS class for highlighting.
+ *
+ * Note that we only generate HTML for the first specifier.
+ * E.g.
+ *              ~~~~ {.python .numbered}        =>      <pre lang="python"><code>
+ */
+func rndr_blockcode_github(ob *bytes.Buffer, text []byte, lang string, opaque interface{}) {
+	if ob.Len() > 0 {
+		ob.WriteByte('\n')
+	}
+
+	if len(lang) > 0 {
+		ob.WriteString("<pre lang=\"")
+
+		i := 0
+		for i < len(lang) && !isspace(lang[i]) {
+			i++
+		}
+
+		if lang[0] == '.' {
+			attr_escape(ob, []byte(lang[1:i]))
+		} else {
+			attr_escape(ob, []byte(lang[:i]))
+		}
+
+		ob.WriteString("\"><code>")
+	} else {
+		ob.WriteString("<pre><code>")
+	}
+
+	if len(text) > 0 {
+		attr_escape(ob, text)
+	}
+
+	ob.WriteString("</code></pre>\n")
+}
+
 
 func rndr_blockquote(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	ob.WriteString("<blockquote>\n")
@@ -2738,6 +2793,47 @@ func rndr_normal_text(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	attr_escape(ob, text)
 }
 
+func rndr_toc_header(ob *bytes.Buffer, text []byte, level int, opaque interface{}) {
+	options := opaque.(*HtmlOptions)
+	for level > options.toc_data.current_level {
+		if options.toc_data.current_level > 0 {
+			ob.WriteString("<li>")
+		}
+		ob.WriteString("<ul>\n")
+		options.toc_data.current_level++
+	}
+
+	for level < options.toc_data.current_level {
+		ob.WriteString("</ul>")
+		if options.toc_data.current_level > 1 {
+			ob.WriteString("</li>\n")
+		}
+		options.toc_data.current_level--
+	}
+
+	ob.WriteString("<li><a href=\"#toc_")
+	ob.WriteString(strconv.Itoa(options.toc_data.header_count))
+	ob.WriteString("\">")
+	options.toc_data.header_count++
+
+	if len(text) > 0 {
+		ob.Write(text)
+	}
+	ob.WriteString("</a></li>\n")
+}
+
+func rndr_toc_finalize(ob *bytes.Buffer, opaque interface{}) {
+	options := opaque.(*HtmlOptions)
+	for options.toc_data.current_level > 1 {
+		ob.WriteString("</ul></li>\n")
+		options.toc_data.current_level--
+	}
+
+	if options.toc_data.current_level > 0 {
+		ob.WriteString("</ul>\n")
+	}
+}
+
 func is_html_tag(tag []byte, tagname string) bool {
 	i := 0
 	if i < len(tag) && tag[0] != '<' {
@@ -2774,10 +2870,346 @@ func is_html_tag(tag []byte, tagname string) bool {
 	return isspace(tag[i]) || tag[i] == '>'
 }
 
+//
+//
+// SmartyPants rendering
+//
+//
+
+type smartypants_data struct {
+	in_squote bool
+	in_dquote bool
+}
+
+func word_boundary(c byte) bool {
+	return c == 0 || isspace(c) || ispunct(c)
+}
+
+func tolower(c byte) byte {
+	if c >= 'A' && c <= 'Z' {
+		return c - 'A' + 'a'
+	}
+	return c
+}
+
+func isdigit(c byte) bool {
+	return c >= '0' && c <= '9'
+}
+
+func smartypants_quotes(ob *bytes.Buffer, previous_char byte, next_char byte, quote byte, is_open *bool) bool {
+	switch {
+	// edge of the buffer is likely to be a tag that we don't get to see,
+	// so we assume there is text there
+	case word_boundary(previous_char) && previous_char != 0 && next_char == 0:
+		*is_open = true
+	case previous_char == 0 && word_boundary(next_char) && next_char != 0:
+		*is_open = false
+	case word_boundary(previous_char) && !word_boundary(next_char):
+		*is_open = true
+	case !word_boundary(previous_char) && word_boundary(next_char):
+		*is_open = false
+	case !word_boundary(previous_char) && !word_boundary(next_char):
+		*is_open = true
+	default:
+		*is_open = !*is_open
+	}
+
+	ob.WriteByte('&')
+	if *is_open {
+		ob.WriteByte('l')
+	} else {
+		ob.WriteByte('r')
+	}
+	ob.WriteByte(quote)
+	ob.WriteString("quo;")
+	return true
+}
+
+func smartypants_cb__squote(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
+	if len(text) >= 2 {
+		t1 := tolower(text[1])
+
+		if t1 == '\'' {
+			next_char := byte(0)
+			if len(text) >= 3 {
+				next_char = text[2]
+			}
+			if smartypants_quotes(ob, previous_char, next_char, 'd', &smrt.in_dquote) {
+				return 1
+			}
+		}
+
+		if (t1 == 's' || t1 == 't' || t1 == 'm' || t1 == 'd') && (len(text) < 3 || word_boundary(text[2])) {
+			ob.WriteString("&rsquo;")
+			return 0
+		}
+
+		if len(text) >= 3 {
+			t2 := tolower(text[2])
+
+			if ((t1 == 'r' && t2 == 'e') || (t1 == 'l' && t2 == 'l') || (t1 == 'v' && t2 == 'e')) && (len(text) < 4 || word_boundary(text[3])) {
+				ob.WriteString("&rsquo;")
+				return 0
+			}
+		}
+	}
+
+	next_char := byte(0)
+	if len(text) > 1 {
+		next_char = text[1]
+	}
+	if smartypants_quotes(ob, previous_char, next_char, 's', &smrt.in_squote) {
+		return 0
+	}
+
+	ob.WriteByte(text[0])
+	return 0
+}
+
+func smartypants_cb__parens(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
+	if len(text) >= 3 {
+		t1 := tolower(text[1])
+		t2 := tolower(text[2])
+
+		if t1 == 'c' && t2 == ')' {
+			ob.WriteString("&copy;")
+			return 2
+		}
+
+		if t1 == 'r' && t2 == ')' {
+			ob.WriteString("&reg;")
+			return 2
+		}
+
+		if len(text) >= 4 && t1 == 't' && t2 == 'm' && text[3] == ')' {
+			ob.WriteString("&trade;")
+			return 3
+		}
+	}
+
+	ob.WriteByte(text[0])
+	return 0
+}
+
+func smartypants_cb__dash(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
+	if len(text) >= 2 {
+		if text[1] == '-' {
+			ob.WriteString("&mdash;")
+			return 1
+		}
+
+		if word_boundary(previous_char) && word_boundary(text[1]) {
+			ob.WriteString("&ndash;")
+			return 0
+		}
+	}
+
+	ob.WriteByte(text[0])
+	return 0
+}
+
+func smartypants_cb__dash_latex(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
+	if len(text) >= 3 && text[1] == '-' && text[2] == '-' {
+		ob.WriteString("&mdash;")
+		return 2
+	}
+	if len(text) >= 2 && text[1] == '-' {
+		ob.WriteString("&ndash;")
+		return 1
+	}
+
+	ob.WriteByte(text[0])
+	return 0
+}
+
+func smartypants_cb__amp(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
+	if bytes.HasPrefix(text, []byte("&quot;")) {
+		next_char := byte(0)
+		if len(text) >= 7 {
+			next_char = text[6]
+		}
+		if smartypants_quotes(ob, previous_char, next_char, 'd', &smrt.in_dquote) {
+			return 5
+		}
+	}
+
+	if bytes.HasPrefix(text, []byte("&#0;")) {
+		return 3
+	}
+
+	ob.WriteByte('&')
+	return 0
+}
+
+func smartypants_cb__period(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
+	if len(text) >= 3 && text[1] == '.' && text[2] == '.' {
+		ob.WriteString("&hellip;")
+		return 2
+	}
+
+	if len(text) >= 5 && text[1] == ' ' && text[2] == '.' && text[3] == ' ' && text[4] == '.' {
+		ob.WriteString("&hellip;")
+		return 4
+	}
+
+	ob.WriteByte(text[0])
+	return 0
+}
+
+func smartypants_cb__backtick(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
+	if len(text) >= 2 && text[1] == '`' {
+		next_char := byte(0)
+		if len(text) >= 3 {
+			next_char = text[2]
+		}
+		if smartypants_quotes(ob, previous_char, next_char, 'd', &smrt.in_dquote) {
+			return 1
+		}
+	}
+
+	return 0
+}
+
+func smartypants_cb__number_generic(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
+	if word_boundary(previous_char) && len(text) >= 3 {
+		// is it of the form digits/digits(word boundary)?, i.e., \d+/\d+\b
+		num_end := 0
+		for len(text) > num_end && isdigit(text[num_end]) {
+			num_end++
+		}
+		if num_end == 0 {
+			return 0
+		}
+		if len(text) < num_end+2 || text[num_end] != '/' {
+			return 0
+		}
+		den_end := num_end + 1
+		for len(text) > den_end && isdigit(text[den_end]) {
+			den_end++
+		}
+		if den_end == num_end+1 {
+			return 0
+		}
+		if len(text) == den_end || word_boundary(text[den_end]) {
+			ob.Write(text[:num_end])
+			ob.WriteString("&frasl;")
+			ob.Write(text[num_end+1 : den_end])
+			return den_end - 1
+		}
+	}
+
+	ob.WriteByte(text[0])
+	return 0
+}
+
+func smartypants_cb__number(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
+	if word_boundary(previous_char) && len(text) >= 3 {
+		if text[0] == '1' && text[1] == '/' && text[2] == '2' {
+			if len(text) < 4 || word_boundary(text[3]) {
+				ob.WriteString("&frac12;")
+				return 2
+			}
+		}
+
+		if text[0] == '1' && text[1] == '/' && text[2] == '4' {
+			if len(text) < 4 || word_boundary(text[3]) || (len(text) >= 5 && tolower(text[3]) == 't' && tolower(text[4]) == 'h') {
+				ob.WriteString("&frac14;")
+				return 2
+			}
+		}
+
+		if text[0] == '3' && text[1] == '/' && text[2] == '4' {
+			if len(text) < 4 || word_boundary(text[3]) || (len(text) >= 6 && tolower(text[3]) == 't' && tolower(text[4]) == 'h' && tolower(text[5]) == 's') {
+				ob.WriteString("&frac34;")
+				return 2
+			}
+		}
+	}
+
+	ob.WriteByte(text[0])
+	return 0
+}
+
+func smartypants_cb__dquote(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
+	next_char := byte(0)
+	if len(text) > 1 {
+		next_char = text[1]
+	}
+	if !smartypants_quotes(ob, previous_char, next_char, 'd', &smrt.in_dquote) {
+		ob.WriteString("&quot;")
+	}
+
+	return 0
+}
+
+func smartypants_cb__ltag(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
+	i := 0
+
+	for i < len(text) && text[i] != '>' {
+		i++
+	}
+
+	ob.Write(text[:i+1])
+	return i
+}
+
+type smartypants_cb func(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int
+
+type SmartypantsRenderer [256]smartypants_cb
+
+func Smartypants(flags int) *SmartypantsRenderer {
+	r := new(SmartypantsRenderer)
+	r['"'] = smartypants_cb__dquote
+	r['&'] = smartypants_cb__amp
+	r['\''] = smartypants_cb__squote
+	r['('] = smartypants_cb__parens
+	if flags&HTML_SMARTYPANTS_LATEX_DASHES == 0 {
+		r['-'] = smartypants_cb__dash
+	} else {
+		r['-'] = smartypants_cb__dash_latex
+	}
+	r['.'] = smartypants_cb__period
+	if flags&HTML_SMARTYPANTS_FRACTIONS == 0 {
+		r['1'] = smartypants_cb__number
+		r['3'] = smartypants_cb__number
+	} else {
+		for ch := '1'; ch <= '9'; ch++ {
+			r[ch] = smartypants_cb__number_generic
+		}
+	}
+	r['<'] = smartypants_cb__ltag
+	r['`'] = smartypants_cb__backtick
+	return r
+}
+
+func rndr_smartypants(ob *bytes.Buffer, text []byte, opaque interface{}) {
+	options := opaque.(*HtmlOptions)
+	smrt := smartypants_data{false, false}
+
+	mark := 0
+	for i := 0; i < len(text); i++ {
+		if action := options.smartypants[text[i]]; action != nil {
+			if i > mark {
+				ob.Write(text[mark:i])
+			}
+
+			previous_char := byte(0)
+			if i > 0 {
+				previous_char = text[i-1]
+			}
+			i += action(ob, &smrt, previous_char, text[i:])
+			mark = i + 1
+		}
+	}
+
+	if mark < len(text) {
+		ob.Write(text[mark:])
+	}
+}
 
 //
 //
-// Public interface
+// Miscellaneous
 //
 //
 
@@ -2810,6 +3242,12 @@ func expand_tabs(ob *bytes.Buffer, line []byte) {
 		i++
 	}
 }
+
+//
+//
+// Public interface
+//
+//
 
 func Markdown(ob *bytes.Buffer, ib []byte, rndrer *Renderer, extensions uint32) {
 	// no point in parsing if we can't render
@@ -2922,12 +3360,21 @@ func Markdown(ob *bytes.Buffer, ib []byte, rndrer *Renderer, extensions uint32) 
 	}
 }
 
+var xhtml_close = " />\n"
+var html_close = ">\n"
+
 func HtmlRenderer(flags int) *Renderer {
 	// configure the rendering engine
 	r := new(Renderer)
-	r.blockcode = rndr_blockcode
+	if flags&HTML_GITHUB_BLOCKCODE == 0 {
+		r.blockcode = rndr_blockcode
+	} else {
+		r.blockcode = rndr_blockcode_github
+	}
 	r.blockquote = rndr_blockquote
-	r.blockhtml = rndr_raw_block
+	if flags&HTML_SKIP_HTML == 0 {
+		r.blockhtml = rndr_raw_block
+	}
 	r.header = rndr_header
 	r.hrule = rndr_hrule
 	r.list = rndr_list
@@ -2941,20 +3388,51 @@ func HtmlRenderer(flags int) *Renderer {
 	r.codespan = rndr_codespan
 	r.double_emphasis = rndr_double_emphasis
 	r.emphasis = rndr_emphasis
-	r.image = rndr_image
+	if flags&HTML_SKIP_IMAGES == 0 {
+		r.image = rndr_image
+	}
 	r.linebreak = rndr_linebreak
-	r.link = rndr_link
+	if flags&HTML_SKIP_LINKS == 0 {
+		r.link = rndr_link
+	}
 	r.raw_html_tag = rndr_raw_html_tag
 	r.triple_emphasis = rndr_triple_emphasis
 	r.strikethrough = rndr_strikethrough
 
-	r.normal_text = rndr_normal_text
+	var cb *SmartypantsRenderer
+	if flags&HTML_USE_SMARTYPANTS == 0 {
+		r.normal_text = rndr_normal_text
+	} else {
+		cb = Smartypants(flags)
+		r.normal_text = rndr_smartypants
+	}
+
+	close_tag := html_close
+	if flags&HTML_USE_XHTML != 0 {
+		close_tag = xhtml_close
+	}
+	r.opaque = &HtmlOptions{Flags: flags, close_tag: close_tag, smartypants: cb}
+	return r
+}
+
+func HtmlTocRenderer(flags int) *Renderer {
+	// configure the rendering engine
+	r := new(Renderer)
+	r.header = rndr_toc_header
+
+	r.codespan = rndr_codespan
+	r.double_emphasis = rndr_double_emphasis
+	r.emphasis = rndr_emphasis
+	r.triple_emphasis = rndr_triple_emphasis
+	r.strikethrough = rndr_strikethrough
+
+	r.doc_footer = rndr_toc_finalize
 
 	close_tag := ">\n"
 	if flags&HTML_USE_XHTML != 0 {
 		close_tag = " />\n"
 	}
-	r.opaque = &HtmlOptions{Flags: flags, close_tag: close_tag}
+	r.opaque = &HtmlOptions{Flags: flags | HTML_TOC, close_tag: close_tag}
 	return r
 }
 
@@ -2988,7 +3466,12 @@ func main() {
 	extensions |= MKDEXT_STRIKETHROUGH
 	extensions |= MKDEXT_SPACE_HEADERS
 
-	Markdown(output, input, HtmlRenderer(HTML_USE_XHTML), extensions)
+	html_flags := 0
+	html_flags |= HTML_USE_XHTML
+	html_flags |= HTML_USE_SMARTYPANTS
+	html_flags |= HTML_SMARTYPANTS_FRACTIONS
+	html_flags |= HTML_SMARTYPANTS_LATEX_DASHES
+	Markdown(output, input, HtmlRenderer(html_flags), extensions)
 
 	// output the result
 	if len(os.Args) == 3 {
