@@ -33,6 +33,33 @@ tool:
 will build the binary `markdown` in the `example` directory.
 
 
+Features
+--------
+
+All features of upskirt are supported, including:
+
+*   The Markdown v1.0.3 test suite passes with the `--tidy` option.
+    Without `--tidy`, the differences appear to be bugs/dubious
+    features in the original.
+
+*   Common extensions, including table support, fenced code blocks,
+    autolinks, strikethroughs, non-strict emphasis, etc.
+
+*   Paranoid parsing, making it safe to feed untrusted used input
+    without fear of bad things happening. There are still some
+    corner cases that are untested, but it is already more strict
+    than upskirt (Go's bounds-checking uncovered a few off-by-one
+    errors that were present in the C code).
+
+*   Good performance. I have not done rigorous benchmarking, but
+    informal testing suggests it is pretty fast. Probably not as
+    fast as upskirt, but probably faster than most others.
+
+*   Minimal dependencies. blackfriday only depends on standard
+    library packages in Go. The source code is pretty
+    self-contained, so it is easy to add to any project.
+
+
 Extensions
 ----------
 
