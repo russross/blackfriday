@@ -218,9 +218,11 @@ func smartypants_cb__number_generic(ob *bytes.Buffer, smrt *smartypants_data, pr
 			num_end++
 		}
 		if num_end == 0 {
+			ob.WriteByte(text[0])
 			return 0
 		}
 		if len(text) < num_end+2 || text[num_end] != '/' {
+			ob.WriteByte(text[0])
 			return 0
 		}
 		den_end := num_end + 1
@@ -228,6 +230,7 @@ func smartypants_cb__number_generic(ob *bytes.Buffer, smrt *smartypants_data, pr
 			den_end++
 		}
 		if den_end == num_end+1 {
+			ob.WriteByte(text[0])
 			return 0
 		}
 		if len(text) == den_end || word_boundary(text[den_end]) {
@@ -328,11 +331,16 @@ func rndr_smartypants(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	options := opaque.(*htmlOptions)
 	smrt := smartypants_data{false, false}
 
+	// first do normal entity escaping
+	escaped := bytes.NewBuffer(nil)
+	attr_escape(escaped, text)
+	text = escaped.Bytes()
+
 	mark := 0
 	for i := 0; i < len(text); i++ {
 		if action := options.smartypants[text[i]]; action != nil {
 			if i > mark {
-                attr_escape(ob, text[mark:i])
+				ob.Write(text[mark:i])
 			}
 
 			previous_char := byte(0)
@@ -345,6 +353,6 @@ func rndr_smartypants(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	}
 
 	if mark < len(text) {
-		attr_escape(ob, text[mark:])
+		ob.Write(text[mark:])
 	}
 }

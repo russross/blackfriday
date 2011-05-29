@@ -255,7 +255,7 @@ func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 	}
 
 	// second pass: actual rendering
-    output := bytes.NewBuffer(nil)
+	output := bytes.NewBuffer(nil)
 	if rndr.mk.doc_header != nil {
 		rndr.mk.doc_header(output, rndr.mk.opaque)
 	}
@@ -277,7 +277,7 @@ func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 		panic("Nesting level did not end at zero")
 	}
 
-    return output.Bytes()
+	return output.Bytes()
 }
 
 

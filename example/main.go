@@ -15,7 +15,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-    "github.com/russross/blackfriday"
+	"github.com/russross/blackfriday"
 	"os"
 )
 
@@ -54,7 +54,7 @@ func main() {
 	html_flags |= blackfriday.HTML_SMARTYPANTS_FRACTIONS
 	html_flags |= blackfriday.HTML_SMARTYPANTS_LATEX_DASHES
 
-    // render the data
+	// render the data
 	output := blackfriday.Markdown(input, blackfriday.HtmlRenderer(html_flags), extensions)
 
 	// output the result
