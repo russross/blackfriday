@@ -332,7 +332,7 @@ func rndr_smartypants(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	for i := 0; i < len(text); i++ {
 		if action := options.smartypants[text[i]]; action != nil {
 			if i > mark {
-				ob.Write(text[mark:i])
+                attr_escape(ob, text[mark:i])
 			}
 
 			previous_char := byte(0)
@@ -345,6 +345,6 @@ func rndr_smartypants(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	}
 
 	if mark < len(text) {
-		ob.Write(text[mark:])
+		attr_escape(ob, text[mark:])
 	}
 }
