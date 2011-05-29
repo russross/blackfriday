@@ -2,3 +2,5 @@
 *.swp
 *.8
 *.6
+_obj
+markdown

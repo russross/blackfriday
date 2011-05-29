@@ -4,47 +4,64 @@
 // by Russ Ross <russ@russross.com>
 //
 
-package main
+//
+//
+// Markdown parsing and processing
+//
+//
+
+package blackfriday
 
 import (
 	"bytes"
-	"fmt"
-	"io/ioutil"
-	"os"
 	"sort"
-	"strconv"
 	"unicode"
 )
 
+// These are the supported markdown parsing extensions.
+// OR these values together to select multiple extensions.
 const (
-	MKDA_NOT_AUTOLINK = iota
-	MKDA_NORMAL
-	MKDA_EMAIL
+	EXTENSION_NO_INTRA_EMPHASIS = 1 << iota
+	EXTENSION_TABLES
+	EXTENSION_FENCED_CODE
+	EXTENSION_AUTOLINK
+	EXTENSION_STRIKETHROUGH
+	EXTENSION_LAX_HTML_BLOCKS
+	EXTENSION_SPACE_HEADERS
 )
 
+// These are the possible flag values for the link renderer.
+// Only a single one of these values will be used; they are not ORed together.
+// These are mostly of interest if you are writing a new output format.
 const (
-	MKDEXT_NO_INTRA_EMPHASIS = 1 << iota
-	MKDEXT_TABLES
-	MKDEXT_FENCED_CODE
-	MKDEXT_AUTOLINK
-	MKDEXT_STRIKETHROUGH
-	MKDEXT_LAX_HTML_BLOCKS
-	MKDEXT_SPACE_HEADERS
+	LINK_TYPE_NOT_AUTOLINK = iota
+	LINK_TYPE_NORMAL
+	LINK_TYPE_EMAIL
 )
 
+// These are the possible flag values for the listitem renderer.
+// Multiple flag values may be ORed together.
+// These are mostly of interest if you are writing a new output format.
 const (
-	_ = iota
-	MKD_LIST_ORDERED
-	MKD_LI_BLOCK // <li> containing block data
-	MKD_LI_END   = 8
+	LIST_TYPE_ORDERED = 1 << iota
+	LIST_ITEM_CONTAINS_BLOCK
+	LIST_ITEM_END_OF_LIST
 )
 
+// These are the possible flag values for the table cell renderer.
+// Only a single one of these values will be used; they are not ORed together.
+// These are mostly of interest if you are writing a new output format.
 const (
-	MKD_TABLE_ALIGN_L = 1 << iota
-	MKD_TABLE_ALIGN_R
-	MKD_TABLE_ALIGN_CENTER = (MKD_TABLE_ALIGN_L | MKD_TABLE_ALIGN_R)
+	TABLE_ALIGNMENT_LEFT = 1 << iota
+	TABLE_ALIGNMENT_RIGHT
+	TABLE_ALIGNMENT_CENTER = (TABLE_ALIGNMENT_LEFT | TABLE_ALIGNMENT_RIGHT)
 )
 
+// The size of a tab stop.
+const TAB_SIZE = 4
+
+// These are the tags that are recognized as HTML block tags.
+// Any of these can be included in markdown text without special escaping.
 var block_tags = map[string]bool{
 	"p":          true,
 	"dl":         true,
@@ -70,7 +87,14 @@ var block_tags = map[string]bool{
 	"blockquote": true,
 }
 
-// functions for rendering parsed data
+// This struct defines the rendering interface.
+// A series of callback functions are registered to form a complete renderer.
+// A single interface{} value field is provided, and that value is handed to
+// each callback. Leaving a field blank suppresses rendering that type of output
+// except where noted.
+//
+// This is mostly of interest if you are implementing a new rendering format.
+// Most users will use the convenience functions to fill in this structure.
 type Renderer struct {
 	// block-level callbacks---nil skips the block
 	blockcode  func(ob *bytes.Buffer, text []byte, lang string, opaque interface{})
@@ -109,185 +133,7 @@ type Renderer struct {
 	opaque interface{}
 }
 
-type link_ref struct {
-	id    []byte
-	link  []byte
-	title []byte
-}
-
-type link_ref_array []*link_ref
-
-// implement the sorting interface
-func (elt link_ref_array) Len() int {
-	return len(elt)
-}
-
-func (elt link_ref_array) Less(i, j int) bool {
-	return byteslice_less(elt[i].id, elt[j].id)
-}
-
-func byteslice_less(a []byte, b []byte) bool {
-	// adapted from bytes.Compare in stdlib
-	m := len(a)
-	if m > len(b) {
-		m = len(b)
-	}
-	for i, ac := range a[0:m] {
-		// do a case-insensitive comparison
-		ai, bi := unicode.ToLower(int(ac)), unicode.ToLower(int(b[i]))
-		switch {
-		case ai > bi:
-			return false
-		case ai < bi:
-			return true
-		}
-	}
-	switch {
-	case len(a) < len(b):
-		return true
-	case len(a) > len(b):
-		return false
-	}
-	return false
-}
-
-func (elt link_ref_array) Swap(i, j int) {
-	elt[i], elt[j] = elt[j], elt[i]
-}
-
-// is_ref checks whether or not data starts with a reference line.
-// For example:
 //
-//    [1]: http://www.google.com/
-//    [2]: http://www.github.com/
-//
-func is_ref(rndr *render, data []byte) int {
-	// up to 3 optional leading spaces
-	if len(data) < 4 {
-		return 0
-	}
-	i := 0
-	for i < 3 && data[i] == ' ' {
-		i++
-	}
-	if data[i] == ' ' {
-		return 0
-	}
-
-	// id part: anything but a newline between brackets
-	if data[i] != '[' {
-		return 0
-	}
-	i++
-	id_offset := i
-	for i < len(data) && data[i] != '\n' && data[i] != '\r' && data[i] != ']' {
-		i++
-	}
-	if i >= len(data) || data[i] != ']' {
-		return 0
-	}
-	id_end := i
-
-	// spacer: colon (space | tab)* newline? (space | tab)*
-	i++
-	if i >= len(data) || data[i] != ':' {
-		return 0
-	}
-	i++
-	for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
-		i++
-	}
-	if i < len(data) && (data[i] == '\n' || data[i] == '\r') {
-		i++
-		if i < len(data) && data[i] == '\n' && data[i-1] == '\r' {
-			i++
-		}
-	}
-	for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
-		i++
-	}
-	if i >= len(data) {
-		return 0
-	}
-
-	// link: whitespace-free sequence, optionally between angle brackets
-	if data[i] == '<' {
-		i++
-	}
-	link_offset := i
-	for i < len(data) && data[i] != ' ' && data[i] != '\t' && data[i] != '\n' && data[i] != '\r' {
-		i++
-	}
-	link_end := i
-	if data[link_offset] == '<' && data[link_end-1] == '>' {
-		link_offset++
-		link_end--
-	}
-
-	// optional spacer: (space | tab)* (newline | '\'' | '"' | '(' )
-	for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
-		i++
-	}
-	if i < len(data) && data[i] != '\n' && data[i] != '\r' && data[i] != '\'' && data[i] != '"' && data[i] != '(' {
-		return 0
-	}
-
-	// compute end-of-line
-	line_end := 0
-	if i >= len(data) || data[i] == '\r' || data[i] == '\n' {
-		line_end = i
-	}
-	if i+1 < len(data) && data[i] == '\r' && data[i+1] == '\n' {
-		line_end++
-	}
-
-	// optional (space|tab)* spacer after a newline
-	if line_end > 0 {
-		i = line_end + 1
-		for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
-			i++
-		}
-	}
-
-	// optional title: any non-newline sequence enclosed in '"() alone on its line
-	title_offset, title_end := 0, 0
-	if i+1 < len(data) && (data[i] == '\'' || data[i] == '"' || data[i] == '(') {
-		i++
-		title_offset = i
-
-		// look for EOL
-		for i < len(data) && data[i] != '\n' && data[i] != '\r' {
-			i++
-		}
-		if i+1 < len(data) && data[i] == '\n' && data[i+1] == '\r' {
-			title_end = i + 1
-		} else {
-			title_end = i
-		}
-
-		// step back
-		i--
-		for i > title_offset && (data[i] == ' ' || data[i] == '\t') {
-			i--
-		}
-		if i > title_offset && (data[i] == '\'' || data[i] == '"' || data[i] == ')') {
-			line_end = title_end
-			title_end = i
-		}
-	}
-	if line_end == 0 { // garbage after the link
-		return 0
-	}
-
-	// a valid ref has been found
-	if rndr == nil {
-		return line_end
-	}
-	item := &link_ref{id: data[id_offset:id_end], link: data[link_offset:link_end], title: data[title_offset:title_end]}
-	rndr.refs = append(rndr.refs, item)
-
-	return line_end
-}
 
 type render struct {
 	mk          *Renderer
@@ -309,6 +155,133 @@ const (
 	MD_CHAR_ENTITITY
 	MD_CHAR_AUTOLINK
 )
+
+
+//
+//
+// Public interface
+//
+//
+
+// Parse and render a block of markdown-encoded text.
+// The renderer is used to format the output, and extensions dictates which
+// non-standard extensions are enabled.
+func Markdown(output *bytes.Buffer, input []byte, renderer *Renderer, extensions uint32) {
+	// no point in parsing if we can't render
+	if renderer == nil {
+		return
+	}
+
+	// fill in the character-level parsers
+	markdown_char_ptrs[MD_CHAR_NONE] = nil
+	markdown_char_ptrs[MD_CHAR_EMPHASIS] = char_emphasis
+	markdown_char_ptrs[MD_CHAR_CODESPAN] = char_codespan
+	markdown_char_ptrs[MD_CHAR_LINEBREAK] = char_linebreak
+	markdown_char_ptrs[MD_CHAR_LINK] = char_link
+	markdown_char_ptrs[MD_CHAR_LANGLE] = char_langle_tag
+	markdown_char_ptrs[MD_CHAR_ESCAPE] = char_escape
+	markdown_char_ptrs[MD_CHAR_ENTITITY] = char_entity
+	markdown_char_ptrs[MD_CHAR_AUTOLINK] = char_autolink
+
+	// fill in the render structure
+	rndr := new(render)
+	rndr.mk = renderer
+	rndr.ext_flags = extensions
+	rndr.max_nesting = 16
+
+	if rndr.mk.emphasis != nil || rndr.mk.double_emphasis != nil || rndr.mk.triple_emphasis != nil {
+		rndr.active_char['*'] = MD_CHAR_EMPHASIS
+		rndr.active_char['_'] = MD_CHAR_EMPHASIS
+		if extensions&EXTENSION_STRIKETHROUGH != 0 {
+			rndr.active_char['~'] = MD_CHAR_EMPHASIS
+		}
+	}
+	if rndr.mk.codespan != nil {
+		rndr.active_char['`'] = MD_CHAR_CODESPAN
+	}
+	if rndr.mk.linebreak != nil {
+		rndr.active_char['\n'] = MD_CHAR_LINEBREAK
+	}
+	if rndr.mk.image != nil || rndr.mk.link != nil {
+		rndr.active_char['['] = MD_CHAR_LINK
+	}
+	rndr.active_char['<'] = MD_CHAR_LANGLE
+	rndr.active_char['\\'] = MD_CHAR_ESCAPE
+	rndr.active_char['&'] = MD_CHAR_ENTITITY
+
+	if extensions&EXTENSION_AUTOLINK != 0 {
+		rndr.active_char['h'] = MD_CHAR_AUTOLINK // http, https
+		rndr.active_char['H'] = MD_CHAR_AUTOLINK
+
+		rndr.active_char['f'] = MD_CHAR_AUTOLINK // ftp
+		rndr.active_char['F'] = MD_CHAR_AUTOLINK
+
+		rndr.active_char['m'] = MD_CHAR_AUTOLINK // mailto
+		rndr.active_char['M'] = MD_CHAR_AUTOLINK
+	}
+
+	// first pass: look for references, copy everything else
+	text := bytes.NewBuffer(nil)
+	beg, end := 0, 0
+	for beg < len(input) { // iterate over lines
+		if end = is_ref(rndr, input[beg:]); end > 0 {
+			beg += end
+		} else { // skip to the next line
+			end = beg
+			for end < len(input) && input[end] != '\n' && input[end] != '\r' {
+				end++
+			}
+
+			// add the line body if present
+			if end > beg {
+				expand_tabs(text, input[beg:end])
+			}
+
+			for end < len(input) && (input[end] == '\n' || input[end] == '\r') {
+				// add one \n per newline
+				if input[end] == '\n' || (end+1 < len(input) && input[end+1] != '\n') {
+					text.WriteByte('\n')
+				}
+				end++
+			}
+
+			beg = end
+		}
+	}
+
+	// sort the reference array
+	if len(rndr.refs) > 1 {
+		sort.Sort(rndr.refs)
+	}
+
+	// second pass: actual rendering
+	if rndr.mk.doc_header != nil {
+		rndr.mk.doc_header(output, rndr.mk.opaque)
+	}
+
+	if text.Len() > 0 {
+		// add a final newline if not already present
+		finalchar := text.Bytes()[text.Len()-1]
+		if finalchar != '\n' && finalchar != '\r' {
+			text.WriteByte('\n')
+		}
+		parse_block(output, rndr, text.Bytes())
+	}
+
+	if rndr.mk.doc_footer != nil {
+		rndr.mk.doc_footer(output, rndr.mk.opaque)
+	}
+
+	if rndr.nesting != 0 {
+		panic("Nesting level did not end at zero")
+	}
+}
+
+
+//
+// Inline parsing
+// Functions to parse text within a block.
+//
 
 // closures to render active chars, each:
 //   returns the number of chars taken care of
@@ -745,13 +718,13 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 // '<' when tags or autolinks are allowed
 func char_langle_tag(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	data = data[offset:]
-	altype := MKDA_NOT_AUTOLINK
+	altype := LINK_TYPE_NOT_AUTOLINK
 	end := tag_length(data, &altype)
 	ret := 0
 
 	if end > 2 {
 		switch {
-		case rndr.mk.autolink != nil && altype != MKDA_NOT_AUTOLINK:
+		case rndr.mk.autolink != nil && altype != LINK_TYPE_NOT_AUTOLINK:
 			u_link := bytes.NewBuffer(nil)
 			unescape_text(u_link, data[1:end+1-2])
 			ret = rndr.mk.autolink(ob, u_link.Bytes(), altype, rndr.mk.opaque)
@@ -904,7 +877,7 @@ func char_autolink(ob *bytes.Buffer, rndr *render, data []byte, offset int) int 
 		u_link := bytes.NewBuffer(nil)
 		unescape_text(u_link, data[:link_end])
 
-		rndr.mk.autolink(ob, u_link.Bytes(), MKDA_NORMAL, rndr.mk.opaque)
+		rndr.mk.autolink(ob, u_link.Bytes(), LINK_TYPE_NORMAL, rndr.mk.opaque)
 	}
 
 	return link_end
@@ -920,44 +893,6 @@ func is_safe_link(link []byte) bool {
 	}
 
 	return false
-}
-
-
-// taken from regexp in the stdlib
-func ispunct(c byte) bool {
-	for _, r := range []byte("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~") {
-		if c == r {
-			return true
-		}
-	}
-	return false
-}
-
-// this is sort.Search, reproduced here because an older
-// version of the library had a bug
-func sortDotSearch(n int, f func(int) bool) int {
-	// Define f(-1) == false and f(n) == true.
-	// Invariant: f(i-1) == false, f(j) == true.
-	i, j := 0, n
-	for i < j {
-		h := i + (j-i)/2 // avoid overflow when computing h
-		// i ≤ h < j
-		if !f(h) {
-			i = h + 1 // preserves f(i-1) == false
-		} else {
-			j = h // preserves f(j) == true
-		}
-	}
-	// i == j, f(i-1) == false, and f(j) (= f(i)) == true  =>  answer is i.
-	return i
-}
-
-func isspace(c byte) bool {
-	return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v'
-}
-
-func isalnum(c byte) bool {
-	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
 }
 
 // return the length of the given tag, or 0 is it's not valid
@@ -984,7 +919,7 @@ func tag_length(data []byte, autolink *int) int {
 	}
 
 	// scheme test
-	*autolink = MKDA_NOT_AUTOLINK
+	*autolink = LINK_TYPE_NOT_AUTOLINK
 
 	// try to find the beggining of an URI
 	for i < len(data) && (isalnum(data[i]) || data[i] == '.' || data[i] == '+' || data[i] == '-') {
@@ -993,20 +928,20 @@ func tag_length(data []byte, autolink *int) int {
 
 	if i > 1 && data[i] == '@' {
 		if j = is_mail_autolink(data[i:]); j != 0 {
-			*autolink = MKDA_EMAIL
+			*autolink = LINK_TYPE_EMAIL
 			return i + j
 		}
 	}
 
 	if i > 2 && data[i] == ':' {
-		*autolink = MKDA_NORMAL
+		*autolink = LINK_TYPE_NORMAL
 		i++
 	}
 
 	// complete autolink test: no whitespace or ' or "
 	switch {
 	case i >= len(data):
-		*autolink = MKDA_NOT_AUTOLINK
+		*autolink = LINK_TYPE_NOT_AUTOLINK
 	case *autolink != 0:
 		j = i
 
@@ -1031,7 +966,7 @@ func tag_length(data []byte, autolink *int) int {
 		}
 
 		// one of the forbidden chars has been found
-		*autolink = MKDA_NOT_AUTOLINK
+		*autolink = LINK_TYPE_NOT_AUTOLINK
 	}
 
 	// look for something looking like a tag end
@@ -1183,7 +1118,7 @@ func parse_emph1(ob *bytes.Buffer, rndr *render, data []byte, c byte) int {
 
 		if data[i] == c && !isspace(data[i-1]) {
 
-			if rndr.ext_flags&MKDEXT_NO_INTRA_EMPHASIS != 0 {
+			if rndr.ext_flags&EXTENSION_NO_INTRA_EMPHASIS != 0 {
 				if !(i+1 == len(data) || isspace(data[i+1]) || ispunct(data[i+1])) {
 					continue
 				}
@@ -1287,6 +1222,12 @@ func parse_emph3(ob *bytes.Buffer, rndr *render, data []byte, offset int, c byte
 	return 0
 }
 
+
+//
+// Block parsing
+// Functions to parse block-level elements.
+//
+
 // parse block-level data
 func parse_block(ob *bytes.Buffer, rndr *render, data []byte) {
 	if rndr.nesting >= rndr.max_nesting {
@@ -1319,13 +1260,13 @@ func parse_block(ob *bytes.Buffer, rndr *render, data []byte) {
 			data = data[i:]
 			continue
 		}
-		if rndr.ext_flags&MKDEXT_FENCED_CODE != 0 {
+		if rndr.ext_flags&EXTENSION_FENCED_CODE != 0 {
 			if i := parse_fencedcode(ob, rndr, data); i > 0 {
 				data = data[i:]
 				continue
 			}
 		}
-		if rndr.ext_flags&MKDEXT_TABLES != 0 {
+		if rndr.ext_flags&EXTENSION_TABLES != 0 {
 			if i := parse_table(ob, rndr, data); i > 0 {
 				data = data[i:]
 				continue
@@ -1344,7 +1285,7 @@ func parse_block(ob *bytes.Buffer, rndr *render, data []byte) {
 			continue
 		}
 		if prefix_oli(data) > 0 {
-			data = data[parse_list(ob, rndr, data, MKD_LIST_ORDERED):]
+			data = data[parse_list(ob, rndr, data, LIST_TYPE_ORDERED):]
 			continue
 		}
 
@@ -1359,7 +1300,7 @@ func is_atxheader(rndr *render, data []byte) bool {
 		return false
 	}
 
-	if rndr.ext_flags&MKDEXT_SPACE_HEADERS != 0 {
+	if rndr.ext_flags&EXTENSION_SPACE_HEADERS != 0 {
 		level := 0
 		for level < len(data) && level < 6 && data[level] == '#' {
 			level++
@@ -1565,7 +1506,7 @@ func htmlblock_end(tag string, rndr *render, data []byte) int {
 	i += w
 	w = 0
 
-	if rndr.ext_flags&MKDEXT_LAX_HTML_BLOCKS != 0 {
+	if rndr.ext_flags&EXTENSION_LAX_HTML_BLOCKS != 0 {
 		if i < len(data) {
 			w = is_empty(data[i:])
 		}
@@ -1841,7 +1782,7 @@ func parse_table_header(ob *bytes.Buffer, rndr *render, data []byte) (size int, 
 
 		if data[i] == ':' {
 			i++
-			column_data[col] |= MKD_TABLE_ALIGN_L
+			column_data[col] |= TABLE_ALIGNMENT_LEFT
 			dashes++
 		}
 
@@ -1852,7 +1793,7 @@ func parse_table_header(ob *bytes.Buffer, rndr *render, data []byte) (size int, 
 
 		if i < under_end && data[i] == ':' {
 			i++
-			column_data[col] |= MKD_TABLE_ALIGN_R
+			column_data[col] |= TABLE_ALIGNMENT_RIGHT
 			dashes++
 		}
 
@@ -2078,7 +2019,7 @@ func parse_list(ob *bytes.Buffer, rndr *render, data []byte, flags int) int {
 		j = parse_listitem(work, rndr, data[i:], &flags)
 		i += j
 
-		if j == 0 || flags&MKD_LI_END != 0 {
+		if j == 0 || flags&LIST_ITEM_END_OF_LIST != 0 {
 			break
 		}
 	}
@@ -2171,7 +2112,7 @@ func parse_listitem(ob *bytes.Buffer, rndr *render, data []byte, flags *int) int
 		} else {
 			// only join indented stuff after empty lines
 			if in_empty && i < 4 && data[beg] != '\t' {
-				*flags |= MKD_LI_END
+				*flags |= LIST_ITEM_END_OF_LIST
 				break
 			} else {
 				if in_empty {
@@ -2190,11 +2131,11 @@ func parse_listitem(ob *bytes.Buffer, rndr *render, data []byte, flags *int) int
 
 	// render li contents
 	if has_inside_empty {
-		*flags |= MKD_LI_BLOCK
+		*flags |= LIST_ITEM_CONTAINS_BLOCK
 	}
 
 	workbytes := work.Bytes()
-	if *flags&MKD_LI_BLOCK != 0 {
+	if *flags&LIST_ITEM_CONTAINS_BLOCK != 0 {
 		// intermediate render of block li
 		if sublist > 0 && sublist < len(workbytes) {
 			parse_block(inter, rndr, workbytes[:sublist])
@@ -2234,7 +2175,7 @@ func parse_paragraph(ob *bytes.Buffer, rndr *render, data []byte) int {
 			break
 		}
 
-		if rndr.ext_flags&MKDEXT_LAX_HTML_BLOCKS != 0 {
+		if rndr.ext_flags&EXTENSION_LAX_HTML_BLOCKS != 0 {
 			if data[i] == '<' && rndr.mk.blockhtml != nil && parse_htmlblock(ob, rndr, data[i:], false) > 0 {
 				end = i
 				break
@@ -2303,916 +2244,257 @@ func parse_paragraph(ob *bytes.Buffer, rndr *render, data []byte) int {
 
 
 //
+// Link references
 //
-// HTML rendering
+// This section implements support for references that (usually) appear
+// as footnotes in a document, and can be referenced anywhere in the document.
+// The basic format is:
 //
+//    [1]: http://www.google.com/ "Google"
+//    [2]: http://www.github.com/ "Github"
 //
+// Anywhere in the document, the reference can be linked by referring to its
+// label, i.e., 1 and 2 in this example, as in:
+//
+//    This library is hosted on [Github][2], a git hosting site.
 
-const (
-	HTML_SKIP_HTML = 1 << iota
-	HTML_SKIP_STYLE
-	HTML_SKIP_IMAGES
-	HTML_SKIP_LINKS
-	HTML_EXPAND_TABS
-	HTML_SAFELINK
-	HTML_TOC
-	HTML_HARD_WRAP
-	HTML_GITHUB_BLOCKCODE
-	HTML_USE_XHTML
-	HTML_USE_SMARTYPANTS
-	HTML_SMARTYPANTS_FRACTIONS
-	HTML_SMARTYPANTS_LATEX_DASHES
-)
-
-type HtmlOptions struct {
-	Flags     int
-	close_tag string // how to end singleton tags: usually " />\n", possibly ">\n"
-	toc_data  struct {
-		header_count  int
-		current_level int
-	}
-	smartypants *SmartypantsRenderer
+// References are parsed and stored in this struct.
+type link_ref struct {
+	id    []byte
+	link  []byte
+	title []byte
 }
 
-func attr_escape(ob *bytes.Buffer, src []byte) {
-	for i := 0; i < len(src); i++ {
-		// directly copy unescaped characters
-		org := i
-		for i < len(src) && src[i] != '<' && src[i] != '>' && src[i] != '&' && src[i] != '"' {
-			i++
-		}
-		if i > org {
-			ob.Write(src[org:i])
-		}
+// The list of all reference links is stored in this type.
+type link_ref_array []*link_ref
 
-		// escape a character
-		if i >= len(src) {
-			break
-		}
-		switch src[i] {
-		case '<':
-			ob.WriteString("&lt;")
-		case '>':
-			ob.WriteString("&gt;")
-		case '&':
-			ob.WriteString("&amp;")
-		case '"':
-			ob.WriteString("&quot;")
-		}
-	}
+// Find the length of a list of references.
+// This implements an interface needed for sorting.
+func (elt link_ref_array) Len() int {
+	return len(elt)
 }
 
-func unescape_text(ob *bytes.Buffer, src []byte) {
+// Test if one reference is less than another (case-insensitive).
+// This implements an interface needed for sorting.
+func (elt link_ref_array) Less(i, j int) bool {
+	return byteslice_less(elt[i].id, elt[j].id)
+}
+
+// Compare two []byte values (case-insensitive), returning
+// true if a is less than b.
+func byteslice_less(a []byte, b []byte) bool {
+	// adapted from bytes.Compare in stdlib
+	m := len(a)
+	if m > len(b) {
+		m = len(b)
+	}
+	for i, ac := range a[0:m] {
+		// do a case-insensitive comparison
+		ai, bi := unicode.ToLower(int(ac)), unicode.ToLower(int(b[i]))
+		switch {
+		case ai > bi:
+			return false
+		case ai < bi:
+			return true
+		}
+	}
+	switch {
+	case len(a) < len(b):
+		return true
+	case len(a) > len(b):
+		return false
+	}
+	return false
+}
+
+// Swap two references.
+// This implements an interface needed for sorting.
+func (elt link_ref_array) Swap(i, j int) {
+	elt[i], elt[j] = elt[j], elt[i]
+}
+
+// Check whether or not data starts with a reference link.
+// If so, it is parsed and stored in the list of references
+// (in the render struct).
+// Returns the number of bytes to skip to move past it, or zero
+// if there is the first line is not a reference.
+func is_ref(rndr *render, data []byte) int {
+	// up to 3 optional leading spaces
+	if len(data) < 4 {
+		return 0
+	}
 	i := 0
-	for i < len(src) {
-		org := i
-		for i < len(src) && src[i] != '\\' {
-			i++
-		}
-
-		if i > org {
-			ob.Write(src[org:i])
-		}
-
-		if i+1 >= len(src) {
-			break
-		}
-
-		ob.WriteByte(src[i+1])
-		i += 2
-	}
-}
-
-func rndr_header(ob *bytes.Buffer, text []byte, level int, opaque interface{}) {
-	options := opaque.(*HtmlOptions)
-
-	if ob.Len() > 0 {
-		ob.WriteByte('\n')
-	}
-
-	if options.Flags&HTML_TOC != 0 {
-		ob.WriteString(fmt.Sprintf("<h%d id=\"toc_%d\">", level, options.toc_data.header_count))
-		options.toc_data.header_count++
-	} else {
-		ob.WriteString(fmt.Sprintf("<h%d>", level))
-	}
-
-	ob.Write(text)
-	ob.WriteString(fmt.Sprintf("</h%d>\n", level))
-}
-
-func rndr_raw_block(ob *bytes.Buffer, text []byte, opaque interface{}) {
-	sz := len(text)
-	for sz > 0 && text[sz-1] == '\n' {
-		sz--
-	}
-	org := 0
-	for org < sz && text[org] == '\n' {
-		org++
-	}
-	if org >= sz {
-		return
-	}
-	if ob.Len() > 0 {
-		ob.WriteByte('\n')
-	}
-	ob.Write(text[org:sz])
-	ob.WriteByte('\n')
-}
-
-func rndr_hrule(ob *bytes.Buffer, opaque interface{}) {
-	options := opaque.(*HtmlOptions)
-
-	if ob.Len() > 0 {
-		ob.WriteByte('\n')
-	}
-	ob.WriteString("<hr")
-	ob.WriteString(options.close_tag)
-}
-
-func rndr_blockcode(ob *bytes.Buffer, text []byte, lang string, opaque interface{}) {
-	if ob.Len() > 0 {
-		ob.WriteByte('\n')
-	}
-
-	if lang != "" {
-		ob.WriteString("<pre><code class=\"")
-
-		for i, cls := 0, 0; i < len(lang); i, cls = i+1, cls+1 {
-			for i < len(lang) && isspace(lang[i]) {
-				i++
-			}
-
-			if i < len(lang) {
-				org := i
-				for i < len(lang) && !isspace(lang[i]) {
-					i++
-				}
-
-				if lang[org] == '.' {
-					org++
-				}
-
-				if cls > 0 {
-					ob.WriteByte(' ')
-				}
-				attr_escape(ob, []byte(lang[org:]))
-			}
-		}
-
-		ob.WriteString("\">")
-	} else {
-		ob.WriteString("<pre><code>")
-	}
-
-	if len(text) > 0 {
-		attr_escape(ob, text)
-	}
-
-	ob.WriteString("</code></pre>\n")
-}
-
-/*
- * GitHub style code block:
- *
- *              <pre lang="LANG"><code>
- *              ...
- *              </pre></code>
- *
- * Unlike other parsers, we store the language identifier in the <pre>,
- * and don't let the user generate custom classes.
- *
- * The language identifier in the <pre> block gets postprocessed and all
- * the code inside gets syntax highlighted with Pygments. This is much safer
- * than letting the user specify a CSS class for highlighting.
- *
- * Note that we only generate HTML for the first specifier.
- * E.g.
- *              ~~~~ {.python .numbered}        =>      <pre lang="python"><code>
- */
-func rndr_blockcode_github(ob *bytes.Buffer, text []byte, lang string, opaque interface{}) {
-	if ob.Len() > 0 {
-		ob.WriteByte('\n')
-	}
-
-	if len(lang) > 0 {
-		ob.WriteString("<pre lang=\"")
-
-		i := 0
-		for i < len(lang) && !isspace(lang[i]) {
-			i++
-		}
-
-		if lang[0] == '.' {
-			attr_escape(ob, []byte(lang[1:i]))
-		} else {
-			attr_escape(ob, []byte(lang[:i]))
-		}
-
-		ob.WriteString("\"><code>")
-	} else {
-		ob.WriteString("<pre><code>")
-	}
-
-	if len(text) > 0 {
-		attr_escape(ob, text)
-	}
-
-	ob.WriteString("</code></pre>\n")
-}
-
-
-func rndr_blockquote(ob *bytes.Buffer, text []byte, opaque interface{}) {
-	ob.WriteString("<blockquote>\n")
-	ob.Write(text)
-	ob.WriteString("</blockquote>")
-}
-
-func rndr_table(ob *bytes.Buffer, header []byte, body []byte, opaque interface{}) {
-	if ob.Len() > 0 {
-		ob.WriteByte('\n')
-	}
-	ob.WriteString("<table><thead>\n")
-	ob.Write(header)
-	ob.WriteString("\n</thead><tbody>\n")
-	ob.Write(body)
-	ob.WriteString("\n</tbody></table>")
-}
-
-func rndr_tablerow(ob *bytes.Buffer, text []byte, opaque interface{}) {
-	if ob.Len() > 0 {
-		ob.WriteByte('\n')
-	}
-	ob.WriteString("<tr>\n")
-	ob.Write(text)
-	ob.WriteString("\n</tr>")
-}
-
-func rndr_tablecell(ob *bytes.Buffer, text []byte, align int, opaque interface{}) {
-	if ob.Len() > 0 {
-		ob.WriteByte('\n')
-	}
-	switch align {
-	case MKD_TABLE_ALIGN_L:
-		ob.WriteString("<td align=\"left\">")
-	case MKD_TABLE_ALIGN_R:
-		ob.WriteString("<td align=\"right\">")
-	case MKD_TABLE_ALIGN_CENTER:
-		ob.WriteString("<td align=\"center\">")
-	default:
-		ob.WriteString("<td>")
-	}
-
-	ob.Write(text)
-	ob.WriteString("</td>")
-}
-
-func rndr_list(ob *bytes.Buffer, text []byte, flags int, opaque interface{}) {
-	if ob.Len() > 0 {
-		ob.WriteByte('\n')
-	}
-	if flags&MKD_LIST_ORDERED != 0 {
-		ob.WriteString("<ol>\n")
-	} else {
-		ob.WriteString("<ul>\n")
-	}
-	ob.Write(text)
-	if flags&MKD_LIST_ORDERED != 0 {
-		ob.WriteString("</ol>\n")
-	} else {
-		ob.WriteString("</ul>\n")
-	}
-}
-
-func rndr_listitem(ob *bytes.Buffer, text []byte, flags int, opaque interface{}) {
-	ob.WriteString("<li>")
-	size := len(text)
-	for size > 0 && text[size-1] == '\n' {
-		size--
-	}
-	ob.Write(text[:size])
-	ob.WriteString("</li>\n")
-}
-
-func rndr_paragraph(ob *bytes.Buffer, text []byte, opaque interface{}) {
-	options := opaque.(*HtmlOptions)
-	i := 0
-
-	if ob.Len() > 0 {
-		ob.WriteByte('\n')
-	}
-
-	if len(text) == 0 {
-		return
-	}
-
-	for i < len(text) && isspace(text[i]) {
+	for i < 3 && data[i] == ' ' {
 		i++
 	}
-
-	if i == len(text) {
-		return
-	}
-
-	ob.WriteString("<p>")
-	if options.Flags&HTML_HARD_WRAP != 0 {
-		for i < len(text) {
-			org := i
-			for i < len(text) && text[i] != '\n' {
-				i++
-			}
-
-			if i > org {
-				ob.Write(text[org:i])
-			}
-
-			if i >= len(text) {
-				break
-			}
-
-			ob.WriteString("<br>")
-			ob.WriteString(options.close_tag)
-			i++
-		}
-	} else {
-		ob.Write(text[i:])
-	}
-	ob.WriteString("</p>\n")
-}
-
-func rndr_autolink(ob *bytes.Buffer, link []byte, kind int, opaque interface{}) int {
-	options := opaque.(*HtmlOptions)
-
-	if len(link) == 0 {
-		return 0
-	}
-	if options.Flags&HTML_SAFELINK != 0 && !is_safe_link(link) && kind != MKDA_EMAIL {
+	if data[i] == ' ' {
 		return 0
 	}
 
-	ob.WriteString("<a href=\"")
-	if kind == MKDA_EMAIL {
-		ob.WriteString("mailto:")
-	}
-	ob.Write(link)
-	ob.WriteString("\">")
-
-	/*
-	 * Pretty print: if we get an email address as
-	 * an actual URI, e.g. `mailto:foo@bar.com`, we don't
-	 * want to print the `mailto:` prefix
-	 */
-	if bytes.HasPrefix(link, []byte("mailto:")) {
-		attr_escape(ob, link[7:])
-	} else {
-		attr_escape(ob, link)
-	}
-
-	ob.WriteString("</a>")
-
-	return 1
-}
-
-func rndr_codespan(ob *bytes.Buffer, text []byte, opaque interface{}) int {
-	ob.WriteString("<code>")
-	attr_escape(ob, text)
-	ob.WriteString("</code>")
-	return 1
-}
-
-func rndr_double_emphasis(ob *bytes.Buffer, text []byte, opaque interface{}) int {
-	if len(text) == 0 {
+	// id part: anything but a newline between brackets
+	if data[i] != '[' {
 		return 0
-	}
-	ob.WriteString("<strong>")
-	ob.Write(text)
-	ob.WriteString("</strong>")
-	return 1
-}
-
-func rndr_emphasis(ob *bytes.Buffer, text []byte, opaque interface{}) int {
-	if len(text) == 0 {
-		return 0
-	}
-	ob.WriteString("<em>")
-	ob.Write(text)
-	ob.WriteString("</em>")
-	return 1
-}
-
-func rndr_image(ob *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{}) int {
-	options := opaque.(*HtmlOptions)
-	if len(link) == 0 {
-		return 0
-	}
-	ob.WriteString("<img src=\"")
-	attr_escape(ob, link)
-	ob.WriteString("\" alt=\"")
-	if len(alt) > 0 {
-		attr_escape(ob, alt)
-	}
-	if len(title) > 0 {
-		ob.WriteString("\" title=\"")
-		attr_escape(ob, title)
-	}
-
-	ob.WriteByte('"')
-	ob.WriteString(options.close_tag)
-	return 1
-}
-
-func rndr_linebreak(ob *bytes.Buffer, opaque interface{}) int {
-	options := opaque.(*HtmlOptions)
-	ob.WriteString("<br")
-	ob.WriteString(options.close_tag)
-	return 1
-}
-
-func rndr_link(ob *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{}) int {
-	options := opaque.(*HtmlOptions)
-
-	if options.Flags&HTML_SAFELINK != 0 && !is_safe_link(link) {
-		return 0
-	}
-
-	ob.WriteString("<a href=\"")
-	if len(link) > 0 {
-		ob.Write(link)
-	}
-	if len(title) > 0 {
-		ob.WriteString("\" title=\"")
-		attr_escape(ob, title)
-	}
-	ob.WriteString("\">")
-	if len(content) > 0 {
-		ob.Write(content)
-	}
-	ob.WriteString("</a>")
-	return 1
-}
-
-func rndr_raw_html_tag(ob *bytes.Buffer, text []byte, opaque interface{}) int {
-	options := opaque.(*HtmlOptions)
-	if options.Flags&HTML_SKIP_HTML != 0 {
-		return 1
-	}
-	if options.Flags&HTML_SKIP_STYLE != 0 && is_html_tag(text, "style") {
-		return 1
-	}
-	if options.Flags&HTML_SKIP_LINKS != 0 && is_html_tag(text, "a") {
-		return 1
-	}
-	if options.Flags&HTML_SKIP_IMAGES != 0 && is_html_tag(text, "img") {
-		return 1
-	}
-	ob.Write(text)
-	return 1
-}
-
-func rndr_triple_emphasis(ob *bytes.Buffer, text []byte, opaque interface{}) int {
-	if len(text) == 0 {
-		return 0
-	}
-	ob.WriteString("<strong><em>")
-	ob.Write(text)
-	ob.WriteString("</em></strong>")
-	return 1
-}
-
-func rndr_strikethrough(ob *bytes.Buffer, text []byte, opaque interface{}) int {
-	if len(text) == 0 {
-		return 0
-	}
-	ob.WriteString("<del>")
-	ob.Write(text)
-	ob.WriteString("</del>")
-	return 1
-}
-
-func rndr_normal_text(ob *bytes.Buffer, text []byte, opaque interface{}) {
-	attr_escape(ob, text)
-}
-
-func rndr_toc_header(ob *bytes.Buffer, text []byte, level int, opaque interface{}) {
-	options := opaque.(*HtmlOptions)
-	for level > options.toc_data.current_level {
-		if options.toc_data.current_level > 0 {
-			ob.WriteString("<li>")
-		}
-		ob.WriteString("<ul>\n")
-		options.toc_data.current_level++
-	}
-
-	for level < options.toc_data.current_level {
-		ob.WriteString("</ul>")
-		if options.toc_data.current_level > 1 {
-			ob.WriteString("</li>\n")
-		}
-		options.toc_data.current_level--
-	}
-
-	ob.WriteString("<li><a href=\"#toc_")
-	ob.WriteString(strconv.Itoa(options.toc_data.header_count))
-	ob.WriteString("\">")
-	options.toc_data.header_count++
-
-	if len(text) > 0 {
-		ob.Write(text)
-	}
-	ob.WriteString("</a></li>\n")
-}
-
-func rndr_toc_finalize(ob *bytes.Buffer, opaque interface{}) {
-	options := opaque.(*HtmlOptions)
-	for options.toc_data.current_level > 1 {
-		ob.WriteString("</ul></li>\n")
-		options.toc_data.current_level--
-	}
-
-	if options.toc_data.current_level > 0 {
-		ob.WriteString("</ul>\n")
-	}
-}
-
-func is_html_tag(tag []byte, tagname string) bool {
-	i := 0
-	if i < len(tag) && tag[0] != '<' {
-		return false
 	}
 	i++
-	for i < len(tag) && isspace(tag[i]) {
+	id_offset := i
+	for i < len(data) && data[i] != '\n' && data[i] != '\r' && data[i] != ']' {
 		i++
 	}
+	if i >= len(data) || data[i] != ']' {
+		return 0
+	}
+	id_end := i
 
-	if i < len(tag) && tag[i] == '/' {
+	// spacer: colon (space | tab)* newline? (space | tab)*
+	i++
+	if i >= len(data) || data[i] != ':' {
+		return 0
+	}
+	i++
+	for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
 		i++
 	}
-
-	for i < len(tag) && isspace(tag[i]) {
+	if i < len(data) && (data[i] == '\n' || data[i] == '\r') {
+		i++
+		if i < len(data) && data[i] == '\n' && data[i-1] == '\r' {
+			i++
+		}
+	}
+	for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
 		i++
 	}
-
-	tag_i := i
-	for ; i < len(tag); i, tag_i = i+1, tag_i+1 {
-		if tag_i >= len(tagname) {
-			break
-		}
-
-		if tag[i] != tagname[tag_i] {
-			return false
-		}
-	}
-
-	if i == len(tag) {
-		return false
-	}
-
-	return isspace(tag[i]) || tag[i] == '>'
-}
-
-//
-//
-// SmartyPants rendering
-//
-//
-
-type smartypants_data struct {
-	in_squote bool
-	in_dquote bool
-}
-
-func word_boundary(c byte) bool {
-	return c == 0 || isspace(c) || ispunct(c)
-}
-
-func tolower(c byte) byte {
-	if c >= 'A' && c <= 'Z' {
-		return c - 'A' + 'a'
-	}
-	return c
-}
-
-func isdigit(c byte) bool {
-	return c >= '0' && c <= '9'
-}
-
-func smartypants_quotes(ob *bytes.Buffer, previous_char byte, next_char byte, quote byte, is_open *bool) bool {
-	switch {
-	// edge of the buffer is likely to be a tag that we don't get to see,
-	// so we assume there is text there
-	case word_boundary(previous_char) && previous_char != 0 && next_char == 0:
-		*is_open = true
-	case previous_char == 0 && word_boundary(next_char) && next_char != 0:
-		*is_open = false
-	case word_boundary(previous_char) && !word_boundary(next_char):
-		*is_open = true
-	case !word_boundary(previous_char) && word_boundary(next_char):
-		*is_open = false
-	case !word_boundary(previous_char) && !word_boundary(next_char):
-		*is_open = true
-	default:
-		*is_open = !*is_open
-	}
-
-	ob.WriteByte('&')
-	if *is_open {
-		ob.WriteByte('l')
-	} else {
-		ob.WriteByte('r')
-	}
-	ob.WriteByte(quote)
-	ob.WriteString("quo;")
-	return true
-}
-
-func smartypants_cb__squote(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
-	if len(text) >= 2 {
-		t1 := tolower(text[1])
-
-		if t1 == '\'' {
-			next_char := byte(0)
-			if len(text) >= 3 {
-				next_char = text[2]
-			}
-			if smartypants_quotes(ob, previous_char, next_char, 'd', &smrt.in_dquote) {
-				return 1
-			}
-		}
-
-		if (t1 == 's' || t1 == 't' || t1 == 'm' || t1 == 'd') && (len(text) < 3 || word_boundary(text[2])) {
-			ob.WriteString("&rsquo;")
-			return 0
-		}
-
-		if len(text) >= 3 {
-			t2 := tolower(text[2])
-
-			if ((t1 == 'r' && t2 == 'e') || (t1 == 'l' && t2 == 'l') || (t1 == 'v' && t2 == 'e')) && (len(text) < 4 || word_boundary(text[3])) {
-				ob.WriteString("&rsquo;")
-				return 0
-			}
-		}
-	}
-
-	next_char := byte(0)
-	if len(text) > 1 {
-		next_char = text[1]
-	}
-	if smartypants_quotes(ob, previous_char, next_char, 's', &smrt.in_squote) {
+	if i >= len(data) {
 		return 0
 	}
 
-	ob.WriteByte(text[0])
-	return 0
-}
-
-func smartypants_cb__parens(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
-	if len(text) >= 3 {
-		t1 := tolower(text[1])
-		t2 := tolower(text[2])
-
-		if t1 == 'c' && t2 == ')' {
-			ob.WriteString("&copy;")
-			return 2
-		}
-
-		if t1 == 'r' && t2 == ')' {
-			ob.WriteString("&reg;")
-			return 2
-		}
-
-		if len(text) >= 4 && t1 == 't' && t2 == 'm' && text[3] == ')' {
-			ob.WriteString("&trade;")
-			return 3
-		}
-	}
-
-	ob.WriteByte(text[0])
-	return 0
-}
-
-func smartypants_cb__dash(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
-	if len(text) >= 2 {
-		if text[1] == '-' {
-			ob.WriteString("&mdash;")
-			return 1
-		}
-
-		if word_boundary(previous_char) && word_boundary(text[1]) {
-			ob.WriteString("&ndash;")
-			return 0
-		}
-	}
-
-	ob.WriteByte(text[0])
-	return 0
-}
-
-func smartypants_cb__dash_latex(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
-	if len(text) >= 3 && text[1] == '-' && text[2] == '-' {
-		ob.WriteString("&mdash;")
-		return 2
-	}
-	if len(text) >= 2 && text[1] == '-' {
-		ob.WriteString("&ndash;")
-		return 1
-	}
-
-	ob.WriteByte(text[0])
-	return 0
-}
-
-func smartypants_cb__amp(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
-	if bytes.HasPrefix(text, []byte("&quot;")) {
-		next_char := byte(0)
-		if len(text) >= 7 {
-			next_char = text[6]
-		}
-		if smartypants_quotes(ob, previous_char, next_char, 'd', &smrt.in_dquote) {
-			return 5
-		}
-	}
-
-	if bytes.HasPrefix(text, []byte("&#0;")) {
-		return 3
-	}
-
-	ob.WriteByte('&')
-	return 0
-}
-
-func smartypants_cb__period(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
-	if len(text) >= 3 && text[1] == '.' && text[2] == '.' {
-		ob.WriteString("&hellip;")
-		return 2
-	}
-
-	if len(text) >= 5 && text[1] == ' ' && text[2] == '.' && text[3] == ' ' && text[4] == '.' {
-		ob.WriteString("&hellip;")
-		return 4
-	}
-
-	ob.WriteByte(text[0])
-	return 0
-}
-
-func smartypants_cb__backtick(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
-	if len(text) >= 2 && text[1] == '`' {
-		next_char := byte(0)
-		if len(text) >= 3 {
-			next_char = text[2]
-		}
-		if smartypants_quotes(ob, previous_char, next_char, 'd', &smrt.in_dquote) {
-			return 1
-		}
-	}
-
-	return 0
-}
-
-func smartypants_cb__number_generic(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
-	if word_boundary(previous_char) && len(text) >= 3 {
-		// is it of the form digits/digits(word boundary)?, i.e., \d+/\d+\b
-		num_end := 0
-		for len(text) > num_end && isdigit(text[num_end]) {
-			num_end++
-		}
-		if num_end == 0 {
-			return 0
-		}
-		if len(text) < num_end+2 || text[num_end] != '/' {
-			return 0
-		}
-		den_end := num_end + 1
-		for len(text) > den_end && isdigit(text[den_end]) {
-			den_end++
-		}
-		if den_end == num_end+1 {
-			return 0
-		}
-		if len(text) == den_end || word_boundary(text[den_end]) {
-			ob.Write(text[:num_end])
-			ob.WriteString("&frasl;")
-			ob.Write(text[num_end+1 : den_end])
-			return den_end - 1
-		}
-	}
-
-	ob.WriteByte(text[0])
-	return 0
-}
-
-func smartypants_cb__number(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
-	if word_boundary(previous_char) && len(text) >= 3 {
-		if text[0] == '1' && text[1] == '/' && text[2] == '2' {
-			if len(text) < 4 || word_boundary(text[3]) {
-				ob.WriteString("&frac12;")
-				return 2
-			}
-		}
-
-		if text[0] == '1' && text[1] == '/' && text[2] == '4' {
-			if len(text) < 4 || word_boundary(text[3]) || (len(text) >= 5 && tolower(text[3]) == 't' && tolower(text[4]) == 'h') {
-				ob.WriteString("&frac14;")
-				return 2
-			}
-		}
-
-		if text[0] == '3' && text[1] == '/' && text[2] == '4' {
-			if len(text) < 4 || word_boundary(text[3]) || (len(text) >= 6 && tolower(text[3]) == 't' && tolower(text[4]) == 'h' && tolower(text[5]) == 's') {
-				ob.WriteString("&frac34;")
-				return 2
-			}
-		}
-	}
-
-	ob.WriteByte(text[0])
-	return 0
-}
-
-func smartypants_cb__dquote(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
-	next_char := byte(0)
-	if len(text) > 1 {
-		next_char = text[1]
-	}
-	if !smartypants_quotes(ob, previous_char, next_char, 'd', &smrt.in_dquote) {
-		ob.WriteString("&quot;")
-	}
-
-	return 0
-}
-
-func smartypants_cb__ltag(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
-	i := 0
-
-	for i < len(text) && text[i] != '>' {
+	// link: whitespace-free sequence, optionally between angle brackets
+	if data[i] == '<' {
 		i++
 	}
+	link_offset := i
+	for i < len(data) && data[i] != ' ' && data[i] != '\t' && data[i] != '\n' && data[i] != '\r' {
+		i++
+	}
+	link_end := i
+	if data[link_offset] == '<' && data[link_end-1] == '>' {
+		link_offset++
+		link_end--
+	}
 
-	ob.Write(text[:i+1])
+	// optional spacer: (space | tab)* (newline | '\'' | '"' | '(' )
+	for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
+		i++
+	}
+	if i < len(data) && data[i] != '\n' && data[i] != '\r' && data[i] != '\'' && data[i] != '"' && data[i] != '(' {
+		return 0
+	}
+
+	// compute end-of-line
+	line_end := 0
+	if i >= len(data) || data[i] == '\r' || data[i] == '\n' {
+		line_end = i
+	}
+	if i+1 < len(data) && data[i] == '\r' && data[i+1] == '\n' {
+		line_end++
+	}
+
+	// optional (space|tab)* spacer after a newline
+	if line_end > 0 {
+		i = line_end + 1
+		for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
+			i++
+		}
+	}
+
+	// optional title: any non-newline sequence enclosed in '"() alone on its line
+	title_offset, title_end := 0, 0
+	if i+1 < len(data) && (data[i] == '\'' || data[i] == '"' || data[i] == '(') {
+		i++
+		title_offset = i
+
+		// look for EOL
+		for i < len(data) && data[i] != '\n' && data[i] != '\r' {
+			i++
+		}
+		if i+1 < len(data) && data[i] == '\n' && data[i+1] == '\r' {
+			title_end = i + 1
+		} else {
+			title_end = i
+		}
+
+		// step back
+		i--
+		for i > title_offset && (data[i] == ' ' || data[i] == '\t') {
+			i--
+		}
+		if i > title_offset && (data[i] == '\'' || data[i] == '"' || data[i] == ')') {
+			line_end = title_end
+			title_end = i
+		}
+	}
+	if line_end == 0 { // garbage after the link
+		return 0
+	}
+
+	// a valid ref has been found
+	if rndr == nil {
+		return line_end
+	}
+	item := &link_ref{id: data[id_offset:id_end], link: data[link_offset:link_end], title: data[title_offset:title_end]}
+	rndr.refs = append(rndr.refs, item)
+
+	return line_end
+}
+
+
+//
+//
+// Miscellaneous helper functions
+//
+//
+
+
+// Test if a character is a punctuation symbol.
+// Taken from a private function in regexp in the stdlib.
+func ispunct(c byte) bool {
+	for _, r := range []byte("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~") {
+		if c == r {
+			return true
+		}
+	}
+	return false
+}
+
+// this is sort.Search, reproduced here because an older
+// version of the library had a bug
+func sortDotSearch(n int, f func(int) bool) int {
+	// Define f(-1) == false and f(n) == true.
+	// Invariant: f(i-1) == false, f(j) == true.
+	i, j := 0, n
+	for i < j {
+		h := i + (j-i)/2 // avoid overflow when computing h
+		// i ≤ h < j
+		if !f(h) {
+			i = h + 1 // preserves f(i-1) == false
+		} else {
+			j = h // preserves f(j) == true
+		}
+	}
+	// i == j, f(i-1) == false, and f(j) (= f(i)) == true  =>  answer is i.
 	return i
 }
 
-type smartypants_cb func(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int
-
-type SmartypantsRenderer [256]smartypants_cb
-
-func Smartypants(flags int) *SmartypantsRenderer {
-	r := new(SmartypantsRenderer)
-	r['"'] = smartypants_cb__dquote
-	r['&'] = smartypants_cb__amp
-	r['\''] = smartypants_cb__squote
-	r['('] = smartypants_cb__parens
-	if flags&HTML_SMARTYPANTS_LATEX_DASHES == 0 {
-		r['-'] = smartypants_cb__dash
-	} else {
-		r['-'] = smartypants_cb__dash_latex
-	}
-	r['.'] = smartypants_cb__period
-	if flags&HTML_SMARTYPANTS_FRACTIONS == 0 {
-		r['1'] = smartypants_cb__number
-		r['3'] = smartypants_cb__number
-	} else {
-		for ch := '1'; ch <= '9'; ch++ {
-			r[ch] = smartypants_cb__number_generic
-		}
-	}
-	r['<'] = smartypants_cb__ltag
-	r['`'] = smartypants_cb__backtick
-	return r
+// Test if a character is a whitespace character.
+func isspace(c byte) bool {
+	return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v'
 }
 
-func rndr_smartypants(ob *bytes.Buffer, text []byte, opaque interface{}) {
-	options := opaque.(*HtmlOptions)
-	smrt := smartypants_data{false, false}
-
-	mark := 0
-	for i := 0; i < len(text); i++ {
-		if action := options.smartypants[text[i]]; action != nil {
-			if i > mark {
-				ob.Write(text[mark:i])
-			}
-
-			previous_char := byte(0)
-			if i > 0 {
-				previous_char = text[i-1]
-			}
-			i += action(ob, &smrt, previous_char, text[i:])
-			mark = i + 1
-		}
-	}
-
-	if mark < len(text) {
-		ob.Write(text[mark:])
-	}
+// Test if a character is a letter or a digit.
+func isalnum(c byte) bool {
+	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
 }
 
-//
-//
-// Miscellaneous
-//
-//
-
+// Replace tab characters with spaces, aligning to the next TAB_SIZE column.
 func expand_tabs(ob *bytes.Buffer, line []byte) {
 	i, tab := 0, 0
 
@@ -3234,255 +2516,11 @@ func expand_tabs(ob *bytes.Buffer, line []byte) {
 		for {
 			ob.WriteByte(' ')
 			tab++
-			if tab%4 == 0 {
+			if tab%TAB_SIZE == 0 {
 				break
 			}
 		}
 
 		i++
-	}
-}
-
-//
-//
-// Public interface
-//
-//
-
-func Markdown(ob *bytes.Buffer, ib []byte, rndrer *Renderer, extensions uint32) {
-	// no point in parsing if we can't render
-	if rndrer == nil {
-		return
-	}
-
-	// fill in the character-level parsers
-	markdown_char_ptrs[MD_CHAR_NONE] = nil
-	markdown_char_ptrs[MD_CHAR_EMPHASIS] = char_emphasis
-	markdown_char_ptrs[MD_CHAR_CODESPAN] = char_codespan
-	markdown_char_ptrs[MD_CHAR_LINEBREAK] = char_linebreak
-	markdown_char_ptrs[MD_CHAR_LINK] = char_link
-	markdown_char_ptrs[MD_CHAR_LANGLE] = char_langle_tag
-	markdown_char_ptrs[MD_CHAR_ESCAPE] = char_escape
-	markdown_char_ptrs[MD_CHAR_ENTITITY] = char_entity
-	markdown_char_ptrs[MD_CHAR_AUTOLINK] = char_autolink
-
-	// fill in the render structure
-	rndr := new(render)
-	rndr.mk = rndrer
-	rndr.ext_flags = extensions
-	rndr.max_nesting = 16
-
-	if rndr.mk.emphasis != nil || rndr.mk.double_emphasis != nil || rndr.mk.triple_emphasis != nil {
-		rndr.active_char['*'] = MD_CHAR_EMPHASIS
-		rndr.active_char['_'] = MD_CHAR_EMPHASIS
-		if extensions&MKDEXT_STRIKETHROUGH != 0 {
-			rndr.active_char['~'] = MD_CHAR_EMPHASIS
-		}
-	}
-	if rndr.mk.codespan != nil {
-		rndr.active_char['`'] = MD_CHAR_CODESPAN
-	}
-	if rndr.mk.linebreak != nil {
-		rndr.active_char['\n'] = MD_CHAR_LINEBREAK
-	}
-	if rndr.mk.image != nil || rndr.mk.link != nil {
-		rndr.active_char['['] = MD_CHAR_LINK
-	}
-	rndr.active_char['<'] = MD_CHAR_LANGLE
-	rndr.active_char['\\'] = MD_CHAR_ESCAPE
-	rndr.active_char['&'] = MD_CHAR_ENTITITY
-
-	if extensions&MKDEXT_AUTOLINK != 0 {
-		rndr.active_char['h'] = MD_CHAR_AUTOLINK // http, https
-		rndr.active_char['H'] = MD_CHAR_AUTOLINK
-
-		rndr.active_char['f'] = MD_CHAR_AUTOLINK // ftp
-		rndr.active_char['F'] = MD_CHAR_AUTOLINK
-
-		rndr.active_char['m'] = MD_CHAR_AUTOLINK // mailto
-		rndr.active_char['M'] = MD_CHAR_AUTOLINK
-	}
-
-	// first pass: look for references, copy everything else
-	text := bytes.NewBuffer(nil)
-	beg, end := 0, 0
-	for beg < len(ib) { // iterate over lines
-		if end = is_ref(rndr, ib[beg:]); end > 0 {
-			beg += end
-		} else { // skip to the next line
-			end = beg
-			for end < len(ib) && ib[end] != '\n' && ib[end] != '\r' {
-				end++
-			}
-
-			// add the line body if present
-			if end > beg {
-				expand_tabs(text, ib[beg:end])
-			}
-
-			for end < len(ib) && (ib[end] == '\n' || ib[end] == '\r') {
-				// add one \n per newline
-				if ib[end] == '\n' || (end+1 < len(ib) && ib[end+1] != '\n') {
-					text.WriteByte('\n')
-				}
-				end++
-			}
-
-			beg = end
-		}
-	}
-
-	// sort the reference array
-	if len(rndr.refs) > 1 {
-		sort.Sort(rndr.refs)
-	}
-
-	// second pass: actual rendering
-	if rndr.mk.doc_header != nil {
-		rndr.mk.doc_header(ob, rndr.mk.opaque)
-	}
-
-	if text.Len() > 0 {
-		// add a final newline if not already present
-		finalchar := text.Bytes()[text.Len()-1]
-		if finalchar != '\n' && finalchar != '\r' {
-			text.WriteByte('\n')
-		}
-		parse_block(ob, rndr, text.Bytes())
-	}
-
-	if rndr.mk.doc_footer != nil {
-		rndr.mk.doc_footer(ob, rndr.mk.opaque)
-	}
-
-	if rndr.nesting != 0 {
-		panic("Nesting level did not end at zero")
-	}
-}
-
-var xhtml_close = " />\n"
-var html_close = ">\n"
-
-func HtmlRenderer(flags int) *Renderer {
-	// configure the rendering engine
-	r := new(Renderer)
-	if flags&HTML_GITHUB_BLOCKCODE == 0 {
-		r.blockcode = rndr_blockcode
-	} else {
-		r.blockcode = rndr_blockcode_github
-	}
-	r.blockquote = rndr_blockquote
-	if flags&HTML_SKIP_HTML == 0 {
-		r.blockhtml = rndr_raw_block
-	}
-	r.header = rndr_header
-	r.hrule = rndr_hrule
-	r.list = rndr_list
-	r.listitem = rndr_listitem
-	r.paragraph = rndr_paragraph
-	r.table = rndr_table
-	r.table_row = rndr_tablerow
-	r.table_cell = rndr_tablecell
-
-	r.autolink = rndr_autolink
-	r.codespan = rndr_codespan
-	r.double_emphasis = rndr_double_emphasis
-	r.emphasis = rndr_emphasis
-	if flags&HTML_SKIP_IMAGES == 0 {
-		r.image = rndr_image
-	}
-	r.linebreak = rndr_linebreak
-	if flags&HTML_SKIP_LINKS == 0 {
-		r.link = rndr_link
-	}
-	r.raw_html_tag = rndr_raw_html_tag
-	r.triple_emphasis = rndr_triple_emphasis
-	r.strikethrough = rndr_strikethrough
-
-	var cb *SmartypantsRenderer
-	if flags&HTML_USE_SMARTYPANTS == 0 {
-		r.normal_text = rndr_normal_text
-	} else {
-		cb = Smartypants(flags)
-		r.normal_text = rndr_smartypants
-	}
-
-	close_tag := html_close
-	if flags&HTML_USE_XHTML != 0 {
-		close_tag = xhtml_close
-	}
-	r.opaque = &HtmlOptions{Flags: flags, close_tag: close_tag, smartypants: cb}
-	return r
-}
-
-func HtmlTocRenderer(flags int) *Renderer {
-	// configure the rendering engine
-	r := new(Renderer)
-	r.header = rndr_toc_header
-
-	r.codespan = rndr_codespan
-	r.double_emphasis = rndr_double_emphasis
-	r.emphasis = rndr_emphasis
-	r.triple_emphasis = rndr_triple_emphasis
-	r.strikethrough = rndr_strikethrough
-
-	r.doc_footer = rndr_toc_finalize
-
-	close_tag := ">\n"
-	if flags&HTML_USE_XHTML != 0 {
-		close_tag = " />\n"
-	}
-	r.opaque = &HtmlOptions{Flags: flags | HTML_TOC, close_tag: close_tag}
-	return r
-}
-
-func main() {
-	// read the input
-	var input []byte
-	var err os.Error
-	switch len(os.Args) {
-	case 1:
-		if input, err = ioutil.ReadAll(os.Stdin); err != nil {
-			fmt.Fprintln(os.Stderr, "Error reading from Stdin:", err)
-			os.Exit(-1)
-		}
-	case 2, 3:
-		if input, err = ioutil.ReadFile(os.Args[1]); err != nil {
-			fmt.Fprintln(os.Stderr, "Error reading from", os.Args[1], ":", err)
-			os.Exit(-1)
-		}
-	default:
-		fmt.Fprintln(os.Stderr, "Usage:", os.Args[0], "[inputfile [outputfile]]")
-		os.Exit(-1)
-	}
-
-	// call the main renderer function
-	output := bytes.NewBuffer(nil)
-	var extensions uint32
-	extensions |= MKDEXT_NO_INTRA_EMPHASIS
-	extensions |= MKDEXT_TABLES
-	extensions |= MKDEXT_FENCED_CODE
-	extensions |= MKDEXT_AUTOLINK
-	extensions |= MKDEXT_STRIKETHROUGH
-	extensions |= MKDEXT_SPACE_HEADERS
-
-	html_flags := 0
-	html_flags |= HTML_USE_XHTML
-	html_flags |= HTML_USE_SMARTYPANTS
-	html_flags |= HTML_SMARTYPANTS_FRACTIONS
-	html_flags |= HTML_SMARTYPANTS_LATEX_DASHES
-	Markdown(output, input, HtmlRenderer(html_flags), extensions)
-
-	// output the result
-	if len(os.Args) == 3 {
-		if err = ioutil.WriteFile(os.Args[2], output.Bytes(), 0644); err != nil {
-			fmt.Fprintln(os.Stderr, "Error writing to", os.Args[2], ":", err)
-			os.Exit(-1)
-		}
-	} else {
-		if _, err = os.Stdout.Write(output.Bytes()); err != nil {
-			fmt.Fprintln(os.Stderr, "Error writing to Stdout:", err)
-			os.Exit(-1)
-		}
 	}
 }
