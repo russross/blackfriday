@@ -16,12 +16,12 @@ import (
 	"bytes"
 )
 
-type smartypants_data struct {
-	in_squote bool
-	in_dquote bool
+type smartypantsData struct {
+	inSingleQuote bool
+	inDoubleQuote bool
 }
 
-func word_boundary(c byte) bool {
+func wordBoundary(c byte) bool {
 	return c == 0 || isspace(c) || ispunct(c)
 }
 
@@ -36,26 +36,26 @@ func isdigit(c byte) bool {
 	return c >= '0' && c <= '9'
 }
 
-func smartypants_quotes(ob *bytes.Buffer, previous_char byte, next_char byte, quote byte, is_open *bool) bool {
+func smartQuotesHelper(ob *bytes.Buffer, previousChar byte, nextChar byte, quote byte, isOpen *bool) bool {
 	switch {
 	// edge of the buffer is likely to be a tag that we don't get to see,
 	// so we assume there is text there
-	case word_boundary(previous_char) && previous_char != 0 && next_char == 0:
-		*is_open = true
-	case previous_char == 0 && word_boundary(next_char) && next_char != 0:
-		*is_open = false
-	case word_boundary(previous_char) && !word_boundary(next_char):
-		*is_open = true
-	case !word_boundary(previous_char) && word_boundary(next_char):
-		*is_open = false
-	case !word_boundary(previous_char) && !word_boundary(next_char):
-		*is_open = true
+	case wordBoundary(previousChar) && previousChar != 0 && nextChar == 0:
+		*isOpen = true
+	case previousChar == 0 && wordBoundary(nextChar) && nextChar != 0:
+		*isOpen = false
+	case wordBoundary(previousChar) && !wordBoundary(nextChar):
+		*isOpen = true
+	case !wordBoundary(previousChar) && wordBoundary(nextChar):
+		*isOpen = false
+	case !wordBoundary(previousChar) && !wordBoundary(nextChar):
+		*isOpen = true
 	default:
-		*is_open = !*is_open
+		*isOpen = !*isOpen
 	}
 
 	ob.WriteByte('&')
-	if *is_open {
+	if *isOpen {
 		ob.WriteByte('l')
 	} else {
 		ob.WriteByte('r')
@@ -65,21 +65,21 @@ func smartypants_quotes(ob *bytes.Buffer, previous_char byte, next_char byte, qu
 	return true
 }
 
-func smartypants_cb__squote(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
+func smartSquote(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	if len(text) >= 2 {
 		t1 := tolower(text[1])
 
 		if t1 == '\'' {
-			next_char := byte(0)
+			nextChar := byte(0)
 			if len(text) >= 3 {
-				next_char = text[2]
+				nextChar = text[2]
 			}
-			if smartypants_quotes(ob, previous_char, next_char, 'd', &smrt.in_dquote) {
+			if smartQuotesHelper(ob, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
 				return 1
 			}
 		}
 
-		if (t1 == 's' || t1 == 't' || t1 == 'm' || t1 == 'd') && (len(text) < 3 || word_boundary(text[2])) {
+		if (t1 == 's' || t1 == 't' || t1 == 'm' || t1 == 'd') && (len(text) < 3 || wordBoundary(text[2])) {
 			ob.WriteString("&rsquo;")
 			return 0
 		}
@@ -87,18 +87,18 @@ func smartypants_cb__squote(ob *bytes.Buffer, smrt *smartypants_data, previous_c
 		if len(text) >= 3 {
 			t2 := tolower(text[2])
 
-			if ((t1 == 'r' && t2 == 'e') || (t1 == 'l' && t2 == 'l') || (t1 == 'v' && t2 == 'e')) && (len(text) < 4 || word_boundary(text[3])) {
+			if ((t1 == 'r' && t2 == 'e') || (t1 == 'l' && t2 == 'l') || (t1 == 'v' && t2 == 'e')) && (len(text) < 4 || wordBoundary(text[3])) {
 				ob.WriteString("&rsquo;")
 				return 0
 			}
 		}
 	}
 
-	next_char := byte(0)
+	nextChar := byte(0)
 	if len(text) > 1 {
-		next_char = text[1]
+		nextChar = text[1]
 	}
-	if smartypants_quotes(ob, previous_char, next_char, 's', &smrt.in_squote) {
+	if smartQuotesHelper(ob, previousChar, nextChar, 's', &smrt.inSingleQuote) {
 		return 0
 	}
 
@@ -106,7 +106,7 @@ func smartypants_cb__squote(ob *bytes.Buffer, smrt *smartypants_data, previous_c
 	return 0
 }
 
-func smartypants_cb__parens(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
+func smartParens(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	if len(text) >= 3 {
 		t1 := tolower(text[1])
 		t2 := tolower(text[2])
@@ -131,14 +131,14 @@ func smartypants_cb__parens(ob *bytes.Buffer, smrt *smartypants_data, previous_c
 	return 0
 }
 
-func smartypants_cb__dash(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
+func smartDash(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	if len(text) >= 2 {
 		if text[1] == '-' {
 			ob.WriteString("&mdash;")
 			return 1
 		}
 
-		if word_boundary(previous_char) && word_boundary(text[1]) {
+		if wordBoundary(previousChar) && wordBoundary(text[1]) {
 			ob.WriteString("&ndash;")
 			return 0
 		}
@@ -148,7 +148,7 @@ func smartypants_cb__dash(ob *bytes.Buffer, smrt *smartypants_data, previous_cha
 	return 0
 }
 
-func smartypants_cb__dash_latex(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
+func smartDashLatex(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	if len(text) >= 3 && text[1] == '-' && text[2] == '-' {
 		ob.WriteString("&mdash;")
 		return 2
@@ -162,13 +162,13 @@ func smartypants_cb__dash_latex(ob *bytes.Buffer, smrt *smartypants_data, previo
 	return 0
 }
 
-func smartypants_cb__amp(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
+func smartAmp(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	if bytes.HasPrefix(text, []byte("&quot;")) {
-		next_char := byte(0)
+		nextChar := byte(0)
 		if len(text) >= 7 {
-			next_char = text[6]
+			nextChar = text[6]
 		}
-		if smartypants_quotes(ob, previous_char, next_char, 'd', &smrt.in_dquote) {
+		if smartQuotesHelper(ob, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
 			return 5
 		}
 	}
@@ -181,7 +181,7 @@ func smartypants_cb__amp(ob *bytes.Buffer, smrt *smartypants_data, previous_char
 	return 0
 }
 
-func smartypants_cb__period(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
+func smartPeriod(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	if len(text) >= 3 && text[1] == '.' && text[2] == '.' {
 		ob.WriteString("&hellip;")
 		return 2
@@ -196,13 +196,13 @@ func smartypants_cb__period(ob *bytes.Buffer, smrt *smartypants_data, previous_c
 	return 0
 }
 
-func smartypants_cb__backtick(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
+func smartBacktick(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	if len(text) >= 2 && text[1] == '`' {
-		next_char := byte(0)
+		nextChar := byte(0)
 		if len(text) >= 3 {
-			next_char = text[2]
+			nextChar = text[2]
 		}
-		if smartypants_quotes(ob, previous_char, next_char, 'd', &smrt.in_dquote) {
+		if smartQuotesHelper(ob, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
 			return 1
 		}
 	}
@@ -210,8 +210,8 @@ func smartypants_cb__backtick(ob *bytes.Buffer, smrt *smartypants_data, previous
 	return 0
 }
 
-func smartypants_cb__number_generic(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
-	if word_boundary(previous_char) && len(text) >= 3 {
+func smartNumberGeneric(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+	if wordBoundary(previousChar) && len(text) >= 3 {
 		// is it of the form digits/digits(word boundary)?, i.e., \d+/\d+\b
 		num_end := 0
 		for len(text) > num_end && isdigit(text[num_end]) {
@@ -233,7 +233,7 @@ func smartypants_cb__number_generic(ob *bytes.Buffer, smrt *smartypants_data, pr
 			ob.WriteByte(text[0])
 			return 0
 		}
-		if len(text) == den_end || word_boundary(text[den_end]) {
+		if len(text) == den_end || wordBoundary(text[den_end]) {
 			ob.WriteString("<sup>")
 			ob.Write(text[:num_end])
 			ob.WriteString("</sup>&frasl;<sub>")
@@ -247,24 +247,24 @@ func smartypants_cb__number_generic(ob *bytes.Buffer, smrt *smartypants_data, pr
 	return 0
 }
 
-func smartypants_cb__number(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
-	if word_boundary(previous_char) && len(text) >= 3 {
+func smartNumber(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+	if wordBoundary(previousChar) && len(text) >= 3 {
 		if text[0] == '1' && text[1] == '/' && text[2] == '2' {
-			if len(text) < 4 || word_boundary(text[3]) {
+			if len(text) < 4 || wordBoundary(text[3]) {
 				ob.WriteString("&frac12;")
 				return 2
 			}
 		}
 
 		if text[0] == '1' && text[1] == '/' && text[2] == '4' {
-			if len(text) < 4 || word_boundary(text[3]) || (len(text) >= 5 && tolower(text[3]) == 't' && tolower(text[4]) == 'h') {
+			if len(text) < 4 || wordBoundary(text[3]) || (len(text) >= 5 && tolower(text[3]) == 't' && tolower(text[4]) == 'h') {
 				ob.WriteString("&frac14;")
 				return 2
 			}
 		}
 
 		if text[0] == '3' && text[1] == '/' && text[2] == '4' {
-			if len(text) < 4 || word_boundary(text[3]) || (len(text) >= 6 && tolower(text[3]) == 't' && tolower(text[4]) == 'h' && tolower(text[5]) == 's') {
+			if len(text) < 4 || wordBoundary(text[3]) || (len(text) >= 6 && tolower(text[3]) == 't' && tolower(text[4]) == 'h' && tolower(text[5]) == 's') {
 				ob.WriteString("&frac34;")
 				return 2
 			}
@@ -275,19 +275,19 @@ func smartypants_cb__number(ob *bytes.Buffer, smrt *smartypants_data, previous_c
 	return 0
 }
 
-func smartypants_cb__dquote(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
-	next_char := byte(0)
+func smartDquote(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+	nextChar := byte(0)
 	if len(text) > 1 {
-		next_char = text[1]
+		nextChar = text[1]
 	}
-	if !smartypants_quotes(ob, previous_char, next_char, 'd', &smrt.in_dquote) {
+	if !smartQuotesHelper(ob, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
 		ob.WriteString("&quot;")
 	}
 
 	return 0
 }
 
-func smartypants_cb__ltag(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int {
+func smartLtag(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	i := 0
 
 	for i < len(text) && text[i] != '>' {
@@ -298,42 +298,42 @@ func smartypants_cb__ltag(ob *bytes.Buffer, smrt *smartypants_data, previous_cha
 	return i
 }
 
-type smartypants_cb func(ob *bytes.Buffer, smrt *smartypants_data, previous_char byte, text []byte) int
+type smartCallback func(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int
 
-type SmartypantsRenderer [256]smartypants_cb
+type SmartypantsRenderer [256]smartCallback
 
 func Smartypants(flags int) *SmartypantsRenderer {
 	r := new(SmartypantsRenderer)
-	r['"'] = smartypants_cb__dquote
-	r['&'] = smartypants_cb__amp
-	r['\''] = smartypants_cb__squote
-	r['('] = smartypants_cb__parens
+	r['"'] = smartDquote
+	r['&'] = smartAmp
+	r['\''] = smartSquote
+	r['('] = smartParens
 	if flags&HTML_SMARTYPANTS_LATEX_DASHES == 0 {
-		r['-'] = smartypants_cb__dash
+		r['-'] = smartDash
 	} else {
-		r['-'] = smartypants_cb__dash_latex
+		r['-'] = smartDashLatex
 	}
-	r['.'] = smartypants_cb__period
+	r['.'] = smartPeriod
 	if flags&HTML_SMARTYPANTS_FRACTIONS == 0 {
-		r['1'] = smartypants_cb__number
-		r['3'] = smartypants_cb__number
+		r['1'] = smartNumber
+		r['3'] = smartNumber
 	} else {
 		for ch := '1'; ch <= '9'; ch++ {
-			r[ch] = smartypants_cb__number_generic
+			r[ch] = smartNumberGeneric
 		}
 	}
-	r['<'] = smartypants_cb__ltag
-	r['`'] = smartypants_cb__backtick
+	r['<'] = smartLtag
+	r['`'] = smartBacktick
 	return r
 }
 
-func rndr_smartypants(ob *bytes.Buffer, text []byte, opaque interface{}) {
+func htmlSmartypants(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	options := opaque.(*htmlOptions)
-	smrt := smartypants_data{false, false}
+	smrt := smartypantsData{false, false}
 
 	// first do normal entity escaping
 	escaped := bytes.NewBuffer(nil)
-	attr_escape(escaped, text)
+	attrEscape(escaped, text)
 	text = escaped.Bytes()
 
 	mark := 0
@@ -343,11 +343,11 @@ func rndr_smartypants(ob *bytes.Buffer, text []byte, opaque interface{}) {
 				ob.Write(text[mark:i])
 			}
 
-			previous_char := byte(0)
+			previousChar := byte(0)
 			if i > 0 {
-				previous_char = text[i-1]
+				previousChar = text[i-1]
 			}
-			i += action(ob, &smrt, previous_char, text[i:])
+			i += action(ob, &smrt, previousChar, text[i:])
 			mark = i + 1
 		}
 	}

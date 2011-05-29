@@ -18,12 +18,6 @@ import (
 	"strconv"
 )
 
-//
-//
-// HTML rendering
-//
-//
-
 const (
 	HTML_SKIP_HTML = 1 << iota
 	HTML_SKIP_STYLE
@@ -41,7 +35,7 @@ const (
 )
 
 type htmlOptions struct {
-	Flags     int
+	flags     int
 	close_tag string // how to end singleton tags: usually " />\n", possibly ">\n"
 	toc_data  struct {
 		header_count  int
@@ -57,78 +51,78 @@ func HtmlRenderer(flags int) *Renderer {
 	// configure the rendering engine
 	r := new(Renderer)
 	if flags&HTML_GITHUB_BLOCKCODE == 0 {
-		r.blockcode = rndr_blockcode
+		r.blockcode = htmlBlockcode
 	} else {
-		r.blockcode = rndr_blockcode_github
+		r.blockcode = htmlBlockcodeGithub
 	}
-	r.blockquote = rndr_blockquote
+	r.blockquote = htmlBlockquote
 	if flags&HTML_SKIP_HTML == 0 {
-		r.blockhtml = rndr_raw_block
+		r.blockhtml = htmlRawBlock
 	}
-	r.header = rndr_header
-	r.hrule = rndr_hrule
-	r.list = rndr_list
-	r.listitem = rndr_listitem
-	r.paragraph = rndr_paragraph
-	r.table = rndr_table
-	r.tableRow = rndr_tablerow
-	r.tableCell = rndr_tablecell
+	r.header = htmlHeader
+	r.hrule = htmlHrule
+	r.list = htmlList
+	r.listitem = htmlListitem
+	r.paragraph = htmlParagraph
+	r.table = htmlTable
+	r.tableRow = htmlTablerow
+	r.tableCell = htmlTablecell
 
-	r.autolink = rndr_autolink
-	r.codespan = rndr_codespan
-	r.doubleEmphasis = rndr_double_emphasis
-	r.emphasis = rndr_emphasis
+	r.autolink = htmlAutolink
+	r.codespan = htmlCodespan
+	r.doubleEmphasis = htmlDoubleEmphasis
+	r.emphasis = htmlEmphasis
 	if flags&HTML_SKIP_IMAGES == 0 {
-		r.image = rndr_image
+		r.image = htmlImage
 	}
-	r.linebreak = rndr_linebreak
+	r.linebreak = htmlLinebreak
 	if flags&HTML_SKIP_LINKS == 0 {
-		r.link = rndr_link
+		r.link = htmlLink
 	}
-	r.rawHtmlTag = rndr_raw_html_tag
-	r.tripleEmphasis = rndr_triple_emphasis
-	r.strikethrough = rndr_strikethrough
+	r.rawHtmlTag = htmlRawTag
+	r.tripleEmphasis = htmlTripleEmphasis
+	r.strikethrough = htmlStrikethrough
 
 	var cb *SmartypantsRenderer
 	if flags&HTML_USE_SMARTYPANTS == 0 {
-		r.normalText = rndr_normal_text
+		r.normalText = htmlNormalText
 	} else {
 		cb = Smartypants(flags)
-		r.normalText = rndr_smartypants
+		r.normalText = htmlSmartypants
 	}
 
 	close_tag := html_close
 	if flags&HTML_USE_XHTML != 0 {
 		close_tag = xhtml_close
 	}
-	r.opaque = &htmlOptions{Flags: flags, close_tag: close_tag, smartypants: cb}
+	r.opaque = &htmlOptions{flags: flags, close_tag: close_tag, smartypants: cb}
 	return r
 }
 
 func HtmlTocRenderer(flags int) *Renderer {
 	// configure the rendering engine
 	r := new(Renderer)
-	r.header = rndr_toc_header
+	r.header = htmlTocHeader
 
-	r.codespan = rndr_codespan
-	r.doubleEmphasis = rndr_double_emphasis
-	r.emphasis = rndr_emphasis
-	r.tripleEmphasis = rndr_triple_emphasis
-	r.strikethrough = rndr_strikethrough
+	r.codespan = htmlCodespan
+	r.doubleEmphasis = htmlDoubleEmphasis
+	r.emphasis = htmlEmphasis
+	r.tripleEmphasis = htmlTripleEmphasis
+	r.strikethrough = htmlStrikethrough
 
-	r.documentFooter = rndr_toc_finalize
+	r.documentFooter = htmlTocFinalize
 
 	close_tag := ">\n"
 	if flags&HTML_USE_XHTML != 0 {
 		close_tag = " />\n"
 	}
-	r.opaque = &htmlOptions{Flags: flags | HTML_TOC, close_tag: close_tag}
+	r.opaque = &htmlOptions{flags: flags | HTML_TOC, close_tag: close_tag}
 	return r
 }
 
-func attr_escape(ob *bytes.Buffer, src []byte) {
+func attrEscape(ob *bytes.Buffer, src []byte) {
 	for i := 0; i < len(src); i++ {
-		// directly copy unescaped characters
+		// directly copy normal characters
 		org := i
 		for i < len(src) && src[i] != '<' && src[i] != '>' && src[i] != '&' && src[i] != '"' {
 			i++
@@ -154,35 +148,14 @@ func attr_escape(ob *bytes.Buffer, src []byte) {
 	}
 }
 
-func unescape_text(ob *bytes.Buffer, src []byte) {
-	i := 0
-	for i < len(src) {
-		org := i
-		for i < len(src) && src[i] != '\\' {
-			i++
-		}
-
-		if i > org {
-			ob.Write(src[org:i])
-		}
-
-		if i+1 >= len(src) {
-			break
-		}
-
-		ob.WriteByte(src[i+1])
-		i += 2
-	}
-}
-
-func rndr_header(ob *bytes.Buffer, text []byte, level int, opaque interface{}) {
+func htmlHeader(ob *bytes.Buffer, text []byte, level int, opaque interface{}) {
 	options := opaque.(*htmlOptions)
 
 	if ob.Len() > 0 {
 		ob.WriteByte('\n')
 	}
 
-	if options.Flags&HTML_TOC != 0 {
+	if options.flags&HTML_TOC != 0 {
 		ob.WriteString(fmt.Sprintf("<h%d id=\"toc_%d\">", level, options.toc_data.header_count))
 		options.toc_data.header_count++
 	} else {
@@ -193,7 +166,7 @@ func rndr_header(ob *bytes.Buffer, text []byte, level int, opaque interface{}) {
 	ob.WriteString(fmt.Sprintf("</h%d>\n", level))
 }
 
-func rndr_raw_block(ob *bytes.Buffer, text []byte, opaque interface{}) {
+func htmlRawBlock(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	sz := len(text)
 	for sz > 0 && text[sz-1] == '\n' {
 		sz--
@@ -212,7 +185,7 @@ func rndr_raw_block(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	ob.WriteByte('\n')
 }
 
-func rndr_hrule(ob *bytes.Buffer, opaque interface{}) {
+func htmlHrule(ob *bytes.Buffer, opaque interface{}) {
 	options := opaque.(*htmlOptions)
 
 	if ob.Len() > 0 {
@@ -222,7 +195,7 @@ func rndr_hrule(ob *bytes.Buffer, opaque interface{}) {
 	ob.WriteString(options.close_tag)
 }
 
-func rndr_blockcode(ob *bytes.Buffer, text []byte, lang string, opaque interface{}) {
+func htmlBlockcode(ob *bytes.Buffer, text []byte, lang string, opaque interface{}) {
 	if ob.Len() > 0 {
 		ob.WriteByte('\n')
 	}
@@ -248,7 +221,7 @@ func rndr_blockcode(ob *bytes.Buffer, text []byte, lang string, opaque interface
 				if cls > 0 {
 					ob.WriteByte(' ')
 				}
-				attr_escape(ob, []byte(lang[org:]))
+				attrEscape(ob, []byte(lang[org:]))
 			}
 		}
 
@@ -258,7 +231,7 @@ func rndr_blockcode(ob *bytes.Buffer, text []byte, lang string, opaque interface
 	}
 
 	if len(text) > 0 {
-		attr_escape(ob, text)
+		attrEscape(ob, text)
 	}
 
 	ob.WriteString("</code></pre>\n")
@@ -282,7 +255,7 @@ func rndr_blockcode(ob *bytes.Buffer, text []byte, lang string, opaque interface
  * E.g.
  *              ~~~~ {.python .numbered}        =>      <pre lang="python"><code>
  */
-func rndr_blockcode_github(ob *bytes.Buffer, text []byte, lang string, opaque interface{}) {
+func htmlBlockcodeGithub(ob *bytes.Buffer, text []byte, lang string, opaque interface{}) {
 	if ob.Len() > 0 {
 		ob.WriteByte('\n')
 	}
@@ -296,9 +269,9 @@ func rndr_blockcode_github(ob *bytes.Buffer, text []byte, lang string, opaque in
 		}
 
 		if lang[0] == '.' {
-			attr_escape(ob, []byte(lang[1:i]))
+			attrEscape(ob, []byte(lang[1:i]))
 		} else {
-			attr_escape(ob, []byte(lang[:i]))
+			attrEscape(ob, []byte(lang[:i]))
 		}
 
 		ob.WriteString("\"><code>")
@@ -307,20 +280,20 @@ func rndr_blockcode_github(ob *bytes.Buffer, text []byte, lang string, opaque in
 	}
 
 	if len(text) > 0 {
-		attr_escape(ob, text)
+		attrEscape(ob, text)
 	}
 
 	ob.WriteString("</code></pre>\n")
 }
 
 
-func rndr_blockquote(ob *bytes.Buffer, text []byte, opaque interface{}) {
+func htmlBlockquote(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	ob.WriteString("<blockquote>\n")
 	ob.Write(text)
 	ob.WriteString("</blockquote>")
 }
 
-func rndr_table(ob *bytes.Buffer, header []byte, body []byte, opaque interface{}) {
+func htmlTable(ob *bytes.Buffer, header []byte, body []byte, opaque interface{}) {
 	if ob.Len() > 0 {
 		ob.WriteByte('\n')
 	}
@@ -331,7 +304,7 @@ func rndr_table(ob *bytes.Buffer, header []byte, body []byte, opaque interface{}
 	ob.WriteString("\n</tbody></table>")
 }
 
-func rndr_tablerow(ob *bytes.Buffer, text []byte, opaque interface{}) {
+func htmlTablerow(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	if ob.Len() > 0 {
 		ob.WriteByte('\n')
 	}
@@ -340,7 +313,7 @@ func rndr_tablerow(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	ob.WriteString("\n</tr>")
 }
 
-func rndr_tablecell(ob *bytes.Buffer, text []byte, align int, opaque interface{}) {
+func htmlTablecell(ob *bytes.Buffer, text []byte, align int, opaque interface{}) {
 	if ob.Len() > 0 {
 		ob.WriteByte('\n')
 	}
@@ -359,7 +332,7 @@ func rndr_tablecell(ob *bytes.Buffer, text []byte, align int, opaque interface{}
 	ob.WriteString("</td>")
 }
 
-func rndr_list(ob *bytes.Buffer, text []byte, flags int, opaque interface{}) {
+func htmlList(ob *bytes.Buffer, text []byte, flags int, opaque interface{}) {
 	if ob.Len() > 0 {
 		ob.WriteByte('\n')
 	}
@@ -376,7 +349,7 @@ func rndr_list(ob *bytes.Buffer, text []byte, flags int, opaque interface{}) {
 	}
 }
 
-func rndr_listitem(ob *bytes.Buffer, text []byte, flags int, opaque interface{}) {
+func htmlListitem(ob *bytes.Buffer, text []byte, flags int, opaque interface{}) {
 	ob.WriteString("<li>")
 	size := len(text)
 	for size > 0 && text[size-1] == '\n' {
@@ -386,7 +359,7 @@ func rndr_listitem(ob *bytes.Buffer, text []byte, flags int, opaque interface{})
 	ob.WriteString("</li>\n")
 }
 
-func rndr_paragraph(ob *bytes.Buffer, text []byte, opaque interface{}) {
+func htmlParagraph(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	options := opaque.(*htmlOptions)
 	i := 0
 
@@ -407,7 +380,7 @@ func rndr_paragraph(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	}
 
 	ob.WriteString("<p>")
-	if options.Flags&HTML_HARD_WRAP != 0 {
+	if options.flags&HTML_HARD_WRAP != 0 {
 		for i < len(text) {
 			org := i
 			for i < len(text) && text[i] != '\n' {
@@ -432,13 +405,13 @@ func rndr_paragraph(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	ob.WriteString("</p>\n")
 }
 
-func rndr_autolink(ob *bytes.Buffer, link []byte, kind int, opaque interface{}) int {
+func htmlAutolink(ob *bytes.Buffer, link []byte, kind int, opaque interface{}) int {
 	options := opaque.(*htmlOptions)
 
 	if len(link) == 0 {
 		return 0
 	}
-	if options.Flags&HTML_SAFELINK != 0 && !isSafeLink(link) && kind != LINK_TYPE_EMAIL {
+	if options.flags&HTML_SAFELINK != 0 && !isSafeLink(link) && kind != LINK_TYPE_EMAIL {
 		return 0
 	}
 
@@ -455,9 +428,9 @@ func rndr_autolink(ob *bytes.Buffer, link []byte, kind int, opaque interface{}) 
 	 * want to print the `mailto:` prefix
 	 */
 	if bytes.HasPrefix(link, []byte("mailto:")) {
-		attr_escape(ob, link[7:])
+		attrEscape(ob, link[7:])
 	} else {
-		attr_escape(ob, link)
+		attrEscape(ob, link)
 	}
 
 	ob.WriteString("</a>")
@@ -465,14 +438,14 @@ func rndr_autolink(ob *bytes.Buffer, link []byte, kind int, opaque interface{}) 
 	return 1
 }
 
-func rndr_codespan(ob *bytes.Buffer, text []byte, opaque interface{}) int {
+func htmlCodespan(ob *bytes.Buffer, text []byte, opaque interface{}) int {
 	ob.WriteString("<code>")
-	attr_escape(ob, text)
+	attrEscape(ob, text)
 	ob.WriteString("</code>")
 	return 1
 }
 
-func rndr_double_emphasis(ob *bytes.Buffer, text []byte, opaque interface{}) int {
+func htmlDoubleEmphasis(ob *bytes.Buffer, text []byte, opaque interface{}) int {
 	if len(text) == 0 {
 		return 0
 	}
@@ -482,7 +455,7 @@ func rndr_double_emphasis(ob *bytes.Buffer, text []byte, opaque interface{}) int
 	return 1
 }
 
-func rndr_emphasis(ob *bytes.Buffer, text []byte, opaque interface{}) int {
+func htmlEmphasis(ob *bytes.Buffer, text []byte, opaque interface{}) int {
 	if len(text) == 0 {
 		return 0
 	}
@@ -492,20 +465,20 @@ func rndr_emphasis(ob *bytes.Buffer, text []byte, opaque interface{}) int {
 	return 1
 }
 
-func rndr_image(ob *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{}) int {
+func htmlImage(ob *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{}) int {
 	options := opaque.(*htmlOptions)
 	if len(link) == 0 {
 		return 0
 	}
 	ob.WriteString("<img src=\"")
-	attr_escape(ob, link)
+	attrEscape(ob, link)
 	ob.WriteString("\" alt=\"")
 	if len(alt) > 0 {
-		attr_escape(ob, alt)
+		attrEscape(ob, alt)
 	}
 	if len(title) > 0 {
 		ob.WriteString("\" title=\"")
-		attr_escape(ob, title)
+		attrEscape(ob, title)
 	}
 
 	ob.WriteByte('"')
@@ -513,17 +486,17 @@ func rndr_image(ob *bytes.Buffer, link []byte, title []byte, alt []byte, opaque 
 	return 1
 }
 
-func rndr_linebreak(ob *bytes.Buffer, opaque interface{}) int {
+func htmlLinebreak(ob *bytes.Buffer, opaque interface{}) int {
 	options := opaque.(*htmlOptions)
 	ob.WriteString("<br")
 	ob.WriteString(options.close_tag)
 	return 1
 }
 
-func rndr_link(ob *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{}) int {
+func htmlLink(ob *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{}) int {
 	options := opaque.(*htmlOptions)
 
-	if options.Flags&HTML_SAFELINK != 0 && !isSafeLink(link) {
+	if options.flags&HTML_SAFELINK != 0 && !isSafeLink(link) {
 		return 0
 	}
 
@@ -533,7 +506,7 @@ func rndr_link(ob *bytes.Buffer, link []byte, title []byte, content []byte, opaq
 	}
 	if len(title) > 0 {
 		ob.WriteString("\" title=\"")
-		attr_escape(ob, title)
+		attrEscape(ob, title)
 	}
 	ob.WriteString("\">")
 	if len(content) > 0 {
@@ -543,25 +516,25 @@ func rndr_link(ob *bytes.Buffer, link []byte, title []byte, content []byte, opaq
 	return 1
 }
 
-func rndr_raw_html_tag(ob *bytes.Buffer, text []byte, opaque interface{}) int {
+func htmlRawTag(ob *bytes.Buffer, text []byte, opaque interface{}) int {
 	options := opaque.(*htmlOptions)
-	if options.Flags&HTML_SKIP_HTML != 0 {
+	if options.flags&HTML_SKIP_HTML != 0 {
 		return 1
 	}
-	if options.Flags&HTML_SKIP_STYLE != 0 && is_html_tag(text, "style") {
+	if options.flags&HTML_SKIP_STYLE != 0 && isHtmlTag(text, "style") {
 		return 1
 	}
-	if options.Flags&HTML_SKIP_LINKS != 0 && is_html_tag(text, "a") {
+	if options.flags&HTML_SKIP_LINKS != 0 && isHtmlTag(text, "a") {
 		return 1
 	}
-	if options.Flags&HTML_SKIP_IMAGES != 0 && is_html_tag(text, "img") {
+	if options.flags&HTML_SKIP_IMAGES != 0 && isHtmlTag(text, "img") {
 		return 1
 	}
 	ob.Write(text)
 	return 1
 }
 
-func rndr_triple_emphasis(ob *bytes.Buffer, text []byte, opaque interface{}) int {
+func htmlTripleEmphasis(ob *bytes.Buffer, text []byte, opaque interface{}) int {
 	if len(text) == 0 {
 		return 0
 	}
@@ -571,7 +544,7 @@ func rndr_triple_emphasis(ob *bytes.Buffer, text []byte, opaque interface{}) int
 	return 1
 }
 
-func rndr_strikethrough(ob *bytes.Buffer, text []byte, opaque interface{}) int {
+func htmlStrikethrough(ob *bytes.Buffer, text []byte, opaque interface{}) int {
 	if len(text) == 0 {
 		return 0
 	}
@@ -581,11 +554,11 @@ func rndr_strikethrough(ob *bytes.Buffer, text []byte, opaque interface{}) int {
 	return 1
 }
 
-func rndr_normal_text(ob *bytes.Buffer, text []byte, opaque interface{}) {
-	attr_escape(ob, text)
+func htmlNormalText(ob *bytes.Buffer, text []byte, opaque interface{}) {
+	attrEscape(ob, text)
 }
 
-func rndr_toc_header(ob *bytes.Buffer, text []byte, level int, opaque interface{}) {
+func htmlTocHeader(ob *bytes.Buffer, text []byte, level int, opaque interface{}) {
 	options := opaque.(*htmlOptions)
 	for level > options.toc_data.current_level {
 		if options.toc_data.current_level > 0 {
@@ -614,7 +587,7 @@ func rndr_toc_header(ob *bytes.Buffer, text []byte, level int, opaque interface{
 	ob.WriteString("</a></li>\n")
 }
 
-func rndr_toc_finalize(ob *bytes.Buffer, opaque interface{}) {
+func htmlTocFinalize(ob *bytes.Buffer, opaque interface{}) {
 	options := opaque.(*htmlOptions)
 	for options.toc_data.current_level > 1 {
 		ob.WriteString("</ul></li>\n")
@@ -626,7 +599,7 @@ func rndr_toc_finalize(ob *bytes.Buffer, opaque interface{}) {
 	}
 }
 
-func is_html_tag(tag []byte, tagname string) bool {
+func isHtmlTag(tag []byte, tagname string) bool {
 	i := 0
 	if i < len(tag) && tag[0] != '<' {
 		return false
