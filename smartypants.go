@@ -231,9 +231,11 @@ func smartypants_cb__number_generic(ob *bytes.Buffer, smrt *smartypants_data, pr
 			return 0
 		}
 		if len(text) == den_end || word_boundary(text[den_end]) {
+			ob.WriteString("<sup>")
 			ob.Write(text[:num_end])
-			ob.WriteString("&frasl;")
+			ob.WriteString("</sup>&frasl;<sub>")
 			ob.Write(text[num_end+1 : den_end])
+			ob.WriteString("</sub>")
 			return den_end - 1
 		}
 	}
