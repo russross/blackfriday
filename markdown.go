@@ -166,10 +166,10 @@ const (
 // Parse and render a block of markdown-encoded text.
 // The renderer is used to format the output, and extensions dictates which
 // non-standard extensions are enabled.
-func Markdown(output *bytes.Buffer, input []byte, renderer *Renderer, extensions uint32) {
+func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 	// no point in parsing if we can't render
 	if renderer == nil {
-		return
+		return nil
 	}
 
 	// fill in the character-level parsers
@@ -255,6 +255,7 @@ func Markdown(output *bytes.Buffer, input []byte, renderer *Renderer, extensions
 	}
 
 	// second pass: actual rendering
+    output := bytes.NewBuffer(nil)
 	if rndr.mk.doc_header != nil {
 		rndr.mk.doc_header(output, rndr.mk.opaque)
 	}
@@ -275,6 +276,8 @@ func Markdown(output *bytes.Buffer, input []byte, renderer *Renderer, extensions
 	if rndr.nesting != 0 {
 		panic("Nesting level did not end at zero")
 	}
+
+    return output.Bytes()
 }
 
 

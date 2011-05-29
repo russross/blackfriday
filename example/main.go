@@ -13,7 +13,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
     "github.com/russross/blackfriday"
@@ -41,7 +40,6 @@ func main() {
 	}
 
 	// set up options
-	output := bytes.NewBuffer(nil)
 	var extensions uint32
 	extensions |= blackfriday.EXTENSION_NO_INTRA_EMPHASIS
 	extensions |= blackfriday.EXTENSION_TABLES
@@ -57,16 +55,16 @@ func main() {
 	html_flags |= blackfriday.HTML_SMARTYPANTS_LATEX_DASHES
 
     // render the data
-	blackfriday.Markdown(output, input, blackfriday.HtmlRenderer(html_flags), extensions)
+	output := blackfriday.Markdown(input, blackfriday.HtmlRenderer(html_flags), extensions)
 
 	// output the result
 	if len(os.Args) == 3 {
-		if err = ioutil.WriteFile(os.Args[2], output.Bytes(), 0644); err != nil {
+		if err = ioutil.WriteFile(os.Args[2], output, 0644); err != nil {
 			fmt.Fprintln(os.Stderr, "Error writing to", os.Args[2], ":", err)
 			os.Exit(-1)
 		}
 	} else {
-		if _, err = os.Stdout.Write(output.Bytes()); err != nil {
+		if _, err = os.Stdout.Write(output); err != nil {
 			fmt.Fprintln(os.Stderr, "Error writing to Stdout:", err)
 			os.Exit(-1)
 		}
