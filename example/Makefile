@@ -4,9 +4,8 @@ TARG=markdown
 
 GOFILES=main.go
 
-LIBMD=github.com/russross/blackfriday
+LIBBF=github.com/russross/blackfriday
 
-R=..
-PREREQ += $(R)/_obj/$(LIBMD).a
+PREREQ += ../_obj/$(LIBBF).a
 
 include $(GOROOT)/src/Make.cmd

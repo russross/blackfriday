@@ -71,12 +71,12 @@ func HtmlRenderer(flags int) *Renderer {
 	r.listitem = rndr_listitem
 	r.paragraph = rndr_paragraph
 	r.table = rndr_table
-	r.table_row = rndr_tablerow
-	r.table_cell = rndr_tablecell
+	r.tableRow = rndr_tablerow
+	r.tableCell = rndr_tablecell
 
 	r.autolink = rndr_autolink
 	r.codespan = rndr_codespan
-	r.double_emphasis = rndr_double_emphasis
+	r.doubleEmphasis = rndr_double_emphasis
 	r.emphasis = rndr_emphasis
 	if flags&HTML_SKIP_IMAGES == 0 {
 		r.image = rndr_image
@@ -85,16 +85,16 @@ func HtmlRenderer(flags int) *Renderer {
 	if flags&HTML_SKIP_LINKS == 0 {
 		r.link = rndr_link
 	}
-	r.raw_html_tag = rndr_raw_html_tag
-	r.triple_emphasis = rndr_triple_emphasis
+	r.rawHtmlTag = rndr_raw_html_tag
+	r.tripleEmphasis = rndr_triple_emphasis
 	r.strikethrough = rndr_strikethrough
 
 	var cb *SmartypantsRenderer
 	if flags&HTML_USE_SMARTYPANTS == 0 {
-		r.normal_text = rndr_normal_text
+		r.normalText = rndr_normal_text
 	} else {
 		cb = Smartypants(flags)
-		r.normal_text = rndr_smartypants
+		r.normalText = rndr_smartypants
 	}
 
 	close_tag := html_close
@@ -111,12 +111,12 @@ func HtmlTocRenderer(flags int) *Renderer {
 	r.header = rndr_toc_header
 
 	r.codespan = rndr_codespan
-	r.double_emphasis = rndr_double_emphasis
+	r.doubleEmphasis = rndr_double_emphasis
 	r.emphasis = rndr_emphasis
-	r.triple_emphasis = rndr_triple_emphasis
+	r.tripleEmphasis = rndr_triple_emphasis
 	r.strikethrough = rndr_strikethrough
 
-	r.doc_footer = rndr_toc_finalize
+	r.documentFooter = rndr_toc_finalize
 
 	close_tag := ">\n"
 	if flags&HTML_USE_XHTML != 0 {
@@ -438,7 +438,7 @@ func rndr_autolink(ob *bytes.Buffer, link []byte, kind int, opaque interface{}) 
 	if len(link) == 0 {
 		return 0
 	}
-	if options.Flags&HTML_SAFELINK != 0 && !is_safe_link(link) && kind != LINK_TYPE_EMAIL {
+	if options.Flags&HTML_SAFELINK != 0 && !isSafeLink(link) && kind != LINK_TYPE_EMAIL {
 		return 0
 	}
 
@@ -523,7 +523,7 @@ func rndr_linebreak(ob *bytes.Buffer, opaque interface{}) int {
 func rndr_link(ob *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{}) int {
 	options := opaque.(*htmlOptions)
 
-	if options.Flags&HTML_SAFELINK != 0 && !is_safe_link(link) {
+	if options.Flags&HTML_SAFELINK != 0 && !isSafeLink(link) {
 		return 0
 	}
 

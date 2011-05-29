@@ -50,7 +50,10 @@ func main() {
 
 	html_flags := 0
 	html_flags |= blackfriday.HTML_USE_XHTML
-	html_flags |= blackfriday.HTML_USE_SMARTYPANTS
+	// note: uncomment the following line to enable smartypants
+	// it is commented out by default so that markdown
+	// compatibility tests pass
+	//html_flags |= blackfriday.HTML_USE_SMARTYPANTS
 	html_flags |= blackfriday.HTML_SMARTYPANTS_FRACTIONS
 	html_flags |= blackfriday.HTML_SMARTYPANTS_LATEX_DASHES
 

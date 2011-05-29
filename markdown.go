@@ -14,7 +14,6 @@ package blackfriday
 
 import (
 	"bytes"
-	"sort"
 	"unicode"
 )
 
@@ -97,64 +96,52 @@ var block_tags = map[string]bool{
 // Most users will use the convenience functions to fill in this structure.
 type Renderer struct {
 	// block-level callbacks---nil skips the block
-	blockcode  func(ob *bytes.Buffer, text []byte, lang string, opaque interface{})
-	blockquote func(ob *bytes.Buffer, text []byte, opaque interface{})
-	blockhtml  func(ob *bytes.Buffer, text []byte, opaque interface{})
-	header     func(ob *bytes.Buffer, text []byte, level int, opaque interface{})
-	hrule      func(ob *bytes.Buffer, opaque interface{})
-	list       func(ob *bytes.Buffer, text []byte, flags int, opaque interface{})
-	listitem   func(ob *bytes.Buffer, text []byte, flags int, opaque interface{})
-	paragraph  func(ob *bytes.Buffer, text []byte, opaque interface{})
-	table      func(ob *bytes.Buffer, header []byte, body []byte, opaque interface{})
-	table_row  func(ob *bytes.Buffer, text []byte, opaque interface{})
-	table_cell func(ob *bytes.Buffer, text []byte, flags int, opaque interface{})
+	blockcode  func(out *bytes.Buffer, text []byte, lang string, opaque interface{})
+	blockquote func(out *bytes.Buffer, text []byte, opaque interface{})
+	blockhtml  func(out *bytes.Buffer, text []byte, opaque interface{})
+	header     func(out *bytes.Buffer, text []byte, level int, opaque interface{})
+	hrule      func(out *bytes.Buffer, opaque interface{})
+	list       func(out *bytes.Buffer, text []byte, flags int, opaque interface{})
+	listitem   func(out *bytes.Buffer, text []byte, flags int, opaque interface{})
+	paragraph  func(out *bytes.Buffer, text []byte, opaque interface{})
+	table      func(out *bytes.Buffer, header []byte, body []byte, opaque interface{})
+	tableRow   func(out *bytes.Buffer, text []byte, opaque interface{})
+	tableCell  func(out *bytes.Buffer, text []byte, flags int, opaque interface{})
 
 	// span-level callbacks---nil or return 0 prints the span verbatim
-	autolink        func(ob *bytes.Buffer, link []byte, kind int, opaque interface{}) int
-	codespan        func(ob *bytes.Buffer, text []byte, opaque interface{}) int
-	double_emphasis func(ob *bytes.Buffer, text []byte, opaque interface{}) int
-	emphasis        func(ob *bytes.Buffer, text []byte, opaque interface{}) int
-	image           func(ob *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{}) int
-	linebreak       func(ob *bytes.Buffer, opaque interface{}) int
-	link            func(ob *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{}) int
-	raw_html_tag    func(ob *bytes.Buffer, tag []byte, opaque interface{}) int
-	triple_emphasis func(ob *bytes.Buffer, text []byte, opaque interface{}) int
-	strikethrough   func(ob *bytes.Buffer, text []byte, opaque interface{}) int
+	autolink       func(out *bytes.Buffer, link []byte, kind int, opaque interface{}) int
+	codespan       func(out *bytes.Buffer, text []byte, opaque interface{}) int
+	doubleEmphasis func(out *bytes.Buffer, text []byte, opaque interface{}) int
+	emphasis       func(out *bytes.Buffer, text []byte, opaque interface{}) int
+	image          func(out *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{}) int
+	linebreak      func(out *bytes.Buffer, opaque interface{}) int
+	link           func(out *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{}) int
+	rawHtmlTag     func(out *bytes.Buffer, tag []byte, opaque interface{}) int
+	tripleEmphasis func(out *bytes.Buffer, text []byte, opaque interface{}) int
+	strikethrough  func(out *bytes.Buffer, text []byte, opaque interface{}) int
 
 	// low-level callbacks---nil copies input directly into the output
-	entity      func(ob *bytes.Buffer, entity []byte, opaque interface{})
-	normal_text func(ob *bytes.Buffer, text []byte, opaque interface{})
+	entity     func(out *bytes.Buffer, entity []byte, opaque interface{})
+	normalText func(out *bytes.Buffer, text []byte, opaque interface{})
 
 	// header and footer
-	doc_header func(ob *bytes.Buffer, opaque interface{})
-	doc_footer func(ob *bytes.Buffer, opaque interface{})
+	documentHeader func(out *bytes.Buffer, opaque interface{})
+	documentFooter func(out *bytes.Buffer, opaque interface{})
 
 	// user data---passed back to every callback
 	opaque interface{}
 }
 
-//
+type inlineParser func(out *bytes.Buffer, rndr *render, data []byte, offset int) int
 
 type render struct {
-	mk          *Renderer
-	refs        link_ref_array
-	active_char [256]int
-	ext_flags   uint32
-	nesting     int
-	max_nesting int
+	mk         *Renderer
+	refs       map[string]*reference
+	inline     [256]inlineParser
+	flags      uint32
+	nesting    int
+	maxNesting int
 }
-
-const (
-	MD_CHAR_NONE = iota
-	MD_CHAR_EMPHASIS
-	MD_CHAR_CODESPAN
-	MD_CHAR_LINEBREAK
-	MD_CHAR_LINK
-	MD_CHAR_LANGLE
-	MD_CHAR_ESCAPE
-	MD_CHAR_ENTITITY
-	MD_CHAR_AUTOLINK
-)
 
 
 //
@@ -172,59 +159,50 @@ func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 		return nil
 	}
 
-	// fill in the character-level parsers
-	markdown_char_ptrs[MD_CHAR_NONE] = nil
-	markdown_char_ptrs[MD_CHAR_EMPHASIS] = char_emphasis
-	markdown_char_ptrs[MD_CHAR_CODESPAN] = char_codespan
-	markdown_char_ptrs[MD_CHAR_LINEBREAK] = char_linebreak
-	markdown_char_ptrs[MD_CHAR_LINK] = char_link
-	markdown_char_ptrs[MD_CHAR_LANGLE] = char_langle_tag
-	markdown_char_ptrs[MD_CHAR_ESCAPE] = char_escape
-	markdown_char_ptrs[MD_CHAR_ENTITITY] = char_entity
-	markdown_char_ptrs[MD_CHAR_AUTOLINK] = char_autolink
-
 	// fill in the render structure
 	rndr := new(render)
 	rndr.mk = renderer
-	rndr.ext_flags = extensions
-	rndr.max_nesting = 16
+	rndr.flags = extensions
+	rndr.refs = make(map[string]*reference)
+	rndr.maxNesting = 16
 
-	if rndr.mk.emphasis != nil || rndr.mk.double_emphasis != nil || rndr.mk.triple_emphasis != nil {
-		rndr.active_char['*'] = MD_CHAR_EMPHASIS
-		rndr.active_char['_'] = MD_CHAR_EMPHASIS
+	// register inline parsers
+	if rndr.mk.emphasis != nil || rndr.mk.doubleEmphasis != nil || rndr.mk.tripleEmphasis != nil {
+		rndr.inline['*'] = inlineEmphasis
+		rndr.inline['_'] = inlineEmphasis
 		if extensions&EXTENSION_STRIKETHROUGH != 0 {
-			rndr.active_char['~'] = MD_CHAR_EMPHASIS
+			rndr.inline['~'] = inlineEmphasis
 		}
 	}
 	if rndr.mk.codespan != nil {
-		rndr.active_char['`'] = MD_CHAR_CODESPAN
+		rndr.inline['`'] = inlineCodespan
 	}
 	if rndr.mk.linebreak != nil {
-		rndr.active_char['\n'] = MD_CHAR_LINEBREAK
+		rndr.inline['\n'] = inlineLinebreak
 	}
 	if rndr.mk.image != nil || rndr.mk.link != nil {
-		rndr.active_char['['] = MD_CHAR_LINK
+		rndr.inline['['] = inlineLink
 	}
-	rndr.active_char['<'] = MD_CHAR_LANGLE
-	rndr.active_char['\\'] = MD_CHAR_ESCAPE
-	rndr.active_char['&'] = MD_CHAR_ENTITITY
+	rndr.inline['<'] = inlineLangle
+	rndr.inline['\\'] = inlineEscape
+	rndr.inline['&'] = inlineEntity
 
 	if extensions&EXTENSION_AUTOLINK != 0 {
-		rndr.active_char['h'] = MD_CHAR_AUTOLINK // http, https
-		rndr.active_char['H'] = MD_CHAR_AUTOLINK
+		rndr.inline['h'] = inlineAutolink // http, https
+		rndr.inline['H'] = inlineAutolink
 
-		rndr.active_char['f'] = MD_CHAR_AUTOLINK // ftp
-		rndr.active_char['F'] = MD_CHAR_AUTOLINK
+		rndr.inline['f'] = inlineAutolink // ftp
+		rndr.inline['F'] = inlineAutolink
 
-		rndr.active_char['m'] = MD_CHAR_AUTOLINK // mailto
-		rndr.active_char['M'] = MD_CHAR_AUTOLINK
+		rndr.inline['m'] = inlineAutolink // mailto
+		rndr.inline['M'] = inlineAutolink
 	}
 
 	// first pass: look for references, copy everything else
 	text := bytes.NewBuffer(nil)
 	beg, end := 0, 0
 	for beg < len(input) { // iterate over lines
-		if end = is_ref(rndr, input[beg:]); end > 0 {
+		if end = isReference(rndr, input[beg:]); end > 0 {
 			beg += end
 		} else { // skip to the next line
 			end = beg
@@ -234,7 +212,7 @@ func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 
 			// add the line body if present
 			if end > beg {
-				expand_tabs(text, input[beg:end])
+				expandTabs(text, input[beg:end])
 			}
 
 			for end < len(input) && (input[end] == '\n' || input[end] == '\r') {
@@ -249,15 +227,10 @@ func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 		}
 	}
 
-	// sort the reference array
-	if len(rndr.refs) > 1 {
-		sort.Sort(rndr.refs)
-	}
-
 	// second pass: actual rendering
 	output := bytes.NewBuffer(nil)
-	if rndr.mk.doc_header != nil {
-		rndr.mk.doc_header(output, rndr.mk.opaque)
+	if rndr.mk.documentHeader != nil {
+		rndr.mk.documentHeader(output, rndr.mk.opaque)
 	}
 
 	if text.Len() > 0 {
@@ -266,11 +239,11 @@ func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 		if finalchar != '\n' && finalchar != '\r' {
 			text.WriteByte('\n')
 		}
-		parse_block(output, rndr, text.Bytes())
+		parseBlock(output, rndr, text.Bytes())
 	}
 
-	if rndr.mk.doc_footer != nil {
-		rndr.mk.doc_footer(output, rndr.mk.opaque)
+	if rndr.mk.documentFooter != nil {
+		rndr.mk.documentFooter(output, rndr.mk.opaque)
 	}
 
 	if rndr.nesting != 0 {
@@ -283,19 +256,14 @@ func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 
 //
 // Inline parsing
-// Functions to parse text within a block.
-//
-
-// closures to render active chars, each:
+// Functions to parse text within a block. Each:
 //   returns the number of chars taken care of
 //   data is the complete block being rendered
 //   offset is the number of valid chars before the data
 //
-// Note: this is filled in in Markdown to prevent an initilization loop
-var markdown_char_ptrs [9]func(ob *bytes.Buffer, rndr *render, data []byte, offset int) int
 
-func parse_inline(ob *bytes.Buffer, rndr *render, data []byte) {
-	if rndr.nesting >= rndr.max_nesting {
+func parseInline(out *bytes.Buffer, rndr *render, data []byte) {
+	if rndr.nesting >= rndr.maxNesting {
 		return
 	}
 	rndr.nesting++
@@ -303,14 +271,14 @@ func parse_inline(ob *bytes.Buffer, rndr *render, data []byte) {
 	i, end := 0, 0
 	for i < len(data) {
 		// copy inactive chars into the output
-		for end < len(data) && rndr.active_char[data[end]] == 0 {
+		for end < len(data) && rndr.inline[data[end]] == nil {
 			end++
 		}
 
-		if rndr.mk.normal_text != nil {
-			rndr.mk.normal_text(ob, data[i:end], rndr.mk.opaque)
+		if rndr.mk.normalText != nil {
+			rndr.mk.normalText(out, data[i:end], rndr.mk.opaque)
 		} else {
-			ob.Write(data[i:end])
+			out.Write(data[i:end])
 		}
 
 		if end >= len(data) {
@@ -319,8 +287,8 @@ func parse_inline(ob *bytes.Buffer, rndr *render, data []byte) {
 		i = end
 
 		// call the trigger
-		action := rndr.active_char[data[end]]
-		end = markdown_char_ptrs[action](ob, rndr, data, i)
+		parser := rndr.inline[data[end]]
+		end = parser(out, rndr, data, i)
 
 		if end == 0 { // no action from the callback
 			end = i + 1
@@ -334,7 +302,7 @@ func parse_inline(ob *bytes.Buffer, rndr *render, data []byte) {
 }
 
 // single and double emphasis parsing
-func char_emphasis(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+func inlineEmphasis(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	data = data[offset:]
 	c := data[0]
 	ret := 0
@@ -345,7 +313,7 @@ func char_emphasis(ob *bytes.Buffer, rndr *render, data []byte, offset int) int 
 		if c == '~' || isspace(data[1]) {
 			return 0
 		}
-		if ret = parse_emph1(ob, rndr, data[1:], c); ret == 0 {
+		if ret = inlineHelperEmph1(out, rndr, data[1:], c); ret == 0 {
 			return 0
 		}
 
@@ -356,7 +324,7 @@ func char_emphasis(ob *bytes.Buffer, rndr *render, data []byte, offset int) int 
 		if isspace(data[2]) {
 			return 0
 		}
-		if ret = parse_emph2(ob, rndr, data[2:], c); ret == 0 {
+		if ret = inlineHelperEmph2(out, rndr, data[2:], c); ret == 0 {
 			return 0
 		}
 
@@ -367,7 +335,7 @@ func char_emphasis(ob *bytes.Buffer, rndr *render, data []byte, offset int) int 
 		if c == '~' || isspace(data[3]) {
 			return 0
 		}
-		if ret = parse_emph3(ob, rndr, data, 3, c); ret == 0 {
+		if ret = inlineHelperEmph3(out, rndr, data, 3, c); ret == 0 {
 			return 0
 		}
 
@@ -377,7 +345,7 @@ func char_emphasis(ob *bytes.Buffer, rndr *render, data []byte, offset int) int 
 	return 0
 }
 
-func char_codespan(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+func inlineCodespan(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	data = data[offset:]
 
 	nb := 0
@@ -417,11 +385,11 @@ func char_codespan(ob *bytes.Buffer, rndr *render, data []byte, offset int) int 
 		return 0
 	}
 	if f_begin < f_end {
-		if rndr.mk.codespan(ob, data[f_begin:f_end], rndr.mk.opaque) == 0 {
+		if rndr.mk.codespan(out, data[f_begin:f_end], rndr.mk.opaque) == 0 {
 			end = 0
 		}
 	} else {
-		if rndr.mk.codespan(ob, nil, rndr.mk.opaque) == 0 {
+		if rndr.mk.codespan(out, nil, rndr.mk.opaque) == 0 {
 			end = 0
 		}
 	}
@@ -431,23 +399,23 @@ func char_codespan(ob *bytes.Buffer, rndr *render, data []byte, offset int) int 
 }
 
 // '\n' preceded by two spaces
-func char_linebreak(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+func inlineLinebreak(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	if offset < 2 || data[offset-1] != ' ' || data[offset-2] != ' ' {
 		return 0
 	}
 
-	// remove trailing spaces from ob and render
-	ob_bytes := ob.Bytes()
-	end := len(ob_bytes)
-	for end > 0 && ob_bytes[end-1] == ' ' {
+	// remove trailing spaces from out and render
+	outBytes := out.Bytes()
+	end := len(outBytes)
+	for end > 0 && outBytes[end-1] == ' ' {
 		end--
 	}
-	ob.Truncate(end)
+	out.Truncate(end)
 
 	if rndr.mk.linebreak == nil {
 		return 0
 	}
-	if rndr.mk.linebreak(ob, rndr.mk.opaque) > 0 {
+	if rndr.mk.linebreak(out, rndr.mk.opaque) > 0 {
 		return 1
 	} else {
 		return 0
@@ -457,8 +425,8 @@ func char_linebreak(ob *bytes.Buffer, rndr *render, data []byte, offset int) int
 }
 
 // '[': parse a link or an image
-func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
-	is_img := offset > 0 && data[offset-1] == '!'
+func inlineLink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
+	isImg := offset > 0 && data[offset-1] == '!'
 
 	data = data[offset:]
 
@@ -467,7 +435,7 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	text_has_nl := false
 
 	// check whether the correct renderer exists
-	if (is_img && rndr.mk.image == nil) || (!is_img && rndr.mk.link == nil) {
+	if (isImg && rndr.mk.image == nil) || (!isImg && rndr.mk.link == nil) {
 		return 0
 	}
 
@@ -606,7 +574,7 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 		}
 		link_e := i
 
-		// find the link_ref
+		// find the reference
 		if link_b == link_e {
 			if text_has_nl {
 				b := bytes.NewBuffer(nil)
@@ -628,16 +596,14 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 			id = data[link_b:link_e]
 		}
 
-		// find the link_ref with matching id
-		index := sortDotSearch(len(rndr.refs), func(i int) bool {
-			return !byteslice_less(rndr.refs[i].id, id)
-		})
-		if index >= len(rndr.refs) || !bytes.Equal(rndr.refs[index].id, id) {
+		// find the reference with matching id (ids are case-insensitive)
+		key := string(bytes.ToLower(id))
+		lr, ok := rndr.refs[key]
+		if !ok {
 			return 0
 		}
-		lr := rndr.refs[index]
 
-		// keep link and title from link_ref
+		// keep link and title from reference
 		link = lr.link
 		title = lr.title
 		i++
@@ -664,16 +630,14 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 			id = data[1:txt_e]
 		}
 
-		// find the link_ref with matching id
-		index := sortDotSearch(len(rndr.refs), func(i int) bool {
-			return !byteslice_less(rndr.refs[i].id, id)
-		})
-		if index >= len(rndr.refs) || !bytes.Equal(rndr.refs[index].id, id) {
+		// find the reference with matching id
+		key := string(bytes.ToLower(id))
+		lr, ok := rndr.refs[key]
+		if !ok {
 			return 0
 		}
-		lr := rndr.refs[index]
 
-		// keep link and title from link_ref
+		// keep link and title from reference
 		link = lr.link
 		title = lr.title
 
@@ -684,10 +648,10 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	// build content: img alt is escaped, link content is parsed
 	content := bytes.NewBuffer(nil)
 	if txt_e > 1 {
-		if is_img {
+		if isImg {
 			content.Write(data[1:txt_e])
 		} else {
-			parse_inline(content, rndr, data[1:txt_e])
+			parseInline(content, rndr, data[1:txt_e])
 		}
 	}
 
@@ -700,16 +664,16 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 
 	// call the relevant rendering function
 	ret := 0
-	if is_img {
-		ob_size := ob.Len()
-		ob_bytes := ob.Bytes()
-		if ob_size > 0 && ob_bytes[ob_size-1] == '!' {
-			ob.Truncate(ob_size - 1)
+	if isImg {
+		outSize := out.Len()
+		outBytes := out.Bytes()
+		if outSize > 0 && outBytes[outSize-1] == '!' {
+			out.Truncate(outSize - 1)
 		}
 
-		ret = rndr.mk.image(ob, u_link, title, content.Bytes(), rndr.mk.opaque)
+		ret = rndr.mk.image(out, u_link, title, content.Bytes(), rndr.mk.opaque)
 	} else {
-		ret = rndr.mk.link(ob, u_link, title, content.Bytes(), rndr.mk.opaque)
+		ret = rndr.mk.link(out, u_link, title, content.Bytes(), rndr.mk.opaque)
 	}
 
 	if ret > 0 {
@@ -719,10 +683,10 @@ func char_link(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 }
 
 // '<' when tags or autolinks are allowed
-func char_langle_tag(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+func inlineLangle(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	data = data[offset:]
 	altype := LINK_TYPE_NOT_AUTOLINK
-	end := tag_length(data, &altype)
+	end := tagLength(data, &altype)
 	ret := 0
 
 	if end > 2 {
@@ -730,9 +694,9 @@ func char_langle_tag(ob *bytes.Buffer, rndr *render, data []byte, offset int) in
 		case rndr.mk.autolink != nil && altype != LINK_TYPE_NOT_AUTOLINK:
 			u_link := bytes.NewBuffer(nil)
 			unescape_text(u_link, data[1:end+1-2])
-			ret = rndr.mk.autolink(ob, u_link.Bytes(), altype, rndr.mk.opaque)
-		case rndr.mk.raw_html_tag != nil:
-			ret = rndr.mk.raw_html_tag(ob, data[:end], rndr.mk.opaque)
+			ret = rndr.mk.autolink(out, u_link.Bytes(), altype, rndr.mk.opaque)
+		case rndr.mk.rawHtmlTag != nil:
+			ret = rndr.mk.rawHtmlTag(out, data[:end], rndr.mk.opaque)
 		}
 	}
 
@@ -743,20 +707,20 @@ func char_langle_tag(ob *bytes.Buffer, rndr *render, data []byte, offset int) in
 }
 
 // '\\' backslash escape
-var escape_chars = []byte("\\`*_{}[]()#+-.!:|&<>")
+var escapeChars = []byte("\\`*_{}[]()#+-.!:|&<>")
 
-func char_escape(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+func inlineEscape(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	data = data[offset:]
 
 	if len(data) > 1 {
-		if bytes.IndexByte(escape_chars, data[1]) < 0 {
+		if bytes.IndexByte(escapeChars, data[1]) < 0 {
 			return 0
 		}
 
-		if rndr.mk.normal_text != nil {
-			rndr.mk.normal_text(ob, data[1:2], rndr.mk.opaque)
+		if rndr.mk.normalText != nil {
+			rndr.mk.normalText(out, data[1:2], rndr.mk.opaque)
 		} else {
-			ob.WriteByte(data[1])
+			out.WriteByte(data[1])
 		}
 	}
 
@@ -765,7 +729,7 @@ func char_escape(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 
 // '&' escaped when it doesn't belong to an entity
 // valid entities are assumed to be anything matching &#?[A-Za-z0-9]+;
-func char_entity(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+func inlineEntity(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	data = data[offset:]
 
 	end := 1
@@ -785,15 +749,15 @@ func char_entity(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	}
 
 	if rndr.mk.entity != nil {
-		rndr.mk.entity(ob, data[:end], rndr.mk.opaque)
+		rndr.mk.entity(out, data[:end], rndr.mk.opaque)
 	} else {
-		ob.Write(data[:end])
+		out.Write(data[:end])
 	}
 
 	return end
 }
 
-func char_autolink(ob *bytes.Buffer, rndr *render, data []byte, offset int) int {
+func inlineAutolink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	orig_data := data
 	data = data[offset:]
 
@@ -803,7 +767,7 @@ func char_autolink(ob *bytes.Buffer, rndr *render, data []byte, offset int) int 
 		}
 	}
 
-	if !is_safe_link(data) {
+	if !isSafeLink(data) {
 		return 0
 	}
 
@@ -880,17 +844,19 @@ func char_autolink(ob *bytes.Buffer, rndr *render, data []byte, offset int) int 
 		u_link := bytes.NewBuffer(nil)
 		unescape_text(u_link, data[:link_end])
 
-		rndr.mk.autolink(ob, u_link.Bytes(), LINK_TYPE_NORMAL, rndr.mk.opaque)
+		rndr.mk.autolink(out, u_link.Bytes(), LINK_TYPE_NORMAL, rndr.mk.opaque)
 	}
 
 	return link_end
 }
 
-var valid_uris = [][]byte{[]byte("http://"), []byte("https://"), []byte("ftp://"), []byte("mailto://")}
+var validUris = [][]byte{[]byte("http://"), []byte("https://"), []byte("ftp://"), []byte("mailto://")}
 
-func is_safe_link(link []byte) bool {
-	for _, prefix := range valid_uris {
-		if len(link) > len(prefix) && !byteslice_less(link[:len(prefix)], prefix) && !byteslice_less(prefix, link[:len(prefix)]) && isalnum(link[len(prefix)]) {
+func isSafeLink(link []byte) bool {
+	for _, prefix := range validUris {
+		// TODO: handle unicode here
+		// case-insensitive prefix test
+		if len(link) > len(prefix) && !less(link[:len(prefix)], prefix) && !less(prefix, link[:len(prefix)]) && isalnum(link[len(prefix)]) {
 			return true
 		}
 	}
@@ -899,7 +865,7 @@ func is_safe_link(link []byte) bool {
 }
 
 // return the length of the given tag, or 0 is it's not valid
-func tag_length(data []byte, autolink *int) int {
+func tagLength(data []byte, autolink *int) int {
 	var i, j int
 
 	// a valid tag can't be shorter than 3 chars
@@ -930,7 +896,7 @@ func tag_length(data []byte, autolink *int) int {
 	}
 
 	if i > 1 && data[i] == '@' {
-		if j = is_mail_autolink(data[i:]); j != 0 {
+		if j = isMailtoAutolink(data[i:]); j != 0 {
 			*autolink = LINK_TYPE_EMAIL
 			return i + j
 		}
@@ -984,7 +950,7 @@ func tag_length(data []byte, autolink *int) int {
 
 // look for the address part of a mail autolink and '>'
 // this is less strict than the original markdown e-mail address matching
-func is_mail_autolink(data []byte) int {
+func isMailtoAutolink(data []byte) int {
 	nb := 0
 
 	// address is assumed to be: [-@._a-zA-Z0-9]+ with exactly one '@'
@@ -1015,7 +981,7 @@ func is_mail_autolink(data []byte) int {
 }
 
 // look for the next emph char, skipping other constructs
-func find_emph_char(data []byte, c byte) int {
+func inlineHelperFindEmphChar(data []byte, c byte) int {
 	i := 1
 
 	for i < len(data) {
@@ -1092,7 +1058,7 @@ func find_emph_char(data []byte, c byte) int {
 	return 0
 }
 
-func parse_emph1(ob *bytes.Buffer, rndr *render, data []byte, c byte) int {
+func inlineHelperEmph1(out *bytes.Buffer, rndr *render, data []byte, c byte) int {
 	i := 0
 
 	if rndr.mk.emphasis == nil {
@@ -1105,7 +1071,7 @@ func parse_emph1(ob *bytes.Buffer, rndr *render, data []byte, c byte) int {
 	}
 
 	for i < len(data) {
-		length := find_emph_char(data[i:], c)
+		length := inlineHelperFindEmphChar(data[i:], c)
 		if length == 0 {
 			return 0
 		}
@@ -1121,15 +1087,15 @@ func parse_emph1(ob *bytes.Buffer, rndr *render, data []byte, c byte) int {
 
 		if data[i] == c && !isspace(data[i-1]) {
 
-			if rndr.ext_flags&EXTENSION_NO_INTRA_EMPHASIS != 0 {
+			if rndr.flags&EXTENSION_NO_INTRA_EMPHASIS != 0 {
 				if !(i+1 == len(data) || isspace(data[i+1]) || ispunct(data[i+1])) {
 					continue
 				}
 			}
 
 			work := bytes.NewBuffer(nil)
-			parse_inline(work, rndr, data[:i])
-			r := rndr.mk.emphasis(ob, work.Bytes(), rndr.mk.opaque)
+			parseInline(work, rndr, data[:i])
+			r := rndr.mk.emphasis(out, work.Bytes(), rndr.mk.opaque)
 			if r > 0 {
 				return i + 1
 			} else {
@@ -1141,8 +1107,8 @@ func parse_emph1(ob *bytes.Buffer, rndr *render, data []byte, c byte) int {
 	return 0
 }
 
-func parse_emph2(ob *bytes.Buffer, rndr *render, data []byte, c byte) int {
-	render_method := rndr.mk.double_emphasis
+func inlineHelperEmph2(out *bytes.Buffer, rndr *render, data []byte, c byte) int {
+	render_method := rndr.mk.doubleEmphasis
 	if c == '~' {
 		render_method = rndr.mk.strikethrough
 	}
@@ -1154,7 +1120,7 @@ func parse_emph2(ob *bytes.Buffer, rndr *render, data []byte, c byte) int {
 	i := 0
 
 	for i < len(data) {
-		length := find_emph_char(data[i:], c)
+		length := inlineHelperFindEmphChar(data[i:], c)
 		if length == 0 {
 			return 0
 		}
@@ -1162,8 +1128,8 @@ func parse_emph2(ob *bytes.Buffer, rndr *render, data []byte, c byte) int {
 
 		if i+1 < len(data) && data[i] == c && data[i+1] == c && i > 0 && !isspace(data[i-1]) {
 			work := bytes.NewBuffer(nil)
-			parse_inline(work, rndr, data[:i])
-			r := render_method(ob, work.Bytes(), rndr.mk.opaque)
+			parseInline(work, rndr, data[:i])
+			r := render_method(out, work.Bytes(), rndr.mk.opaque)
 			if r > 0 {
 				return i + 2
 			} else {
@@ -1175,13 +1141,13 @@ func parse_emph2(ob *bytes.Buffer, rndr *render, data []byte, c byte) int {
 	return 0
 }
 
-func parse_emph3(ob *bytes.Buffer, rndr *render, data []byte, offset int, c byte) int {
+func inlineHelperEmph3(out *bytes.Buffer, rndr *render, data []byte, offset int, c byte) int {
 	i := 0
 	orig_data := data
 	data = data[offset:]
 
 	for i < len(data) {
-		length := find_emph_char(data[i:], c)
+		length := inlineHelperFindEmphChar(data[i:], c)
 		if length == 0 {
 			return 0
 		}
@@ -1193,12 +1159,12 @@ func parse_emph3(ob *bytes.Buffer, rndr *render, data []byte, offset int, c byte
 		}
 
 		switch {
-		case (i+2 < len(data) && data[i+1] == c && data[i+2] == c && rndr.mk.triple_emphasis != nil):
+		case (i+2 < len(data) && data[i+1] == c && data[i+2] == c && rndr.mk.tripleEmphasis != nil):
 			// triple symbol found
 			work := bytes.NewBuffer(nil)
 
-			parse_inline(work, rndr, data[:i])
-			r := rndr.mk.triple_emphasis(ob, work.Bytes(), rndr.mk.opaque)
+			parseInline(work, rndr, data[:i])
+			r := rndr.mk.tripleEmphasis(out, work.Bytes(), rndr.mk.opaque)
 			if r > 0 {
 				return i + 3
 			} else {
@@ -1206,7 +1172,7 @@ func parse_emph3(ob *bytes.Buffer, rndr *render, data []byte, offset int, c byte
 			}
 		case (i+1 < len(data) && data[i+1] == c):
 			// double symbol found, hand over to emph1
-			length = parse_emph1(ob, rndr, orig_data[offset-2:], c)
+			length = inlineHelperEmph1(out, rndr, orig_data[offset-2:], c)
 			if length == 0 {
 				return 0
 			} else {
@@ -1214,7 +1180,7 @@ func parse_emph3(ob *bytes.Buffer, rndr *render, data []byte, offset int, c byte
 			}
 		default:
 			// single symbol found, hand over to emph2
-			length = parse_emph2(ob, rndr, orig_data[offset-1:], c)
+			length = inlineHelperEmph2(out, rndr, orig_data[offset-1:], c)
 			if length == 0 {
 				return 0
 			} else {
@@ -1232,30 +1198,30 @@ func parse_emph3(ob *bytes.Buffer, rndr *render, data []byte, offset int, c byte
 //
 
 // parse block-level data
-func parse_block(ob *bytes.Buffer, rndr *render, data []byte) {
-	if rndr.nesting >= rndr.max_nesting {
+func parseBlock(out *bytes.Buffer, rndr *render, data []byte) {
+	if rndr.nesting >= rndr.maxNesting {
 		return
 	}
 	rndr.nesting++
 
 	for len(data) > 0 {
-		if is_atxheader(rndr, data) {
-			data = data[parse_atxheader(ob, rndr, data):]
+		if isPrefixHeader(rndr, data) {
+			data = data[blockPrefixHeader(out, rndr, data):]
 			continue
 		}
 		if data[0] == '<' && rndr.mk.blockhtml != nil {
-			if i := parse_htmlblock(ob, rndr, data, true); i > 0 {
+			if i := blockHtml(out, rndr, data, true); i > 0 {
 				data = data[i:]
 				continue
 			}
 		}
-		if i := is_empty(data); i > 0 {
+		if i := isEmpty(data); i > 0 {
 			data = data[i:]
 			continue
 		}
-		if is_hrule(data) {
+		if isHrule(data) {
 			if rndr.mk.hrule != nil {
-				rndr.mk.hrule(ob, rndr.mk.opaque)
+				rndr.mk.hrule(out, rndr.mk.opaque)
 			}
 			var i int
 			for i = 0; i < len(data) && data[i] != '\n'; i++ {
@@ -1263,47 +1229,47 @@ func parse_block(ob *bytes.Buffer, rndr *render, data []byte) {
 			data = data[i:]
 			continue
 		}
-		if rndr.ext_flags&EXTENSION_FENCED_CODE != 0 {
-			if i := parse_fencedcode(ob, rndr, data); i > 0 {
+		if rndr.flags&EXTENSION_FENCED_CODE != 0 {
+			if i := blockFencedCode(out, rndr, data); i > 0 {
 				data = data[i:]
 				continue
 			}
 		}
-		if rndr.ext_flags&EXTENSION_TABLES != 0 {
-			if i := parse_table(ob, rndr, data); i > 0 {
+		if rndr.flags&EXTENSION_TABLES != 0 {
+			if i := blockTable(out, rndr, data); i > 0 {
 				data = data[i:]
 				continue
 			}
 		}
-		if prefix_quote(data) > 0 {
-			data = data[parse_blockquote(ob, rndr, data):]
+		if blockQuotePrefix(data) > 0 {
+			data = data[blockQuote(out, rndr, data):]
 			continue
 		}
-		if prefix_code(data) > 0 {
-			data = data[parse_blockcode(ob, rndr, data):]
+		if blockCodePrefix(data) > 0 {
+			data = data[blockCode(out, rndr, data):]
 			continue
 		}
-		if prefix_uli(data) > 0 {
-			data = data[parse_list(ob, rndr, data, 0):]
+		if blockUliPrefix(data) > 0 {
+			data = data[blockList(out, rndr, data, 0):]
 			continue
 		}
-		if prefix_oli(data) > 0 {
-			data = data[parse_list(ob, rndr, data, LIST_TYPE_ORDERED):]
+		if blockOliPrefix(data) > 0 {
+			data = data[blockList(out, rndr, data, LIST_TYPE_ORDERED):]
 			continue
 		}
 
-		data = data[parse_paragraph(ob, rndr, data):]
+		data = data[blockParagraph(out, rndr, data):]
 	}
 
 	rndr.nesting--
 }
 
-func is_atxheader(rndr *render, data []byte) bool {
+func isPrefixHeader(rndr *render, data []byte) bool {
 	if data[0] != '#' {
 		return false
 	}
 
-	if rndr.ext_flags&EXTENSION_SPACE_HEADERS != 0 {
+	if rndr.flags&EXTENSION_SPACE_HEADERS != 0 {
 		level := 0
 		for level < len(data) && level < 6 && data[level] == '#' {
 			level++
@@ -1315,7 +1281,7 @@ func is_atxheader(rndr *render, data []byte) bool {
 	return true
 }
 
-func parse_atxheader(ob *bytes.Buffer, rndr *render, data []byte) int {
+func blockPrefixHeader(out *bytes.Buffer, rndr *render, data []byte) int {
 	level := 0
 	for level < len(data) && level < 6 && data[level] == '#' {
 		level++
@@ -1334,15 +1300,15 @@ func parse_atxheader(ob *bytes.Buffer, rndr *render, data []byte) int {
 	}
 	if end > i {
 		work := bytes.NewBuffer(nil)
-		parse_inline(work, rndr, data[i:end])
+		parseInline(work, rndr, data[i:end])
 		if rndr.mk.header != nil {
-			rndr.mk.header(ob, work.Bytes(), level, rndr.mk.opaque)
+			rndr.mk.header(out, work.Bytes(), level, rndr.mk.opaque)
 		}
 	}
 	return skip
 }
 
-func is_headerline(data []byte) int {
+func isUnderlinedHeader(data []byte) int {
 	i := 0
 
 	// test of level 1 header
@@ -1376,14 +1342,14 @@ func is_headerline(data []byte) int {
 	return 0
 }
 
-func parse_htmlblock(ob *bytes.Buffer, rndr *render, data []byte, do_render bool) int {
+func blockHtml(out *bytes.Buffer, rndr *render, data []byte, do_render bool) int {
 	var i, j int
 
 	// identify the opening tag
 	if len(data) < 2 || data[0] != '<' {
 		return 0
 	}
-	curtag, tagfound := find_block_tag(data[1:])
+	curtag, tagfound := blockHtmlFindTag(data[1:])
 
 	// handle special cases
 	if !tagfound {
@@ -1398,13 +1364,13 @@ func parse_htmlblock(ob *bytes.Buffer, rndr *render, data []byte, do_render bool
 			i++
 
 			if i < len(data) {
-				j = is_empty(data[i:])
+				j = isEmpty(data[i:])
 			}
 
 			if j > 0 {
 				size := i + j
 				if do_render && rndr.mk.blockhtml != nil {
-					rndr.mk.blockhtml(ob, data[:size], rndr.mk.opaque)
+					rndr.mk.blockhtml(out, data[:size], rndr.mk.opaque)
 				}
 				return size
 			}
@@ -1419,11 +1385,11 @@ func parse_htmlblock(ob *bytes.Buffer, rndr *render, data []byte, do_render bool
 
 			if i+1 < len(data) {
 				i++
-				j = is_empty(data[i:])
+				j = isEmpty(data[i:])
 				if j > 0 {
 					size := i + j
 					if do_render && rndr.mk.blockhtml != nil {
-						rndr.mk.blockhtml(ob, data[:size], rndr.mk.opaque)
+						rndr.mk.blockhtml(out, data[:size], rndr.mk.opaque)
 					}
 					return size
 				}
@@ -1453,7 +1419,7 @@ func parse_htmlblock(ob *bytes.Buffer, rndr *render, data []byte, do_render bool
 				break
 			}
 
-			j = htmlblock_end(curtag, rndr, data[i-1:])
+			j = blockHtmlFindEnd(curtag, rndr, data[i-1:])
 
 			if j > 0 {
 				i += j - 1
@@ -1469,13 +1435,13 @@ func parse_htmlblock(ob *bytes.Buffer, rndr *render, data []byte, do_render bool
 
 	// the end of the block has been found
 	if do_render && rndr.mk.blockhtml != nil {
-		rndr.mk.blockhtml(ob, data[:i], rndr.mk.opaque)
+		rndr.mk.blockhtml(out, data[:i], rndr.mk.opaque)
 	}
 
 	return i
 }
 
-func find_block_tag(data []byte) (string, bool) {
+func blockHtmlFindTag(data []byte) (string, bool) {
 	i := 0
 	for i < len(data) && ((data[i] >= '0' && data[i] <= '9') || (data[i] >= 'A' && data[i] <= 'Z') || (data[i] >= 'a' && data[i] <= 'z')) {
 		i++
@@ -1490,7 +1456,7 @@ func find_block_tag(data []byte) (string, bool) {
 	return "", false
 }
 
-func htmlblock_end(tag string, rndr *render, data []byte) int {
+func blockHtmlFindEnd(tag string, rndr *render, data []byte) int {
 	// assume data[0] == '<' && data[1] == '/' already tested
 
 	// check if tag is a match
@@ -1502,20 +1468,20 @@ func htmlblock_end(tag string, rndr *render, data []byte) int {
 	i := len(tag) + 3
 	w := 0
 	if i < len(data) {
-		if w = is_empty(data[i:]); w == 0 {
+		if w = isEmpty(data[i:]); w == 0 {
 			return 0 // non-blank after tag
 		}
 	}
 	i += w
 	w = 0
 
-	if rndr.ext_flags&EXTENSION_LAX_HTML_BLOCKS != 0 {
+	if rndr.flags&EXTENSION_LAX_HTML_BLOCKS != 0 {
 		if i < len(data) {
-			w = is_empty(data[i:])
+			w = isEmpty(data[i:])
 		}
 	} else {
 		if i < len(data) {
-			if w = is_empty(data[i:]); w == 0 {
+			if w = isEmpty(data[i:]); w == 0 {
 				return 0 // non-blank line after tag line
 			}
 		}
@@ -1524,7 +1490,7 @@ func htmlblock_end(tag string, rndr *render, data []byte) int {
 	return i + w
 }
 
-func is_empty(data []byte) int {
+func isEmpty(data []byte) int {
 	var i int
 	for i = 0; i < len(data) && data[i] != '\n'; i++ {
 		if data[i] != ' ' && data[i] != '\t' {
@@ -1534,7 +1500,7 @@ func is_empty(data []byte) int {
 	return i + 1
 }
 
-func is_hrule(data []byte) bool {
+func isHrule(data []byte) bool {
 	// skip initial spaces
 	if len(data) < 3 {
 		return false
@@ -1571,7 +1537,7 @@ func is_hrule(data []byte) bool {
 	return n >= 3
 }
 
-func is_codefence(data []byte, syntax **string) int {
+func isFencedCode(data []byte, syntax **string) int {
 	i, n := 0, 0
 
 	// skip initial spaces
@@ -1660,9 +1626,9 @@ func is_codefence(data []byte, syntax **string) int {
 	return i + 1
 }
 
-func parse_fencedcode(ob *bytes.Buffer, rndr *render, data []byte) int {
+func blockFencedCode(out *bytes.Buffer, rndr *render, data []byte) int {
 	var lang *string
-	beg := is_codefence(data, &lang)
+	beg := isFencedCode(data, &lang)
 	if beg == 0 {
 		return 0
 	}
@@ -1670,7 +1636,7 @@ func parse_fencedcode(ob *bytes.Buffer, rndr *render, data []byte) int {
 	work := bytes.NewBuffer(nil)
 
 	for beg < len(data) {
-		fence_end := is_codefence(data[beg:], nil)
+		fence_end := isFencedCode(data[beg:], nil)
 		if fence_end != 0 {
 			beg += fence_end
 			break
@@ -1682,7 +1648,7 @@ func parse_fencedcode(ob *bytes.Buffer, rndr *render, data []byte) int {
 
 		if beg < end {
 			// verbatim copy to the working buffer, escaping entities
-			if is_empty(data[beg:]) > 0 {
+			if isEmpty(data[beg:]) > 0 {
 				work.WriteByte('\n')
 			} else {
 				work.Write(data[beg:end])
@@ -1701,15 +1667,15 @@ func parse_fencedcode(ob *bytes.Buffer, rndr *render, data []byte) int {
 			syntax = *lang
 		}
 
-		rndr.mk.blockcode(ob, work.Bytes(), syntax, rndr.mk.opaque)
+		rndr.mk.blockcode(out, work.Bytes(), syntax, rndr.mk.opaque)
 	}
 
 	return beg
 }
 
-func parse_table(ob *bytes.Buffer, rndr *render, data []byte) int {
+func blockTable(out *bytes.Buffer, rndr *render, data []byte) int {
 	header_work := bytes.NewBuffer(nil)
-	i, columns, col_data := parse_table_header(header_work, rndr, data)
+	i, columns, col_data := blockTableHeader(header_work, rndr, data)
 	if i > 0 {
 		body_work := bytes.NewBuffer(nil)
 
@@ -1726,19 +1692,19 @@ func parse_table(ob *bytes.Buffer, rndr *render, data []byte) int {
 				break
 			}
 
-			parse_table_row(body_work, rndr, data[row_start:i], columns, col_data)
+			blockTableRow(body_work, rndr, data[row_start:i], columns, col_data)
 			i++
 		}
 
 		if rndr.mk.table != nil {
-			rndr.mk.table(ob, header_work.Bytes(), body_work.Bytes(), rndr.mk.opaque)
+			rndr.mk.table(out, header_work.Bytes(), body_work.Bytes(), rndr.mk.opaque)
 		}
 	}
 
 	return i
 }
 
-func parse_table_header(ob *bytes.Buffer, rndr *render, data []byte) (size int, columns int, column_data []int) {
+func blockTableHeader(out *bytes.Buffer, rndr *render, data []byte) (size int, columns int, column_data []int) {
 	i, pipes := 0, 0
 	column_data = []int{}
 	for i = 0; i < len(data) && data[i] != '\n'; i++ {
@@ -1819,12 +1785,12 @@ func parse_table_header(ob *bytes.Buffer, rndr *render, data []byte) (size int, 
 		return 0, 0, column_data
 	}
 
-	parse_table_row(ob, rndr, data[:header_end], columns, column_data)
+	blockTableRow(out, rndr, data[:header_end], columns, column_data)
 	size = under_end + 1
 	return
 }
 
-func parse_table_row(ob *bytes.Buffer, rndr *render, data []byte, columns int, col_data []int) {
+func blockTableRow(out *bytes.Buffer, rndr *render, data []byte, columns int, col_data []int) {
 	i, col := 0, 0
 	row_work := bytes.NewBuffer(nil)
 
@@ -1850,14 +1816,14 @@ func parse_table_row(ob *bytes.Buffer, rndr *render, data []byte, columns int, c
 		}
 
 		cell_work := bytes.NewBuffer(nil)
-		parse_inline(cell_work, rndr, data[cell_start:cell_end+1])
+		parseInline(cell_work, rndr, data[cell_start:cell_end+1])
 
-		if rndr.mk.table_cell != nil {
+		if rndr.mk.tableCell != nil {
 			cdata := 0
 			if col < len(col_data) {
 				cdata = col_data[col]
 			}
-			rndr.mk.table_cell(row_work, cell_work.Bytes(), cdata, rndr.mk.opaque)
+			rndr.mk.tableCell(row_work, cell_work.Bytes(), cdata, rndr.mk.opaque)
 		}
 
 		i++
@@ -1865,22 +1831,22 @@ func parse_table_row(ob *bytes.Buffer, rndr *render, data []byte, columns int, c
 
 	for ; col < columns; col++ {
 		empty_cell := []byte{}
-		if rndr.mk.table_cell != nil {
+		if rndr.mk.tableCell != nil {
 			cdata := 0
 			if col < len(col_data) {
 				cdata = col_data[col]
 			}
-			rndr.mk.table_cell(row_work, empty_cell, cdata, rndr.mk.opaque)
+			rndr.mk.tableCell(row_work, empty_cell, cdata, rndr.mk.opaque)
 		}
 	}
 
-	if rndr.mk.table_row != nil {
-		rndr.mk.table_row(ob, row_work.Bytes(), rndr.mk.opaque)
+	if rndr.mk.tableRow != nil {
+		rndr.mk.tableRow(out, row_work.Bytes(), rndr.mk.opaque)
 	}
 }
 
 // returns blockquote prefix length
-func prefix_quote(data []byte) int {
+func blockQuotePrefix(data []byte) int {
 	i := 0
 	for i < len(data) && i < 3 && data[i] == ' ' {
 		i++
@@ -1895,19 +1861,19 @@ func prefix_quote(data []byte) int {
 }
 
 // parse a blockquote fragment
-func parse_blockquote(ob *bytes.Buffer, rndr *render, data []byte) int {
-	out := bytes.NewBuffer(nil)
+func blockQuote(out *bytes.Buffer, rndr *render, data []byte) int {
+	block := bytes.NewBuffer(nil)
 	work := bytes.NewBuffer(nil)
 	beg, end := 0, 0
 	for beg < len(data) {
 		for end = beg + 1; end < len(data) && data[end-1] != '\n'; end++ {
 		}
 
-		if pre := prefix_quote(data[beg:]); pre > 0 {
+		if pre := blockQuotePrefix(data[beg:]); pre > 0 {
 			beg += pre // skip prefix
 		} else {
 			// empty line followed by non-quote line
-			if is_empty(data[beg:]) > 0 && (end >= len(data) || (prefix_quote(data[end:]) == 0 && is_empty(data[end:]) == 0)) {
+			if isEmpty(data[beg:]) > 0 && (end >= len(data) || (blockQuotePrefix(data[end:]) == 0 && isEmpty(data[end:]) == 0)) {
 				break
 			}
 		}
@@ -1918,15 +1884,15 @@ func parse_blockquote(ob *bytes.Buffer, rndr *render, data []byte) int {
 		beg = end
 	}
 
-	parse_block(out, rndr, work.Bytes())
+	parseBlock(block, rndr, work.Bytes())
 	if rndr.mk.blockquote != nil {
-		rndr.mk.blockquote(ob, out.Bytes(), rndr.mk.opaque)
+		rndr.mk.blockquote(out, block.Bytes(), rndr.mk.opaque)
 	}
 	return end
 }
 
 // returns prefix length for block code
-func prefix_code(data []byte) int {
+func blockCodePrefix(data []byte) int {
 	if len(data) > 0 && data[0] == '\t' {
 		return 1
 	}
@@ -1936,7 +1902,7 @@ func prefix_code(data []byte) int {
 	return 0
 }
 
-func parse_blockcode(ob *bytes.Buffer, rndr *render, data []byte) int {
+func blockCode(out *bytes.Buffer, rndr *render, data []byte) int {
 	work := bytes.NewBuffer(nil)
 
 	beg, end := 0, 0
@@ -1944,10 +1910,10 @@ func parse_blockcode(ob *bytes.Buffer, rndr *render, data []byte) int {
 		for end = beg + 1; end < len(data) && data[end-1] != '\n'; end++ {
 		}
 
-		if pre := prefix_code(data[beg:end]); pre > 0 {
+		if pre := blockCodePrefix(data[beg:end]); pre > 0 {
 			beg += pre
 		} else {
-			if is_empty(data[beg:end]) == 0 {
+			if isEmpty(data[beg:end]) == 0 {
 				// non-empty non-prefixed line breaks the pre
 				break
 			}
@@ -1955,7 +1921,7 @@ func parse_blockcode(ob *bytes.Buffer, rndr *render, data []byte) int {
 
 		if beg < end {
 			// verbatim copy to the working buffer, escaping entities
-			if is_empty(data[beg:end]) > 0 {
+			if isEmpty(data[beg:end]) > 0 {
 				work.WriteByte('\n')
 			} else {
 				work.Write(data[beg:end])
@@ -1977,14 +1943,14 @@ func parse_blockcode(ob *bytes.Buffer, rndr *render, data []byte) int {
 	work.WriteByte('\n')
 
 	if rndr.mk.blockcode != nil {
-		rndr.mk.blockcode(ob, work.Bytes(), "", rndr.mk.opaque)
+		rndr.mk.blockcode(out, work.Bytes(), "", rndr.mk.opaque)
 	}
 
 	return beg
 }
 
 // returns unordered list item prefix
-func prefix_uli(data []byte) int {
+func blockUliPrefix(data []byte) int {
 	i := 0
 	for i < len(data) && i < 3 && data[i] == ' ' {
 		i++
@@ -1996,7 +1962,7 @@ func prefix_uli(data []byte) int {
 }
 
 // returns ordered list item prefix
-func prefix_oli(data []byte) int {
+func blockOliPrefix(data []byte) int {
 	i := 0
 	for i < len(data) && i < 3 && data[i] == ' ' {
 		i++
@@ -2014,12 +1980,12 @@ func prefix_oli(data []byte) int {
 }
 
 // parse ordered or unordered list block
-func parse_list(ob *bytes.Buffer, rndr *render, data []byte, flags int) int {
+func blockList(out *bytes.Buffer, rndr *render, data []byte, flags int) int {
 	work := bytes.NewBuffer(nil)
 
 	i, j := 0, 0
 	for i < len(data) {
-		j = parse_listitem(work, rndr, data[i:], &flags)
+		j = blockListItem(work, rndr, data[i:], &flags)
 		i += j
 
 		if j == 0 || flags&LIST_ITEM_END_OF_LIST != 0 {
@@ -2028,14 +1994,14 @@ func parse_list(ob *bytes.Buffer, rndr *render, data []byte, flags int) int {
 	}
 
 	if rndr.mk.list != nil {
-		rndr.mk.list(ob, work.Bytes(), flags, rndr.mk.opaque)
+		rndr.mk.list(out, work.Bytes(), flags, rndr.mk.opaque)
 	}
 	return i
 }
 
 // parse a single list item
 // assumes initial prefix is already removed
-func parse_listitem(ob *bytes.Buffer, rndr *render, data []byte, flags *int) int {
+func blockListItem(out *bytes.Buffer, rndr *render, data []byte, flags *int) int {
 	// keep track of the first indentation prefix
 	beg, end, pre, sublist, orgpre, i := 0, 0, 0, 0, 0, 0
 
@@ -2043,9 +2009,9 @@ func parse_listitem(ob *bytes.Buffer, rndr *render, data []byte, flags *int) int
 		orgpre++
 	}
 
-	beg = prefix_uli(data)
+	beg = blockUliPrefix(data)
 	if beg == 0 {
-		beg = prefix_oli(data)
+		beg = blockOliPrefix(data)
 	}
 	if beg == 0 {
 		return 0
@@ -2080,7 +2046,7 @@ func parse_listitem(ob *bytes.Buffer, rndr *render, data []byte, flags *int) int
 		}
 
 		// process an empty line
-		if is_empty(data[beg:end]) > 0 {
+		if isEmpty(data[beg:end]) > 0 {
 			in_empty = true
 			beg = end
 			continue
@@ -2100,7 +2066,7 @@ func parse_listitem(ob *bytes.Buffer, rndr *render, data []byte, flags *int) int
 
 		// check for a new item
 		chunk := data[beg+i : end]
-		if (prefix_uli(chunk) > 0 && !is_hrule(chunk)) || prefix_oli(chunk) > 0 {
+		if (blockUliPrefix(chunk) > 0 && !isHrule(chunk)) || blockOliPrefix(chunk) > 0 {
 			if in_empty {
 				has_inside_empty = true
 			}
@@ -2141,51 +2107,51 @@ func parse_listitem(ob *bytes.Buffer, rndr *render, data []byte, flags *int) int
 	if *flags&LIST_ITEM_CONTAINS_BLOCK != 0 {
 		// intermediate render of block li
 		if sublist > 0 && sublist < len(workbytes) {
-			parse_block(inter, rndr, workbytes[:sublist])
-			parse_block(inter, rndr, workbytes[sublist:])
+			parseBlock(inter, rndr, workbytes[:sublist])
+			parseBlock(inter, rndr, workbytes[sublist:])
 		} else {
-			parse_block(inter, rndr, workbytes)
+			parseBlock(inter, rndr, workbytes)
 		}
 	} else {
 		// intermediate render of inline li
 		if sublist > 0 && sublist < len(workbytes) {
-			parse_inline(inter, rndr, workbytes[:sublist])
-			parse_block(inter, rndr, workbytes[sublist:])
+			parseInline(inter, rndr, workbytes[:sublist])
+			parseBlock(inter, rndr, workbytes[sublist:])
 		} else {
-			parse_inline(inter, rndr, workbytes)
+			parseInline(inter, rndr, workbytes)
 		}
 	}
 
 	// render li itself
 	if rndr.mk.listitem != nil {
-		rndr.mk.listitem(ob, inter.Bytes(), *flags, rndr.mk.opaque)
+		rndr.mk.listitem(out, inter.Bytes(), *flags, rndr.mk.opaque)
 	}
 
 	return beg
 }
 
-func parse_paragraph(ob *bytes.Buffer, rndr *render, data []byte) int {
+func blockParagraph(out *bytes.Buffer, rndr *render, data []byte) int {
 	i, end, level := 0, 0, 0
 
 	for i < len(data) {
 		for end = i + 1; end < len(data) && data[end-1] != '\n'; end++ {
 		}
 
-		if is_empty(data[i:]) > 0 {
+		if isEmpty(data[i:]) > 0 {
 			break
 		}
-		if level = is_headerline(data[i:]); level > 0 {
+		if level = isUnderlinedHeader(data[i:]); level > 0 {
 			break
 		}
 
-		if rndr.ext_flags&EXTENSION_LAX_HTML_BLOCKS != 0 {
-			if data[i] == '<' && rndr.mk.blockhtml != nil && parse_htmlblock(ob, rndr, data[i:], false) > 0 {
+		if rndr.flags&EXTENSION_LAX_HTML_BLOCKS != 0 {
+			if data[i] == '<' && rndr.mk.blockhtml != nil && blockHtml(out, rndr, data[i:], false) > 0 {
 				end = i
 				break
 			}
 		}
 
-		if is_atxheader(rndr, data[i:]) || is_hrule(data[i:]) {
+		if isPrefixHeader(rndr, data[i:]) || isHrule(data[i:]) {
 			end = i
 			break
 		}
@@ -2201,9 +2167,9 @@ func parse_paragraph(ob *bytes.Buffer, rndr *render, data []byte) int {
 
 	if level == 0 {
 		tmp := bytes.NewBuffer(nil)
-		parse_inline(tmp, rndr, work[:size])
+		parseInline(tmp, rndr, work[:size])
 		if rndr.mk.paragraph != nil {
-			rndr.mk.paragraph(ob, tmp.Bytes(), rndr.mk.opaque)
+			rndr.mk.paragraph(out, tmp.Bytes(), rndr.mk.opaque)
 		}
 	} else {
 		if size > 0 {
@@ -2222,9 +2188,9 @@ func parse_paragraph(ob *bytes.Buffer, rndr *render, data []byte) int {
 
 			if size > 0 {
 				tmp := bytes.NewBuffer(nil)
-				parse_inline(tmp, rndr, work[:size])
+				parseInline(tmp, rndr, work[:size])
 				if rndr.mk.paragraph != nil {
-					rndr.mk.paragraph(ob, tmp.Bytes(), rndr.mk.opaque)
+					rndr.mk.paragraph(out, tmp.Bytes(), rndr.mk.opaque)
 				}
 
 				work = work[beg:]
@@ -2235,10 +2201,10 @@ func parse_paragraph(ob *bytes.Buffer, rndr *render, data []byte) int {
 		}
 
 		header_work := bytes.NewBuffer(nil)
-		parse_inline(header_work, rndr, work[:size])
+		parseInline(header_work, rndr, work[:size])
 
 		if rndr.mk.header != nil {
-			rndr.mk.header(ob, header_work.Bytes(), level, rndr.mk.opaque)
+			rndr.mk.header(out, header_work.Bytes(), level, rndr.mk.opaque)
 		}
 	}
 
@@ -2262,30 +2228,14 @@ func parse_paragraph(ob *bytes.Buffer, rndr *render, data []byte) int {
 //    This library is hosted on [Github][2], a git hosting site.
 
 // References are parsed and stored in this struct.
-type link_ref struct {
-	id    []byte
+type reference struct {
 	link  []byte
 	title []byte
 }
 
-// The list of all reference links is stored in this type.
-type link_ref_array []*link_ref
-
-// Find the length of a list of references.
-// This implements an interface needed for sorting.
-func (elt link_ref_array) Len() int {
-	return len(elt)
-}
-
-// Test if one reference is less than another (case-insensitive).
-// This implements an interface needed for sorting.
-func (elt link_ref_array) Less(i, j int) bool {
-	return byteslice_less(elt[i].id, elt[j].id)
-}
-
 // Compare two []byte values (case-insensitive), returning
 // true if a is less than b.
-func byteslice_less(a []byte, b []byte) bool {
+func less(a []byte, b []byte) bool {
 	// adapted from bytes.Compare in stdlib
 	m := len(a)
 	if m > len(b) {
@@ -2310,18 +2260,12 @@ func byteslice_less(a []byte, b []byte) bool {
 	return false
 }
 
-// Swap two references.
-// This implements an interface needed for sorting.
-func (elt link_ref_array) Swap(i, j int) {
-	elt[i], elt[j] = elt[j], elt[i]
-}
-
 // Check whether or not data starts with a reference link.
 // If so, it is parsed and stored in the list of references
 // (in the render struct).
 // Returns the number of bytes to skip to move past it, or zero
 // if there is the first line is not a reference.
-func is_ref(rndr *render, data []byte) int {
+func isReference(rndr *render, data []byte) int {
 	// up to 3 optional leading spaces
 	if len(data) < 4 {
 		return 0
@@ -2443,8 +2387,13 @@ func is_ref(rndr *render, data []byte) int {
 	if rndr == nil {
 		return line_end
 	}
-	item := &link_ref{id: data[id_offset:id_end], link: data[link_offset:link_end], title: data[title_offset:title_end]}
-	rndr.refs = append(rndr.refs, item)
+
+	// id matches are case-insensitive
+	id := string(bytes.ToLower(data[id_offset:id_end]))
+	rndr.refs[id] = &reference{
+		link:  data[link_offset:link_end],
+		title: data[title_offset:title_end],
+	}
 
 	return line_end
 }
@@ -2468,37 +2417,20 @@ func ispunct(c byte) bool {
 	return false
 }
 
-// this is sort.Search, reproduced here because an older
-// version of the library had a bug
-func sortDotSearch(n int, f func(int) bool) int {
-	// Define f(-1) == false and f(n) == true.
-	// Invariant: f(i-1) == false, f(j) == true.
-	i, j := 0, n
-	for i < j {
-		h := i + (j-i)/2 // avoid overflow when computing h
-		// i ≤ h < j
-		if !f(h) {
-			i = h + 1 // preserves f(i-1) == false
-		} else {
-			j = h // preserves f(j) == true
-		}
-	}
-	// i == j, f(i-1) == false, and f(j) (= f(i)) == true  =>  answer is i.
-	return i
-}
-
 // Test if a character is a whitespace character.
 func isspace(c byte) bool {
 	return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v'
 }
 
 // Test if a character is a letter or a digit.
+// TODO: check when this is looking for ASCII alnum and when it should use unicode
 func isalnum(c byte) bool {
 	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
 }
 
 // Replace tab characters with spaces, aligning to the next TAB_SIZE column.
-func expand_tabs(ob *bytes.Buffer, line []byte) {
+// TODO: count runes rather than bytes
+func expandTabs(out *bytes.Buffer, line []byte) {
 	i, tab := 0, 0
 
 	for i < len(line) {
@@ -2509,7 +2441,7 @@ func expand_tabs(ob *bytes.Buffer, line []byte) {
 		}
 
 		if i > org {
-			ob.Write(line[org:i])
+			out.Write(line[org:i])
 		}
 
 		if i >= len(line) {
@@ -2517,7 +2449,7 @@ func expand_tabs(ob *bytes.Buffer, line []byte) {
 		}
 
 		for {
-			ob.WriteByte(' ')
+			out.WriteByte(' ')
 			tab++
 			if tab%TAB_SIZE == 0 {
 				break
