@@ -27,8 +27,8 @@ Check out `example/main.go` for an example of how to use it. Run
 `gomake` in that directory to build a simple command-line markdown
 tool:
 
-    cd $GOROOT/src/pkg/github.com/russross/blackfriday
-    gomake markdown
+    cd $GOROOT/src/pkg/github.com/russross/blackfriday/example
+    gomake
 
 will build the binary `markdown` in the `example` directory.
 
