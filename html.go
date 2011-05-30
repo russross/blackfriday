@@ -65,8 +65,8 @@ func HtmlRenderer(flags int) *Renderer {
 	r.listitem = htmlListitem
 	r.paragraph = htmlParagraph
 	r.table = htmlTable
-	r.tableRow = htmlTablerow
-	r.tableCell = htmlTablecell
+	r.tableRow = htmlTableRow
+	r.tableCell = htmlTableCell
 
 	r.autolink = htmlAutolink
 	r.codespan = htmlCodespan
@@ -120,7 +120,7 @@ func HtmlTocRenderer(flags int) *Renderer {
 	return r
 }
 
-func attrEscape(ob *bytes.Buffer, src []byte) {
+func attrEscape(out *bytes.Buffer, src []byte) {
 	for i := 0; i < len(src); i++ {
 		// directly copy normal characters
 		org := i
@@ -128,7 +128,7 @@ func attrEscape(ob *bytes.Buffer, src []byte) {
 			i++
 		}
 		if i > org {
-			ob.Write(src[org:i])
+			out.Write(src[org:i])
 		}
 
 		// escape a character
@@ -137,36 +137,36 @@ func attrEscape(ob *bytes.Buffer, src []byte) {
 		}
 		switch src[i] {
 		case '<':
-			ob.WriteString("&lt;")
+			out.WriteString("&lt;")
 		case '>':
-			ob.WriteString("&gt;")
+			out.WriteString("&gt;")
 		case '&':
-			ob.WriteString("&amp;")
+			out.WriteString("&amp;")
 		case '"':
-			ob.WriteString("&quot;")
+			out.WriteString("&quot;")
 		}
 	}
 }
 
-func htmlHeader(ob *bytes.Buffer, text []byte, level int, opaque interface{}) {
+func htmlHeader(out *bytes.Buffer, text []byte, level int, opaque interface{}) {
 	options := opaque.(*htmlOptions)
 
-	if ob.Len() > 0 {
-		ob.WriteByte('\n')
+	if out.Len() > 0 {
+		out.WriteByte('\n')
 	}
 
 	if options.flags&HTML_TOC != 0 {
-		ob.WriteString(fmt.Sprintf("<h%d id=\"toc_%d\">", level, options.toc_data.header_count))
+		out.WriteString(fmt.Sprintf("<h%d id=\"toc_%d\">", level, options.toc_data.header_count))
 		options.toc_data.header_count++
 	} else {
-		ob.WriteString(fmt.Sprintf("<h%d>", level))
+		out.WriteString(fmt.Sprintf("<h%d>", level))
 	}
 
-	ob.Write(text)
-	ob.WriteString(fmt.Sprintf("</h%d>\n", level))
+	out.Write(text)
+	out.WriteString(fmt.Sprintf("</h%d>\n", level))
 }
 
-func htmlRawBlock(ob *bytes.Buffer, text []byte, opaque interface{}) {
+func htmlRawBlock(out *bytes.Buffer, text []byte, opaque interface{}) {
 	sz := len(text)
 	for sz > 0 && text[sz-1] == '\n' {
 		sz--
@@ -178,30 +178,30 @@ func htmlRawBlock(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	if org >= sz {
 		return
 	}
-	if ob.Len() > 0 {
-		ob.WriteByte('\n')
+	if out.Len() > 0 {
+		out.WriteByte('\n')
 	}
-	ob.Write(text[org:sz])
-	ob.WriteByte('\n')
+	out.Write(text[org:sz])
+	out.WriteByte('\n')
 }
 
-func htmlHrule(ob *bytes.Buffer, opaque interface{}) {
+func htmlHrule(out *bytes.Buffer, opaque interface{}) {
 	options := opaque.(*htmlOptions)
 
-	if ob.Len() > 0 {
-		ob.WriteByte('\n')
+	if out.Len() > 0 {
+		out.WriteByte('\n')
 	}
-	ob.WriteString("<hr")
-	ob.WriteString(options.close_tag)
+	out.WriteString("<hr")
+	out.WriteString(options.close_tag)
 }
 
-func htmlBlockcode(ob *bytes.Buffer, text []byte, lang string, opaque interface{}) {
-	if ob.Len() > 0 {
-		ob.WriteByte('\n')
+func htmlBlockcode(out *bytes.Buffer, text []byte, lang string, opaque interface{}) {
+	if out.Len() > 0 {
+		out.WriteByte('\n')
 	}
 
 	if lang != "" {
-		ob.WriteString("<pre><code class=\"")
+		out.WriteString("<pre><code class=\"")
 
 		for i, cls := 0, 0; i < len(lang); i, cls = i+1, cls+1 {
 			for i < len(lang) && isspace(lang[i]) {
@@ -219,22 +219,22 @@ func htmlBlockcode(ob *bytes.Buffer, text []byte, lang string, opaque interface{
 				}
 
 				if cls > 0 {
-					ob.WriteByte(' ')
+					out.WriteByte(' ')
 				}
-				attrEscape(ob, []byte(lang[org:]))
+				attrEscape(out, []byte(lang[org:]))
 			}
 		}
 
-		ob.WriteString("\">")
+		out.WriteString("\">")
 	} else {
-		ob.WriteString("<pre><code>")
+		out.WriteString("<pre><code>")
 	}
 
 	if len(text) > 0 {
-		attrEscape(ob, text)
+		attrEscape(out, text)
 	}
 
-	ob.WriteString("</code></pre>\n")
+	out.WriteString("</code></pre>\n")
 }
 
 /*
@@ -255,13 +255,13 @@ func htmlBlockcode(ob *bytes.Buffer, text []byte, lang string, opaque interface{
  * E.g.
  *              ~~~~ {.python .numbered}        =>      <pre lang="python"><code>
  */
-func htmlBlockcodeGithub(ob *bytes.Buffer, text []byte, lang string, opaque interface{}) {
-	if ob.Len() > 0 {
-		ob.WriteByte('\n')
+func htmlBlockcodeGithub(out *bytes.Buffer, text []byte, lang string, opaque interface{}) {
+	if out.Len() > 0 {
+		out.WriteByte('\n')
 	}
 
 	if len(lang) > 0 {
-		ob.WriteString("<pre lang=\"")
+		out.WriteString("<pre lang=\"")
 
 		i := 0
 		for i < len(lang) && !isspace(lang[i]) {
@@ -269,102 +269,102 @@ func htmlBlockcodeGithub(ob *bytes.Buffer, text []byte, lang string, opaque inte
 		}
 
 		if lang[0] == '.' {
-			attrEscape(ob, []byte(lang[1:i]))
+			attrEscape(out, []byte(lang[1:i]))
 		} else {
-			attrEscape(ob, []byte(lang[:i]))
+			attrEscape(out, []byte(lang[:i]))
 		}
 
-		ob.WriteString("\"><code>")
+		out.WriteString("\"><code>")
 	} else {
-		ob.WriteString("<pre><code>")
+		out.WriteString("<pre><code>")
 	}
 
 	if len(text) > 0 {
-		attrEscape(ob, text)
+		attrEscape(out, text)
 	}
 
-	ob.WriteString("</code></pre>\n")
+	out.WriteString("</code></pre>\n")
 }
 
 
-func htmlBlockquote(ob *bytes.Buffer, text []byte, opaque interface{}) {
-	ob.WriteString("<blockquote>\n")
-	ob.Write(text)
-	ob.WriteString("</blockquote>")
+func htmlBlockquote(out *bytes.Buffer, text []byte, opaque interface{}) {
+	out.WriteString("<blockquote>\n")
+	out.Write(text)
+	out.WriteString("</blockquote>")
 }
 
-func htmlTable(ob *bytes.Buffer, header []byte, body []byte, opaque interface{}) {
-	if ob.Len() > 0 {
-		ob.WriteByte('\n')
+func htmlTable(out *bytes.Buffer, header []byte, body []byte, columnData []int, opaque interface{}) {
+	if out.Len() > 0 {
+		out.WriteByte('\n')
 	}
-	ob.WriteString("<table><thead>\n")
-	ob.Write(header)
-	ob.WriteString("\n</thead><tbody>\n")
-	ob.Write(body)
-	ob.WriteString("\n</tbody></table>")
+	out.WriteString("<table><thead>\n")
+	out.Write(header)
+	out.WriteString("\n</thead><tbody>\n")
+	out.Write(body)
+	out.WriteString("\n</tbody></table>")
 }
 
-func htmlTablerow(ob *bytes.Buffer, text []byte, opaque interface{}) {
-	if ob.Len() > 0 {
-		ob.WriteByte('\n')
+func htmlTableRow(out *bytes.Buffer, text []byte, opaque interface{}) {
+	if out.Len() > 0 {
+		out.WriteByte('\n')
 	}
-	ob.WriteString("<tr>\n")
-	ob.Write(text)
-	ob.WriteString("\n</tr>")
+	out.WriteString("<tr>\n")
+	out.Write(text)
+	out.WriteString("\n</tr>")
 }
 
-func htmlTablecell(ob *bytes.Buffer, text []byte, align int, opaque interface{}) {
-	if ob.Len() > 0 {
-		ob.WriteByte('\n')
+func htmlTableCell(out *bytes.Buffer, text []byte, align int, opaque interface{}) {
+	if out.Len() > 0 {
+		out.WriteByte('\n')
 	}
 	switch align {
 	case TABLE_ALIGNMENT_LEFT:
-		ob.WriteString("<td align=\"left\">")
+		out.WriteString("<td align=\"left\">")
 	case TABLE_ALIGNMENT_RIGHT:
-		ob.WriteString("<td align=\"right\">")
+		out.WriteString("<td align=\"right\">")
 	case TABLE_ALIGNMENT_CENTER:
-		ob.WriteString("<td align=\"center\">")
+		out.WriteString("<td align=\"center\">")
 	default:
-		ob.WriteString("<td>")
+		out.WriteString("<td>")
 	}
 
-	ob.Write(text)
-	ob.WriteString("</td>")
+	out.Write(text)
+	out.WriteString("</td>")
 }
 
-func htmlList(ob *bytes.Buffer, text []byte, flags int, opaque interface{}) {
-	if ob.Len() > 0 {
-		ob.WriteByte('\n')
+func htmlList(out *bytes.Buffer, text []byte, flags int, opaque interface{}) {
+	if out.Len() > 0 {
+		out.WriteByte('\n')
 	}
 	if flags&LIST_TYPE_ORDERED != 0 {
-		ob.WriteString("<ol>\n")
+		out.WriteString("<ol>\n")
 	} else {
-		ob.WriteString("<ul>\n")
+		out.WriteString("<ul>\n")
 	}
-	ob.Write(text)
+	out.Write(text)
 	if flags&LIST_TYPE_ORDERED != 0 {
-		ob.WriteString("</ol>\n")
+		out.WriteString("</ol>\n")
 	} else {
-		ob.WriteString("</ul>\n")
+		out.WriteString("</ul>\n")
 	}
 }
 
-func htmlListitem(ob *bytes.Buffer, text []byte, flags int, opaque interface{}) {
-	ob.WriteString("<li>")
+func htmlListitem(out *bytes.Buffer, text []byte, flags int, opaque interface{}) {
+	out.WriteString("<li>")
 	size := len(text)
 	for size > 0 && text[size-1] == '\n' {
 		size--
 	}
-	ob.Write(text[:size])
-	ob.WriteString("</li>\n")
+	out.Write(text[:size])
+	out.WriteString("</li>\n")
 }
 
-func htmlParagraph(ob *bytes.Buffer, text []byte, opaque interface{}) {
+func htmlParagraph(out *bytes.Buffer, text []byte, opaque interface{}) {
 	options := opaque.(*htmlOptions)
 	i := 0
 
-	if ob.Len() > 0 {
-		ob.WriteByte('\n')
+	if out.Len() > 0 {
+		out.WriteByte('\n')
 	}
 
 	if len(text) == 0 {
@@ -379,7 +379,7 @@ func htmlParagraph(ob *bytes.Buffer, text []byte, opaque interface{}) {
 		return
 	}
 
-	ob.WriteString("<p>")
+	out.WriteString("<p>")
 	if options.flags&HTML_HARD_WRAP != 0 {
 		for i < len(text) {
 			org := i
@@ -388,24 +388,24 @@ func htmlParagraph(ob *bytes.Buffer, text []byte, opaque interface{}) {
 			}
 
 			if i > org {
-				ob.Write(text[org:i])
+				out.Write(text[org:i])
 			}
 
 			if i >= len(text) {
 				break
 			}
 
-			ob.WriteString("<br>")
-			ob.WriteString(options.close_tag)
+			out.WriteString("<br>")
+			out.WriteString(options.close_tag)
 			i++
 		}
 	} else {
-		ob.Write(text[i:])
+		out.Write(text[i:])
 	}
-	ob.WriteString("</p>\n")
+	out.WriteString("</p>\n")
 }
 
-func htmlAutolink(ob *bytes.Buffer, link []byte, kind int, opaque interface{}) int {
+func htmlAutolink(out *bytes.Buffer, link []byte, kind int, opaque interface{}) int {
 	options := opaque.(*htmlOptions)
 
 	if len(link) == 0 {
@@ -415,12 +415,12 @@ func htmlAutolink(ob *bytes.Buffer, link []byte, kind int, opaque interface{}) i
 		return 0
 	}
 
-	ob.WriteString("<a href=\"")
+	out.WriteString("<a href=\"")
 	if kind == LINK_TYPE_EMAIL {
-		ob.WriteString("mailto:")
+		out.WriteString("mailto:")
 	}
-	ob.Write(link)
-	ob.WriteString("\">")
+	out.Write(link)
+	out.WriteString("\">")
 
 	/*
 	 * Pretty print: if we get an email address as
@@ -428,95 +428,95 @@ func htmlAutolink(ob *bytes.Buffer, link []byte, kind int, opaque interface{}) i
 	 * want to print the `mailto:` prefix
 	 */
 	if bytes.HasPrefix(link, []byte("mailto:")) {
-		attrEscape(ob, link[7:])
+		attrEscape(out, link[7:])
 	} else {
-		attrEscape(ob, link)
+		attrEscape(out, link)
 	}
 
-	ob.WriteString("</a>")
+	out.WriteString("</a>")
 
 	return 1
 }
 
-func htmlCodespan(ob *bytes.Buffer, text []byte, opaque interface{}) int {
-	ob.WriteString("<code>")
-	attrEscape(ob, text)
-	ob.WriteString("</code>")
+func htmlCodespan(out *bytes.Buffer, text []byte, opaque interface{}) int {
+	out.WriteString("<code>")
+	attrEscape(out, text)
+	out.WriteString("</code>")
 	return 1
 }
 
-func htmlDoubleEmphasis(ob *bytes.Buffer, text []byte, opaque interface{}) int {
+func htmlDoubleEmphasis(out *bytes.Buffer, text []byte, opaque interface{}) int {
 	if len(text) == 0 {
 		return 0
 	}
-	ob.WriteString("<strong>")
-	ob.Write(text)
-	ob.WriteString("</strong>")
+	out.WriteString("<strong>")
+	out.Write(text)
+	out.WriteString("</strong>")
 	return 1
 }
 
-func htmlEmphasis(ob *bytes.Buffer, text []byte, opaque interface{}) int {
+func htmlEmphasis(out *bytes.Buffer, text []byte, opaque interface{}) int {
 	if len(text) == 0 {
 		return 0
 	}
-	ob.WriteString("<em>")
-	ob.Write(text)
-	ob.WriteString("</em>")
+	out.WriteString("<em>")
+	out.Write(text)
+	out.WriteString("</em>")
 	return 1
 }
 
-func htmlImage(ob *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{}) int {
+func htmlImage(out *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{}) int {
 	options := opaque.(*htmlOptions)
 	if len(link) == 0 {
 		return 0
 	}
-	ob.WriteString("<img src=\"")
-	attrEscape(ob, link)
-	ob.WriteString("\" alt=\"")
+	out.WriteString("<img src=\"")
+	attrEscape(out, link)
+	out.WriteString("\" alt=\"")
 	if len(alt) > 0 {
-		attrEscape(ob, alt)
+		attrEscape(out, alt)
 	}
 	if len(title) > 0 {
-		ob.WriteString("\" title=\"")
-		attrEscape(ob, title)
+		out.WriteString("\" title=\"")
+		attrEscape(out, title)
 	}
 
-	ob.WriteByte('"')
-	ob.WriteString(options.close_tag)
+	out.WriteByte('"')
+	out.WriteString(options.close_tag)
 	return 1
 }
 
-func htmlLinebreak(ob *bytes.Buffer, opaque interface{}) int {
+func htmlLinebreak(out *bytes.Buffer, opaque interface{}) int {
 	options := opaque.(*htmlOptions)
-	ob.WriteString("<br")
-	ob.WriteString(options.close_tag)
+	out.WriteString("<br")
+	out.WriteString(options.close_tag)
 	return 1
 }
 
-func htmlLink(ob *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{}) int {
+func htmlLink(out *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{}) int {
 	options := opaque.(*htmlOptions)
 
 	if options.flags&HTML_SAFELINK != 0 && !isSafeLink(link) {
 		return 0
 	}
 
-	ob.WriteString("<a href=\"")
+	out.WriteString("<a href=\"")
 	if len(link) > 0 {
-		ob.Write(link)
+		out.Write(link)
 	}
 	if len(title) > 0 {
-		ob.WriteString("\" title=\"")
-		attrEscape(ob, title)
+		out.WriteString("\" title=\"")
+		attrEscape(out, title)
 	}
-	ob.WriteString("\">")
+	out.WriteString("\">")
 	if len(content) > 0 {
-		ob.Write(content)
+		out.Write(content)
 	}
-	ob.WriteString("</a>")
+	out.WriteString("</a>")
 	return 1
 }
 
-func htmlRawTag(ob *bytes.Buffer, text []byte, opaque interface{}) int {
+func htmlRawTag(out *bytes.Buffer, text []byte, opaque interface{}) int {
 	options := opaque.(*htmlOptions)
 	if options.flags&HTML_SKIP_HTML != 0 {
 		return 1
@@ -530,72 +530,72 @@ func htmlRawTag(ob *bytes.Buffer, text []byte, opaque interface{}) int {
 	if options.flags&HTML_SKIP_IMAGES != 0 && isHtmlTag(text, "img") {
 		return 1
 	}
-	ob.Write(text)
+	out.Write(text)
 	return 1
 }
 
-func htmlTripleEmphasis(ob *bytes.Buffer, text []byte, opaque interface{}) int {
+func htmlTripleEmphasis(out *bytes.Buffer, text []byte, opaque interface{}) int {
 	if len(text) == 0 {
 		return 0
 	}
-	ob.WriteString("<strong><em>")
-	ob.Write(text)
-	ob.WriteString("</em></strong>")
+	out.WriteString("<strong><em>")
+	out.Write(text)
+	out.WriteString("</em></strong>")
 	return 1
 }
 
-func htmlStrikethrough(ob *bytes.Buffer, text []byte, opaque interface{}) int {
+func htmlStrikethrough(out *bytes.Buffer, text []byte, opaque interface{}) int {
 	if len(text) == 0 {
 		return 0
 	}
-	ob.WriteString("<del>")
-	ob.Write(text)
-	ob.WriteString("</del>")
+	out.WriteString("<del>")
+	out.Write(text)
+	out.WriteString("</del>")
 	return 1
 }
 
-func htmlNormalText(ob *bytes.Buffer, text []byte, opaque interface{}) {
-	attrEscape(ob, text)
+func htmlNormalText(out *bytes.Buffer, text []byte, opaque interface{}) {
+	attrEscape(out, text)
 }
 
-func htmlTocHeader(ob *bytes.Buffer, text []byte, level int, opaque interface{}) {
+func htmlTocHeader(out *bytes.Buffer, text []byte, level int, opaque interface{}) {
 	options := opaque.(*htmlOptions)
 	for level > options.toc_data.current_level {
 		if options.toc_data.current_level > 0 {
-			ob.WriteString("<li>")
+			out.WriteString("<li>")
 		}
-		ob.WriteString("<ul>\n")
+		out.WriteString("<ul>\n")
 		options.toc_data.current_level++
 	}
 
 	for level < options.toc_data.current_level {
-		ob.WriteString("</ul>")
+		out.WriteString("</ul>")
 		if options.toc_data.current_level > 1 {
-			ob.WriteString("</li>\n")
+			out.WriteString("</li>\n")
 		}
 		options.toc_data.current_level--
 	}
 
-	ob.WriteString("<li><a href=\"#toc_")
-	ob.WriteString(strconv.Itoa(options.toc_data.header_count))
-	ob.WriteString("\">")
+	out.WriteString("<li><a href=\"#toc_")
+	out.WriteString(strconv.Itoa(options.toc_data.header_count))
+	out.WriteString("\">")
 	options.toc_data.header_count++
 
 	if len(text) > 0 {
-		ob.Write(text)
+		out.Write(text)
 	}
-	ob.WriteString("</a></li>\n")
+	out.WriteString("</a></li>\n")
 }
 
-func htmlTocFinalize(ob *bytes.Buffer, opaque interface{}) {
+func htmlTocFinalize(out *bytes.Buffer, opaque interface{}) {
 	options := opaque.(*htmlOptions)
 	for options.toc_data.current_level > 1 {
-		ob.WriteString("</ul></li>\n")
+		out.WriteString("</ul></li>\n")
 		options.toc_data.current_level--
 	}
 
 	if options.toc_data.current_level > 0 {
-		ob.WriteString("</ul>\n")
+		out.WriteString("</ul>\n")
 	}
 }
 

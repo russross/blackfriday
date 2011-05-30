@@ -79,12 +79,26 @@ implements two additional Smartypants options:
     cases). For example, `4/5` becomes `<sup>4</sup>&frasl;<sub>5</sub>`
 
 
+LaTeX Output
+------------
+
+A rudimentary LaTeX rendering backend is also included. To see an
+example of its usage, comment out this link in `main.go`:
+
+    renderer := blackfriday.HtmlRenderer(html_flags)
+
+and uncomment this line:
+
+    renderer := blackfriday.LatexRenderer(0)
+
+It renders some basic documents, but is only experimental at this point.
+
+
 Todo
 ----
 
 *   Code cleanup
 *   Better code documentation
-*   Implement a LaTeX backend
 
 
    [1]: http://daringfireball.net/projects/markdown/ "Markdown"

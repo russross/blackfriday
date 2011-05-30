@@ -514,7 +514,7 @@ func blockTable(out *bytes.Buffer, rndr *render, data []byte) int {
 		}
 
 		if rndr.mk.table != nil {
-			rndr.mk.table(out, header_work.Bytes(), body_work.Bytes(), rndr.mk.opaque)
+			rndr.mk.table(out, header_work.Bytes(), body_work.Bytes(), col_data, rndr.mk.opaque)
 		}
 	}
 

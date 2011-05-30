@@ -104,7 +104,7 @@ type Renderer struct {
 	list       func(out *bytes.Buffer, text []byte, flags int, opaque interface{})
 	listitem   func(out *bytes.Buffer, text []byte, flags int, opaque interface{})
 	paragraph  func(out *bytes.Buffer, text []byte, opaque interface{})
-	table      func(out *bytes.Buffer, header []byte, body []byte, opaque interface{})
+	table      func(out *bytes.Buffer, header []byte, body []byte, columnData []int, opaque interface{})
 	tableRow   func(out *bytes.Buffer, text []byte, opaque interface{})
 	tableCell  func(out *bytes.Buffer, text []byte, flags int, opaque interface{})
 
