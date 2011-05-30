@@ -14,7 +14,6 @@ package blackfriday
 
 import (
 	"bytes"
-	"unicode"
 )
 
 // These are the supported markdown parsing extensions.
@@ -273,33 +272,6 @@ func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 type reference struct {
 	link  []byte
 	title []byte
-}
-
-// Compare two []byte values (case-insensitive), returning
-// true if a is less than b.
-func less(a []byte, b []byte) bool {
-	// adapted from bytes.Compare in stdlib
-	m := len(a)
-	if m > len(b) {
-		m = len(b)
-	}
-	for i, ac := range a[0:m] {
-		// do a case-insensitive comparison
-		ai, bi := unicode.ToLower(int(ac)), unicode.ToLower(int(b[i]))
-		switch {
-		case ai > bi:
-			return false
-		case ai < bi:
-			return true
-		}
-	}
-	switch {
-	case len(a) < len(b):
-		return true
-	case len(a) > len(b):
-		return false
-	}
-	return false
 }
 
 // Check whether or not data starts with a reference link.
