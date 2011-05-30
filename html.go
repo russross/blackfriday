@@ -427,9 +427,12 @@ func htmlAutolink(out *bytes.Buffer, link []byte, kind int, opaque interface{}) 
 	 * an actual URI, e.g. `mailto:foo@bar.com`, we don't
 	 * want to print the `mailto:` prefix
 	 */
-	if bytes.HasPrefix(link, []byte("mailto:")) {
+    switch {
+	case bytes.HasPrefix(link, []byte("mailto://")):
+		attrEscape(out, link[9:])
+    case bytes.HasPrefix(link, []byte("mailto:")):
 		attrEscape(out, link[7:])
-	} else {
+	default:
 		attrEscape(out, link)
 	}
 

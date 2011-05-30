@@ -187,14 +187,7 @@ func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 	rndr.inline['&'] = inlineEntity
 
 	if extensions&EXTENSION_AUTOLINK != 0 {
-		rndr.inline['h'] = inlineAutolink // http, https
-		rndr.inline['H'] = inlineAutolink
-
-		rndr.inline['f'] = inlineAutolink // ftp
-		rndr.inline['F'] = inlineAutolink
-
-		rndr.inline['m'] = inlineAutolink // mailto
-		rndr.inline['M'] = inlineAutolink
+		rndr.inline[':'] = inlineAutolink
 	}
 
 	// first pass: look for references, copy everything else

@@ -536,14 +536,22 @@ func inlineEntity(out *bytes.Buffer, rndr *render, data []byte, offset int) int 
 }
 
 func inlineAutolink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
-	orig_data := data
-	data = data[offset:]
+    // quick check to rule out most false hits on ':'
+    if len(data) < offset + 3 || data[offset+1] != '/' || data[offset+2] != '/' {
+        return 0
+    }
 
-	if offset > 0 {
-		if !isspace(orig_data[offset-1]) && !ispunct(orig_data[offset-1]) {
-			return 0
-		}
-	}
+    // scan backward for a word boundary
+    rewind := 0
+    for offset - rewind > 0 && rewind <= 7 && !isspace(data[offset-rewind-1]) && !isspace(data[offset-rewind-1]) {
+        rewind++
+    }
+    if rewind > 6 { // longest supported protocol is "mailto" which has 6 letters
+        return 0
+    }
+
+	orig_data := data
+	data = data[offset-rewind:]
 
 	if !isSafeLink(data) {
 		return 0
@@ -577,7 +585,7 @@ func inlineAutolink(out *bytes.Buffer, rndr *render, data []byte, offset int) in
 	}
 
 	if copen != 0 {
-		buf_end := offset + link_end - 2
+		buf_end := offset - rewind + link_end - 2
 
 		open_delim := 1
 
@@ -618,6 +626,11 @@ func inlineAutolink(out *bytes.Buffer, rndr *render, data []byte, offset int) in
 		}
 	}
 
+    // we were triggered on the ':', so we need to rewind the output a bit
+    if out.Len() >= rewind {
+        out.Truncate(len(out.Bytes()) - rewind)
+    }
+
 	if rndr.mk.autolink != nil {
 		u_link := bytes.NewBuffer(nil)
 		unescapeText(u_link, data[:link_end])
@@ -625,7 +638,7 @@ func inlineAutolink(out *bytes.Buffer, rndr *render, data []byte, offset int) in
 		rndr.mk.autolink(out, u_link.Bytes(), LINK_TYPE_NORMAL, rndr.mk.opaque)
 	}
 
-	return link_end
+	return link_end - rewind
 }
 
 var validUris = [][]byte{[]byte("http://"), []byte("https://"), []byte("ftp://"), []byte("mailto://")}
