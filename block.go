@@ -16,26 +16,50 @@ import (
 
 // parse block-level data
 func parseBlock(out *bytes.Buffer, rndr *render, data []byte) {
+	// this is called recursively: enforce a maximum depth
 	if rndr.nesting >= rndr.maxNesting {
 		return
 	}
 	rndr.nesting++
 
+	// parse out one block-level construct at a time
 	for len(data) > 0 {
+		// prefixed header:
+		//
+		// # Header 1
+		// ## Header 2
+		// ...
+		// ###### Header 6
 		if isPrefixHeader(rndr, data) {
 			data = data[blockPrefixHeader(out, rndr, data):]
 			continue
 		}
+
+		// block of preformatted HTML:
+		//
+		// <div>
+		//     ...
+		// </div>
 		if data[0] == '<' && rndr.mk.BlockHtml != nil {
 			if i := blockHtml(out, rndr, data, true); i > 0 {
 				data = data[i:]
 				continue
 			}
 		}
+
+		// blank lines.  note: returns the # of bytes to skip
 		if i := isEmpty(data); i > 0 {
 			data = data[i:]
 			continue
 		}
+
+		// horizontal rule:
+		//
+		// ------
+		// or
+		// ******
+		// or
+		// ______
 		if isHRule(data) {
 			if rndr.mk.HRule != nil {
 				rndr.mk.HRule(out, rndr.mk.Opaque)
@@ -46,35 +70,81 @@ func parseBlock(out *bytes.Buffer, rndr *render, data []byte) {
 			data = data[i:]
 			continue
 		}
+
+		// fenced code block:
+		//
+		// ``` go
+		// func fact(n int) int {
+		//     if n <= 1 {
+		//         return n
+		//     }
+		//     return n * fact(n-1)
+		// }
+		// ```
 		if rndr.flags&EXTENSION_FENCED_CODE != 0 {
 			if i := blockFencedCode(out, rndr, data); i > 0 {
 				data = data[i:]
 				continue
 			}
 		}
+
+		// table:
+		//
+		// Name  | Age | Phone
+		// ------|-----|---------
+		// Bob   | 31  | 555-1234
+		// Alice | 27  | 555-4321
 		if rndr.flags&EXTENSION_TABLES != 0 {
 			if i := blockTable(out, rndr, data); i > 0 {
 				data = data[i:]
 				continue
 			}
 		}
+
+		// block quote:
+		//
+		// > A big quote I found somewhere
+		// > on the web
 		if blockQuotePrefix(data) > 0 {
 			data = data[blockQuote(out, rndr, data):]
 			continue
 		}
+
+		// indented code block:
+		//
+		//     func max(a, b int) int {
+		//         if a > b {
+		//             return a
+		//         }
+		//         return b
+		//      }
 		if blockCodePrefix(data) > 0 {
 			data = data[blockCode(out, rndr, data):]
 			continue
 		}
+
+		// an itemized/unordered list:
+		//
+		// * Item 1
+		// * Item 2
+		//
+		// also works with + or -
 		if blockUliPrefix(data) > 0 {
 			data = data[blockList(out, rndr, data, 0):]
 			continue
 		}
+
+		// a numbered/ordered list:
+		//
+		// 1. Item 1
+		// 2. Item 2
 		if blockOliPrefix(data) > 0 {
 			data = data[blockList(out, rndr, data, LIST_TYPE_ORDERED):]
 			continue
 		}
 
+		// anything else must look like a normal paragraph
+		// note: this finds underlined headers, too
 		data = data[blockParagraph(out, rndr, data):]
 	}
 
@@ -171,7 +241,7 @@ func blockHtml(out *bytes.Buffer, rndr *render, data []byte, do_render bool) int
 	// handle special cases
 	if !tagfound {
 
-		// HTML comment, laxist form
+		// HTML comment, lax form
 		if len(data) > 5 && data[1] == '!' && data[2] == '-' && data[3] == '-' {
 			i = 5
 
@@ -194,7 +264,10 @@ func blockHtml(out *bytes.Buffer, rndr *render, data []byte, do_render bool) int
 		}
 
 		// HR, which is the only self-closing block tag considered
-		if len(data) > 4 && (data[1] == 'h' || data[1] == 'H') && (data[2] == 'r' || data[2] == 'R') {
+		if len(data) > 4 &&
+			(data[1] == 'h' || data[1] == 'H') &&
+			(data[2] == 'r' || data[2] == 'R') {
+
 			i = 3
 			for i < len(data) && data[i] != '>' {
 				i++
@@ -323,14 +396,10 @@ func isHRule(data []byte) bool {
 		return false
 	}
 	i := 0
-	if data[0] == ' ' {
+
+	// skip up to three spaces
+	for i < 3 && data[i] == ' ' {
 		i++
-		if data[1] == ' ' {
-			i++
-			if data[2] == ' ' {
-				i++
-			}
-		}
 	}
 
 	// look at the hrule char
@@ -769,10 +838,16 @@ func blockCode(out *bytes.Buffer, rndr *render, data []byte) int {
 // returns unordered list item prefix
 func blockUliPrefix(data []byte) int {
 	i := 0
+
+	// start with up to 3 spaces
 	for i < len(data) && i < 3 && data[i] == ' ' {
 		i++
 	}
-	if i+1 >= len(data) || (data[i] != '*' && data[i] != '+' && data[i] != '-') || (data[i+1] != ' ' && data[i+1] != '\t') {
+
+	// need a *, +, or - followed by a space/tab
+	if i+1 >= len(data) ||
+		(data[i] != '*' && data[i] != '+' && data[i] != '-') ||
+		(data[i+1] != ' ' && data[i+1] != '\t') {
 		return 0
 	}
 	return i + 2
@@ -781,16 +856,21 @@ func blockUliPrefix(data []byte) int {
 // returns ordered list item prefix
 func blockOliPrefix(data []byte) int {
 	i := 0
+
+	// start with up to 3 spaces
 	for i < len(data) && i < 3 && data[i] == ' ' {
 		i++
 	}
-	if i >= len(data) || data[i] < '0' || data[i] > '9' {
-		return 0
-	}
+
+	// count the digits
+	start := i
 	for i < len(data) && data[i] >= '0' && data[i] <= '9' {
 		i++
 	}
-	if i+1 >= len(data) || data[i] != '.' || (data[i+1] != ' ' && data[i+1] != '\t') {
+
+	// we need >= 1 digits followed by a dot and a space/tab
+	if start == i || data[i] != '.' || i+1 >= len(data) ||
+		(data[i+1] != ' ' && data[i+1] != '\t') {
 		return 0
 	}
 	return i + 2
@@ -947,83 +1027,81 @@ func blockListItem(out *bytes.Buffer, rndr *render, data []byte, flags *int) int
 	return beg
 }
 
+// render a single paragraph that has already been parsed out
+func renderParagraph(out *bytes.Buffer, rndr *render, data []byte) {
+	// trim trailing newlines
+	end := len(data)
+	for end > 0 && data[end-1] == '\n' {
+		end--
+	}
+	if end == 0 || rndr.mk.Paragraph == nil {
+		return
+	}
+
+	var work bytes.Buffer
+	parseInline(&work, rndr, data[:end])
+	rndr.mk.Paragraph(out, work.Bytes(), rndr.mk.Opaque)
+}
+
 func blockParagraph(out *bytes.Buffer, rndr *render, data []byte) int {
-	i, end, level := 0, 0, 0
+	// prev: index of 1st char of previous line
+	// line: index of 1st char of current line
+	// i: index of cursor/end of current line
+	var prev, line, i int
 
+	// keep going until we find something to mark the end of the paragraph
 	for i < len(data) {
-		for end = i + 1; end < len(data) && data[end-1] != '\n'; end++ {
+		// mark the beginning of the current line
+		prev = line
+		current := data[i:]
+		line = i
+
+		// did we find a blank line marking the end of the paragraph?
+		if n := isEmpty(current); n > 0 {
+			renderParagraph(out, rndr, data[:i])
+			return i + n
 		}
 
-		if isEmpty(data[i:]) > 0 {
-			break
-		}
-		if level = isUnderlinedHeader(data[i:]); level > 0 {
-			break
-		}
+		// an underline under some text marks a header, so our paragraph ended on prev line
+		if i > 0 && rndr.mk.Header != nil {
+			if level := isUnderlinedHeader(current); level > 0 {
+				// render the paragraph
+				renderParagraph(out, rndr, data[:prev])
 
-		if rndr.flags&EXTENSION_LAX_HTML_BLOCKS != 0 {
-			if data[i] == '<' && rndr.mk.BlockHtml != nil && blockHtml(out, rndr, data[i:], false) > 0 {
-				end = i
-				break
-			}
-		}
+				// render the header
+				var work bytes.Buffer
+				parseInline(&work, rndr, data[prev:i-1])
+				rndr.mk.Header(out, work.Bytes(), level, rndr.mk.Opaque)
 
-		if isPrefixHeader(rndr, data[i:]) || isHRule(data[i:]) {
-			end = i
-			break
-		}
-
-		i = end
-	}
-
-	work := data
-	size := i
-	for size > 0 && work[size-1] == '\n' {
-		size--
-	}
-
-	if level == 0 {
-		var tmp bytes.Buffer
-		parseInline(&tmp, rndr, work[:size])
-		if rndr.mk.Paragraph != nil {
-			rndr.mk.Paragraph(out, tmp.Bytes(), rndr.mk.Opaque)
-		}
-	} else {
-		if size > 0 {
-			beg := 0
-			i = size
-			size--
-
-			for size > 0 && work[size] != '\n' {
-				size--
-			}
-
-			beg = size + 1
-			for size > 0 && work[size-1] == '\n' {
-				size--
-			}
-
-			if size > 0 {
-				var tmp bytes.Buffer
-				parseInline(&tmp, rndr, work[:size])
-				if rndr.mk.Paragraph != nil {
-					rndr.mk.Paragraph(out, tmp.Bytes(), rndr.mk.Opaque)
+				// find the end of the underline
+				for ; i < len(data) && data[i] != '\n'; i++ {
 				}
-
-				work = work[beg:]
-				size = i - beg
-			} else {
-				size = i
+				return i
 			}
 		}
 
-		var header_work bytes.Buffer
-		parseInline(&header_work, rndr, work[:size])
+		// if the next line starts a block of HTML, then the paragraph ends here
+		if rndr.flags&EXTENSION_LAX_HTML_BLOCKS != 0 {
+			if data[i] == '<' && rndr.mk.BlockHtml != nil && blockHtml(out, rndr, current, false) > 0 {
+				// rewind to before the HTML block
+				renderParagraph(out, rndr, data[:i])
+				return i
+			}
+		}
 
-		if rndr.mk.Header != nil {
-			rndr.mk.Header(out, header_work.Bytes(), level, rndr.mk.Opaque)
+		// if there's a prefixed header or a horizontal rule after this, paragraph is over
+		if isPrefixHeader(rndr, current) || isHRule(current) {
+			renderParagraph(out, rndr, data[:i])
+			return i
+		}
+
+		// otherwise, scan to the beginning of the next line
+		i++
+		for i < len(data) && data[i-1] != '\n' {
+			i++
 		}
 	}
 
-	return end
+	renderParagraph(out, rndr, data[:i])
+	return i
 }
