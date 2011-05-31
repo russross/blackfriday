@@ -26,7 +26,7 @@ func parseBlock(out *bytes.Buffer, rndr *render, data []byte) {
 			data = data[blockPrefixHeader(out, rndr, data):]
 			continue
 		}
-		if data[0] == '<' && rndr.mk.blockhtml != nil {
+		if data[0] == '<' && rndr.mk.BlockHtml != nil {
 			if i := blockHtml(out, rndr, data, true); i > 0 {
 				data = data[i:]
 				continue
@@ -36,9 +36,9 @@ func parseBlock(out *bytes.Buffer, rndr *render, data []byte) {
 			data = data[i:]
 			continue
 		}
-		if isHrule(data) {
-			if rndr.mk.hrule != nil {
-				rndr.mk.hrule(out, rndr.mk.opaque)
+		if isHRule(data) {
+			if rndr.mk.HRule != nil {
+				rndr.mk.HRule(out, rndr.mk.Opaque)
 			}
 			var i int
 			for i = 0; i < len(data) && data[i] != '\n'; i++ {
@@ -118,8 +118,8 @@ func blockPrefixHeader(out *bytes.Buffer, rndr *render, data []byte) int {
 	if end > i {
 		work := bytes.NewBuffer(nil)
 		parseInline(work, rndr, data[i:end])
-		if rndr.mk.header != nil {
-			rndr.mk.header(out, work.Bytes(), level, rndr.mk.opaque)
+		if rndr.mk.Header != nil {
+			rndr.mk.Header(out, work.Bytes(), level, rndr.mk.Opaque)
 		}
 	}
 	return skip
@@ -186,8 +186,8 @@ func blockHtml(out *bytes.Buffer, rndr *render, data []byte, do_render bool) int
 
 			if j > 0 {
 				size := i + j
-				if do_render && rndr.mk.blockhtml != nil {
-					rndr.mk.blockhtml(out, data[:size], rndr.mk.opaque)
+				if do_render && rndr.mk.BlockHtml != nil {
+					rndr.mk.BlockHtml(out, data[:size], rndr.mk.Opaque)
 				}
 				return size
 			}
@@ -205,8 +205,8 @@ func blockHtml(out *bytes.Buffer, rndr *render, data []byte, do_render bool) int
 				j = isEmpty(data[i:])
 				if j > 0 {
 					size := i + j
-					if do_render && rndr.mk.blockhtml != nil {
-						rndr.mk.blockhtml(out, data[:size], rndr.mk.opaque)
+					if do_render && rndr.mk.BlockHtml != nil {
+						rndr.mk.BlockHtml(out, data[:size], rndr.mk.Opaque)
 					}
 					return size
 				}
@@ -251,8 +251,8 @@ func blockHtml(out *bytes.Buffer, rndr *render, data []byte, do_render bool) int
 	}
 
 	// the end of the block has been found
-	if do_render && rndr.mk.blockhtml != nil {
-		rndr.mk.blockhtml(out, data[:i], rndr.mk.opaque)
+	if do_render && rndr.mk.BlockHtml != nil {
+		rndr.mk.BlockHtml(out, data[:i], rndr.mk.Opaque)
 	}
 
 	return i
@@ -317,7 +317,7 @@ func isEmpty(data []byte) int {
 	return i + 1
 }
 
-func isHrule(data []byte) bool {
+func isHRule(data []byte) bool {
 	// skip initial spaces
 	if len(data) < 3 {
 		return false
@@ -478,13 +478,13 @@ func blockFencedCode(out *bytes.Buffer, rndr *render, data []byte) int {
 		work.WriteByte('\n')
 	}
 
-	if rndr.mk.blockcode != nil {
+	if rndr.mk.BlockCode != nil {
 		syntax := ""
 		if lang != nil {
 			syntax = *lang
 		}
 
-		rndr.mk.blockcode(out, work.Bytes(), syntax, rndr.mk.opaque)
+		rndr.mk.BlockCode(out, work.Bytes(), syntax, rndr.mk.Opaque)
 	}
 
 	return beg
@@ -513,8 +513,8 @@ func blockTable(out *bytes.Buffer, rndr *render, data []byte) int {
 			i++
 		}
 
-		if rndr.mk.table != nil {
-			rndr.mk.table(out, header_work.Bytes(), body_work.Bytes(), col_data, rndr.mk.opaque)
+		if rndr.mk.Table != nil {
+			rndr.mk.Table(out, header_work.Bytes(), body_work.Bytes(), col_data, rndr.mk.Opaque)
 		}
 	}
 
@@ -635,12 +635,12 @@ func blockTableRow(out *bytes.Buffer, rndr *render, data []byte, columns int, co
 		cell_work := bytes.NewBuffer(nil)
 		parseInline(cell_work, rndr, data[cell_start:cell_end+1])
 
-		if rndr.mk.tableCell != nil {
+		if rndr.mk.TableCell != nil {
 			cdata := 0
 			if col < len(col_data) {
 				cdata = col_data[col]
 			}
-			rndr.mk.tableCell(row_work, cell_work.Bytes(), cdata, rndr.mk.opaque)
+			rndr.mk.TableCell(row_work, cell_work.Bytes(), cdata, rndr.mk.Opaque)
 		}
 
 		i++
@@ -648,17 +648,17 @@ func blockTableRow(out *bytes.Buffer, rndr *render, data []byte, columns int, co
 
 	for ; col < columns; col++ {
 		empty_cell := []byte{}
-		if rndr.mk.tableCell != nil {
+		if rndr.mk.TableCell != nil {
 			cdata := 0
 			if col < len(col_data) {
 				cdata = col_data[col]
 			}
-			rndr.mk.tableCell(row_work, empty_cell, cdata, rndr.mk.opaque)
+			rndr.mk.TableCell(row_work, empty_cell, cdata, rndr.mk.Opaque)
 		}
 	}
 
-	if rndr.mk.tableRow != nil {
-		rndr.mk.tableRow(out, row_work.Bytes(), rndr.mk.opaque)
+	if rndr.mk.TableRow != nil {
+		rndr.mk.TableRow(out, row_work.Bytes(), rndr.mk.Opaque)
 	}
 }
 
@@ -702,8 +702,8 @@ func blockQuote(out *bytes.Buffer, rndr *render, data []byte) int {
 	}
 
 	parseBlock(block, rndr, work.Bytes())
-	if rndr.mk.blockquote != nil {
-		rndr.mk.blockquote(out, block.Bytes(), rndr.mk.opaque)
+	if rndr.mk.BlockQuote != nil {
+		rndr.mk.BlockQuote(out, block.Bytes(), rndr.mk.Opaque)
 	}
 	return end
 }
@@ -759,8 +759,8 @@ func blockCode(out *bytes.Buffer, rndr *render, data []byte) int {
 
 	work.WriteByte('\n')
 
-	if rndr.mk.blockcode != nil {
-		rndr.mk.blockcode(out, work.Bytes(), "", rndr.mk.opaque)
+	if rndr.mk.BlockCode != nil {
+		rndr.mk.BlockCode(out, work.Bytes(), "", rndr.mk.Opaque)
 	}
 
 	return beg
@@ -810,8 +810,8 @@ func blockList(out *bytes.Buffer, rndr *render, data []byte, flags int) int {
 		}
 	}
 
-	if rndr.mk.list != nil {
-		rndr.mk.list(out, work.Bytes(), flags, rndr.mk.opaque)
+	if rndr.mk.List != nil {
+		rndr.mk.List(out, work.Bytes(), flags, rndr.mk.Opaque)
 	}
 	return i
 }
@@ -883,7 +883,7 @@ func blockListItem(out *bytes.Buffer, rndr *render, data []byte, flags *int) int
 
 		// check for a new item
 		chunk := data[beg+i : end]
-		if (blockUliPrefix(chunk) > 0 && !isHrule(chunk)) || blockOliPrefix(chunk) > 0 {
+		if (blockUliPrefix(chunk) > 0 && !isHRule(chunk)) || blockOliPrefix(chunk) > 0 {
 			if in_empty {
 				has_inside_empty = true
 			}
@@ -940,8 +940,8 @@ func blockListItem(out *bytes.Buffer, rndr *render, data []byte, flags *int) int
 	}
 
 	// render li itself
-	if rndr.mk.listitem != nil {
-		rndr.mk.listitem(out, inter.Bytes(), *flags, rndr.mk.opaque)
+	if rndr.mk.ListItem != nil {
+		rndr.mk.ListItem(out, inter.Bytes(), *flags, rndr.mk.Opaque)
 	}
 
 	return beg
@@ -962,13 +962,13 @@ func blockParagraph(out *bytes.Buffer, rndr *render, data []byte) int {
 		}
 
 		if rndr.flags&EXTENSION_LAX_HTML_BLOCKS != 0 {
-			if data[i] == '<' && rndr.mk.blockhtml != nil && blockHtml(out, rndr, data[i:], false) > 0 {
+			if data[i] == '<' && rndr.mk.BlockHtml != nil && blockHtml(out, rndr, data[i:], false) > 0 {
 				end = i
 				break
 			}
 		}
 
-		if isPrefixHeader(rndr, data[i:]) || isHrule(data[i:]) {
+		if isPrefixHeader(rndr, data[i:]) || isHRule(data[i:]) {
 			end = i
 			break
 		}
@@ -985,8 +985,8 @@ func blockParagraph(out *bytes.Buffer, rndr *render, data []byte) int {
 	if level == 0 {
 		tmp := bytes.NewBuffer(nil)
 		parseInline(tmp, rndr, work[:size])
-		if rndr.mk.paragraph != nil {
-			rndr.mk.paragraph(out, tmp.Bytes(), rndr.mk.opaque)
+		if rndr.mk.Paragraph != nil {
+			rndr.mk.Paragraph(out, tmp.Bytes(), rndr.mk.Opaque)
 		}
 	} else {
 		if size > 0 {
@@ -1006,8 +1006,8 @@ func blockParagraph(out *bytes.Buffer, rndr *render, data []byte) int {
 			if size > 0 {
 				tmp := bytes.NewBuffer(nil)
 				parseInline(tmp, rndr, work[:size])
-				if rndr.mk.paragraph != nil {
-					rndr.mk.paragraph(out, tmp.Bytes(), rndr.mk.opaque)
+				if rndr.mk.Paragraph != nil {
+					rndr.mk.Paragraph(out, tmp.Bytes(), rndr.mk.Opaque)
 				}
 
 				work = work[beg:]
@@ -1020,8 +1020,8 @@ func blockParagraph(out *bytes.Buffer, rndr *render, data []byte) int {
 		header_work := bytes.NewBuffer(nil)
 		parseInline(header_work, rndr, work[:size])
 
-		if rndr.mk.header != nil {
-			rndr.mk.header(out, header_work.Bytes(), level, rndr.mk.opaque)
+		if rndr.mk.Header != nil {
+			rndr.mk.Header(out, header_work.Bytes(), level, rndr.mk.Opaque)
 		}
 	}
 

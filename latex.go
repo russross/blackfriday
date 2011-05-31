@@ -19,40 +19,40 @@ import (
 func LatexRenderer(flags int) *Renderer {
 	// block-level rendering
 	r := new(Renderer)
-	r.blockcode = latexBlockcode
-	r.blockquote = latexBlockquote
-	//r.blockhtml = ?
-	r.header = latexHeader
-	r.hrule = latexHrule
-	r.list = latexList
-	r.listitem = latexListitem
-	r.paragraph = latexParagraph
-	r.table = latexTable
-	r.tableRow = latexTableRow
-	r.tableCell = latexTableCell
+	r.BlockCode = latexBlockCode
+	r.BlockQuote = latexBlockQuote
+	//r.BlockHtml = ?
+	r.Header = latexHeader
+	r.HRule = latexHRule
+	r.List = latexList
+	r.ListItem = latexListItem
+	r.Paragraph = latexParagraph
+	r.Table = latexTable
+	r.TableRow = latexTableRow
+	r.TableCell = latexTableCell
 
 	// inline rendering
-	r.autolink = latexAutolink
-	r.codespan = latexCodespan
-	r.doubleEmphasis = latexDoubleEmphasis
-	r.emphasis = latexEmphasis
-	r.image = latexImage
-	r.linebreak = latexLinebreak
-	r.link = latexLink
+	r.AutoLink = latexAutoLink
+	r.CodeSpan = latexCodeSpan
+	r.DoubleEmphasis = latexDoubleEmphasis
+	r.Emphasis = latexEmphasis
+	r.Image = latexImage
+	r.LineBreak = latexLineBreak
+	r.Link = latexLink
 	//r.rawHtmlTag = ?
-	r.strikethrough = latexStrikethrough
+	r.StrikeThrough = latexStrikeThrough
 
-	r.normalText = latexNormalText
+	r.NormalText = latexNormalText
 
-	r.documentHeader = latexDocumentHeader
-	r.documentFooter = latexDocumentFooter
+	r.DocumentHeader = latexDocumentHeader
+	r.DocumentFooter = latexDocumentFooter
 
-	r.opaque = nil
+	r.Opaque = nil
 	return r
 }
 
 // render code chunks using verbatim, or listings if we have a language
-func latexBlockcode(out *bytes.Buffer, text []byte, lang string, opaque interface{}) {
+func latexBlockCode(out *bytes.Buffer, text []byte, lang string, opaque interface{}) {
 	if lang == "" {
 		out.WriteString("\n\\begin{verbatim}\n")
 	} else {
@@ -68,13 +68,13 @@ func latexBlockcode(out *bytes.Buffer, text []byte, lang string, opaque interfac
 	}
 }
 
-func latexBlockquote(out *bytes.Buffer, text []byte, opaque interface{}) {
+func latexBlockQuote(out *bytes.Buffer, text []byte, opaque interface{}) {
 	out.WriteString("\n\\begin{quotation}\n")
 	out.Write(text)
 	out.WriteString("\n\\end{quotation}\n")
 }
 
-//blockhtml  func(out *bytes.Buffer, text []byte, opaque interface{})
+//BlockHtml  func(out *bytes.Buffer, text []byte, opaque interface{})
 
 func latexHeader(out *bytes.Buffer, text []byte, level int, opaque interface{}) {
 	switch level {
@@ -95,7 +95,7 @@ func latexHeader(out *bytes.Buffer, text []byte, level int, opaque interface{}) 
 	out.WriteString("}\n")
 }
 
-func latexHrule(out *bytes.Buffer, opaque interface{}) {
+func latexHRule(out *bytes.Buffer, opaque interface{}) {
 	out.WriteString("\n\\HRule\n")
 }
 
@@ -113,7 +113,7 @@ func latexList(out *bytes.Buffer, text []byte, flags int, opaque interface{}) {
 	}
 }
 
-func latexListitem(out *bytes.Buffer, text []byte, flags int, opaque interface{}) {
+func latexListItem(out *bytes.Buffer, text []byte, flags int, opaque interface{}) {
 	out.WriteString("\n\\item ")
 	out.Write(text)
 }
@@ -157,7 +157,7 @@ func latexTableCell(out *bytes.Buffer, text []byte, align int, opaque interface{
 	out.Write(text)
 }
 
-func latexAutolink(out *bytes.Buffer, link []byte, kind int, opaque interface{}) int {
+func latexAutoLink(out *bytes.Buffer, link []byte, kind int, opaque interface{}) int {
 	out.WriteString("\\href{")
 	if kind == LINK_TYPE_EMAIL {
 		out.WriteString("mailto:")
@@ -169,7 +169,7 @@ func latexAutolink(out *bytes.Buffer, link []byte, kind int, opaque interface{})
 	return 1
 }
 
-func latexCodespan(out *bytes.Buffer, text []byte, opaque interface{}) int {
+func latexCodeSpan(out *bytes.Buffer, text []byte, opaque interface{}) int {
 	out.WriteString("\\texttt{")
 	escapeSpecialChars(out, text)
 	out.WriteString("}")
@@ -206,7 +206,7 @@ func latexImage(out *bytes.Buffer, link []byte, title []byte, alt []byte, opaque
 	return 1
 }
 
-func latexLinebreak(out *bytes.Buffer, opaque interface{}) int {
+func latexLineBreak(out *bytes.Buffer, opaque interface{}) int {
 	out.WriteString(" \\\\\n")
 	return 1
 }
@@ -231,7 +231,7 @@ func latexTripleEmphasis(out *bytes.Buffer, text []byte, opaque interface{}) int
 	return 1
 }
 
-func latexStrikethrough(out *bytes.Buffer, text []byte, opaque interface{}) int {
+func latexStrikeThrough(out *bytes.Buffer, text []byte, opaque interface{}) int {
 	out.WriteString("\\sout{")
 	out.Write(text)
 	out.WriteString("}")

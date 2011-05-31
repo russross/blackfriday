@@ -32,8 +32,8 @@ func parseInline(out *bytes.Buffer, rndr *render, data []byte) {
 			end++
 		}
 
-		if rndr.mk.normalText != nil {
-			rndr.mk.normalText(out, data[i:end], rndr.mk.opaque)
+		if rndr.mk.NormalText != nil {
+			rndr.mk.NormalText(out, data[i:end], rndr.mk.Opaque)
 		} else {
 			out.Write(data[i:end])
 		}
@@ -102,7 +102,7 @@ func inlineEmphasis(out *bytes.Buffer, rndr *render, data []byte, offset int) in
 	return 0
 }
 
-func inlineCodespan(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
+func inlineCodeSpan(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	data = data[offset:]
 
 	nb := 0
@@ -138,15 +138,15 @@ func inlineCodespan(out *bytes.Buffer, rndr *render, data []byte, offset int) in
 	}
 
 	// real code span
-	if rndr.mk.codespan == nil {
+	if rndr.mk.CodeSpan == nil {
 		return 0
 	}
 	if f_begin < f_end {
-		if rndr.mk.codespan(out, data[f_begin:f_end], rndr.mk.opaque) == 0 {
+		if rndr.mk.CodeSpan(out, data[f_begin:f_end], rndr.mk.Opaque) == 0 {
 			end = 0
 		}
 	} else {
-		if rndr.mk.codespan(out, nil, rndr.mk.opaque) == 0 {
+		if rndr.mk.CodeSpan(out, nil, rndr.mk.Opaque) == 0 {
 			end = 0
 		}
 	}
@@ -156,7 +156,7 @@ func inlineCodespan(out *bytes.Buffer, rndr *render, data []byte, offset int) in
 }
 
 // '\n' preceded by two spaces
-func inlineLinebreak(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
+func inlineLineBreak(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	if offset < 2 || data[offset-1] != ' ' || data[offset-2] != ' ' {
 		return 0
 	}
@@ -169,10 +169,10 @@ func inlineLinebreak(out *bytes.Buffer, rndr *render, data []byte, offset int) i
 	}
 	out.Truncate(end)
 
-	if rndr.mk.linebreak == nil {
+	if rndr.mk.LineBreak == nil {
 		return 0
 	}
-	if rndr.mk.linebreak(out, rndr.mk.opaque) > 0 {
+	if rndr.mk.LineBreak(out, rndr.mk.Opaque) > 0 {
 		return 1
 	} else {
 		return 0
@@ -192,7 +192,7 @@ func inlineLink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	text_has_nl := false
 
 	// check whether the correct renderer exists
-	if (isImg && rndr.mk.image == nil) || (!isImg && rndr.mk.link == nil) {
+	if (isImg && rndr.mk.Image == nil) || (!isImg && rndr.mk.Link == nil) {
 		return 0
 	}
 
@@ -428,9 +428,9 @@ func inlineLink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 			out.Truncate(outSize - 1)
 		}
 
-		ret = rndr.mk.image(out, u_link, title, content.Bytes(), rndr.mk.opaque)
+		ret = rndr.mk.Image(out, u_link, title, content.Bytes(), rndr.mk.Opaque)
 	} else {
-		ret = rndr.mk.link(out, u_link, title, content.Bytes(), rndr.mk.opaque)
+		ret = rndr.mk.Link(out, u_link, title, content.Bytes(), rndr.mk.Opaque)
 	}
 
 	if ret > 0 {
@@ -440,7 +440,7 @@ func inlineLink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 }
 
 // '<' when tags or autolinks are allowed
-func inlineLangle(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
+func inlineLAngle(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	data = data[offset:]
 	altype := LINK_TYPE_NOT_AUTOLINK
 	end := tagLength(data, &altype)
@@ -448,12 +448,12 @@ func inlineLangle(out *bytes.Buffer, rndr *render, data []byte, offset int) int 
 
 	if end > 2 {
 		switch {
-		case rndr.mk.autolink != nil && altype != LINK_TYPE_NOT_AUTOLINK:
+		case rndr.mk.AutoLink != nil && altype != LINK_TYPE_NOT_AUTOLINK:
 			u_link := bytes.NewBuffer(nil)
 			unescapeText(u_link, data[1:end+1-2])
-			ret = rndr.mk.autolink(out, u_link.Bytes(), altype, rndr.mk.opaque)
-		case rndr.mk.rawHtmlTag != nil:
-			ret = rndr.mk.rawHtmlTag(out, data[:end], rndr.mk.opaque)
+			ret = rndr.mk.AutoLink(out, u_link.Bytes(), altype, rndr.mk.Opaque)
+		case rndr.mk.RawHtmlTag != nil:
+			ret = rndr.mk.RawHtmlTag(out, data[:end], rndr.mk.Opaque)
 		}
 	}
 
@@ -474,8 +474,8 @@ func inlineEscape(out *bytes.Buffer, rndr *render, data []byte, offset int) int 
 			return 0
 		}
 
-		if rndr.mk.normalText != nil {
-			rndr.mk.normalText(out, data[1:2], rndr.mk.opaque)
+		if rndr.mk.NormalText != nil {
+			rndr.mk.NormalText(out, data[1:2], rndr.mk.Opaque)
 		} else {
 			out.WriteByte(data[1])
 		}
@@ -526,8 +526,8 @@ func inlineEntity(out *bytes.Buffer, rndr *render, data []byte, offset int) int 
 		return 0 // lone '&'
 	}
 
-	if rndr.mk.entity != nil {
-		rndr.mk.entity(out, data[:end], rndr.mk.opaque)
+	if rndr.mk.Entity != nil {
+		rndr.mk.Entity(out, data[:end], rndr.mk.Opaque)
 	} else {
 		out.Write(data[:end])
 	}
@@ -535,7 +535,7 @@ func inlineEntity(out *bytes.Buffer, rndr *render, data []byte, offset int) int 
 	return end
 }
 
-func inlineAutolink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
+func inlineAutoLink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
     // quick check to rule out most false hits on ':'
     if len(data) < offset + 3 || data[offset+1] != '/' || data[offset+2] != '/' {
         return 0
@@ -631,11 +631,11 @@ func inlineAutolink(out *bytes.Buffer, rndr *render, data []byte, offset int) in
         out.Truncate(len(out.Bytes()) - rewind)
     }
 
-	if rndr.mk.autolink != nil {
+	if rndr.mk.AutoLink != nil {
 		u_link := bytes.NewBuffer(nil)
 		unescapeText(u_link, data[:link_end])
 
-		rndr.mk.autolink(out, u_link.Bytes(), LINK_TYPE_NORMAL, rndr.mk.opaque)
+		rndr.mk.AutoLink(out, u_link.Bytes(), LINK_TYPE_NORMAL, rndr.mk.Opaque)
 	}
 
 	return link_end - rewind
@@ -687,7 +687,7 @@ func tagLength(data []byte, autolink *int) int {
 	}
 
 	if i > 1 && data[i] == '@' {
-		if j = isMailtoAutolink(data[i:]); j != 0 {
+		if j = isMailtoAutoLink(data[i:]); j != 0 {
 			*autolink = LINK_TYPE_EMAIL
 			return i + j
 		}
@@ -741,7 +741,7 @@ func tagLength(data []byte, autolink *int) int {
 
 // look for the address part of a mail autolink and '>'
 // this is less strict than the original markdown e-mail address matching
-func isMailtoAutolink(data []byte) int {
+func isMailtoAutoLink(data []byte) int {
 	nb := 0
 
 	// address is assumed to be: [-@._a-zA-Z0-9]+ with exactly one '@'
@@ -852,7 +852,7 @@ func inlineHelperFindEmphChar(data []byte, c byte) int {
 func inlineHelperEmph1(out *bytes.Buffer, rndr *render, data []byte, c byte) int {
 	i := 0
 
-	if rndr.mk.emphasis == nil {
+	if rndr.mk.Emphasis == nil {
 		return 0
 	}
 
@@ -886,7 +886,7 @@ func inlineHelperEmph1(out *bytes.Buffer, rndr *render, data []byte, c byte) int
 
 			work := bytes.NewBuffer(nil)
 			parseInline(work, rndr, data[:i])
-			r := rndr.mk.emphasis(out, work.Bytes(), rndr.mk.opaque)
+			r := rndr.mk.Emphasis(out, work.Bytes(), rndr.mk.Opaque)
 			if r > 0 {
 				return i + 1
 			} else {
@@ -899,9 +899,9 @@ func inlineHelperEmph1(out *bytes.Buffer, rndr *render, data []byte, c byte) int
 }
 
 func inlineHelperEmph2(out *bytes.Buffer, rndr *render, data []byte, c byte) int {
-	render_method := rndr.mk.doubleEmphasis
+	render_method := rndr.mk.DoubleEmphasis
 	if c == '~' {
-		render_method = rndr.mk.strikethrough
+		render_method = rndr.mk.StrikeThrough
 	}
 
 	if render_method == nil {
@@ -920,7 +920,7 @@ func inlineHelperEmph2(out *bytes.Buffer, rndr *render, data []byte, c byte) int
 		if i+1 < len(data) && data[i] == c && data[i+1] == c && i > 0 && !isspace(data[i-1]) {
 			work := bytes.NewBuffer(nil)
 			parseInline(work, rndr, data[:i])
-			r := render_method(out, work.Bytes(), rndr.mk.opaque)
+			r := render_method(out, work.Bytes(), rndr.mk.Opaque)
 			if r > 0 {
 				return i + 2
 			} else {
@@ -950,12 +950,12 @@ func inlineHelperEmph3(out *bytes.Buffer, rndr *render, data []byte, offset int,
 		}
 
 		switch {
-		case (i+2 < len(data) && data[i+1] == c && data[i+2] == c && rndr.mk.tripleEmphasis != nil):
+		case (i+2 < len(data) && data[i+1] == c && data[i+2] == c && rndr.mk.TripleEmphasis != nil):
 			// triple symbol found
 			work := bytes.NewBuffer(nil)
 
 			parseInline(work, rndr, data[:i])
-			r := rndr.mk.tripleEmphasis(out, work.Bytes(), rndr.mk.opaque)
+			r := rndr.mk.TripleEmphasis(out, work.Bytes(), rndr.mk.Opaque)
 			if r > 0 {
 				return i + 3
 			} else {

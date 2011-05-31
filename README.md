@@ -52,8 +52,8 @@ All features of upskirt are supported, including:
     errors that were present in the C code).
 
 *   Good performance. I have not done rigorous benchmarking, but
-    informal testing suggests it is around 8x slower than upskirt.
-    This is still an ugly, direct translation from the C code, so
+    informal testing suggests it is around 3.5x slower than upskirt.
+    This is an ugly, direct translation from the C code, so
     the difference is unlikely to be related to differences in
     coding style. There is a lot of bounds checking that is
     duplicated (by user code for the application and again by code

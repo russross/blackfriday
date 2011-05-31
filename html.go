@@ -36,87 +36,87 @@ const (
 
 type htmlOptions struct {
 	flags     int
-	close_tag string // how to end singleton tags: usually " />\n", possibly ">\n"
-	toc_data  struct {
-		header_count  int
-		current_level int
+	closeTag string // how to end singleton tags: usually " />\n", possibly ">\n"
+	tocData  struct {
+		headerCount  int
+		currentLevel int
 	}
 	smartypants *SmartypantsRenderer
 }
 
-var xhtml_close = " />\n"
-var html_close = ">\n"
+var xhtmlClose = " />\n"
+var htmlClose = ">\n"
 
 func HtmlRenderer(flags int) *Renderer {
 	// configure the rendering engine
 	r := new(Renderer)
 	if flags&HTML_GITHUB_BLOCKCODE == 0 {
-		r.blockcode = htmlBlockcode
+		r.BlockCode = htmlBlockCode
 	} else {
-		r.blockcode = htmlBlockcodeGithub
+		r.BlockCode = htmlBlockCodeGithub
 	}
-	r.blockquote = htmlBlockquote
+	r.BlockQuote = htmlBlockQuote
 	if flags&HTML_SKIP_HTML == 0 {
-		r.blockhtml = htmlRawBlock
+		r.BlockHtml = htmlRawBlock
 	}
-	r.header = htmlHeader
-	r.hrule = htmlHrule
-	r.list = htmlList
-	r.listitem = htmlListitem
-	r.paragraph = htmlParagraph
-	r.table = htmlTable
-	r.tableRow = htmlTableRow
-	r.tableCell = htmlTableCell
+	r.Header = htmlHeader
+	r.HRule = htmlHRule
+	r.List = htmlList
+	r.ListItem = htmlListItem
+	r.Paragraph = htmlParagraph
+	r.Table = htmlTable
+	r.TableRow = htmlTableRow
+	r.TableCell = htmlTableCell
 
-	r.autolink = htmlAutolink
-	r.codespan = htmlCodespan
-	r.doubleEmphasis = htmlDoubleEmphasis
-	r.emphasis = htmlEmphasis
+	r.AutoLink = htmlAutoLink
+	r.CodeSpan = htmlCodeSpan
+	r.DoubleEmphasis = htmlDoubleEmphasis
+	r.Emphasis = htmlEmphasis
 	if flags&HTML_SKIP_IMAGES == 0 {
-		r.image = htmlImage
+		r.Image = htmlImage
 	}
-	r.linebreak = htmlLinebreak
+	r.LineBreak = htmlLineBreak
 	if flags&HTML_SKIP_LINKS == 0 {
-		r.link = htmlLink
+		r.Link = htmlLink
 	}
-	r.rawHtmlTag = htmlRawTag
-	r.tripleEmphasis = htmlTripleEmphasis
-	r.strikethrough = htmlStrikethrough
+	r.RawHtmlTag = htmlRawTag
+	r.TripleEmphasis = htmlTripleEmphasis
+	r.StrikeThrough = htmlStrikeThrough
 
 	var cb *SmartypantsRenderer
 	if flags&HTML_USE_SMARTYPANTS == 0 {
-		r.normalText = htmlNormalText
+		r.NormalText = htmlNormalText
 	} else {
 		cb = Smartypants(flags)
-		r.normalText = htmlSmartypants
+		r.NormalText = htmlSmartypants
 	}
 
-	close_tag := html_close
+	closeTag := htmlClose
 	if flags&HTML_USE_XHTML != 0 {
-		close_tag = xhtml_close
+		closeTag = xhtmlClose
 	}
-	r.opaque = &htmlOptions{flags: flags, close_tag: close_tag, smartypants: cb}
+	r.Opaque = &htmlOptions{flags: flags, closeTag: closeTag, smartypants: cb}
 	return r
 }
 
 func HtmlTocRenderer(flags int) *Renderer {
 	// configure the rendering engine
 	r := new(Renderer)
-	r.header = htmlTocHeader
+	r.Header = htmlTocHeader
 
-	r.codespan = htmlCodespan
-	r.doubleEmphasis = htmlDoubleEmphasis
-	r.emphasis = htmlEmphasis
-	r.tripleEmphasis = htmlTripleEmphasis
-	r.strikethrough = htmlStrikethrough
+	r.CodeSpan = htmlCodeSpan
+	r.DoubleEmphasis = htmlDoubleEmphasis
+	r.Emphasis = htmlEmphasis
+	r.TripleEmphasis = htmlTripleEmphasis
+	r.StrikeThrough = htmlStrikeThrough
 
-	r.documentFooter = htmlTocFinalize
+	r.DocumentFooter = htmlTocFinalize
 
-	close_tag := ">\n"
+	closeTag := ">\n"
 	if flags&HTML_USE_XHTML != 0 {
-		close_tag = " />\n"
+		closeTag = " />\n"
 	}
-	r.opaque = &htmlOptions{flags: flags | HTML_TOC, close_tag: close_tag}
+	r.Opaque = &htmlOptions{flags: flags | HTML_TOC, closeTag: closeTag}
 	return r
 }
 
@@ -156,8 +156,8 @@ func htmlHeader(out *bytes.Buffer, text []byte, level int, opaque interface{}) {
 	}
 
 	if options.flags&HTML_TOC != 0 {
-		out.WriteString(fmt.Sprintf("<h%d id=\"toc_%d\">", level, options.toc_data.header_count))
-		options.toc_data.header_count++
+		out.WriteString(fmt.Sprintf("<h%d id=\"toc_%d\">", level, options.tocData.headerCount))
+		options.tocData.headerCount++
 	} else {
 		out.WriteString(fmt.Sprintf("<h%d>", level))
 	}
@@ -185,17 +185,17 @@ func htmlRawBlock(out *bytes.Buffer, text []byte, opaque interface{}) {
 	out.WriteByte('\n')
 }
 
-func htmlHrule(out *bytes.Buffer, opaque interface{}) {
+func htmlHRule(out *bytes.Buffer, opaque interface{}) {
 	options := opaque.(*htmlOptions)
 
 	if out.Len() > 0 {
 		out.WriteByte('\n')
 	}
 	out.WriteString("<hr")
-	out.WriteString(options.close_tag)
+	out.WriteString(options.closeTag)
 }
 
-func htmlBlockcode(out *bytes.Buffer, text []byte, lang string, opaque interface{}) {
+func htmlBlockCode(out *bytes.Buffer, text []byte, lang string, opaque interface{}) {
 	if out.Len() > 0 {
 		out.WriteByte('\n')
 	}
@@ -255,7 +255,7 @@ func htmlBlockcode(out *bytes.Buffer, text []byte, lang string, opaque interface
  * E.g.
  *              ~~~~ {.python .numbered}        =>      <pre lang="python"><code>
  */
-func htmlBlockcodeGithub(out *bytes.Buffer, text []byte, lang string, opaque interface{}) {
+func htmlBlockCodeGithub(out *bytes.Buffer, text []byte, lang string, opaque interface{}) {
 	if out.Len() > 0 {
 		out.WriteByte('\n')
 	}
@@ -287,7 +287,7 @@ func htmlBlockcodeGithub(out *bytes.Buffer, text []byte, lang string, opaque int
 }
 
 
-func htmlBlockquote(out *bytes.Buffer, text []byte, opaque interface{}) {
+func htmlBlockQuote(out *bytes.Buffer, text []byte, opaque interface{}) {
 	out.WriteString("<blockquote>\n")
 	out.Write(text)
 	out.WriteString("</blockquote>")
@@ -349,7 +349,7 @@ func htmlList(out *bytes.Buffer, text []byte, flags int, opaque interface{}) {
 	}
 }
 
-func htmlListitem(out *bytes.Buffer, text []byte, flags int, opaque interface{}) {
+func htmlListItem(out *bytes.Buffer, text []byte, flags int, opaque interface{}) {
 	out.WriteString("<li>")
 	size := len(text)
 	for size > 0 && text[size-1] == '\n' {
@@ -396,7 +396,7 @@ func htmlParagraph(out *bytes.Buffer, text []byte, opaque interface{}) {
 			}
 
 			out.WriteString("<br>")
-			out.WriteString(options.close_tag)
+			out.WriteString(options.closeTag)
 			i++
 		}
 	} else {
@@ -405,7 +405,7 @@ func htmlParagraph(out *bytes.Buffer, text []byte, opaque interface{}) {
 	out.WriteString("</p>\n")
 }
 
-func htmlAutolink(out *bytes.Buffer, link []byte, kind int, opaque interface{}) int {
+func htmlAutoLink(out *bytes.Buffer, link []byte, kind int, opaque interface{}) int {
 	options := opaque.(*htmlOptions)
 
 	if len(link) == 0 {
@@ -441,7 +441,7 @@ func htmlAutolink(out *bytes.Buffer, link []byte, kind int, opaque interface{}) 
 	return 1
 }
 
-func htmlCodespan(out *bytes.Buffer, text []byte, opaque interface{}) int {
+func htmlCodeSpan(out *bytes.Buffer, text []byte, opaque interface{}) int {
 	out.WriteString("<code>")
 	attrEscape(out, text)
 	out.WriteString("</code>")
@@ -485,14 +485,14 @@ func htmlImage(out *bytes.Buffer, link []byte, title []byte, alt []byte, opaque 
 	}
 
 	out.WriteByte('"')
-	out.WriteString(options.close_tag)
+	out.WriteString(options.closeTag)
 	return 1
 }
 
-func htmlLinebreak(out *bytes.Buffer, opaque interface{}) int {
+func htmlLineBreak(out *bytes.Buffer, opaque interface{}) int {
 	options := opaque.(*htmlOptions)
 	out.WriteString("<br")
-	out.WriteString(options.close_tag)
+	out.WriteString(options.closeTag)
 	return 1
 }
 
@@ -547,7 +547,7 @@ func htmlTripleEmphasis(out *bytes.Buffer, text []byte, opaque interface{}) int 
 	return 1
 }
 
-func htmlStrikethrough(out *bytes.Buffer, text []byte, opaque interface{}) int {
+func htmlStrikeThrough(out *bytes.Buffer, text []byte, opaque interface{}) int {
 	if len(text) == 0 {
 		return 0
 	}
@@ -563,26 +563,26 @@ func htmlNormalText(out *bytes.Buffer, text []byte, opaque interface{}) {
 
 func htmlTocHeader(out *bytes.Buffer, text []byte, level int, opaque interface{}) {
 	options := opaque.(*htmlOptions)
-	for level > options.toc_data.current_level {
-		if options.toc_data.current_level > 0 {
+	for level > options.tocData.currentLevel {
+		if options.tocData.currentLevel > 0 {
 			out.WriteString("<li>")
 		}
 		out.WriteString("<ul>\n")
-		options.toc_data.current_level++
+		options.tocData.currentLevel++
 	}
 
-	for level < options.toc_data.current_level {
+	for level < options.tocData.currentLevel {
 		out.WriteString("</ul>")
-		if options.toc_data.current_level > 1 {
+		if options.tocData.currentLevel > 1 {
 			out.WriteString("</li>\n")
 		}
-		options.toc_data.current_level--
+		options.tocData.currentLevel--
 	}
 
 	out.WriteString("<li><a href=\"#toc_")
-	out.WriteString(strconv.Itoa(options.toc_data.header_count))
+	out.WriteString(strconv.Itoa(options.tocData.headerCount))
 	out.WriteString("\">")
-	options.toc_data.header_count++
+	options.tocData.headerCount++
 
 	if len(text) > 0 {
 		out.Write(text)
@@ -592,12 +592,12 @@ func htmlTocHeader(out *bytes.Buffer, text []byte, level int, opaque interface{}
 
 func htmlTocFinalize(out *bytes.Buffer, opaque interface{}) {
 	options := opaque.(*htmlOptions)
-	for options.toc_data.current_level > 1 {
+	for options.tocData.currentLevel > 1 {
 		out.WriteString("</ul></li>\n")
-		options.toc_data.current_level--
+		options.tocData.currentLevel--
 	}
 
-	if options.toc_data.current_level > 0 {
+	if options.tocData.currentLevel > 0 {
 		out.WriteString("</ul>\n")
 	}
 }

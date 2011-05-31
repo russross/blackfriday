@@ -95,40 +95,40 @@ var block_tags = map[string]bool{
 // Most users will use the convenience functions to fill in this structure.
 type Renderer struct {
 	// block-level callbacks---nil skips the block
-	blockcode  func(out *bytes.Buffer, text []byte, lang string, opaque interface{})
-	blockquote func(out *bytes.Buffer, text []byte, opaque interface{})
-	blockhtml  func(out *bytes.Buffer, text []byte, opaque interface{})
-	header     func(out *bytes.Buffer, text []byte, level int, opaque interface{})
-	hrule      func(out *bytes.Buffer, opaque interface{})
-	list       func(out *bytes.Buffer, text []byte, flags int, opaque interface{})
-	listitem   func(out *bytes.Buffer, text []byte, flags int, opaque interface{})
-	paragraph  func(out *bytes.Buffer, text []byte, opaque interface{})
-	table      func(out *bytes.Buffer, header []byte, body []byte, columnData []int, opaque interface{})
-	tableRow   func(out *bytes.Buffer, text []byte, opaque interface{})
-	tableCell  func(out *bytes.Buffer, text []byte, flags int, opaque interface{})
+	BlockCode  func(out *bytes.Buffer, text []byte, lang string, opaque interface{})
+	BlockQuote func(out *bytes.Buffer, text []byte, opaque interface{})
+	BlockHtml  func(out *bytes.Buffer, text []byte, opaque interface{})
+	Header     func(out *bytes.Buffer, text []byte, level int, opaque interface{})
+	HRule      func(out *bytes.Buffer, opaque interface{})
+	List       func(out *bytes.Buffer, text []byte, flags int, opaque interface{})
+	ListItem   func(out *bytes.Buffer, text []byte, flags int, opaque interface{})
+	Paragraph  func(out *bytes.Buffer, text []byte, opaque interface{})
+	Table      func(out *bytes.Buffer, header []byte, body []byte, columnData []int, opaque interface{})
+	TableRow   func(out *bytes.Buffer, text []byte, opaque interface{})
+	TableCell  func(out *bytes.Buffer, text []byte, flags int, opaque interface{})
 
-	// span-level callbacks---nil or return 0 prints the span verbatim
-	autolink       func(out *bytes.Buffer, link []byte, kind int, opaque interface{}) int
-	codespan       func(out *bytes.Buffer, text []byte, opaque interface{}) int
-	doubleEmphasis func(out *bytes.Buffer, text []byte, opaque interface{}) int
-	emphasis       func(out *bytes.Buffer, text []byte, opaque interface{}) int
-	image          func(out *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{}) int
-	linebreak      func(out *bytes.Buffer, opaque interface{}) int
-	link           func(out *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{}) int
-	rawHtmlTag     func(out *bytes.Buffer, tag []byte, opaque interface{}) int
-	tripleEmphasis func(out *bytes.Buffer, text []byte, opaque interface{}) int
-	strikethrough  func(out *bytes.Buffer, text []byte, opaque interface{}) int
+	// Span-level callbacks---nil or return 0 prints the span verbatim
+	AutoLink       func(out *bytes.Buffer, link []byte, kind int, opaque interface{}) int
+	CodeSpan       func(out *bytes.Buffer, text []byte, opaque interface{}) int
+	DoubleEmphasis func(out *bytes.Buffer, text []byte, opaque interface{}) int
+	Emphasis       func(out *bytes.Buffer, text []byte, opaque interface{}) int
+	Image          func(out *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{}) int
+	LineBreak      func(out *bytes.Buffer, opaque interface{}) int
+	Link           func(out *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{}) int
+	RawHtmlTag     func(out *bytes.Buffer, tag []byte, opaque interface{}) int
+	TripleEmphasis func(out *bytes.Buffer, text []byte, opaque interface{}) int
+	StrikeThrough  func(out *bytes.Buffer, text []byte, opaque interface{}) int
 
-	// low-level callbacks---nil copies input directly into the output
-	entity     func(out *bytes.Buffer, entity []byte, opaque interface{})
-	normalText func(out *bytes.Buffer, text []byte, opaque interface{})
+	// Low-level callbacks---nil copies input directly into the output
+	Entity     func(out *bytes.Buffer, entity []byte, opaque interface{})
+	NormalText func(out *bytes.Buffer, text []byte, opaque interface{})
 
-	// header and footer
-	documentHeader func(out *bytes.Buffer, opaque interface{})
-	documentFooter func(out *bytes.Buffer, opaque interface{})
+	// Header and footer
+	DocumentHeader func(out *bytes.Buffer, opaque interface{})
+	DocumentFooter func(out *bytes.Buffer, opaque interface{})
 
-	// user data---passed back to every callback
-	opaque interface{}
+	// User data---passed back to every callback
+	Opaque interface{}
 }
 
 type inlineParser func(out *bytes.Buffer, rndr *render, data []byte, offset int) int
@@ -166,28 +166,28 @@ func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 	rndr.maxNesting = 16
 
 	// register inline parsers
-	if rndr.mk.emphasis != nil || rndr.mk.doubleEmphasis != nil || rndr.mk.tripleEmphasis != nil {
+	if rndr.mk.Emphasis != nil || rndr.mk.DoubleEmphasis != nil || rndr.mk.TripleEmphasis != nil {
 		rndr.inline['*'] = inlineEmphasis
 		rndr.inline['_'] = inlineEmphasis
 		if extensions&EXTENSION_STRIKETHROUGH != 0 {
 			rndr.inline['~'] = inlineEmphasis
 		}
 	}
-	if rndr.mk.codespan != nil {
-		rndr.inline['`'] = inlineCodespan
+	if rndr.mk.CodeSpan != nil {
+		rndr.inline['`'] = inlineCodeSpan
 	}
-	if rndr.mk.linebreak != nil {
-		rndr.inline['\n'] = inlineLinebreak
+	if rndr.mk.LineBreak != nil {
+		rndr.inline['\n'] = inlineLineBreak
 	}
-	if rndr.mk.image != nil || rndr.mk.link != nil {
+	if rndr.mk.Image != nil || rndr.mk.Link != nil {
 		rndr.inline['['] = inlineLink
 	}
-	rndr.inline['<'] = inlineLangle
+	rndr.inline['<'] = inlineLAngle
 	rndr.inline['\\'] = inlineEscape
 	rndr.inline['&'] = inlineEntity
 
 	if extensions&EXTENSION_AUTOLINK != 0 {
-		rndr.inline[':'] = inlineAutolink
+		rndr.inline[':'] = inlineAutoLink
 	}
 
 	// first pass: look for references, copy everything else
@@ -221,8 +221,8 @@ func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 
 	// second pass: actual rendering
 	output := bytes.NewBuffer(nil)
-	if rndr.mk.documentHeader != nil {
-		rndr.mk.documentHeader(output, rndr.mk.opaque)
+	if rndr.mk.DocumentHeader != nil {
+		rndr.mk.DocumentHeader(output, rndr.mk.Opaque)
 	}
 
 	if text.Len() > 0 {
@@ -234,8 +234,8 @@ func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 		parseBlock(output, rndr, text.Bytes())
 	}
 
-	if rndr.mk.documentFooter != nil {
-		rndr.mk.documentFooter(output, rndr.mk.opaque)
+	if rndr.mk.DocumentFooter != nil {
+		rndr.mk.DocumentFooter(output, rndr.mk.Opaque)
 	}
 
 	if rndr.nesting != 0 {
