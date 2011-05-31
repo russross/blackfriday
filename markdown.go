@@ -14,6 +14,7 @@ package blackfriday
 
 import (
 	"bytes"
+	"utf8"
 )
 
 // These are the supported markdown parsing extensions.
@@ -436,19 +437,43 @@ func isalnum(c byte) bool {
 }
 
 // Replace tab characters with spaces, aligning to the next TAB_SIZE column.
-// TODO: count runes rather than bytes
 func expandTabs(out *bytes.Buffer, line []byte) {
-	i, tab := 0, 0
+	// first, check for common cases: no tabs, or only tabs at beginning of line
+	i, prefix := 0, 0
+	slowcase := false
+	for i = 0; i < len(line); i++ {
+		if line[i] == '\t' {
+			if prefix == i {
+				prefix++
+			} else {
+				slowcase = true
+				break
+			}
+		}
+	}
 
+	// no need to decode runes if all tabs are at the beginning of the line
+	if !slowcase {
+		for i = 0; i < prefix*TAB_SIZE; i++ {
+			out.WriteByte(' ')
+		}
+		out.Write(line[prefix:])
+		return
+	}
+
+	// the slow case: we need to count runes to figure out how
+	// many spaces to insert for each tab
+	column := 0
 	for i < len(line) {
-		org := i
+		start := i
 		for i < len(line) && line[i] != '\t' {
-			i++
-			tab++
+			_, size := utf8.DecodeRune(line[i:])
+			i += size
+			column++
 		}
 
-		if i > org {
-			out.Write(line[org:i])
+		if i > start {
+			out.Write(line[start:i])
 		}
 
 		if i >= len(line) {
@@ -457,8 +482,8 @@ func expandTabs(out *bytes.Buffer, line []byte) {
 
 		for {
 			out.WriteByte(' ')
-			tab++
-			if tab%TAB_SIZE == 0 {
+			column++
+			if column%TAB_SIZE == 0 {
 				break
 			}
 		}
