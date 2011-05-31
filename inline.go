@@ -20,6 +20,7 @@ import (
 // offset is the number of valid chars before the current cursor
 
 func parseInline(out *bytes.Buffer, rndr *render, data []byte) {
+	// this is called recursively: enforce a maximum depth
 	if rndr.nesting >= rndr.maxNesting {
 		return
 	}
@@ -45,12 +46,12 @@ func parseInline(out *bytes.Buffer, rndr *render, data []byte) {
 
 		// call the trigger
 		parser := rndr.inline[data[end]]
-		end = parser(out, rndr, data, i)
-
-		if end == 0 { // no action from the callback
+		if consumed := parser(out, rndr, data, i); consumed == 0 {
+			// no action from the callback; buffer the byte for later
 			end = i + 1
 		} else {
-			i += end
+			// skip past whatever the callback used
+			i += consumed
 			end = i
 		}
 	}

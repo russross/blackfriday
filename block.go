@@ -562,29 +562,31 @@ func blockFencedCode(out *bytes.Buffer, rndr *render, data []byte) int {
 func blockTable(out *bytes.Buffer, rndr *render, data []byte) int {
 	var header_work bytes.Buffer
 	i, columns, col_data := blockTableHeader(&header_work, rndr, data)
-	if i > 0 {
-		var body_work bytes.Buffer
+	if i == 0 {
+		return 0
+	}
 
-		for i < len(data) {
-			pipes, row_start := 0, i
-			for ; i < len(data) && data[i] != '\n'; i++ {
-				if data[i] == '|' {
-					pipes++
-				}
+	var body_work bytes.Buffer
+
+	for i < len(data) {
+		pipes, row_start := 0, i
+		for ; i < len(data) && data[i] != '\n'; i++ {
+			if data[i] == '|' {
+				pipes++
 			}
-
-			if pipes == 0 || i == len(data) {
-				i = row_start
-				break
-			}
-
-			blockTableRow(&body_work, rndr, data[row_start:i], columns, col_data)
-			i++
 		}
 
-		if rndr.mk.Table != nil {
-			rndr.mk.Table(out, header_work.Bytes(), body_work.Bytes(), col_data, rndr.mk.Opaque)
+		if pipes == 0 || i == len(data) {
+			i = row_start
+			break
 		}
+
+		blockTableRow(&body_work, rndr, data[row_start:i], columns, col_data)
+		i++
+	}
+
+	if rndr.mk.Table != nil {
+		rndr.mk.Table(out, header_work.Bytes(), body_work.Bytes(), col_data, rndr.mk.Opaque)
 	}
 
 	return i
