@@ -9,8 +9,8 @@ feed it arbitrary user-supplied inputs). It also retains the
 emphasis on high performance, and the source is almost as ugly as
 the original.
 
-HTML output is currently supported, along with Smartpants
-extensions.
+HTML output is currently supported, along with Smartypants
+extensions. An experimental LaTeX output engine is also included.
 
 
 Installation
@@ -99,6 +99,7 @@ Todo
 
 *   Code cleanup
 *   Better code documentation
+*   Markdown pretty-printer output engine
 
 
    [1]: http://daringfireball.net/projects/markdown/ "Markdown"
