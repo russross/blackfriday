@@ -116,8 +116,8 @@ func blockPrefixHeader(out *bytes.Buffer, rndr *render, data []byte) int {
 		end--
 	}
 	if end > i {
-		work := bytes.NewBuffer(nil)
-		parseInline(work, rndr, data[i:end])
+		var work bytes.Buffer
+		parseInline(&work, rndr, data[i:end])
 		if rndr.mk.Header != nil {
 			rndr.mk.Header(out, work.Bytes(), level, rndr.mk.Opaque)
 		}
@@ -450,7 +450,7 @@ func blockFencedCode(out *bytes.Buffer, rndr *render, data []byte) int {
 		return 0
 	}
 
-	work := bytes.NewBuffer(nil)
+	var work bytes.Buffer
 
 	for beg < len(data) {
 		fence_end := isFencedCode(data[beg:], nil)
@@ -491,10 +491,10 @@ func blockFencedCode(out *bytes.Buffer, rndr *render, data []byte) int {
 }
 
 func blockTable(out *bytes.Buffer, rndr *render, data []byte) int {
-	header_work := bytes.NewBuffer(nil)
-	i, columns, col_data := blockTableHeader(header_work, rndr, data)
+	var header_work bytes.Buffer
+	i, columns, col_data := blockTableHeader(&header_work, rndr, data)
 	if i > 0 {
-		body_work := bytes.NewBuffer(nil)
+		var body_work bytes.Buffer
 
 		for i < len(data) {
 			pipes, row_start := 0, i
@@ -509,7 +509,7 @@ func blockTable(out *bytes.Buffer, rndr *render, data []byte) int {
 				break
 			}
 
-			blockTableRow(body_work, rndr, data[row_start:i], columns, col_data)
+			blockTableRow(&body_work, rndr, data[row_start:i], columns, col_data)
 			i++
 		}
 
@@ -609,7 +609,7 @@ func blockTableHeader(out *bytes.Buffer, rndr *render, data []byte) (size int, c
 
 func blockTableRow(out *bytes.Buffer, rndr *render, data []byte, columns int, col_data []int) {
 	i, col := 0, 0
-	row_work := bytes.NewBuffer(nil)
+	var row_work bytes.Buffer
 
 	if i < len(data) && data[i] == '|' {
 		i++
@@ -632,15 +632,15 @@ func blockTableRow(out *bytes.Buffer, rndr *render, data []byte, columns int, co
 			cell_end--
 		}
 
-		cell_work := bytes.NewBuffer(nil)
-		parseInline(cell_work, rndr, data[cell_start:cell_end+1])
+		var cell_work bytes.Buffer
+		parseInline(&cell_work, rndr, data[cell_start:cell_end+1])
 
 		if rndr.mk.TableCell != nil {
 			cdata := 0
 			if col < len(col_data) {
 				cdata = col_data[col]
 			}
-			rndr.mk.TableCell(row_work, cell_work.Bytes(), cdata, rndr.mk.Opaque)
+			rndr.mk.TableCell(&row_work, cell_work.Bytes(), cdata, rndr.mk.Opaque)
 		}
 
 		i++
@@ -653,7 +653,7 @@ func blockTableRow(out *bytes.Buffer, rndr *render, data []byte, columns int, co
 			if col < len(col_data) {
 				cdata = col_data[col]
 			}
-			rndr.mk.TableCell(row_work, empty_cell, cdata, rndr.mk.Opaque)
+			rndr.mk.TableCell(&row_work, empty_cell, cdata, rndr.mk.Opaque)
 		}
 	}
 
@@ -679,8 +679,8 @@ func blockQuotePrefix(data []byte) int {
 
 // parse a blockquote fragment
 func blockQuote(out *bytes.Buffer, rndr *render, data []byte) int {
-	block := bytes.NewBuffer(nil)
-	work := bytes.NewBuffer(nil)
+	var block bytes.Buffer
+	var work bytes.Buffer
 	beg, end := 0, 0
 	for beg < len(data) {
 		for end = beg + 1; end < len(data) && data[end-1] != '\n'; end++ {
@@ -701,7 +701,7 @@ func blockQuote(out *bytes.Buffer, rndr *render, data []byte) int {
 		beg = end
 	}
 
-	parseBlock(block, rndr, work.Bytes())
+	parseBlock(&block, rndr, work.Bytes())
 	if rndr.mk.BlockQuote != nil {
 		rndr.mk.BlockQuote(out, block.Bytes(), rndr.mk.Opaque)
 	}
@@ -720,7 +720,7 @@ func blockCodePrefix(data []byte) int {
 }
 
 func blockCode(out *bytes.Buffer, rndr *render, data []byte) int {
-	work := bytes.NewBuffer(nil)
+	var work bytes.Buffer
 
 	beg, end := 0, 0
 	for beg < len(data) {
@@ -754,7 +754,7 @@ func blockCode(out *bytes.Buffer, rndr *render, data []byte) int {
 		n++
 	}
 	if n > 0 {
-		work = bytes.NewBuffer(workbytes[:len(workbytes)-n])
+        work.Truncate(len(workbytes)-n)
 	}
 
 	work.WriteByte('\n')
@@ -798,11 +798,11 @@ func blockOliPrefix(data []byte) int {
 
 // parse ordered or unordered list block
 func blockList(out *bytes.Buffer, rndr *render, data []byte, flags int) int {
-	work := bytes.NewBuffer(nil)
+	var work bytes.Buffer
 
 	i, j := 0, 0
 	for i < len(data) {
-		j = blockListItem(work, rndr, data[i:], &flags)
+		j = blockListItem(&work, rndr, data[i:], &flags)
 		i += j
 
 		if j == 0 || flags&LIST_ITEM_END_OF_LIST != 0 {
@@ -846,8 +846,8 @@ func blockListItem(out *bytes.Buffer, rndr *render, data []byte, flags *int) int
 	}
 
 	// get working buffers
-	work := bytes.NewBuffer(nil)
-	inter := bytes.NewBuffer(nil)
+	var work bytes.Buffer
+	var inter bytes.Buffer
 
 	// put the first line into the working buffer
 	work.Write(data[beg:end])
@@ -924,18 +924,18 @@ func blockListItem(out *bytes.Buffer, rndr *render, data []byte, flags *int) int
 	if *flags&LIST_ITEM_CONTAINS_BLOCK != 0 {
 		// intermediate render of block li
 		if sublist > 0 && sublist < len(workbytes) {
-			parseBlock(inter, rndr, workbytes[:sublist])
-			parseBlock(inter, rndr, workbytes[sublist:])
+			parseBlock(&inter, rndr, workbytes[:sublist])
+			parseBlock(&inter, rndr, workbytes[sublist:])
 		} else {
-			parseBlock(inter, rndr, workbytes)
+			parseBlock(&inter, rndr, workbytes)
 		}
 	} else {
 		// intermediate render of inline li
 		if sublist > 0 && sublist < len(workbytes) {
-			parseInline(inter, rndr, workbytes[:sublist])
-			parseBlock(inter, rndr, workbytes[sublist:])
+			parseInline(&inter, rndr, workbytes[:sublist])
+			parseBlock(&inter, rndr, workbytes[sublist:])
 		} else {
-			parseInline(inter, rndr, workbytes)
+			parseInline(&inter, rndr, workbytes)
 		}
 	}
 
@@ -983,8 +983,8 @@ func blockParagraph(out *bytes.Buffer, rndr *render, data []byte) int {
 	}
 
 	if level == 0 {
-		tmp := bytes.NewBuffer(nil)
-		parseInline(tmp, rndr, work[:size])
+		var tmp bytes.Buffer
+		parseInline(&tmp, rndr, work[:size])
 		if rndr.mk.Paragraph != nil {
 			rndr.mk.Paragraph(out, tmp.Bytes(), rndr.mk.Opaque)
 		}
@@ -1004,8 +1004,8 @@ func blockParagraph(out *bytes.Buffer, rndr *render, data []byte) int {
 			}
 
 			if size > 0 {
-				tmp := bytes.NewBuffer(nil)
-				parseInline(tmp, rndr, work[:size])
+				var tmp bytes.Buffer
+				parseInline(&tmp, rndr, work[:size])
 				if rndr.mk.Paragraph != nil {
 					rndr.mk.Paragraph(out, tmp.Bytes(), rndr.mk.Opaque)
 				}
@@ -1017,8 +1017,8 @@ func blockParagraph(out *bytes.Buffer, rndr *render, data []byte) int {
 			}
 		}
 
-		header_work := bytes.NewBuffer(nil)
-		parseInline(header_work, rndr, work[:size])
+		var header_work bytes.Buffer
+		parseInline(&header_work, rndr, work[:size])
 
 		if rndr.mk.Header != nil {
 			rndr.mk.Header(out, header_work.Bytes(), level, rndr.mk.Opaque)

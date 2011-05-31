@@ -191,7 +191,7 @@ func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 	}
 
 	// first pass: look for references, copy everything else
-	text := bytes.NewBuffer(nil)
+	var text bytes.Buffer
 	beg, end := 0, 0
 	for beg < len(input) { // iterate over lines
 		if end = isReference(rndr, input[beg:]); end > 0 {
@@ -204,7 +204,7 @@ func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 
 			// add the line body if present
 			if end > beg {
-				expandTabs(text, input[beg:end])
+				expandTabs(&text, input[beg:end])
 			}
 
 			for end < len(input) && (input[end] == '\n' || input[end] == '\r') {
@@ -220,9 +220,9 @@ func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 	}
 
 	// second pass: actual rendering
-	output := bytes.NewBuffer(nil)
+	var output bytes.Buffer
 	if rndr.mk.DocumentHeader != nil {
-		rndr.mk.DocumentHeader(output, rndr.mk.Opaque)
+		rndr.mk.DocumentHeader(&output, rndr.mk.Opaque)
 	}
 
 	if text.Len() > 0 {
@@ -231,11 +231,11 @@ func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 		if finalchar != '\n' && finalchar != '\r' {
 			text.WriteByte('\n')
 		}
-		parseBlock(output, rndr, text.Bytes())
+		parseBlock(&output, rndr, text.Bytes())
 	}
 
 	if rndr.mk.DocumentFooter != nil {
-		rndr.mk.DocumentFooter(output, rndr.mk.Opaque)
+		rndr.mk.DocumentFooter(&output, rndr.mk.Opaque)
 	}
 
 	if rndr.nesting != 0 {

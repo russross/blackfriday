@@ -332,8 +332,8 @@ func htmlSmartypants(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	smrt := smartypantsData{false, false}
 
 	// first do normal entity escaping
-	escaped := bytes.NewBuffer(nil)
-	attrEscape(escaped, text)
+	var escaped bytes.Buffer
+	attrEscape(&escaped, text)
 	text = escaped.Bytes()
 
 	mark := 0
