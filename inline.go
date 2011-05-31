@@ -536,19 +536,19 @@ func inlineEntity(out *bytes.Buffer, rndr *render, data []byte, offset int) int 
 }
 
 func inlineAutoLink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
-    // quick check to rule out most false hits on ':'
-    if len(data) < offset + 3 || data[offset+1] != '/' || data[offset+2] != '/' {
-        return 0
-    }
+	// quick check to rule out most false hits on ':'
+	if len(data) < offset+3 || data[offset+1] != '/' || data[offset+2] != '/' {
+		return 0
+	}
 
-    // scan backward for a word boundary
-    rewind := 0
-    for offset - rewind > 0 && rewind <= 7 && !isspace(data[offset-rewind-1]) && !isspace(data[offset-rewind-1]) {
-        rewind++
-    }
-    if rewind > 6 { // longest supported protocol is "mailto" which has 6 letters
-        return 0
-    }
+	// scan backward for a word boundary
+	rewind := 0
+	for offset-rewind > 0 && rewind <= 7 && !isspace(data[offset-rewind-1]) && !isspace(data[offset-rewind-1]) {
+		rewind++
+	}
+	if rewind > 6 { // longest supported protocol is "mailto" which has 6 letters
+		return 0
+	}
 
 	orig_data := data
 	data = data[offset-rewind:]
@@ -626,10 +626,10 @@ func inlineAutoLink(out *bytes.Buffer, rndr *render, data []byte, offset int) in
 		}
 	}
 
-    // we were triggered on the ':', so we need to rewind the output a bit
-    if out.Len() >= rewind {
-        out.Truncate(len(out.Bytes()) - rewind)
-    }
+	// we were triggered on the ':', so we need to rewind the output a bit
+	if out.Len() >= rewind {
+		out.Truncate(len(out.Bytes()) - rewind)
+	}
 
 	if rndr.mk.AutoLink != nil {
 		var u_link bytes.Buffer

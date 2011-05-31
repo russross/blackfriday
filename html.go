@@ -35,7 +35,7 @@ const (
 )
 
 type htmlOptions struct {
-	flags     int
+	flags    int
 	closeTag string // how to end singleton tags: usually " />\n", possibly ">\n"
 	tocData  struct {
 		headerCount  int
@@ -427,10 +427,10 @@ func htmlAutoLink(out *bytes.Buffer, link []byte, kind int, opaque interface{}) 
 	 * an actual URI, e.g. `mailto:foo@bar.com`, we don't
 	 * want to print the `mailto:` prefix
 	 */
-    switch {
+	switch {
 	case bytes.HasPrefix(link, []byte("mailto://")):
 		attrEscape(out, link[9:])
-    case bytes.HasPrefix(link, []byte("mailto:")):
+	case bytes.HasPrefix(link, []byte("mailto:")):
 		attrEscape(out, link[7:])
 	default:
 		attrEscape(out, link)

@@ -754,7 +754,7 @@ func blockCode(out *bytes.Buffer, rndr *render, data []byte) int {
 		n++
 	}
 	if n > 0 {
-        work.Truncate(len(workbytes)-n)
+		work.Truncate(len(workbytes) - n)
 	}
 
 	work.WriteByte('\n')
