@@ -124,6 +124,7 @@ func inlineCodeSpan(out *bytes.Buffer, rndr *render, data []byte, offset int) in
 	}
 
 	if i < nb && end >= len(data) {
+        out.WriteByte('`')
 		return 0 // no matching delimiter
 	}
 
