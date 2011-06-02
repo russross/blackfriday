@@ -17,14 +17,20 @@ import (
 	"testing"
 )
 
-func runReferenceMarkdown(input string) string {
+func runReferenceMarkdown(input []byte) string {
 	renderer := HtmlRenderer(0)
-	return string(Markdown([]byte(input), renderer, 0))
+	return string(Markdown(input, renderer, 0))
 }
 
 // disregard dos vs. unix line endings differences
 func normalizeEol(s string) string {
 	return strings.Replace(s, "\r\n", "\n", -1)
+}
+
+// when re-generating reference files, keep the newlines in dos
+// format to avoid unnecessary diffs
+func unnormalizeEol(s string) string {
+	return strings.Replace(s, "\n", "\r\n", -1)	
 }
 
 func doFileTests(t *testing.T, files []string) {
@@ -36,14 +42,20 @@ func doFileTests(t *testing.T, files []string) {
 			continue
 		}
 		fn = filepath.Join("upskirtref", basename+"_upskirt_ref.html")
+
 		expecteddata, err := ioutil.ReadFile(fn)
 		if err != nil {
 			t.Errorf("Couldn't open '%s', error: %v\n", fn, err)
 			continue
 		}
 
-		actual := string(actualdata)
-		actual = normalizeEol(string(runReferenceMarkdown(actual)))
+
+		actual := runReferenceMarkdown(actualdata)
+		//Note: uncommenting lines below re-generates reference files. Those
+		//must be inspected manually to verify no mistakes have been introduced
+		//actual = unnormalizeEol(actual)
+		//ioutil.WriteFile(filepath.Join("upskirtref", basename+"_upskirt_ref.html"), []byte(actual), 0666)
+		actual = normalizeEol(actual)
 		expected := normalizeEol(string(expecteddata))
 		if actual != expected {
 			t.Errorf("\n    [%#v]\nExpected[%#v]\nActual  [%#v]",
