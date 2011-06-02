@@ -234,8 +234,8 @@ func TestCodeSpan(t *testing.T) {
 		"`source code` and a `stray\n",
 		"<p><code>source code</code> and a `stray</p>\n",
 
-		"`source with _awkward characters_ in it`\n",
-		"<p><code>source with _awkward characters_ in it</code></p>\n",
+		"`source *with* _awkward characters_ in it`\n",
+		"<p><code>source *with* _awkward characters_ in it</code></p>\n",
 
 		"`split over\ntwo lines`\n",
 		"<p><code>split over\ntwo lines</code></p>\n",
@@ -245,6 +245,20 @@ func TestCodeSpan(t *testing.T) {
 
 		"```multiple ticks `with` ticks inside```\n",
 		"<p><code>multiple ticks `with` ticks inside</code></p>\n",
+	}
+	doTests(t, tests)
+}
+
+func TestLineBreak(t *testing.T) {
+	var tests = []string{
+		"this line  \nhas a break\n",
+		"<p>this line<br />\nhas a break</p>\n",
+
+		"this line \ndoes not\n",
+		"<p>this line \ndoes not</p>\n",
+
+		"this has an   \nextra space\n",
+		"<p>this has an<br />\nextra space</p>\n",
 	}
 	doTests(t, tests)
 }

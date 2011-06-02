@@ -464,6 +464,7 @@ func expandTabs(out *bytes.Buffer, line []byte) {
 	// the slow case: we need to count runes to figure out how
 	// many spaces to insert for each tab
 	column := 0
+    i = 0
 	for i < len(line) {
 		start := i
 		for i < len(line) && line[i] != '\t' {
