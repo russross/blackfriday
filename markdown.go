@@ -413,16 +413,17 @@ func isReference(rndr *render, data []byte) int {
 //
 //
 
+// this bitmap corresponds to chars in "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
+// and was auto-generated
+// Note: we could get punctBitmap from 32 to 12 bytes by trimming 0 bytes
+// from both sides, but it would be slower due to additional range check
+var punctBitmap []byte = []byte{0x0,0x0,0x0,0x0,0xfe,0xff,0x0,0xfc,0x1,0x0,0x0,0xf8,0x1,0x0,0x0,0x78,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0}
 
 // Test if a character is a punctuation symbol.
-// Taken from a private function in regexp in the stdlib.
 func ispunct(c byte) bool {
-	for _, r := range []byte("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~") {
-		if c == r {
-			return true
-		}
-	}
-	return false
+	n := c / 8
+	mask := byte(1 << (c % 8))
+	return punctBitmap[n] & mask != 0
 }
 
 // Test if a character is a whitespace character.
