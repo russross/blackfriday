@@ -17,9 +17,9 @@ import (
 	"testing"
 )
 
-func runReferenceMarkdown(input []byte) string {
+func runReferenceMarkdown(input []byte, extensions uint32) string {
 	renderer := HtmlRenderer(0)
-	return string(Markdown(input, renderer, 0))
+	return string(Markdown(input, renderer, extensions))
 }
 
 // disregard dos vs. unix line endings differences
@@ -30,7 +30,7 @@ func normalizeEol(s string) string {
 // when re-generating reference files, keep the newlines in dos
 // format to avoid unnecessary diffs
 func unnormalizeEol(s string) string {
-	return strings.Replace(s, "\n", "\r\n", -1)	
+	return strings.Replace(s, "\n", "\r\n", -1)
 }
 
 func doFileTests(t *testing.T, files []string) {
@@ -49,8 +49,7 @@ func doFileTests(t *testing.T, files []string) {
 			continue
 		}
 
-
-		actual := runReferenceMarkdown(actualdata)
+		actual := runReferenceMarkdown(actualdata, 0)
 		//Note: uncommenting lines below re-generates reference files. Those
 		//must be inspected manually to verify no mistakes have been introduced
 		//actual = unnormalizeEol(actual)
@@ -61,6 +60,36 @@ func doFileTests(t *testing.T, files []string) {
 			t.Errorf("\n    [%#v]\nExpected[%#v]\nActual  [%#v]",
 				basename+".text", expected, actual)
 		}
+	}
+}
+
+// benchmark with all extensions enabled
+func BenchmarkFile(b *testing.B) {
+	b.StopTimer()
+	// using the largest file we have
+	fn := filepath.Join("upskirtref", "Markdown Documentation - Syntax.text")
+	data, err := ioutil.ReadFile(fn)
+	b.StartTimer()
+	if err != nil {
+		return
+	}
+	for i := 0; i < b.N; i++ {
+		runReferenceMarkdown(data, 0xff)
+	}
+}
+
+// benchmark with no extensions enabled
+func BenchmarkFileNoExt(b *testing.B) {
+	b.StopTimer()
+	// using the largest file we have
+	fn := filepath.Join("upskirtref", "Markdown Documentation - Syntax.text")
+	data, err := ioutil.ReadFile(fn)
+	b.StartTimer()
+	if err != nil {
+		return
+	}
+	for i := 0; i < b.N; i++ {
+		runReferenceMarkdown(data, 0)
 	}
 }
 
