@@ -58,10 +58,10 @@ func main() {
 	html_flags |= blackfriday.HTML_SMARTYPANTS_LATEX_DASHES
 
 	// render the data into HTML (comment this out to deselect HTML)
-    renderer := blackfriday.HtmlRenderer(html_flags)
+	renderer := blackfriday.HtmlRenderer(html_flags)
 
-    // render the data into LaTeX (uncomment to select LaTeX)
-    //renderer := blackfriday.LatexRenderer(0)
+	// render the data into LaTeX (uncomment to select LaTeX)
+	//renderer := blackfriday.LatexRenderer(0)
 
 	output := blackfriday.Markdown(input, renderer, extensions)
 

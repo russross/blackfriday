@@ -35,7 +35,7 @@ func doFileTests(t *testing.T, files []string) {
 			t.Errorf("Couldn't open '%s', error: %v\n", fn, err)
 			continue
 		}
-		fn = filepath.Join("upskirtref", basename+"_upskirt_ref.html")
+		fn = filepath.Join("upskirtref", basename+".html")
 		expecteddata, err := ioutil.ReadFile(fn)
 		if err != nil {
 			t.Errorf("Couldn't open '%s', error: %v\n", fn, err)
