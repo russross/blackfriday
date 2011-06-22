@@ -37,21 +37,60 @@ func isdigit(c byte) bool {
 }
 
 func smartQuotesHelper(ob *bytes.Buffer, previousChar byte, nextChar byte, quote byte, isOpen *bool) bool {
-	switch {
 	// edge of the buffer is likely to be a tag that we don't get to see,
-	// so we assume there is text there
-	case wordBoundary(previousChar) && previousChar != 0 && nextChar == 0:
+	// so we treat it like text sometimes
+
+	// enumerate all sixteen possibilities for (previousChar, nextChar)
+	// each can be one of {0, space, punct, other}
+	switch {
+	case previousChar == 0 && nextChar == 0:
+		// context is not any help here, so toggle
+		*isOpen = !*isOpen
+	case isspace(previousChar) && nextChar == 0:
+		// [ "] might be [ "<code>foo...]
 		*isOpen = true
-	case previousChar == 0 && wordBoundary(nextChar) && nextChar != 0:
+	case ispunct(previousChar) && nextChar == 0:
+		// [!"] hmm... could be [Run!"] or [("<code>...]
 		*isOpen = false
-	case wordBoundary(previousChar) && !wordBoundary(nextChar):
+	case /* isnormal(previousChar) && */ nextChar == 0:
+		// [a"] is probably a close
+		*isOpen = false
+	case previousChar == 0 && isspace(nextChar):
+		// [" ] might be [...foo</code>" ]
+		*isOpen = false
+	case isspace(previousChar) && isspace(nextChar):
+		// [ " ] context is not any help here, so toggle
+		*isOpen = !*isOpen
+	case ispunct(previousChar) && isspace(nextChar):
+		// [!" ] is probably a close
+		*isOpen = false
+	case /* isnormal(previousChar) && */ isspace(nextChar):
+		// [a" ] this is one of the easy cases
+		*isOpen = false
+	case previousChar == 0 && ispunct(nextChar):
+		// ["!] hmm... could be ["$1.95] or [</code>"!...]
+		*isOpen = false
+	case isspace(previousChar) && ispunct(nextChar):
+		// [ "!] looks more like [ "$1.95]
 		*isOpen = true
-	case !wordBoundary(previousChar) && wordBoundary(nextChar):
+	case ispunct(previousChar) && ispunct(nextChar):
+		// [!"!] context is not any help here, so toggle
+		*isOpen = !*isOpen
+	case /* isnormal(previousChar) && */ ispunct(nextChar):
+		// [a"!] is probably a close
 		*isOpen = false
-	case !wordBoundary(previousChar) && !wordBoundary(nextChar):
+	case previousChar == 0 /* && isnormal(nextChar) */ :
+		// ["a] is probably an open
+		*isOpen = true
+	case isspace(previousChar) /* && isnormal(nextChar) */ :
+		// [ "a] this is one of the easy cases
+		*isOpen = true
+	case ispunct(previousChar) /* && isnormal(nextChar) */ :
+		// [!"a] is probably an open
 		*isOpen = true
 	default:
-		*isOpen = !*isOpen
+		// [a'b] maybe a contraction?
+		*isOpen = false
 	}
 
 	ob.WriteByte('&')
