@@ -692,7 +692,7 @@ func tagLength(data []byte, autolink *int) int {
 	// scheme test
 	*autolink = LINK_TYPE_NOT_AUTOLINK
 
-	// try to find the beggining of an URI
+	// try to find the beginning of an URI
 	for i < len(data) && (isalnum(data[i]) || data[i] == '.' || data[i] == '+' || data[i] == '-') {
 		i++
 	}

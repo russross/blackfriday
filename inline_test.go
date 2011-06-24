@@ -262,3 +262,191 @@ func TestLineBreak(t *testing.T) {
 	}
 	doTests(t, tests)
 }
+
+func TestInlineLink(t *testing.T) {
+	var tests = []string{
+		"[foo](/bar/)\n",
+		"<p><a href=\"/bar/\">foo</a></p>\n",
+
+		"[foo with a title](/bar/ \"title\")\n",
+		"<p><a href=\"/bar/\" title=\"title\">foo with a title</a></p>\n",
+
+		"[foo with a title](/bar/\t\"title\")\n",
+		"<p><a href=\"/bar/\" title=\"title\">foo with a title</a></p>\n",
+
+		"[foo with a title](/bar/ \"title\"  )\n",
+		"<p><a href=\"/bar/\" title=\"title\">foo with a title</a></p>\n",
+
+		"[foo with a title](/bar/ title with no quotes)\n",
+		"<p><a href=\"/bar/ title with no quotes\">foo with a title</a></p>\n",
+
+		"[foo]()\n",
+		"<p><a href=\"\">foo</a></p>\n",
+
+		"![foo](/bar/)\n",
+		"<p><img src=\"/bar/\" alt=\"foo\" />\n</p>\n",
+
+		"![foo with a title](/bar/ \"title\")\n",
+		"<p><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\" />\n</p>\n",
+
+		"![foo with a title](/bar/\t\"title\")\n",
+		"<p><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\" />\n</p>\n",
+
+		"![foo with a title](/bar/ \"title\"  )\n",
+		"<p><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\" />\n</p>\n",
+
+		"![foo with a title](/bar/ title with no quotes)\n",
+		"<p><img src=\"/bar/ title with no quotes\" alt=\"foo with a title\" />\n</p>\n",
+
+		"![foo]()\n",
+		"<p>[foo]()</p>\n",
+
+		"[a link]\t(/with_a_tab/)\n",
+		"<p><a href=\"/with_a_tab/\">a link</a></p>\n",
+
+		"[a link]  (/with_spaces/)\n",
+		"<p><a href=\"/with_spaces/\">a link</a></p>\n",
+
+		"[text (with) [[nested] (brackets)]](/url/)\n",
+		"<p><a href=\"/url/\">text (with) [[nested] (brackets)]</a></p>\n",
+
+		"[text (with) [broken nested] (brackets)]](/url/)\n",
+		"<p>[text (with) <a href=\"brackets\">broken nested</a>]](/url/)</p>\n",
+
+		"[text\nwith a newline](/link/)\n",
+		"<p><a href=\"/link/\">text\nwith a newline</a></p>\n",
+
+		"[text in brackets] [followed](/by a link/)\n",
+		"<p>[text in brackets] <a href=\"/by a link/\">followed</a></p>\n",
+
+		"[link with\\] a closing bracket](/url/)\n",
+		"<p><a href=\"/url/\">link with] a closing bracket</a></p>\n",
+
+		"[link with\\[ an opening bracket](/url/)\n",
+		"<p><a href=\"/url/\">link with[ an opening bracket</a></p>\n",
+
+		"[link with\\) a closing paren](/url/)\n",
+		"<p><a href=\"/url/\">link with) a closing paren</a></p>\n",
+
+		"[link with\\( an opening paren](/url/)\n",
+		"<p><a href=\"/url/\">link with( an opening paren</a></p>\n",
+
+		"[link](  with whitespace)\n",
+		"<p><a href=\"with whitespace\">link</a></p>\n",
+
+		"[link](  with whitespace   )\n",
+		"<p><a href=\"with whitespace\">link</a></p>\n",
+
+		"[link](url \"one quote)\n",
+		"<p><a href=\"url &quot;one quote\">link</a></p>\n",
+
+		"[link](url 'one quote)\n",
+		"<p><a href=\"url 'one quote\">link</a></p>\n",
+
+		"[link](<url>)\n",
+		"<p><a href=\"url\">link</a></p>\n",
+
+		"[link & ampersand](/url/)\n",
+		"<p><a href=\"/url/\">link &amp; ampersand</a></p>\n",
+
+		"[link &amp; ampersand](/url/)\n",
+		"<p><a href=\"/url/\">link &amp; ampersand</a></p>\n",
+
+		"[link](/url/&query)\n",
+		"<p><a href=\"/url/&amp;query\">link</a></p>\n",
+	}
+	doTests(t, tests)
+}
+
+func TestReferenceLink(t *testing.T) {
+	var tests = []string{
+		"[link][ref]\n",
+		"<p>[link][ref]</p>\n",
+
+		"[link][ref]\n   [ref]: /url/ \"title\"\n",
+		"<p><a href=\"/url/\" title=\"title\">link</a></p>\n",
+
+		"[link][ref]\n   [ref]: /url/\n",
+		"<p><a href=\"/url/\">link</a></p>\n",
+
+		"   [ref]: /url/\n",
+		"",
+
+		"   [ref]: /url/\n[ref2]: /url/\n [ref3]: /url/\n",
+		"",
+
+		"   [ref]: /url/\n[ref2]: /url/\n [ref3]: /url/\n    [4spaces]: /url/\n",
+		"<pre><code>[4spaces]: /url/\n</code></pre>\n",
+
+		"[hmm](ref2)\n   [ref]: /url/\n[ref2]: /url/\n [ref3]: /url/\n",
+		"<p><a href=\"ref2\">hmm</a></p>\n",
+
+		"[ref]\n",
+		"<p>[ref]</p>\n",
+
+		"[ref]\n   [ref]: /url/ \"title\"\n",
+		"<p><a href=\"/url/\" title=\"title\">ref</a></p>\n",
+	}
+	doTests(t, tests)
+}
+
+func TestTags(t *testing.T) {
+	var tests = []string{
+		"a <span>tag</span>\n",
+		"<p>a <span>tag</span></p>\n",
+
+		"<span>tag</span>\n",
+		"<p><span>tag</span></p>\n",
+
+		"<span>mismatch</spandex>\n",
+		"<p><span>mismatch</spandex></p>\n",
+
+		"a <singleton /> tag\n",
+		"<p>a <singleton /> tag</p>\n",
+	}
+	doTests(t, tests)
+}
+
+func TestAutoLink(t *testing.T) {
+	var tests = []string{
+		"go to <http://foo.com/>\n",
+		"<p>go to <a href=\"http://foo.com/\">http://foo.com/</a></p>\n",
+
+		"a secure <https://link.org>\n",
+		"<p>a secure <a href=\"https://link.org\">https://link.org</a></p>\n",
+
+		"an email <mailto:some@one.com>\n",
+		"<p>an email <a href=\"mailto:some@one.com\">some@one.com</a></p>\n",
+
+		"an email <mailto://some@one.com>\n",
+		"<p>an email <a href=\"mailto://some@one.com\">some@one.com</a></p>\n",
+
+		"an email <some@one.com>\n",
+		"<p>an email <a href=\"mailto:some@one.com\">some@one.com</a></p>\n",
+
+		"an ftp <ftp://old.com>\n",
+		"<p>an ftp <a href=\"ftp://old.com\">ftp://old.com</a></p>\n",
+
+		"an ftp <ftp:old.com>\n",
+		"<p>an ftp <a href=\"ftp:old.com\">ftp:old.com</a></p>\n",
+
+		"a link with <http://new.com?query=foo&bar>\n",
+		"<p>a link with <a href=\"http://new.com?query=foo&amp;bar\">" +
+			"http://new.com?query=foo&amp;bar</a></p>\n",
+
+		"quotes mean a tag <http://new.com?query=\"foo\"&bar>\n",
+		"<p>quotes mean a tag <http://new.com?query=\"foo\"&bar></p>\n",
+
+		"quotes mean a tag <http://new.com?query='foo'&bar>\n",
+		"<p>quotes mean a tag <http://new.com?query='foo'&bar></p>\n",
+
+		"unless escaped <http://new.com?query=\\\"foo\\\"&bar>\n",
+		"<p>unless escaped <a href=\"http://new.com?query=&quot;foo&quot;&amp;bar\">" +
+			"http://new.com?query=&quot;foo&quot;&amp;bar</a></p>\n",
+
+		"even a > can be escaped <http://new.com?q=\\>&etc>\n",
+		"<p>even a &gt; can be escaped <a href=\"http://new.com?q=&gt;&amp;etc\">" +
+			"http://new.com?q=&gt;&amp;etc</a></p>\n",
+	}
+	doTests(t, tests)
+}
