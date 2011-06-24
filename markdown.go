@@ -141,6 +141,7 @@ type render struct {
 	flags      uint32
 	nesting    int
 	maxNesting int
+	insideLink bool
 }
 
 
@@ -165,6 +166,7 @@ func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 	rndr.flags = extensions
 	rndr.refs = make(map[string]*reference)
 	rndr.maxNesting = 16
+	rndr.insideLink = false
 
 	// register inline parsers
 	if rndr.mk.Emphasis != nil || rndr.mk.DoubleEmphasis != nil || rndr.mk.TripleEmphasis != nil {
@@ -464,7 +466,7 @@ func expandTabs(out *bytes.Buffer, line []byte) {
 	// the slow case: we need to count runes to figure out how
 	// many spaces to insert for each tab
 	column := 0
-    i = 0
+	i = 0
 	for i < len(line) {
 		start := i
 		for i < len(line) && line[i] != '\t' {

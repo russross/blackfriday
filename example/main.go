@@ -13,6 +13,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"github.com/russross/blackfriday"
@@ -20,22 +21,55 @@ import (
 )
 
 func main() {
+	// parse command-line options
+	var page, xhtml, latex, smartypants bool
+	var css string
+	var repeat int
+	flag.BoolVar(&page, "page", false,
+		"Generate a standalone HTML page (implies -latex=false)")
+	flag.BoolVar(&xhtml, "xhtml", true,
+		"Use XHTML-style tags in HTML output")
+	flag.BoolVar(&latex, "latex", false,
+		"Generate LaTeX output instead of HTML")
+	flag.BoolVar(&smartypants, "smartypants", false,
+		"Apply smartypants-style substitutions")
+	flag.StringVar(&css, "css", "",
+		"Link to a CSS stylesheet (implies -page)")
+	flag.IntVar(&repeat, "repeat", 1,
+		"Process the input multiple times (for benchmarking)")
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage:\n"+
+			"  %s [options] [inputfile [outputfile]]\n\n"+
+			"Options:\n", os.Args[0])
+		flag.PrintDefaults()
+	}
+	flag.Parse()
+
+	// enforce implied options
+	if css != "" {
+		page = true
+	}
+	if page {
+		latex = false
+	}
+
 	// read the input
 	var input []byte
 	var err os.Error
-	switch len(os.Args) {
-	case 1:
+	args := flag.Args()
+	switch len(args) {
+	case 0:
 		if input, err = ioutil.ReadAll(os.Stdin); err != nil {
 			fmt.Fprintln(os.Stderr, "Error reading from Stdin:", err)
 			os.Exit(-1)
 		}
-	case 2, 3:
-		if input, err = ioutil.ReadFile(os.Args[1]); err != nil {
-			fmt.Fprintln(os.Stderr, "Error reading from", os.Args[1], ":", err)
+	case 1, 2:
+		if input, err = ioutil.ReadFile(args[0]); err != nil {
+			fmt.Fprintln(os.Stderr, "Error reading from", args[0], ":", err)
 			os.Exit(-1)
 		}
 	default:
-		fmt.Fprintln(os.Stderr, "Usage:", os.Args[0], "[inputfile [outputfile]]")
+		flag.Usage()
 		os.Exit(-1)
 	}
 
@@ -48,33 +82,70 @@ func main() {
 	extensions |= blackfriday.EXTENSION_STRIKETHROUGH
 	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
 
-	html_flags := 0
-	html_flags |= blackfriday.HTML_USE_XHTML
-	// note: uncomment the following line to enable smartypants
-	// it is commented out by default so that markdown
-	// compatibility tests pass
-	//html_flags |= blackfriday.HTML_USE_SMARTYPANTS
-	html_flags |= blackfriday.HTML_SMARTYPANTS_FRACTIONS
-	html_flags |= blackfriday.HTML_SMARTYPANTS_LATEX_DASHES
+	var renderer *blackfriday.Renderer
+	if latex {
+		// render the data into LaTeX
+		renderer = blackfriday.LatexRenderer(0)
+	} else {
+		// render the data into HTML
+		html_flags := 0
+		if xhtml {
+			html_flags |= blackfriday.HTML_USE_XHTML
+		}
+		if smartypants {
+			html_flags |= blackfriday.HTML_USE_SMARTYPANTS
+			html_flags |= blackfriday.HTML_SMARTYPANTS_FRACTIONS
+			html_flags |= blackfriday.HTML_SMARTYPANTS_LATEX_DASHES
+		}
+		renderer = blackfriday.HtmlRenderer(html_flags)
+	}
 
-	// render the data into HTML (comment this out to deselect HTML)
-	renderer := blackfriday.HtmlRenderer(html_flags)
-
-	// render the data into LaTeX (uncomment to select LaTeX)
-	//renderer := blackfriday.LatexRenderer(0)
-
-	output := blackfriday.Markdown(input, renderer, extensions)
+	// parse and render
+	var output []byte
+	for i := 0; i < repeat; i++ {
+		output = blackfriday.Markdown(input, renderer, extensions)
+	}
 
 	// output the result
-	if len(os.Args) == 3 {
-		if err = ioutil.WriteFile(os.Args[2], output, 0644); err != nil {
-			fmt.Fprintln(os.Stderr, "Error writing to", os.Args[2], ":", err)
+	var out *os.File
+	if len(args) == 2 {
+		if out, err = os.Create(args[1]); err != nil {
+			fmt.Fprintf(os.Stderr, "Error creating %s: %v", args[1], err)
 			os.Exit(-1)
 		}
+		defer out.Close()
 	} else {
-		if _, err = os.Stdout.Write(output); err != nil {
-			fmt.Fprintln(os.Stderr, "Error writing to Stdout:", err)
-			os.Exit(-1)
+		out = os.Stdout
+	}
+
+	if page {
+		ending := ""
+		if xhtml {
+			fmt.Fprint(out, "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" ")
+			fmt.Fprintln(out, "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">")
+			fmt.Fprintln(out, "<html xmlns=\"http://www.w3.org/1999/xhtml\">")
+			ending = " /"
+		} else {
+			fmt.Fprint(out, "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\" ")
+			fmt.Fprintln(out, "\"http://www.w3.org/TR/html4/strict.dtd\">")
+			fmt.Fprintln(out, "<html>")
 		}
+		fmt.Fprintln(out, "<head>")
+		fmt.Fprintln(out, "  <title></title>")
+		fmt.Fprintf(out, "  <meta name=\"GENERATOR\" content=\"Blackfriday markdown processor\"%s>\n", ending)
+		fmt.Fprintf(out, "  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"%s>\n", ending)
+		if css != "" {
+			fmt.Fprintf(out, "  <link rel=\"stylesheet\" type=\"text/css\" href=\"%s\" />\n", css)
+		}
+		fmt.Fprintln(out, "</head>")
+		fmt.Fprintln(out, "<body>")
+	}
+	if _, err = out.Write(output); err != nil {
+		fmt.Fprintln(os.Stderr, "Error writing output:", err)
+		os.Exit(-1)
+	}
+	if page {
+		fmt.Fprintln(out, "</body>")
+		fmt.Fprintln(out, "</html>")
 	}
 }

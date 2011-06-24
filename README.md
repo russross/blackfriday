@@ -53,17 +53,13 @@ All features of upskirt are supported, including:
 
 *   Good performance. I have not done rigorous benchmarking, but
     informal testing suggests it is around 3.5x slower than upskirt.
-    This is an ugly, direct translation from the C code, so
-    the difference is unlikely to be related to differences in
-    coding style. There is a lot of bounds checking that is
-    duplicated (by user code for the application and again by code
-    the compiler generates) and there is some additional memory
-    management overhead, since I allocate and garbage collect
-    buffers instead of explicitly managing them as upskirt does.
 
 *   Minimal dependencies. blackfriday only depends on standard
     library packages in Go. The source code is pretty
     self-contained, so it is easy to add to any project.
+
+*   Output successfully validates using the W3C validation tool for
+    HTML 4.01 and XHTML 1.0 Transitional.
 
 
 Extensions
@@ -83,15 +79,12 @@ LaTeX Output
 ------------
 
 A rudimentary LaTeX rendering backend is also included. To see an
-example of its usage, comment out this link in `main.go`:
+example of its usage, see `main.go`:
 
-    renderer := blackfriday.HtmlRenderer(html_flags)
-
-and uncomment this line:
-
-    renderer := blackfriday.LatexRenderer(0)
-
-It renders some basic documents, but is only experimental at this point.
+It renders some basic documents, but is only experimental at this
+point. In particular, it does not do any inline escaping, so input
+that happens to look like LaTeX code will be passed through without
+modification.
 
 
 Todo

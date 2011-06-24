@@ -419,7 +419,7 @@ func htmlAutoLink(out *bytes.Buffer, link []byte, kind int, opaque interface{}) 
 	if kind == LINK_TYPE_EMAIL {
 		out.WriteString("mailto:")
 	}
-	out.Write(link)
+	attrEscape(out, link)
 	out.WriteString("\">")
 
 	/*
@@ -504,17 +504,13 @@ func htmlLink(out *bytes.Buffer, link []byte, title []byte, content []byte, opaq
 	}
 
 	out.WriteString("<a href=\"")
-	if len(link) > 0 {
-		out.Write(link)
-	}
+	attrEscape(out, link)
 	if len(title) > 0 {
 		out.WriteString("\" title=\"")
 		attrEscape(out, title)
 	}
 	out.WriteString("\">")
-	if len(content) > 0 {
-		out.Write(content)
-	}
+	out.Write(content)
 	out.WriteString("</a>")
 	return 1
 }

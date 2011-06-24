@@ -124,7 +124,7 @@ func inlineCodeSpan(out *bytes.Buffer, rndr *render, data []byte, offset int) in
 	}
 
 	if i < nb && end >= len(data) {
-        out.WriteByte('`')
+		out.WriteByte('`')
 		return 0 // no matching delimiter
 	}
 
@@ -185,6 +185,11 @@ func inlineLineBreak(out *bytes.Buffer, rndr *render, data []byte, offset int) i
 
 // '[': parse a link or an image
 func inlineLink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
+	// no links allowed inside other links
+	if rndr.insideLink {
+		return 0
+	}
+
 	isImg := offset > 0 && data[offset-1] == '!'
 
 	data = data[offset:]
@@ -410,7 +415,11 @@ func inlineLink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 		if isImg {
 			content.Write(data[1:txt_e])
 		} else {
+			// links cannot contain other links, so turn off link parsing temporarily
+			insideLink := rndr.insideLink
+			rndr.insideLink = true
 			parseInline(&content, rndr, data[1:txt_e])
+			rndr.insideLink = insideLink
 		}
 	}
 
@@ -539,7 +548,7 @@ func inlineEntity(out *bytes.Buffer, rndr *render, data []byte, offset int) int 
 
 func inlineAutoLink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	// quick check to rule out most false hits on ':'
-	if len(data) < offset+3 || data[offset+1] != '/' || data[offset+2] != '/' {
+	if rndr.insideLink || len(data) < offset+3 || data[offset+1] != '/' || data[offset+2] != '/' {
 		return 0
 	}
 
