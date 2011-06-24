@@ -18,12 +18,13 @@ import (
 	"io/ioutil"
 	"github.com/russross/blackfriday"
 	"os"
+	"runtime/pprof"
 )
 
 func main() {
 	// parse command-line options
 	var page, xhtml, latex, smartypants bool
-	var css string
+	var css, cpuprofile string
 	var repeat int
 	flag.BoolVar(&page, "page", false,
 		"Generate a standalone HTML page (implies -latex=false)")
@@ -35,6 +36,8 @@ func main() {
 		"Apply smartypants-style substitutions")
 	flag.StringVar(&css, "css", "",
 		"Link to a CSS stylesheet (implies -page)")
+	flag.StringVar(&cpuprofile, "cpuprofile", "",
+		"Write cpu profile to a file")
 	flag.IntVar(&repeat, "repeat", 1,
 		"Process the input multiple times (for benchmarking)")
 	flag.Usage = func() {
@@ -51,6 +54,16 @@ func main() {
 	}
 	if page {
 		latex = false
+	}
+
+	// turn on profiling?
+	if cpuprofile != "" {
+		f, err := os.Create(cpuprofile)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
 	}
 
 	// read the input
