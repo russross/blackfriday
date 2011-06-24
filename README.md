@@ -70,9 +70,11 @@ implements two additional Smartypants options:
 
 *   LaTeX-style dash parsing, where `--` is translated into
     `&ndash;`, and `---` is translated into `&mdash;`
-*   Generic fractions, where anything that looks like a fraction
-    is translated into suitable HTML (instead of just a few special
-    cases). For example, `4/5` becomes `<sup>4</sup>&frasl;<sub>5</sub>`
+*   Generic fractions, where anything that looks like a fraction is
+    translated into suitable HTML (instead of just a few special
+    cases).  For example, `4/5` becomes
+    `<sup>4</sup>&frasl;<sub>5</sub>`, which renders as
+    <sup>4</sup>&frasl;<sub>5</sub>.
 
 
 LaTeX Output
