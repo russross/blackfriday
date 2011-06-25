@@ -123,39 +123,42 @@ func HtmlTocRenderer(flags int) *Renderer {
 func attrEscape(out *bytes.Buffer, src []byte) {
 	org := 0
 	for i, ch := range src {
-		// doing this check is a bit faster than falling into
-		// the switch statement. as the compiler improves, this
-		// should be unnecessary
-		if ch != '"' && ch != '&' && ch != '<' && ch != '>' {
-			continue
-		}
-
-		switch ch {
-		case '<':
+		// using if statements is a bit faster than a switch statement.
+		// as the compiler improves, this should be unnecessary
+		// this is only worthwhile because attrEscape is the single
+		// largest CPU user in normal use
+		if ch == '"' {
 			if i > org {
 				// copy all the normal characters since the last escape
 				out.Write(src[org:i])
 			}
 			org = i + 1
-			out.WriteString("&lt;")
-		case '>':
-			if i > org {
-				out.Write(src[org:i])
-			}
-			org = i + 1
-			out.WriteString("&gt;")
-		case '&':
+			out.WriteString("&quot;")
+			continue
+		}
+		if ch == '&' {
 			if i > org {
 				out.Write(src[org:i])
 			}
 			org = i + 1
 			out.WriteString("&amp;")
-		case '"':
+			continue
+		}
+		if ch == '<' {
 			if i > org {
 				out.Write(src[org:i])
 			}
 			org = i + 1
-			out.WriteString("&quot;")
+			out.WriteString("&lt;")
+			continue
+		}
+		if ch == '>' {
+			if i > org {
+				out.Write(src[org:i])
+			}
+			org = i + 1
+			out.WriteString("&gt;")
+			continue
 		}
 	}
 	if org < len(src) {
@@ -351,8 +354,10 @@ func htmlTableCell(out *bytes.Buffer, text []byte, align int, opaque interface{}
 	out.WriteString("</td>")
 }
 
-func htmlList(out *bytes.Buffer, text []byte, flags int, opaque interface{}) {
-	if out.Len() > 0 {
+func htmlList(out *bytes.Buffer, text func() bool, flags int, opaque interface{}) {
+	marker := out.Len()
+
+	if marker > 0 {
 		out.WriteByte('\n')
 	}
 	if flags&LIST_TYPE_ORDERED != 0 {
@@ -360,7 +365,10 @@ func htmlList(out *bytes.Buffer, text []byte, flags int, opaque interface{}) {
 	} else {
 		out.WriteString("<ul>\n")
 	}
-	out.Write(text)
+	if !text() {
+		out.Truncate(marker)
+		return
+	}
 	if flags&LIST_TYPE_ORDERED != 0 {
 		out.WriteString("</ol>\n")
 	} else {

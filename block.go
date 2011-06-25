@@ -882,20 +882,22 @@ func blockOliPrefix(data []byte) int {
 
 // parse ordered or unordered list block
 func blockList(out *bytes.Buffer, rndr *render, data []byte, flags int) int {
-	var work bytes.Buffer
+	i := 0
+	work := func() bool {
+		j := 0
+		for i < len(data) {
+			j = blockListItem(out, rndr, data[i:], &flags)
+			i += j
 
-	i, j := 0, 0
-	for i < len(data) {
-		j = blockListItem(&work, rndr, data[i:], &flags)
-		i += j
-
-		if j == 0 || flags&LIST_ITEM_END_OF_LIST != 0 {
-			break
+			if j == 0 || flags&LIST_ITEM_END_OF_LIST != 0 {
+				break
+			}
 		}
+		return true
 	}
 
 	if rndr.mk.List != nil {
-		rndr.mk.List(out, work.Bytes(), flags, rndr.mk.Opaque)
+		rndr.mk.List(out, work, flags, rndr.mk.Opaque)
 	}
 	return i
 }

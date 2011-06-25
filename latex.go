@@ -104,13 +104,17 @@ func latexHRule(out *bytes.Buffer, opaque interface{}) {
 	out.WriteString("\n\\HRule\n")
 }
 
-func latexList(out *bytes.Buffer, text []byte, flags int, opaque interface{}) {
+func latexList(out *bytes.Buffer, text func() bool, flags int, opaque interface{}) {
+	marker := out.Len()
 	if flags&LIST_TYPE_ORDERED != 0 {
 		out.WriteString("\n\\begin{enumerate}\n")
 	} else {
 		out.WriteString("\n\\begin{itemize}\n")
 	}
-	out.Write(text)
+	if !text() {
+		out.Truncate(marker)
+		return
+	}
 	if flags&LIST_TYPE_ORDERED != 0 {
 		out.WriteString("\n\\end{enumerate}\n")
 	} else {
