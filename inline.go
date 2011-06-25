@@ -157,9 +157,11 @@ func inlineCodeSpan(out *bytes.Buffer, rndr *render, data []byte, offset int) in
 
 }
 
-// '\n' preceded by two spaces
+// newline preceded by two spaces becomes <br>
+// newline without two spaces works when EXTENSION_HARD_LINE_BREAK is enabled
 func inlineLineBreak(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
-	if offset < 2 || data[offset-1] != ' ' || data[offset-2] != ' ' {
+	if rndr.flags&EXTENSION_HARD_LINE_BREAK == 0 &&
+		(offset < 2 || data[offset-1] != ' ' || data[offset-2] != ' ') {
 		return 0
 	}
 

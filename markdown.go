@@ -27,6 +27,7 @@ const (
 	EXTENSION_STRIKETHROUGH
 	EXTENSION_LAX_HTML_BLOCKS
 	EXTENSION_SPACE_HEADERS
+	EXTENSION_HARD_LINE_BREAK
 )
 
 // These are the possible flag values for the link renderer.

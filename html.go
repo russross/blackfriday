@@ -387,32 +387,12 @@ func htmlListItem(out *bytes.Buffer, text []byte, flags int, opaque interface{})
 }
 
 func htmlParagraph(out *bytes.Buffer, text []byte, opaque interface{}) {
-	options := opaque.(*htmlOptions)
-
 	if out.Len() > 0 {
 		out.WriteByte('\n')
 	}
 
 	out.WriteString("<p>")
-	if options.flags&HTML_HARD_WRAP != 0 {
-		org := 0
-		for i := 0; i < len(text); i++ {
-			if text[i] != '\n' {
-				continue
-			}
-
-			if i > org {
-				out.Write(text[org:i])
-			}
-			org = i
-
-			out.WriteString("<br")
-			out.WriteString(options.closeTag)
-		}
-		out.Write(text[org:])
-	} else {
-		out.Write(text)
-	}
+	out.Write(text)
 	out.WriteString("</p>\n")
 }
 
