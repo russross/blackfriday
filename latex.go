@@ -76,7 +76,9 @@ func latexBlockQuote(out *bytes.Buffer, text []byte, opaque interface{}) {
 
 //BlockHtml  func(out *bytes.Buffer, text []byte, opaque interface{})
 
-func latexHeader(out *bytes.Buffer, text []byte, level int, opaque interface{}) {
+func latexHeader(out *bytes.Buffer, text func() bool, level int, opaque interface{}) {
+	marker := out.Len()
+
 	switch level {
 	case 1:
 		out.WriteString("\n\\section{")
@@ -91,7 +93,10 @@ func latexHeader(out *bytes.Buffer, text []byte, level int, opaque interface{}) 
 	case 6:
 		out.WriteString("\n\\textbf{")
 	}
-	out.Write(text)
+	if !text() {
+		out.Truncate(marker)
+		return
+	}
 	out.WriteString("}\n")
 }
 

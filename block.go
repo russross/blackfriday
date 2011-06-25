@@ -186,10 +186,12 @@ func blockPrefixHeader(out *bytes.Buffer, rndr *render, data []byte) int {
 		end--
 	}
 	if end > i {
-		var work bytes.Buffer
-		parseInline(&work, rndr, data[i:end])
 		if rndr.mk.Header != nil {
-			rndr.mk.Header(out, work.Bytes(), level, rndr.mk.Opaque)
+			work := func() bool {
+				parseInline(out, rndr, data[i:end])
+				return true
+			}
+			rndr.mk.Header(out, work, level, rndr.mk.Opaque)
 		}
 	}
 	return skip
@@ -1071,9 +1073,14 @@ func blockParagraph(out *bytes.Buffer, rndr *render, data []byte) int {
 				renderParagraph(out, rndr, data[:prev])
 
 				// render the header
-				var work bytes.Buffer
-				parseInline(&work, rndr, data[prev:i-1])
-				rndr.mk.Header(out, work.Bytes(), level, rndr.mk.Opaque)
+				// this ugly, convoluted closure avoids forcing variables onto the heap
+				work := func(o *bytes.Buffer, r *render, d []byte) func() bool {
+					return func() bool {
+						parseInline(o, r, d)
+						return true
+					}
+				}(out, rndr, data[prev:i-1])
+				rndr.mk.Header(out, work, level, rndr.mk.Opaque)
 
 				// find the end of the underline
 				for ; i < len(data) && data[i] != '\n'; i++ {

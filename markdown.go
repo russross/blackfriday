@@ -99,7 +99,7 @@ type Renderer struct {
 	BlockCode  func(out *bytes.Buffer, text []byte, lang string, opaque interface{})
 	BlockQuote func(out *bytes.Buffer, text []byte, opaque interface{})
 	BlockHtml  func(out *bytes.Buffer, text []byte, opaque interface{})
-	Header     func(out *bytes.Buffer, text []byte, level int, opaque interface{})
+	Header     func(out *bytes.Buffer, text func() bool, level int, opaque interface{})
 	HRule      func(out *bytes.Buffer, opaque interface{})
 	List       func(out *bytes.Buffer, text []byte, flags int, opaque interface{})
 	ListItem   func(out *bytes.Buffer, text []byte, flags int, opaque interface{})

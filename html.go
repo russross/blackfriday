@@ -163,10 +163,11 @@ func attrEscape(out *bytes.Buffer, src []byte) {
 	}
 }
 
-func htmlHeader(out *bytes.Buffer, text []byte, level int, opaque interface{}) {
+func htmlHeader(out *bytes.Buffer, text func() bool, level int, opaque interface{}) {
 	options := opaque.(*htmlOptions)
+	marker := out.Len()
 
-	if out.Len() > 0 {
+	if marker > 0 {
 		out.WriteByte('\n')
 	}
 
@@ -177,7 +178,10 @@ func htmlHeader(out *bytes.Buffer, text []byte, level int, opaque interface{}) {
 		out.WriteString(fmt.Sprintf("<h%d>", level))
 	}
 
-	out.Write(text)
+	if !text() {
+		out.Truncate(marker)
+		return
+	}
 	out.WriteString(fmt.Sprintf("</h%d>\n", level))
 }
 
@@ -572,8 +576,10 @@ func htmlNormalText(out *bytes.Buffer, text []byte, opaque interface{}) {
 	attrEscape(out, text)
 }
 
-func htmlTocHeader(out *bytes.Buffer, text []byte, level int, opaque interface{}) {
+func htmlTocHeader(out *bytes.Buffer, text func() bool, level int, opaque interface{}) {
 	options := opaque.(*htmlOptions)
+	marker := out.Len()
+
 	for level > options.tocData.currentLevel {
 		if options.tocData.currentLevel > 0 {
 			out.WriteString("<li>")
@@ -595,8 +601,9 @@ func htmlTocHeader(out *bytes.Buffer, text []byte, level int, opaque interface{}
 	out.WriteString("\">")
 	options.tocData.headerCount++
 
-	if len(text) > 0 {
-		out.Write(text)
+	if !text() {
+		out.Truncate(marker)
+		return
 	}
 	out.WriteString("</a></li>\n")
 }
