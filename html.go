@@ -123,6 +123,13 @@ func HtmlTocRenderer(flags int) *Renderer {
 func attrEscape(out *bytes.Buffer, src []byte) {
 	org := 0
 	for i, ch := range src {
+		// doing this check is a bit faster than falling into
+		// the switch statement. as the compiler improves, this
+		// should be unnecessary
+		if ch != '"' && ch != '&' && ch != '<' && ch != '>' {
+			continue
+		}
+
 		switch ch {
 		case '<':
 			if i > org {
