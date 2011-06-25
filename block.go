@@ -1035,17 +1035,23 @@ func blockListItem(out *bytes.Buffer, rndr *render, data []byte, flags *int) int
 
 // render a single paragraph that has already been parsed out
 func renderParagraph(out *bytes.Buffer, rndr *render, data []byte) {
-	// trim trailing newlines
+	// trim leading whitespace
+	beg := 0
+	for beg < len(data) && isspace(data[beg]) {
+		beg++
+	}
+
+	// trim trailing whitespace
 	end := len(data)
-	for end > 0 && data[end-1] == '\n' {
+	for end > beg && isspace(data[end-1]) {
 		end--
 	}
-	if end == 0 || rndr.mk.Paragraph == nil {
+	if end == beg || rndr.mk.Paragraph == nil {
 		return
 	}
 
 	var work bytes.Buffer
-	parseInline(&work, rndr, data[:end])
+	parseInline(&work, rndr, data[beg:end])
 	rndr.mk.Paragraph(out, work.Bytes(), rndr.mk.Opaque)
 }
 
