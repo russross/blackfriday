@@ -121,30 +121,38 @@ func HtmlTocRenderer(flags int) *Renderer {
 }
 
 func attrEscape(out *bytes.Buffer, src []byte) {
-	for i := 0; i < len(src); i++ {
-		// directly copy normal characters
-		org := i
-		for i < len(src) && src[i] != '<' && src[i] != '>' && src[i] != '&' && src[i] != '"' {
-			i++
-		}
-		if i > org {
-			out.Write(src[org:i])
-		}
-
-		// escape a character
-		if i >= len(src) {
-			break
-		}
-		switch src[i] {
+	org := 0
+	for i, ch := range src {
+		switch ch {
 		case '<':
+			if i > org {
+				// copy all the normal characters since the last escape
+				out.Write(src[org:i])
+			}
+			org = i + 1
 			out.WriteString("&lt;")
 		case '>':
+			if i > org {
+				out.Write(src[org:i])
+			}
+			org = i + 1
 			out.WriteString("&gt;")
 		case '&':
+			if i > org {
+				out.Write(src[org:i])
+			}
+			org = i + 1
 			out.WriteString("&amp;")
 		case '"':
+			if i > org {
+				out.Write(src[org:i])
+			}
+			org = i + 1
 			out.WriteString("&quot;")
 		}
+	}
+	if org < len(src) {
+		out.Write(src[org:])
 	}
 }
 
