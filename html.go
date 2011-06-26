@@ -384,13 +384,17 @@ func htmlListItem(out *bytes.Buffer, text []byte, flags int, opaque interface{})
 	out.WriteString("</li>\n")
 }
 
-func htmlParagraph(out *bytes.Buffer, text []byte, opaque interface{}) {
-	if out.Len() > 0 {
+func htmlParagraph(out *bytes.Buffer, text func() bool, opaque interface{}) {
+	marker := out.Len()
+	if marker > 0 {
 		out.WriteByte('\n')
 	}
 
 	out.WriteString("<p>")
-	out.Write(text)
+	if !text() {
+		out.Truncate(marker)
+		return
+	}
 	out.WriteString("</p>\n")
 }
 

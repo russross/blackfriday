@@ -127,9 +127,13 @@ func latexListItem(out *bytes.Buffer, text []byte, flags int, opaque interface{}
 	out.Write(text)
 }
 
-func latexParagraph(out *bytes.Buffer, text []byte, opaque interface{}) {
+func latexParagraph(out *bytes.Buffer, text func() bool, opaque interface{}) {
+	marker := out.Len()
 	out.WriteString("\n")
-	out.Write(text)
+	if !text() {
+		out.Truncate(marker)
+		return
+	}
 	out.WriteString("\n")
 }
 

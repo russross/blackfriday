@@ -1050,9 +1050,11 @@ func renderParagraph(out *bytes.Buffer, rndr *render, data []byte) {
 		return
 	}
 
-	var work bytes.Buffer
-	parseInline(&work, rndr, data[beg:end])
-	rndr.mk.Paragraph(out, work.Bytes(), rndr.mk.Opaque)
+	work := func() bool {
+		parseInline(out, rndr, data[beg:end])
+		return true
+	}
+	rndr.mk.Paragraph(out, work, rndr.mk.Opaque)
 }
 
 func blockParagraph(out *bytes.Buffer, rndr *render, data []byte) int {
