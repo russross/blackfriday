@@ -23,10 +23,8 @@ const (
 	HTML_SKIP_STYLE
 	HTML_SKIP_IMAGES
 	HTML_SKIP_LINKS
-	HTML_EXPAND_TABS
 	HTML_SAFELINK
 	HTML_TOC
-	HTML_HARD_WRAP
 	HTML_GITHUB_BLOCKCODE
 	HTML_USE_XHTML
 	HTML_USE_SMARTYPANTS
@@ -36,7 +34,7 @@ const (
 
 type htmlOptions struct {
 	flags    int
-	closeTag string // how to end singleton tags: usually " />\n", possibly ">\n"
+	closeTag string // how to end singleton tags: either " />\n" or ">\n"
 	tocData  struct {
 		headerCount  int
 		currentLevel int

@@ -194,8 +194,19 @@ func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 		rndr.inline[':'] = inlineAutoLink
 	}
 
-	// first pass: look for references, copy everything else
-	var text bytes.Buffer
+	first := FirstPass(rndr, input)
+	second := SecondPass(rndr, first)
+
+	return second
+}
+
+// first pass:
+// - extract references
+// - expand tabs
+// - normalize newlines
+// - copy everything else
+func FirstPass(rndr *render, input []byte) []byte {
+	var out bytes.Buffer
 	beg, end := 0, 0
 	for beg < len(input) { // iterate over lines
 		if end = isReference(rndr, input[beg:]); end > 0 {
@@ -208,35 +219,32 @@ func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 
 			// add the line body if present
 			if end > beg {
-				expandTabs(&text, input[beg:end])
+				expandTabs(&out, input[beg:end])
+			} else {
+				out.WriteByte('\n')
 			}
 
-			for end < len(input) && (input[end] == '\n' || input[end] == '\r') {
-				// add one \n per newline
-				if input[end] == '\n' || (end+1 < len(input) && input[end+1] != '\n') {
-					text.WriteByte('\n')
-				}
+			if end < len(input) && input[end] == '\r' {
+				end++
+			}
+			if end < len(input) && input[end] == '\n' {
 				end++
 			}
 
 			beg = end
 		}
 	}
+	return out.Bytes()
+}
 
-	// second pass: actual rendering
+// second pass: actual rendering
+func SecondPass(rndr *render, input []byte) []byte {
 	var output bytes.Buffer
 	if rndr.mk.DocumentHeader != nil {
 		rndr.mk.DocumentHeader(&output, rndr.mk.Opaque)
 	}
 
-	if text.Len() > 0 {
-		// add a final newline if not already present
-		finalchar := text.Bytes()[text.Len()-1]
-		if finalchar != '\n' && finalchar != '\r' {
-			text.WriteByte('\n')
-		}
-		parseBlock(&output, rndr, text.Bytes())
-	}
+	parseBlock(&output, rndr, input)
 
 	if rndr.mk.DocumentFooter != nil {
 		rndr.mk.DocumentFooter(&output, rndr.mk.Opaque)
@@ -274,8 +282,8 @@ type reference struct {
 // Check whether or not data starts with a reference link.
 // If so, it is parsed and stored in the list of references
 // (in the render struct).
-// Returns the number of bytes to skip to move past it, or zero
-// if there is the first line is not a reference.
+// Returns the number of bytes to skip to move past it,
+// or zero if the first line is not a reference.
 func isReference(rndr *render, data []byte) int {
 	// up to 3 optional leading spaces
 	if len(data) < 4 {
@@ -284,9 +292,6 @@ func isReference(rndr *render, data []byte) int {
 	i := 0
 	for i < 3 && data[i] == ' ' {
 		i++
-	}
-	if data[i] == ' ' {
-		return 0
 	}
 
 	// id part: anything but a newline between brackets
@@ -440,6 +445,7 @@ func isalnum(c byte) bool {
 }
 
 // Replace tab characters with spaces, aligning to the next TAB_SIZE column.
+// always ends output with a newline
 func expandTabs(out *bytes.Buffer, line []byte) {
 	// first, check for common cases: no tabs, or only tabs at beginning of line
 	i, prefix := 0, 0
@@ -461,6 +467,7 @@ func expandTabs(out *bytes.Buffer, line []byte) {
 			out.WriteByte(' ')
 		}
 		out.Write(line[prefix:])
+		out.WriteByte('\n')
 		return
 	}
 
@@ -494,4 +501,5 @@ func expandTabs(out *bytes.Buffer, line []byte) {
 
 		i++
 	}
+	out.WriteByte('\n')
 }
