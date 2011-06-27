@@ -1093,14 +1093,23 @@ func blockParagraph(out *bytes.Buffer, rndr *render, data []byte) int {
 				// render the paragraph
 				renderParagraph(out, rndr, data[:prev])
 
+				// ignore leading and trailing whitespace
+				eol := i - 1
+				for prev < eol && (data[prev] == ' ' || data[prev] == '\t') {
+					prev++
+				}
+				for eol > prev && (data[eol-1] == ' ' || data[eol-1] == '\t') {
+					eol--
+				}
+
 				// render the header
-				// this ugly, convoluted closure avoids forcing variables onto the heap
+				// this ugly double closure avoids forcing variables onto the heap
 				work := func(o *bytes.Buffer, r *render, d []byte) func() bool {
 					return func() bool {
 						parseInline(o, r, d)
 						return true
 					}
-				}(out, rndr, data[prev:i-1])
+				}(out, rndr, data[prev:eol])
 				rndr.mk.Header(out, work, level, rndr.mk.Opaque)
 
 				// find the end of the underline

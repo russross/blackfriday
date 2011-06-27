@@ -91,9 +91,6 @@ func TestPrefixHeaderNoExtensions(t *testing.T) {
 		"*   List\n    * Nested list\n    # Nested header\n",
 		"<ul>\n<li><p>List</p>\n\n<ul>\n<li><p>Nested list</p>\n\n" +
 			"<h1>Nested header</h1></li>\n</ul></li>\n</ul>\n",
-
-		"*   List\n    * Sublist\n    Not a header\n    ------\n",
-		"<ul>\n<li>List\n\n<ul>\n<li>Sublist\nNot a header\n------</li>\n</ul></li>\n</ul>\n",
 	}
 	doTestsBlock(t, tests, 0)
 }
@@ -154,9 +151,53 @@ func TestPrefixHeaderSpaceExtension(t *testing.T) {
 		"*   List\n    * Nested list\n    # Nested header\n",
 		"<ul>\n<li><p>List</p>\n\n<ul>\n<li><p>Nested list</p>\n\n" +
 			"<h1>Nested header</h1></li>\n</ul></li>\n</ul>\n",
+	}
+	doTestsBlock(t, tests, EXTENSION_SPACE_HEADERS)
+}
+
+func TestUnderlineHeaders(t *testing.T) {
+	var tests = []string{
+		"Header 1\n========\n",
+		"<h1>Header 1</h1>\n",
+
+		"Header 2\n--------\n",
+		"<h2>Header 2</h2>\n",
+
+		"A\n=\n",
+		"<h1>A</h1>\n",
+
+		"B\n-\n",
+		"<h2>B</h2>\n",
+
+		"Paragraph\nHeader\n=\n",
+		"<p>Paragraph</p>\n\n<h1>Header</h1>\n",
+
+		"Header\n===\nParagraph\n",
+		"<h1>Header</h1>\n\n<p>Paragraph</p>\n",
+
+		"Header\n===\nAnother header\n---\n",
+		"<h1>Header</h1>\n\n<h2>Another header</h2>\n",
+
+		"   Header\n======\n",
+		"<h1>Header</h1>\n",
+
+		"    Code\n========\n",
+		"<pre><code>Code\n</code></pre>\n\n<p>========</p>\n",
+
+		"Header with *inline*\n=====\n",
+		"<h1>Header with <em>inline</em></h1>\n",
 
 		"*   List\n    * Sublist\n    Not a header\n    ------\n",
 		"<ul>\n<li>List\n\n<ul>\n<li>Sublist\nNot a header\n------</li>\n</ul></li>\n</ul>\n",
+
+		"Paragraph\n\n\n\n\nHeader\n===\n",
+		"<p>Paragraph</p>\n\n<h1>Header</h1>\n",
+
+		"Trailing space \n====        \n\n",
+		"<h1>Trailing space</h1>\n",
+
+		"Trailing spaces\n====        \n\n",
+		"<h1>Trailing spaces</h1>\n",
 	}
-	doTestsBlock(t, tests, EXTENSION_SPACE_HEADERS)
+	doTestsBlock(t, tests, 0)
 }
