@@ -14,7 +14,7 @@ import (
 	"testing"
 )
 
-func runMarkdown(input string) string {
+func runMarkdownInline(input string) string {
 	var extensions uint32
 	extensions |= EXTENSION_NO_INTRA_EMPHASIS
 	extensions |= EXTENSION_TABLES
@@ -35,11 +35,11 @@ func runMarkdown(input string) string {
 	return string(Markdown([]byte(input), renderer, extensions))
 }
 
-func doTests(t *testing.T, tests []string) {
+func doTestsInline(t *testing.T, tests []string) {
 	for i := 0; i+1 < len(tests); i += 2 {
 		input := tests[i]
 		expected := tests[i+1]
-		actual := runMarkdown(input)
+		actual := runMarkdownInline(input)
 		if actual != expected {
 			t.Errorf("\nInput   [%#v]\nExpected[%#v]\nActual  [%#v]",
 				input, expected, actual)
@@ -97,7 +97,7 @@ func TestEmphasis(t *testing.T) {
 		"mix of *markers_\n",
 		"<p>mix of *markers_</p>\n",
 	}
-	doTests(t, tests)
+	doTestsInline(t, tests)
 }
 
 func TestStrong(t *testing.T) {
@@ -150,7 +150,7 @@ func TestStrong(t *testing.T) {
 		"mix of **markers__\n",
 		"<p>mix of **markers__</p>\n",
 	}
-	doTests(t, tests)
+	doTestsInline(t, tests)
 }
 
 func TestEmphasisMix(t *testing.T) {
@@ -179,7 +179,7 @@ func TestEmphasisMix(t *testing.T) {
 		"*improper **nesting* is** bad\n",
 		"<p><em>improper **nesting</em> is** bad</p>\n",
 	}
-	doTests(t, tests)
+	doTestsInline(t, tests)
 }
 
 func TestStrikeThrough(t *testing.T) {
@@ -208,7 +208,7 @@ func TestStrikeThrough(t *testing.T) {
 		"odd ~~number\nof~~ markers~~ here\n",
 		"<p>odd <del>number\nof</del> markers~~ here</p>\n",
 	}
-	doTests(t, tests)
+	doTestsInline(t, tests)
 }
 
 func TestCodeSpan(t *testing.T) {
@@ -246,7 +246,7 @@ func TestCodeSpan(t *testing.T) {
 		"```multiple ticks `with` ticks inside```\n",
 		"<p><code>multiple ticks `with` ticks inside</code></p>\n",
 	}
-	doTests(t, tests)
+	doTestsInline(t, tests)
 }
 
 func TestLineBreak(t *testing.T) {
@@ -260,7 +260,7 @@ func TestLineBreak(t *testing.T) {
 		"this has an   \nextra space\n",
 		"<p>this has an<br />\nextra space</p>\n",
 	}
-	doTests(t, tests)
+	doTestsInline(t, tests)
 }
 
 func TestInlineLink(t *testing.T) {
@@ -355,7 +355,7 @@ func TestInlineLink(t *testing.T) {
 		"[link](/url/&query)\n",
 		"<p><a href=\"/url/&amp;query\">link</a></p>\n",
 	}
-	doTests(t, tests)
+	doTestsInline(t, tests)
 }
 
 func TestReferenceLink(t *testing.T) {
@@ -387,7 +387,7 @@ func TestReferenceLink(t *testing.T) {
 		"[ref]\n   [ref]: /url/ \"title\"\n",
 		"<p><a href=\"/url/\" title=\"title\">ref</a></p>\n",
 	}
-	doTests(t, tests)
+	doTestsInline(t, tests)
 }
 
 func TestTags(t *testing.T) {
@@ -404,7 +404,7 @@ func TestTags(t *testing.T) {
 		"a <singleton /> tag\n",
 		"<p>a <singleton /> tag</p>\n",
 	}
-	doTests(t, tests)
+	doTestsInline(t, tests)
 }
 
 func TestAutoLink(t *testing.T) {
@@ -448,5 +448,5 @@ func TestAutoLink(t *testing.T) {
 		"<p>even a &gt; can be escaped <a href=\"http://new.com?q=&gt;&amp;etc\">" +
 			"http://new.com?q=&gt;&amp;etc</a></p>\n",
 	}
-	doTests(t, tests)
+	doTestsInline(t, tests)
 }

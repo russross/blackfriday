@@ -940,7 +940,7 @@ func blockListItem(out *bytes.Buffer, rndr *render, data []byte, flags *int) int
 	beg = end
 
 	// process the following lines
-	in_empty, has_inside_empty := false, false
+	contains_blank_line, contains_block := false, false
 	for beg < len(data) {
 		end++
 
@@ -950,7 +950,7 @@ func blockListItem(out *bytes.Buffer, rndr *render, data []byte, flags *int) int
 
 		// process an empty line
 		if isEmpty(data[beg:end]) > 0 {
-			in_empty = true
+			contains_blank_line = true
 			beg = end
 			continue
 		}
@@ -967,11 +967,12 @@ func blockListItem(out *bytes.Buffer, rndr *render, data []byte, flags *int) int
 			pre = 8
 		}
 
-		// check for a new item
 		chunk := data[beg+i : end]
+
+		// check for a nested list item
 		if (blockUliPrefix(chunk) > 0 && !isHRule(chunk)) || blockOliPrefix(chunk) > 0 {
-			if in_empty {
-				has_inside_empty = true
+			if contains_blank_line {
+				contains_block = true
 			}
 
 			if pre == orgpre { // the following item must have the same indentation
@@ -982,19 +983,29 @@ func blockListItem(out *bytes.Buffer, rndr *render, data []byte, flags *int) int
 				sublist = work.Len()
 			}
 		} else {
-			// only join indented stuff after empty lines
-			if in_empty && i < 4 && data[beg] != '\t' {
-				*flags |= LIST_ITEM_END_OF_LIST
-				break
+			// how about a nested prefix header?
+			if isPrefixHeader(rndr, chunk) {
+				// only nest headers that are indented
+				if contains_blank_line && i < 4 && data[beg] != '\t' {
+					*flags |= LIST_ITEM_END_OF_LIST
+					break
+				}
+				contains_block = true
 			} else {
-				if in_empty {
-					work.WriteByte('\n')
-					has_inside_empty = true
+				// only join stuff after empty lines when indented
+				if contains_blank_line && i < 4 && data[beg] != '\t' {
+					*flags |= LIST_ITEM_END_OF_LIST
+					break
+				} else {
+					if contains_blank_line {
+						work.WriteByte('\n')
+						contains_block = true
+					}
 				}
 			}
 		}
 
-		in_empty = false
+		contains_blank_line = false
 
 		// add the line into the working buffer without prefix
 		work.Write(data[beg+i : end])
@@ -1002,7 +1013,7 @@ func blockListItem(out *bytes.Buffer, rndr *render, data []byte, flags *int) int
 	}
 
 	// render li contents
-	if has_inside_empty {
+	if contains_block {
 		*flags |= LIST_ITEM_CONTAINS_BLOCK
 	}
 

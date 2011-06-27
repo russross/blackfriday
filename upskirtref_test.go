@@ -13,21 +13,15 @@ package blackfriday
 import (
 	"io/ioutil"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
-func runReferenceMarkdown(input string) string {
+func runMarkdownReference(input string) string {
 	renderer := HtmlRenderer(0)
 	return string(Markdown([]byte(input), renderer, 0))
 }
 
-// disregard dos vs. unix line endings differences
-func normalizeEol(s string) string {
-	return strings.Replace(s, "\r\n", "\n", -1)
-}
-
-func doFileTests(t *testing.T, files []string) {
+func doTestsReference(t *testing.T, files []string) {
 	for _, basename := range files {
 		fn := filepath.Join("upskirtref", basename+".text")
 		actualdata, err := ioutil.ReadFile(fn)
@@ -43,8 +37,8 @@ func doFileTests(t *testing.T, files []string) {
 		}
 
 		actual := string(actualdata)
-		actual = normalizeEol(string(runReferenceMarkdown(actual)))
-		expected := normalizeEol(string(expecteddata))
+		actual = string(runMarkdownReference(actual))
+		expected := string(expecteddata)
 		if actual != expected {
 			t.Errorf("\n    [%#v]\nExpected[%#v]\nActual  [%#v]",
 				basename+".text", expected, actual)
@@ -77,5 +71,5 @@ func TestReference(t *testing.T) {
 		"Tabs",
 		"Tidyness",
 	}
-	doFileTests(t, files)
+	doTestsReference(t, files)
 }
