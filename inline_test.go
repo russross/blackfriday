@@ -247,7 +247,7 @@ func TestLineBreak(t *testing.T) {
 		"<p>this line<br />\nhas a break</p>\n",
 
 		"this line \ndoes not\n",
-		"<p>this line \ndoes not</p>\n",
+		"<p>this line\ndoes not</p>\n",
 
 		"this has an   \nextra space\n",
 		"<p>this has an<br />\nextra space</p>\n",

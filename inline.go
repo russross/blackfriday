@@ -154,18 +154,19 @@ func inlineCodeSpan(out *bytes.Buffer, rndr *render, data []byte, offset int) in
 // newline preceded by two spaces becomes <br>
 // newline without two spaces works when EXTENSION_HARD_LINE_BREAK is enabled
 func inlineLineBreak(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
-	if rndr.flags&EXTENSION_HARD_LINE_BREAK == 0 &&
-		(offset < 2 || data[offset-1] != ' ' || data[offset-2] != ' ') {
-		return 0
-	}
-
-	// remove trailing spaces from out and render
+	// remove trailing spaces from out
 	outBytes := out.Bytes()
 	end := len(outBytes)
-	for end > 0 && outBytes[end-1] == ' ' {
-		end--
+	eol := end
+	for eol > 0 && (outBytes[eol-1] == ' ' || outBytes[eol-1] == '\t') {
+		eol--
 	}
-	out.Truncate(end)
+	out.Truncate(eol)
+
+	// should there be a hard line break here?
+	if rndr.flags&EXTENSION_HARD_LINE_BREAK == 0 && end-eol < 2 {
+		return 0
+	}
 
 	if rndr.mk.LineBreak == nil {
 		return 0
