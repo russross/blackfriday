@@ -123,9 +123,9 @@ func inlineCodeSpan(out *bytes.Buffer, rndr *render, data []byte, offset int) in
 		}
 	}
 
+	// no matching delimiter?
 	if i < nb && end >= len(data) {
-		out.WriteByte('`')
-		return 0 // no matching delimiter
+		return 0
 	}
 
 	// trim outside whitespace
@@ -135,22 +135,16 @@ func inlineCodeSpan(out *bytes.Buffer, rndr *render, data []byte, offset int) in
 	}
 
 	f_end := end - nb
-	for f_end > nb && (data[f_end-1] == ' ' || data[f_end-1] == '\t') {
+	for f_end > f_begin && (data[f_end-1] == ' ' || data[f_end-1] == '\t') {
 		f_end--
 	}
 
-	// real code span
+	// render the code span
 	if rndr.mk.CodeSpan == nil {
 		return 0
 	}
-	if f_begin < f_end {
-		if rndr.mk.CodeSpan(out, data[f_begin:f_end], rndr.mk.Opaque) == 0 {
-			end = 0
-		}
-	} else {
-		if rndr.mk.CodeSpan(out, nil, rndr.mk.Opaque) == 0 {
-			end = 0
-		}
+	if rndr.mk.CodeSpan(out, data[f_begin:f_end], rndr.mk.Opaque) == 0 {
+		end = 0
 	}
 
 	return end

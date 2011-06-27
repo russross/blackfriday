@@ -16,19 +16,11 @@ import (
 
 func runMarkdownInline(input string) string {
 	var extensions uint32
-	extensions |= EXTENSION_NO_INTRA_EMPHASIS
-	extensions |= EXTENSION_TABLES
-	extensions |= EXTENSION_FENCED_CODE
 	extensions |= EXTENSION_AUTOLINK
 	extensions |= EXTENSION_STRIKETHROUGH
-	extensions |= EXTENSION_SPACE_HEADERS
-	extensions |= EXTENSION_LAX_HTML_BLOCKS
 
 	html_flags := 0
 	html_flags |= HTML_USE_XHTML
-	html_flags |= HTML_USE_SMARTYPANTS
-	html_flags |= HTML_SMARTYPANTS_FRACTIONS
-	html_flags |= HTML_SMARTYPANTS_LATEX_DASHES
 
 	renderer := HtmlRenderer(html_flags)
 

@@ -335,7 +335,7 @@ func blockHtml(out *bytes.Buffer, rndr *render, data []byte, do_render bool) int
 
 func blockHtmlFindTag(data []byte) (string, bool) {
 	i := 0
-	for i < len(data) && ((data[i] >= '0' && data[i] <= '9') || (data[i] >= 'A' && data[i] <= 'Z') || (data[i] >= 'a' && data[i] <= 'z')) {
+	for i < len(data) && isalnum(data[i]) {
 		i++
 	}
 	if i >= len(data) {
@@ -352,11 +352,12 @@ func blockHtmlFindEnd(tag string, rndr *render, data []byte) int {
 	// assume data[0] == '<' && data[1] == '/' already tested
 
 	// check if tag is a match
-	if len(tag)+3 >= len(data) || bytes.Compare(data[2:2+len(tag)], []byte(tag)) != 0 || data[len(tag)+2] != '>' {
+	if len(data) < len(tag)+3 || data[len(tag)+2] != '>' ||
+		bytes.Compare(data[2:2+len(tag)], []byte(tag)) != 0 {
 		return 0
 	}
 
-	// check white lines
+	// check for blank line/eof after the closing tag
 	i := len(tag) + 3
 	w := 0
 	if i < len(data) {

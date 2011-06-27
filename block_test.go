@@ -198,6 +198,9 @@ func TestUnderlineHeaders(t *testing.T) {
 
 		"Trailing spaces\n====        \n\n",
 		"<h1>Trailing spaces</h1>\n",
+
+		"Double underline\n=====\n=====\n",
+		"<h1>Double underline</h1>\n\n<p>=====</p>\n",
 	}
 	doTestsBlock(t, tests, 0)
 }
