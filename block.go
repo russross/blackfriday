@@ -922,7 +922,7 @@ func blockListItem(out *bytes.Buffer, rndr *render, data []byte, flags *int) int
 	}
 
 	// skip leading whitespace on first line
-	for beg < len(data) && data[beg] == ' ' {
+	for beg < len(data) && (data[beg] == ' ' || data[beg] == '\t') {
 		beg++
 	}
 
@@ -965,7 +965,7 @@ func blockListItem(out *bytes.Buffer, rndr *render, data []byte, flags *int) int
 		pre = i
 		if data[beg] == '\t' {
 			i = 1
-			pre = 8
+			pre = TAB_SIZE
 		}
 
 		chunk := data[beg+i : end]
@@ -976,7 +976,8 @@ func blockListItem(out *bytes.Buffer, rndr *render, data []byte, flags *int) int
 				contains_block = true
 			}
 
-			if pre == orgpre { // the following item must have the same indentation
+			// the following item must have the same indentation
+			if pre == orgpre {
 				break
 			}
 

@@ -204,3 +204,167 @@ func TestUnderlineHeaders(t *testing.T) {
 	}
 	doTestsBlock(t, tests, 0)
 }
+
+func TestHorizontalRule(t *testing.T) {
+	var tests = []string{
+		"-\n",
+		"<p>-</p>\n",
+
+		"--\n",
+		"<p>--</p>\n",
+
+		"---\n",
+		"<hr />\n",
+
+		"----\n",
+		"<hr />\n",
+
+		"*\n",
+		"<p>*</p>\n",
+
+		"**\n",
+		"<p>**</p>\n",
+
+		"***\n",
+		"<hr />\n",
+
+		"****\n",
+		"<hr />\n",
+
+		"_\n",
+		"<p>_</p>\n",
+
+		"__\n",
+		"<p>__</p>\n",
+
+		"___\n",
+		"<hr />\n",
+
+		"____\n",
+		"<hr />\n",
+
+		"-*-\n",
+		"<p>-*-</p>\n",
+
+		"- - -\n",
+		"<hr />\n",
+
+		"* * *\n",
+		"<hr />\n",
+
+		"_ _ _\n",
+		"<hr />\n",
+
+		"-----*\n",
+		"<p>-----*</p>\n",
+
+		"   ------   \n",
+		"<hr />\n",
+
+		"Hello\n***\n",
+		"<p>Hello</p>\n\n<hr />\n",
+
+		"---\n***\n___\n",
+		"<hr />\n\n<hr />\n\n<hr />\n",
+	}
+	doTestsBlock(t, tests, 0)
+}
+
+func TestUnorderedList(t *testing.T) {
+	var tests = []string{
+		"* Hello\n",
+		"<ul>\n<li>Hello</li>\n</ul>\n",
+
+		"* Yin\n* Yang\n",
+		"<ul>\n<li>Yin</li>\n<li>Yang</li>\n</ul>\n",
+
+		"* Ting\n* Bong\n* Goo\n",
+		"<ul>\n<li>Ting</li>\n<li>Bong</li>\n<li>Goo</li>\n</ul>\n",
+
+		"* Yin\n\n* Yang\n",
+		"<ul>\n<li><p>Yin</p></li>\n<li><p>Yang</p></li>\n</ul>\n",
+
+		"* Ting\n\n* Bong\n* Goo\n",
+		"<ul>\n<li><p>Ting</p></li>\n<li><p>Bong</p></li>\n<li><p>Goo</p></li>\n</ul>\n",
+
+		"+ Hello\n",
+		"<ul>\n<li>Hello</li>\n</ul>\n",
+
+		"+ Yin\n+ Yang\n",
+		"<ul>\n<li>Yin</li>\n<li>Yang</li>\n</ul>\n",
+
+		"+ Ting\n+ Bong\n+ Goo\n",
+		"<ul>\n<li>Ting</li>\n<li>Bong</li>\n<li>Goo</li>\n</ul>\n",
+
+		"+ Yin\n\n+ Yang\n",
+		"<ul>\n<li><p>Yin</p></li>\n<li><p>Yang</p></li>\n</ul>\n",
+
+		"+ Ting\n\n+ Bong\n+ Goo\n",
+		"<ul>\n<li><p>Ting</p></li>\n<li><p>Bong</p></li>\n<li><p>Goo</p></li>\n</ul>\n",
+
+		"- Hello\n",
+		"<ul>\n<li>Hello</li>\n</ul>\n",
+
+		"- Yin\n- Yang\n",
+		"<ul>\n<li>Yin</li>\n<li>Yang</li>\n</ul>\n",
+
+		"- Ting\n- Bong\n- Goo\n",
+		"<ul>\n<li>Ting</li>\n<li>Bong</li>\n<li>Goo</li>\n</ul>\n",
+
+		"- Yin\n\n- Yang\n",
+		"<ul>\n<li><p>Yin</p></li>\n<li><p>Yang</p></li>\n</ul>\n",
+
+		"- Ting\n\n- Bong\n- Goo\n",
+		"<ul>\n<li><p>Ting</p></li>\n<li><p>Bong</p></li>\n<li><p>Goo</p></li>\n</ul>\n",
+
+		"*Hello\n",
+		"<p>*Hello</p>\n",
+
+		"*   Hello \n",
+		"<ul>\n<li>Hello</li>\n</ul>\n",
+
+		"*   Hello \n    Next line \n",
+		"<ul>\n<li>Hello\nNext line</li>\n</ul>\n",
+
+		"Paragraph\n* No linebreak\n",
+		"<p>Paragraph\n* No linebreak</p>\n",
+
+		"Paragraph\n\n* Linebreak\n",
+		"<p>Paragraph</p>\n\n<ul>\n<li>Linebreak</li>\n</ul>\n",
+
+		"*   List\n    * Nested list\n",
+		"<ul>\n<li>List\n\n<ul>\n<li>Nested list</li>\n</ul></li>\n</ul>\n",
+
+		"*   List\n\n    * Nested list\n",
+		"<ul>\n<li><p>List</p>\n\n<ul>\n<li>Nested list</li>\n</ul></li>\n</ul>\n",
+
+		"*   List\n    Second line\n\n    + Nested\n",
+		"<ul>\n<li><p>List\nSecond line</p>\n\n<ul>\n<li>Nested</li>\n</ul></li>\n</ul>\n",
+
+		"*   List\n    + Nested\n\n    Continued\n",
+		"<ul>\n<li><p>List</p>\n\n<ul>\n<li>Nested</li>\n</ul>\n\n<p>Continued</p></li>\n</ul>\n",
+
+		"*   List\n   * shallow indent\n",
+		"<ul>\n<li>List\n\n<ul>\n<li>shallow indent</li>\n</ul></li>\n</ul>\n",
+
+		"* List\n" +
+			" * shallow indent\n" +
+			"  * part of second list\n" +
+			"   * still second\n" +
+			"    * almost there\n" +
+			"     * third level\n",
+		"<ul>\n" +
+			"<li>List\n\n" +
+			"<ul>\n" +
+			"<li>shallow indent</li>\n" +
+			"<li>part of second list</li>\n" +
+			"<li>still second</li>\n" +
+			"<li>almost there\n\n" +
+			"<ul>\n" +
+			"<li>third level</li>\n" +
+			"</ul></li>\n" +
+			"</ul></li>\n" +
+			"</ul>\n",
+	}
+	doTestsBlock(t, tests, 0)
+}
