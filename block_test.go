@@ -365,6 +365,111 @@ func TestUnorderedList(t *testing.T) {
 			"</ul></li>\n" +
 			"</ul></li>\n" +
 			"</ul>\n",
+
+		"* List\n        extra indent, same paragraph\n",
+		"<ul>\n<li>List\n    extra indent, same paragraph</li>\n</ul>\n",
+
+		"* List\n\n        code block\n",
+		"<ul>\n<li><p>List</p>\n\n<pre><code>code block\n</code></pre></li>\n</ul>\n",
+
+		"* List\n\n          code block with spaces\n",
+		"<ul>\n<li><p>List</p>\n\n<pre><code>  code block with spaces\n</code></pre></li>\n</ul>\n",
+	}
+	doTestsBlock(t, tests, 0)
+}
+
+func TestOrderedList(t *testing.T) {
+	var tests = []string{
+		"1. Hello\n",
+		"<ol>\n<li>Hello</li>\n</ol>\n",
+
+		"1. Yin\n2. Yang\n",
+		"<ol>\n<li>Yin</li>\n<li>Yang</li>\n</ol>\n",
+
+		"1. Ting\n2. Bong\n3. Goo\n",
+		"<ol>\n<li>Ting</li>\n<li>Bong</li>\n<li>Goo</li>\n</ol>\n",
+
+		"1. Yin\n\n2. Yang\n",
+		"<ol>\n<li><p>Yin</p></li>\n<li><p>Yang</p></li>\n</ol>\n",
+
+		"1. Ting\n\n2. Bong\n3. Goo\n",
+		"<ol>\n<li><p>Ting</p></li>\n<li><p>Bong</p></li>\n<li><p>Goo</p></li>\n</ol>\n",
+
+		"1 Hello\n",
+		"<p>1 Hello</p>\n",
+
+		"1.Hello\n",
+		"<p>1.Hello</p>\n",
+
+		"1.  Hello \n",
+		"<ol>\n<li>Hello</li>\n</ol>\n",
+
+		"1.  Hello \n    Next line \n",
+		"<ol>\n<li>Hello\nNext line</li>\n</ol>\n",
+
+		"Paragraph\n1. No linebreak\n",
+		"<p>Paragraph\n1. No linebreak</p>\n",
+
+		"Paragraph\n\n1. Linebreak\n",
+		"<p>Paragraph</p>\n\n<ol>\n<li>Linebreak</li>\n</ol>\n",
+
+		"1.  List\n    1. Nested list\n",
+		"<ol>\n<li>List\n\n<ol>\n<li>Nested list</li>\n</ol></li>\n</ol>\n",
+
+		"1.  List\n\n    1. Nested list\n",
+		"<ol>\n<li><p>List</p>\n\n<ol>\n<li>Nested list</li>\n</ol></li>\n</ol>\n",
+
+		"1.  List\n    Second line\n\n    1. Nested\n",
+		"<ol>\n<li><p>List\nSecond line</p>\n\n<ol>\n<li>Nested</li>\n</ol></li>\n</ol>\n",
+
+		"1.  List\n    1. Nested\n\n    Continued\n",
+		"<ol>\n<li><p>List</p>\n\n<ol>\n<li>Nested</li>\n</ol>\n\n<p>Continued</p></li>\n</ol>\n",
+
+		"1.  List\n   1. shallow indent\n",
+		"<ol>\n<li>List\n\n<ol>\n<li>shallow indent</li>\n</ol></li>\n</ol>\n",
+
+		"1. List\n" +
+			" 1. shallow indent\n" +
+			"  2. part of second list\n" +
+			"   3. still second\n" +
+			"    4. almost there\n" +
+			"     1. third level\n",
+		"<ol>\n" +
+			"<li>List\n\n" +
+			"<ol>\n" +
+			"<li>shallow indent</li>\n" +
+			"<li>part of second list</li>\n" +
+			"<li>still second</li>\n" +
+			"<li>almost there\n\n" +
+			"<ol>\n" +
+			"<li>third level</li>\n" +
+			"</ol></li>\n" +
+			"</ol></li>\n" +
+			"</ol>\n",
+
+		"1. List\n        extra indent, same paragraph\n",
+		"<ol>\n<li>List\n    extra indent, same paragraph</li>\n</ol>\n",
+
+		"1. List\n\n        code block\n",
+		"<ol>\n<li><p>List</p>\n\n<pre><code>code block\n</code></pre></li>\n</ol>\n",
+
+		"1. List\n\n          code block with spaces\n",
+		"<ol>\n<li><p>List</p>\n\n<pre><code>  code block with spaces\n</code></pre></li>\n</ol>\n",
+
+		"1. List\n    * Mixted list\n",
+		"<ol>\n<li>List\n\n<ul>\n<li>Mixted list</li>\n</ul></li>\n</ol>\n",
+
+		"1. List\n * Mixed list\n",
+		"<ol>\n<li>List\n\n<ul>\n<li>Mixed list</li>\n</ul></li>\n</ol>\n",
+
+		"* Start with unordered\n 1. Ordered\n",
+		"<ul>\n<li>Start with unordered\n\n<ol>\n<li>Ordered</li>\n</ol></li>\n</ul>\n",
+
+		"* Start with unordered\n    1. Ordered\n",
+		"<ul>\n<li>Start with unordered\n\n<ol>\n<li>Ordered</li>\n</ol></li>\n</ul>\n",
+
+		"1. numbers\n1. are ignored\n",
+		"<ol>\n<li>numbers</li>\n<li>are ignored</li>\n</ol>\n",
 	}
 	doTestsBlock(t, tests, 0)
 }
