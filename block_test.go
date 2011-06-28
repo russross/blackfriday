@@ -552,3 +552,74 @@ func TestPreformattedHtmlLax(t *testing.T) {
 	}
 	doTestsBlock(t, tests, EXTENSION_LAX_HTML_BLOCKS)
 }
+
+func TestFencedCodeBlock(t *testing.T) {
+	var tests = []string{
+		"``` go\nfunc foo() bool {\n\treturn true;\n}\n```\n",
+		"<pre><code class=\"go\">func foo() bool {\n    return true;\n}\n</code></pre>\n",
+
+		"``` c\n/* special & char < > \" escaping */\n```\n",
+		"<pre><code class=\"c\">/* special &amp; char &lt; &gt; &quot; escaping */\n</code></pre>\n",
+
+		"``` c\nno *inline* processing ~~of text~~\n```\n",
+		"<pre><code class=\"c\">no *inline* processing ~~of text~~\n</code></pre>\n",
+
+		"```\nNo language\n```\n",
+		"<pre><code>No language\n</code></pre>\n",
+
+		"``` {ocaml}\nlanguage in braces\n```\n",
+		"<pre><code class=\"ocaml\">language in braces\n</code></pre>\n",
+
+		"```    {ocaml}      \nwith extra whitespace\n```\n",
+		"<pre><code class=\"ocaml\">with extra whitespace\n</code></pre>\n",
+
+		"```{   ocaml   }\nwith extra whitespace\n```\n",
+		"<pre><code class=\"ocaml\">with extra whitespace\n</code></pre>\n",
+
+		"~ ~~ java\nWith whitespace\n~~~\n",
+		"<p>~ ~~ java\nWith whitespace\n~~~</p>\n",
+
+		"~~\nonly two\n~~\n",
+		"<p>~~\nonly two\n~~</p>\n",
+
+		"```` python\nextra\n````\n",
+		"<pre><code class=\"python\">extra\n</code></pre>\n",
+
+		"~~~ perl\nthree to start, four to end\n~~~~\n",
+		"<p>~~~ perl\nthree to start, four to end\n~~~~</p>\n",
+
+		"~~~~ perl\nfour to start, three to end\n~~~\n",
+		"<p>~~~~ perl\nfour to start, three to end\n~~~</p>\n",
+
+		"~~~ bash\ntildes\n~~~\n",
+		"<pre><code class=\"bash\">tildes\n</code></pre>\n",
+
+		"``` lisp\nno ending\n",
+		"<p>``` lisp\nno ending</p>\n",
+
+		"~~~ lisp\nend with language\n~~~ lisp\n",
+		"<p>~~~ lisp\nend with language\n~~~ lisp</p>\n",
+
+		"```\nmismatched begin and end\n~~~\n",
+		"<p>```\nmismatched begin and end\n~~~</p>\n",
+
+		"~~~\nmismatched begin and end\n```\n",
+		"<p>~~~\nmismatched begin and end\n```</p>\n",
+
+		"   ``` oz\nleading spaces\n```\n",
+		"<pre><code class=\"oz\">leading spaces\n</code></pre>\n",
+
+		"  ``` oz\nleading spaces\n ```\n",
+		"<pre><code class=\"oz\">leading spaces\n</code></pre>\n",
+
+		" ``` oz\nleading spaces\n  ```\n",
+		"<pre><code class=\"oz\">leading spaces\n</code></pre>\n",
+
+		"``` oz\nleading spaces\n   ```\n",
+		"<pre><code class=\"oz\">leading spaces\n</code></pre>\n",
+
+		"    ``` oz\nleading spaces\n    ```\n",
+		"<pre><code>``` oz\n</code></pre>\n\n<p>leading spaces\n    ```</p>\n",
+	}
+	doTestsBlock(t, tests, EXTENSION_FENCED_CODE)
+}

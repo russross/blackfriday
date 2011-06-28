@@ -429,12 +429,13 @@ func isHRule(data []byte) bool {
 	return n >= 3
 }
 
-func isFencedCode(data []byte, syntax **string) int {
-	i, n := 0, 0
+func isFencedCode(data []byte, syntax **string, oldmarker string) (skip int, marker string) {
+	i, size := 0, 0
+	skip = 0
 
 	// skip initial spaces
 	if len(data) < 3 {
-		return 0
+		return
 	}
 	if data[0] == ' ' {
 		i++
@@ -446,21 +447,28 @@ func isFencedCode(data []byte, syntax **string) int {
 		}
 	}
 
-	// look at the hrule char
+	// check for the marker characters: ~ or `
 	if i+2 >= len(data) || !(data[i] == '~' || data[i] == '`') {
-		return 0
+		return
 	}
 
 	c := data[i]
 
-	// the whole line must be the char or whitespace
+	// the whole line must be the same char or whitespace
 	for i < len(data) && data[i] == c {
-		n++
+		size++
 		i++
 	}
 
-	if n < 3 {
-		return 0
+	// the marker char must occur at least 3 times
+	if size < 3 {
+		return
+	}
+	marker = string(data[i-size : i])
+
+	// if this is the end marker, it must match the beginning marker
+	if oldmarker != "" && marker != oldmarker {
+		return
 	}
 
 	if syntax != nil {
@@ -482,10 +490,10 @@ func isFencedCode(data []byte, syntax **string) int {
 			}
 
 			if i == len(data) || data[i] != '}' {
-				return 0
+				return
 			}
 
-			// string all whitespace at the beginning and the end
+			// strip all whitespace at the beginning and the end
 			// of the {} block
 			for syn > 0 && isspace(data[syntax_start]) {
 				syntax_start++
@@ -508,19 +516,19 @@ func isFencedCode(data []byte, syntax **string) int {
 		*syntax = &language
 	}
 
-	for i < len(data) && data[i] != '\n' {
+	for ; i < len(data) && data[i] != '\n'; i++ {
 		if !isspace(data[i]) {
-			return 0
+			return
 		}
-		i++
 	}
 
-	return i + 1
+	skip = i + 1
+	return
 }
 
 func blockFencedCode(out *bytes.Buffer, rndr *render, data []byte) int {
 	var lang *string
-	beg := isFencedCode(data, &lang)
+	beg, marker := isFencedCode(data, &lang, "")
 	if beg == 0 {
 		return 0
 	}
@@ -528,7 +536,7 @@ func blockFencedCode(out *bytes.Buffer, rndr *render, data []byte) int {
 	var work bytes.Buffer
 
 	for beg < len(data) {
-		fence_end := isFencedCode(data[beg:], nil)
+		fence_end, _ := isFencedCode(data[beg:], nil, marker)
 		if fence_end != 0 {
 			beg += fence_end
 			break
@@ -539,7 +547,7 @@ func blockFencedCode(out *bytes.Buffer, rndr *render, data []byte) int {
 		}
 
 		if beg < end {
-			// verbatim copy to the working buffer, escaping entities
+			// verbatim copy to the working buffer
 			if isEmpty(data[beg:]) > 0 {
 				work.WriteByte('\n')
 			} else {
@@ -547,6 +555,11 @@ func blockFencedCode(out *bytes.Buffer, rndr *render, data []byte) int {
 			}
 		}
 		beg = end
+
+		// did we find the end of the buffer without a closing marker?
+		if beg >= len(data) {
+			return 0
+		}
 	}
 
 	if work.Len() > 0 && work.Bytes()[work.Len()-1] != '\n' {
