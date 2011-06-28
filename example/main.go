@@ -16,6 +16,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -46,7 +47,7 @@ func main() {
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage:\n"+
 			"  %s [options] [inputfile [outputfile]]\n\n"+
-			"Options:\n", os.Args[0])
+			"Options:\n",os.Args[0])
 		flag.PrintDefaults()
 	}
 	flag.Parse()
@@ -135,6 +136,19 @@ func main() {
 	}
 
 	if page {
+		// if it starts with an <h1>, make that the title
+		title := ""
+		if bytes.HasPrefix(output, []byte("<h1>")) {
+			end := 0
+			// we know the buffer ends with a newline, so no need to check bounds
+			for output[end] != '\n' {
+				end++
+			}
+			if bytes.HasSuffix(output[:end], []byte("</h1>")) {
+				title = string(output[len("<h1>") : end-len("</h1>")])
+			}
+		}
+
 		ending := ""
 		if xhtml {
 			fmt.Fprint(out, "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" ")
@@ -147,7 +161,7 @@ func main() {
 			fmt.Fprintln(out, "<html>")
 		}
 		fmt.Fprintln(out, "<head>")
-		fmt.Fprintln(out, "  <title></title>")
+		fmt.Fprintf(out, "  <title>%s</title>\n", title)
 		fmt.Fprintf(out, "  <meta name=\"GENERATOR\" content=\"Blackfriday markdown processor\"%s>\n", ending)
 		fmt.Fprintf(out, "  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"%s>\n", ending)
 		if css != "" {
