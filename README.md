@@ -1,16 +1,16 @@
 Blackfriday
 ===========
 
-This is an implementation of John Gruber's [markdown][1] in [Go][2].
-It is a translation of the [upskirt][3] library written in C with a
-few minor changes. It retains the paranoia of the original (it is
-careful not to trust its input, and as such it should be safe to
-feed it arbitrary user-supplied inputs). It also retains the
-emphasis on high performance, and the source is almost as ugly as
-the original.
+Blackfriday is a [Markdown][1] processor implemented in [Go][2]. It
+is paranoid about its input (so you can safely feed it user-supplied
+data), it is fast, it supports common extensions (tables, smart
+punctuation substitutions, etc.), and it is safe for all utf-8
+(unicode) input.
 
 HTML output is currently supported, along with Smartypants
 extensions. An experimental LaTeX output engine is also included.
+
+It started as a translation from C of [upskirt][3].
 
 
 Installation
@@ -48,11 +48,12 @@ All features of upskirt are supported, including:
 *   Paranoid parsing, making it safe to feed untrusted used input
     without fear of bad things happening. There are still some
     corner cases that are untested, but it is already more strict
-    than upskirt (Go's bounds-checking uncovered a few off-by-one
-    errors that were present in the C code).
+    than upskirt (bounds checking in Go uncovered a few off-by-one
+    errors that were present in upskirt).
 
 *   Good performance. I have not done rigorous benchmarking, but
-    informal testing suggests it is around 3--4x slower than upskirt.
+    informal testing suggests it is around 3--4x slower than upskirt
+    for general input. It blows away most other markdown processors.
 
 *   Minimal dependencies. Blackfriday only depends on standard
     library packages in Go. The source code is pretty
@@ -96,6 +97,10 @@ Todo
 *   Code cleanup
 *   Better code documentation
 *   Markdown pretty-printer output engine
+*   Improve unicode support. It does not understand all unicode
+    rules (about what constitutes a letter, a punctuation symbol,
+    etc.), so it may fail to detect word boundaries correctly in
+    some instances. It is safe on all utf-8 input.
 
 
 License

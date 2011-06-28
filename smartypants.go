@@ -3,7 +3,7 @@
 // Available at http://github.com/russross/blackfriday
 //
 // Copyright © 2011 Russ Ross <russ@russross.com>.
-// Licensed under the Simplified BSD License.
+// Distributed under the Simplified BSD License.
 // See README.md for details.
 //
 

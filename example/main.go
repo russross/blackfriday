@@ -3,7 +3,7 @@
 // Available at http://github.com/russross/blackfriday
 //
 // Copyright © 2011 Russ Ross <russ@russross.com>.
-// Licensed under the Simplified BSD License.
+// Distributed under the Simplified BSD License.
 // See README.md for details.
 //
 
@@ -27,7 +27,7 @@ import (
 
 func main() {
 	// parse command-line options
-	var page, xhtml, latex, smartypants bool
+	var page, xhtml, latex, smartypants, latexdashes, fractions bool
 	var css, cpuprofile string
 	var repeat int
 	flag.BoolVar(&page, "page", false,
@@ -36,8 +36,12 @@ func main() {
 		"Use XHTML-style tags in HTML output")
 	flag.BoolVar(&latex, "latex", false,
 		"Generate LaTeX output instead of HTML")
-	flag.BoolVar(&smartypants, "smartypants", false,
+	flag.BoolVar(&smartypants, "smartypants", true,
 		"Apply smartypants-style substitutions")
+	flag.BoolVar(&latexdashes, "latexdashes", true,
+		"Use LaTeX-style dash rules for smartypants")
+	flag.BoolVar(&fractions, "fractions", true,
+		"Use improved fraction rules for smartypants")
 	flag.StringVar(&css, "css", "",
 		"Link to a CSS stylesheet (implies -page)")
 	flag.StringVar(&cpuprofile, "cpuprofile", "",
@@ -45,7 +49,12 @@ func main() {
 	flag.IntVar(&repeat, "repeat", 1,
 		"Process the input multiple times (for benchmarking)")
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage:\n"+
+		fmt.Fprintf(os.Stderr, "Blackfriday Markdown Processor v"+blackfriday.VERSION+
+			"\nAvailable at http://github.com/russross/blackfriday\n\n"+
+			"Copyright © 2011 Russ Ross <russ@russross.com>\n"+
+			"Distributed under the Simplified BSD License\n"+
+			"See website for details\n\n"+
+			"Usage:\n"+
 			"  %s [options] [inputfile [outputfile]]\n\n"+
 			"Options:\n",os.Args[0])
 		flag.PrintDefaults()
@@ -111,7 +120,11 @@ func main() {
 		}
 		if smartypants {
 			html_flags |= blackfriday.HTML_USE_SMARTYPANTS
+		}
+		if fractions {
 			html_flags |= blackfriday.HTML_SMARTYPANTS_FRACTIONS
+		}
+		if latexdashes {
 			html_flags |= blackfriday.HTML_SMARTYPANTS_LATEX_DASHES
 		}
 		renderer = blackfriday.HtmlRenderer(html_flags)
@@ -162,8 +175,10 @@ func main() {
 		}
 		fmt.Fprintln(out, "<head>")
 		fmt.Fprintf(out, "  <title>%s</title>\n", title)
-		fmt.Fprintf(out, "  <meta name=\"GENERATOR\" content=\"Blackfriday markdown processor\"%s>\n", ending)
-		fmt.Fprintf(out, "  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"%s>\n", ending)
+		fmt.Fprintf(out, "  <meta name=\"GENERATOR\" content=\"Blackfriday Markdown Processor v%s\"%s>\n",
+			blackfriday.VERSION, ending)
+		fmt.Fprintf(out, "  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"%s>\n",
+			ending)
 		if css != "" {
 			fmt.Fprintf(out, "  <link rel=\"stylesheet\" type=\"text/css\" href=\"%s\" />\n", css)
 		}

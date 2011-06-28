@@ -3,7 +3,7 @@
 // Available at http://github.com/russross/blackfriday
 //
 // Copyright © 2011 Russ Ross <russ@russross.com>.
-// Licensed under the Simplified BSD License.
+// Distributed under the Simplified BSD License.
 // See README.md for details.
 //
 
@@ -19,6 +19,8 @@ import (
 	"bytes"
 	"utf8"
 )
+
+const VERSION = "0.5"
 
 // These are the supported markdown parsing extensions.
 // OR these values together to select multiple extensions.
