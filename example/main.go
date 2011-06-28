@@ -56,7 +56,8 @@ func main() {
 			"See website for details\n\n"+
 			"Usage:\n"+
 			"  %s [options] [inputfile [outputfile]]\n\n"+
-			"Options:\n",os.Args[0])
+			"Options:\n",
+			os.Args[0])
 		flag.PrintDefaults()
 	}
 	flag.Parse()
@@ -100,7 +101,7 @@ func main() {
 	}
 
 	// set up options
-	var extensions uint32
+	extensions := 0
 	extensions |= blackfriday.EXTENSION_NO_INTRA_EMPHASIS
 	extensions |= blackfriday.EXTENSION_TABLES
 	extensions |= blackfriday.EXTENSION_FENCED_CODE
@@ -114,20 +115,20 @@ func main() {
 		renderer = blackfriday.LatexRenderer(0)
 	} else {
 		// render the data into HTML
-		html_flags := 0
+		htmlFlags := 0
 		if xhtml {
-			html_flags |= blackfriday.HTML_USE_XHTML
+			htmlFlags |= blackfriday.HTML_USE_XHTML
 		}
 		if smartypants {
-			html_flags |= blackfriday.HTML_USE_SMARTYPANTS
+			htmlFlags |= blackfriday.HTML_USE_SMARTYPANTS
 		}
 		if fractions {
-			html_flags |= blackfriday.HTML_SMARTYPANTS_FRACTIONS
+			htmlFlags |= blackfriday.HTML_SMARTYPANTS_FRACTIONS
 		}
 		if latexdashes {
-			html_flags |= blackfriday.HTML_SMARTYPANTS_LATEX_DASHES
+			htmlFlags |= blackfriday.HTML_SMARTYPANTS_LATEX_DASHES
 		}
-		renderer = blackfriday.HtmlRenderer(html_flags)
+		renderer = blackfriday.HtmlRenderer(htmlFlags)
 	}
 
 	// parse and render

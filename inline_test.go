@@ -18,14 +18,14 @@ import (
 )
 
 func runMarkdownInline(input string) string {
-	var extensions uint32
+	extensions := 0
 	extensions |= EXTENSION_AUTOLINK
 	extensions |= EXTENSION_STRIKETHROUGH
 
-	html_flags := 0
-	html_flags |= HTML_USE_XHTML
+	htmlFlags := 0
+	htmlFlags |= HTML_USE_XHTML
 
-	renderer := HtmlRenderer(html_flags)
+	renderer := HtmlRenderer(htmlFlags)
 
 	return string(Markdown([]byte(input), renderer, extensions))
 }

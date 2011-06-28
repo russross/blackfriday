@@ -23,9 +23,25 @@ Assuming you have recent version of Go installed, along with git:
 will download, compile, and install the package into
 `$GOROOT/src/pkg/github.com/russross/blackfriday`.
 
-Check out `example/main.go` for an example of how to use it. Run
-`gomake` in that directory to build a simple command-line markdown
-tool:
+For basic usage, it is as simple as getting your input into a byte
+slice and calling:
+
+    output := blackfriday.MarkdownBasic(input)
+
+This renders it with no extensions enabled. To get a more useful
+feature set, use this instead:
+
+    output := blackfriday.MarkdownCommon(input)
+
+If you want to customize the set of options, first get a renderer
+(currently either the HTML or LaTeX output engines), then use it to
+call the more general `Markdown` function. For examples, see the
+implementations of `MarkdownBasic` and `MarkdownCommon` in
+`markdown.go`.
+
+You can also check out `example/main.go` for a more complete example
+of how to use it. Run `gomake` in that directory to build a simple
+command-line markdown tool:
 
     cd $GOROOT/src/pkg/github.com/russross/blackfriday/example
     gomake

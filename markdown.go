@@ -149,7 +149,7 @@ type render struct {
 	mk         *Renderer
 	refs       map[string]*reference
 	inline     [256]inlineParser
-	flags      uint32
+	flags      int
 	nesting    int
 	maxNesting int
 	insideLink bool
@@ -162,10 +162,44 @@ type render struct {
 //
 //
 
+// Call Markdown with no extensions
+func MarkdownBasic(input []byte) []byte {
+	// set up the HTML renderer
+	htmlFlags := HTML_USE_XHTML
+	renderer := HtmlRenderer(htmlFlags)
+
+	// set up the parser
+	extensions := 0
+
+	return Markdown(input, renderer, extensions)
+}
+
+// Call Markdown with most useful extensions enabled
+func MarkdownCommon(input []byte) []byte {
+	// set up the HTML renderer
+	htmlFlags := 0
+	htmlFlags |= HTML_USE_XHTML
+	htmlFlags |= HTML_USE_SMARTYPANTS
+	htmlFlags |= HTML_SMARTYPANTS_FRACTIONS
+	htmlFlags |= HTML_SMARTYPANTS_LATEX_DASHES
+	renderer := HtmlRenderer(htmlFlags)
+
+	// set up the parser
+	extensions := 0
+	extensions |= EXTENSION_NO_INTRA_EMPHASIS
+	extensions |= EXTENSION_TABLES
+	extensions |= EXTENSION_FENCED_CODE
+	extensions |= EXTENSION_AUTOLINK
+	extensions |= EXTENSION_STRIKETHROUGH
+	extensions |= EXTENSION_SPACE_HEADERS
+
+	return Markdown(input, renderer, extensions)
+}
+
 // Parse and render a block of markdown-encoded text.
 // The renderer is used to format the output, and extensions dictates which
 // non-standard extensions are enabled.
-func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
+func Markdown(input []byte, renderer *Renderer, extensions int) []byte {
 	// no point in parsing if we can't render
 	if renderer == nil {
 		return nil
@@ -204,8 +238,8 @@ func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 		rndr.inline[':'] = inlineAutoLink
 	}
 
-	first := FirstPass(rndr, input)
-	second := SecondPass(rndr, first)
+	first := firstPass(rndr, input)
+	second := secondPass(rndr, first)
 
 	return second
 }
@@ -215,7 +249,7 @@ func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 // - expand tabs
 // - normalize newlines
 // - copy everything else
-func FirstPass(rndr *render, input []byte) []byte {
+func firstPass(rndr *render, input []byte) []byte {
 	var out bytes.Buffer
 	tab_size := TAB_SIZE_DEFAULT
 	if rndr.flags&EXTENSION_TAB_SIZE_EIGHT != 0 {
@@ -255,7 +289,7 @@ func FirstPass(rndr *render, input []byte) []byte {
 }
 
 // second pass: actual rendering
-func SecondPass(rndr *render, input []byte) []byte {
+func secondPass(rndr *render, input []byte) []byte {
 	var output bytes.Buffer
 	if rndr.mk.DocumentHeader != nil {
 		rndr.mk.DocumentHeader(&output, rndr.mk.Opaque)

@@ -17,16 +17,16 @@ import (
 	"testing"
 )
 
-func runMarkdownBlock(input string, extensions uint32) string {
-	html_flags := 0
-	html_flags |= HTML_USE_XHTML
+func runMarkdownBlock(input string, extensions int) string {
+	htmlFlags := 0
+	htmlFlags |= HTML_USE_XHTML
 
-	renderer := HtmlRenderer(html_flags)
+	renderer := HtmlRenderer(htmlFlags)
 
 	return string(Markdown([]byte(input), renderer, extensions))
 }
 
-func doTestsBlock(t *testing.T, tests []string, extensions uint32) {
+func doTestsBlock(t *testing.T, tests []string, extensions int) {
 	for i := 0; i+1 < len(tests); i += 2 {
 		input := tests[i]
 		expected := tests[i+1]
