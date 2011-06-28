@@ -31,6 +31,8 @@ const (
 	EXTENSION_LAX_HTML_BLOCKS
 	EXTENSION_SPACE_HEADERS
 	EXTENSION_HARD_LINE_BREAK
+	EXTENSION_NO_EXPAND_TABS
+	EXTENSION_TAB_SIZE_EIGHT
 )
 
 // These are the possible flag values for the link renderer.
@@ -61,7 +63,10 @@ const (
 )
 
 // The size of a tab stop.
-const TAB_SIZE = 4
+const (
+	TAB_SIZE_DEFAULT = 4
+	TAB_SIZE_EIGHT   = 8
+)
 
 // These are the tags that are recognized as HTML block tags.
 // Any of these can be included in markdown text without special escaping.
@@ -210,6 +215,10 @@ func Markdown(input []byte, renderer *Renderer, extensions uint32) []byte {
 // - copy everything else
 func FirstPass(rndr *render, input []byte) []byte {
 	var out bytes.Buffer
+	tab_size := TAB_SIZE_DEFAULT
+	if rndr.flags&EXTENSION_TAB_SIZE_EIGHT != 0 {
+		tab_size = TAB_SIZE_EIGHT
+	}
 	beg, end := 0, 0
 	for beg < len(input) { // iterate over lines
 		if end = isReference(rndr, input[beg:]); end > 0 {
@@ -222,10 +231,13 @@ func FirstPass(rndr *render, input []byte) []byte {
 
 			// add the line body if present
 			if end > beg {
-				expandTabs(&out, input[beg:end])
-			} else {
-				out.WriteByte('\n')
+				if rndr.flags&EXTENSION_NO_EXPAND_TABS == 0 {
+					expandTabs(&out, input[beg:end], tab_size)
+				} else {
+					out.Write(input[beg:end])
+				}
 			}
+			out.WriteByte('\n')
 
 			if end < len(input) && input[end] == '\r' {
 				end++
@@ -449,7 +461,7 @@ func isalnum(c byte) bool {
 
 // Replace tab characters with spaces, aligning to the next TAB_SIZE column.
 // always ends output with a newline
-func expandTabs(out *bytes.Buffer, line []byte) {
+func expandTabs(out *bytes.Buffer, line []byte, tab_size int) {
 	// first, check for common cases: no tabs, or only tabs at beginning of line
 	i, prefix := 0, 0
 	slowcase := false
@@ -466,11 +478,10 @@ func expandTabs(out *bytes.Buffer, line []byte) {
 
 	// no need to decode runes if all tabs are at the beginning of the line
 	if !slowcase {
-		for i = 0; i < prefix*TAB_SIZE; i++ {
+		for i = 0; i < prefix*tab_size; i++ {
 			out.WriteByte(' ')
 		}
 		out.Write(line[prefix:])
-		out.WriteByte('\n')
 		return
 	}
 
@@ -497,12 +508,11 @@ func expandTabs(out *bytes.Buffer, line []byte) {
 		for {
 			out.WriteByte(' ')
 			column++
-			if column%TAB_SIZE == 0 {
+			if column%tab_size == 0 {
 				break
 			}
 		}
 
 		i++
 	}
-	out.WriteByte('\n')
 }

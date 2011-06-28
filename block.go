@@ -981,7 +981,10 @@ func blockListItem(out *bytes.Buffer, rndr *render, data []byte, flags *int) int
 		pre = i
 		if data[beg] == '\t' {
 			i = 1
-			pre = TAB_SIZE
+			pre = TAB_SIZE_DEFAULT
+			if rndr.flags&EXTENSION_TAB_SIZE_EIGHT != 0 {
+				pre = TAB_SIZE_EIGHT
+			}
 		}
 
 		chunk := data[beg+i : end]
