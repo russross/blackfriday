@@ -1,7 +1,10 @@
 //
-// Black Friday Markdown Processor
-// Originally based on http://github.com/tanoku/upskirt
-// by Russ Ross <russ@russross.com>
+// Blackfriday Markdown Processor
+// Available at http://github.com/russross/blackfriday
+//
+// Copyright © 2011 Russ Ross <russ@russross.com>.
+// Licensed under the Simplified BSD License.
+// See README.md for details.
 //
 
 //

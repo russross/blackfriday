@@ -1,7 +1,10 @@
 //
-// Black Friday Markdown Processor
-// Originally based on http://github.com/tanoku/upskirt
-// by Russ Ross <russ@russross.com>
+// Blackfriday Markdown Processor
+// Available at http://github.com/russross/blackfriday
+//
+// Copyright © 2011 Russ Ross <russ@russross.com>.
+// Licensed under the Simplified BSD License.
+// See README.md for details.
 //
 
 //
@@ -304,7 +307,7 @@ func latexDocumentHeader(out *bytes.Buffer, opaque interface{}) {
 	out.WriteString("  urlcolor=black,%\n")
 	out.WriteString("  pdfstartview=FitH,%\n")
 	out.WriteString("  breaklinks=true,%\n")
-	out.WriteString("  pdfauthor={Black Friday Markdown Processor}}\n")
+	out.WriteString("  pdfauthor={Blackfriday Markdown Processor}}\n")
 	out.WriteString("\n")
 	out.WriteString("\\newcommand{\\HRule}{\\rule{\\linewidth}{0.5mm}}\n")
 	out.WriteString("\\addtolength{\\parskip}{0.5\\baselineskip}\n")
