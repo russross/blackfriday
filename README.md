@@ -103,7 +103,7 @@ License
 
 Blackfriday is distributed under the Simplified BSD License:
 
-> Copyright © 2011 Russ Ross \<russ@russross.com\>. All rights reserved.
+> Copyright © 2011 Russ Ross. All rights reserved.
 > 
 > Redistribution and use in source and binary forms, with or without modification, are
 > permitted provided that the following conditions are met:
