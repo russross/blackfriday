@@ -234,7 +234,7 @@ func isUnderlinedHeader(data []byte) int {
 	return 0
 }
 
-func blockHtml(out *bytes.Buffer, rndr *render, data []byte, do_render bool) int {
+func blockHtml(out *bytes.Buffer, rndr *render, data []byte, doRender bool) int {
 	var i, j int
 
 	// identify the opening tag
@@ -261,7 +261,7 @@ func blockHtml(out *bytes.Buffer, rndr *render, data []byte, do_render bool) int
 
 			if j > 0 {
 				size := i + j
-				if do_render && rndr.mk.BlockHtml != nil {
+				if doRender && rndr.mk.BlockHtml != nil {
 					rndr.mk.BlockHtml(out, data[:size], rndr.mk.Opaque)
 				}
 				return size
@@ -283,7 +283,7 @@ func blockHtml(out *bytes.Buffer, rndr *render, data []byte, do_render bool) int
 				j = isEmpty(data[i:])
 				if j > 0 {
 					size := i + j
-					if do_render && rndr.mk.BlockHtml != nil {
+					if doRender && rndr.mk.BlockHtml != nil {
 						rndr.mk.BlockHtml(out, data[:size], rndr.mk.Opaque)
 					}
 					return size
@@ -329,7 +329,7 @@ func blockHtml(out *bytes.Buffer, rndr *render, data []byte, do_render bool) int
 	}
 
 	// the end of the block has been found
-	if do_render && rndr.mk.BlockHtml != nil {
+	if doRender && rndr.mk.BlockHtml != nil {
 		rndr.mk.BlockHtml(out, data[:i], rndr.mk.Opaque)
 	}
 
@@ -345,7 +345,7 @@ func blockHtmlFindTag(data []byte) (string, bool) {
 		return "", false
 	}
 	key := string(data[:i])
-	if block_tags[key] {
+	if blockTags[key] {
 		return key, true
 	}
 	return "", false
@@ -478,11 +478,11 @@ func isFencedCode(data []byte, syntax **string, oldmarker string) (skip int, mar
 			i++
 		}
 
-		syntax_start := i
+		syntaxStart := i
 
 		if i < len(data) && data[i] == '{' {
 			i++
-			syntax_start++
+			syntaxStart++
 
 			for i < len(data) && data[i] != '}' && data[i] != '\n' {
 				syn++
@@ -495,12 +495,12 @@ func isFencedCode(data []byte, syntax **string, oldmarker string) (skip int, mar
 
 			// strip all whitespace at the beginning and the end
 			// of the {} block
-			for syn > 0 && isspace(data[syntax_start]) {
-				syntax_start++
+			for syn > 0 && isspace(data[syntaxStart]) {
+				syntaxStart++
 				syn--
 			}
 
-			for syn > 0 && isspace(data[syntax_start+syn-1]) {
+			for syn > 0 && isspace(data[syntaxStart+syn-1]) {
 				syn--
 			}
 
@@ -512,7 +512,7 @@ func isFencedCode(data []byte, syntax **string, oldmarker string) (skip int, mar
 			}
 		}
 
-		language := string(data[syntax_start : syntax_start+syn])
+		language := string(data[syntaxStart : syntaxStart+syn])
 		*syntax = &language
 	}
 
@@ -536,9 +536,9 @@ func blockFencedCode(out *bytes.Buffer, rndr *render, data []byte) int {
 	var work bytes.Buffer
 
 	for beg < len(data) {
-		fence_end, _ := isFencedCode(data[beg:], nil, marker)
-		if fence_end != 0 {
-			beg += fence_end
+		fenceEnd, _ := isFencedCode(data[beg:], nil, marker)
+		if fenceEnd != 0 {
+			beg += fenceEnd
 			break
 		}
 
@@ -579,16 +579,16 @@ func blockFencedCode(out *bytes.Buffer, rndr *render, data []byte) int {
 }
 
 func blockTable(out *bytes.Buffer, rndr *render, data []byte) int {
-	var header_work bytes.Buffer
-	i, columns, col_data := blockTableHeader(&header_work, rndr, data)
+	var headerWork bytes.Buffer
+	i, columns, colData := blockTableHeader(&headerWork, rndr, data)
 	if i == 0 {
 		return 0
 	}
 
-	var body_work bytes.Buffer
+	var bodyWork bytes.Buffer
 
 	for i < len(data) {
-		pipes, row_start := 0, i
+		pipes, rowStart := 0, i
 		for ; i < len(data) && data[i] != '\n'; i++ {
 			if data[i] == '|' {
 				pipes++
@@ -596,24 +596,24 @@ func blockTable(out *bytes.Buffer, rndr *render, data []byte) int {
 		}
 
 		if pipes == 0 || i == len(data) {
-			i = row_start
+			i = rowStart
 			break
 		}
 
-		blockTableRow(&body_work, rndr, data[row_start:i], columns, col_data)
+		blockTableRow(&bodyWork, rndr, data[rowStart:i], columns, colData)
 		i++
 	}
 
 	if rndr.mk.Table != nil {
-		rndr.mk.Table(out, header_work.Bytes(), body_work.Bytes(), col_data, rndr.mk.Opaque)
+		rndr.mk.Table(out, headerWork.Bytes(), bodyWork.Bytes(), colData, rndr.mk.Opaque)
 	}
 
 	return i
 }
 
-func blockTableHeader(out *bytes.Buffer, rndr *render, data []byte) (size int, columns int, column_data []int) {
+func blockTableHeader(out *bytes.Buffer, rndr *render, data []byte) (size int, columns int, columnData []int) {
 	i, pipes := 0, 0
-	column_data = []int{}
+	columnData = []int{}
 	for i = 0; i < len(data) && data[i] != '\n'; i++ {
 		if data[i] == '|' {
 			pipes++
@@ -621,10 +621,10 @@ func blockTableHeader(out *bytes.Buffer, rndr *render, data []byte) (size int, c
 	}
 
 	if i == len(data) || pipes == 0 {
-		return 0, 0, column_data
+		return 0, 0, columnData
 	}
 
-	header_end := i
+	headerEnd := i
 
 	if data[0] == '|' {
 		pipes--
@@ -635,7 +635,7 @@ func blockTableHeader(out *bytes.Buffer, rndr *render, data []byte) (size int, c
 	}
 
 	columns = pipes + 1
-	column_data = make([]int, columns)
+	columnData = make([]int, columns)
 
 	// parse the header underline
 	i++
@@ -643,41 +643,41 @@ func blockTableHeader(out *bytes.Buffer, rndr *render, data []byte) (size int, c
 		i++
 	}
 
-	under_end := i
-	for under_end < len(data) && data[under_end] != '\n' {
-		under_end++
+	underEnd := i
+	for underEnd < len(data) && data[underEnd] != '\n' {
+		underEnd++
 	}
 
 	col := 0
-	for ; col < columns && i < under_end; col++ {
+	for ; col < columns && i < underEnd; col++ {
 		dashes := 0
 
-		for i < under_end && (data[i] == ' ' || data[i] == '\t') {
+		for i < underEnd && (data[i] == ' ' || data[i] == '\t') {
 			i++
 		}
 
 		if data[i] == ':' {
 			i++
-			column_data[col] |= TABLE_ALIGNMENT_LEFT
+			columnData[col] |= TABLE_ALIGNMENT_LEFT
 			dashes++
 		}
 
-		for i < under_end && data[i] == '-' {
+		for i < underEnd && data[i] == '-' {
 			i++
 			dashes++
 		}
 
-		if i < under_end && data[i] == ':' {
+		if i < underEnd && data[i] == ':' {
 			i++
-			column_data[col] |= TABLE_ALIGNMENT_RIGHT
+			columnData[col] |= TABLE_ALIGNMENT_RIGHT
 			dashes++
 		}
 
-		for i < under_end && (data[i] == ' ' || data[i] == '\t') {
+		for i < underEnd && (data[i] == ' ' || data[i] == '\t') {
 			i++
 		}
 
-		if i < under_end && data[i] != '|' {
+		if i < underEnd && data[i] != '|' {
 			break
 		}
 
@@ -689,17 +689,17 @@ func blockTableHeader(out *bytes.Buffer, rndr *render, data []byte) (size int, c
 	}
 
 	if col < columns {
-		return 0, 0, column_data
+		return 0, 0, columnData
 	}
 
-	blockTableRow(out, rndr, data[:header_end], columns, column_data)
-	size = under_end + 1
+	blockTableRow(out, rndr, data[:headerEnd], columns, columnData)
+	size = underEnd + 1
 	return
 }
 
-func blockTableRow(out *bytes.Buffer, rndr *render, data []byte, columns int, col_data []int) {
+func blockTableRow(out *bytes.Buffer, rndr *render, data []byte, columns int, colData []int) {
 	i, col := 0, 0
-	var row_work bytes.Buffer
+	var rowWork bytes.Buffer
 
 	if i < len(data) && data[i] == '|' {
 		i++
@@ -710,45 +710,45 @@ func blockTableRow(out *bytes.Buffer, rndr *render, data []byte, columns int, co
 			i++
 		}
 
-		cell_start := i
+		cellStart := i
 
 		for i < len(data) && data[i] != '|' {
 			i++
 		}
 
-		cell_end := i - 1
+		cellEnd := i - 1
 
-		for cell_end > cell_start && isspace(data[cell_end]) {
-			cell_end--
+		for cellEnd > cellStart && isspace(data[cellEnd]) {
+			cellEnd--
 		}
 
-		var cell_work bytes.Buffer
-		parseInline(&cell_work, rndr, data[cell_start:cell_end+1])
+		var cellWork bytes.Buffer
+		parseInline(&cellWork, rndr, data[cellStart:cellEnd+1])
 
 		if rndr.mk.TableCell != nil {
 			cdata := 0
-			if col < len(col_data) {
-				cdata = col_data[col]
+			if col < len(colData) {
+				cdata = colData[col]
 			}
-			rndr.mk.TableCell(&row_work, cell_work.Bytes(), cdata, rndr.mk.Opaque)
+			rndr.mk.TableCell(&rowWork, cellWork.Bytes(), cdata, rndr.mk.Opaque)
 		}
 
 		i++
 	}
 
 	for ; col < columns; col++ {
-		empty_cell := []byte{}
+		emptyCell := []byte{}
 		if rndr.mk.TableCell != nil {
 			cdata := 0
-			if col < len(col_data) {
-				cdata = col_data[col]
+			if col < len(colData) {
+				cdata = colData[col]
 			}
-			rndr.mk.TableCell(&row_work, empty_cell, cdata, rndr.mk.Opaque)
+			rndr.mk.TableCell(&rowWork, emptyCell, cdata, rndr.mk.Opaque)
 		}
 	}
 
 	if rndr.mk.TableRow != nil {
-		rndr.mk.TableRow(out, row_work.Bytes(), rndr.mk.Opaque)
+		rndr.mk.TableRow(out, rowWork.Bytes(), rndr.mk.Opaque)
 	}
 }
 
@@ -957,7 +957,7 @@ func blockListItem(out *bytes.Buffer, rndr *render, data []byte, flags *int) int
 	beg = end
 
 	// process the following lines
-	contains_blank_line, contains_block := false, false
+	containsBlankLine, containsBlock := false, false
 	for beg < len(data) {
 		end++
 
@@ -967,7 +967,7 @@ func blockListItem(out *bytes.Buffer, rndr *render, data []byte, flags *int) int
 
 		// process an empty line
 		if isEmpty(data[beg:end]) > 0 {
-			contains_blank_line = true
+			containsBlankLine = true
 			beg = end
 			continue
 		}
@@ -991,8 +991,8 @@ func blockListItem(out *bytes.Buffer, rndr *render, data []byte, flags *int) int
 
 		// check for a nested list item
 		if (blockUliPrefix(chunk) > 0 && !isHRule(chunk)) || blockOliPrefix(chunk) > 0 {
-			if contains_blank_line {
-				contains_block = true
+			if containsBlankLine {
+				containsBlock = true
 			}
 
 			// the following item must have the same indentation
@@ -1007,26 +1007,26 @@ func blockListItem(out *bytes.Buffer, rndr *render, data []byte, flags *int) int
 			// how about a nested prefix header?
 			if isPrefixHeader(rndr, chunk) {
 				// only nest headers that are indented
-				if contains_blank_line && i < 4 && data[beg] != '\t' {
+				if containsBlankLine && i < 4 && data[beg] != '\t' {
 					*flags |= LIST_ITEM_END_OF_LIST
 					break
 				}
-				contains_block = true
+				containsBlock = true
 			} else {
 				// only join stuff after empty lines when indented
-				if contains_blank_line && i < 4 && data[beg] != '\t' {
+				if containsBlankLine && i < 4 && data[beg] != '\t' {
 					*flags |= LIST_ITEM_END_OF_LIST
 					break
 				} else {
-					if contains_blank_line {
+					if containsBlankLine {
 						work.WriteByte('\n')
-						contains_block = true
+						containsBlock = true
 					}
 				}
 			}
 		}
 
-		contains_blank_line = false
+		containsBlankLine = false
 
 		// add the line into the working buffer without prefix
 		work.Write(data[beg+i : end])
@@ -1034,7 +1034,7 @@ func blockListItem(out *bytes.Buffer, rndr *render, data []byte, flags *int) int
 	}
 
 	// render li contents
-	if contains_block {
+	if containsBlock {
 		*flags |= LIST_ITEM_CONTAINS_BLOCK
 	}
 

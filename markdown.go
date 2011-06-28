@@ -72,7 +72,7 @@ const (
 
 // These are the tags that are recognized as HTML block tags.
 // Any of these can be included in markdown text without special escaping.
-var block_tags = map[string]bool{
+var blockTags = map[string]bool{
 	"p":          true,
 	"dl":         true,
 	"h1":         true,
@@ -251,9 +251,9 @@ func Markdown(input []byte, renderer *Renderer, extensions int) []byte {
 // - copy everything else
 func firstPass(rndr *render, input []byte) []byte {
 	var out bytes.Buffer
-	tab_size := TAB_SIZE_DEFAULT
+	tabSize := TAB_SIZE_DEFAULT
 	if rndr.flags&EXTENSION_TAB_SIZE_EIGHT != 0 {
-		tab_size = TAB_SIZE_EIGHT
+		tabSize = TAB_SIZE_EIGHT
 	}
 	beg, end := 0, 0
 	for beg < len(input) { // iterate over lines
@@ -268,7 +268,7 @@ func firstPass(rndr *render, input []byte) []byte {
 			// add the line body if present
 			if end > beg {
 				if rndr.flags&EXTENSION_NO_EXPAND_TABS == 0 {
-					expandTabs(&out, input[beg:end], tab_size)
+					expandTabs(&out, input[beg:end], tabSize)
 				} else {
 					out.Write(input[beg:end])
 				}
@@ -350,14 +350,14 @@ func isReference(rndr *render, data []byte) int {
 		return 0
 	}
 	i++
-	id_offset := i
+	idOffset := i
 	for i < len(data) && data[i] != '\n' && data[i] != '\r' && data[i] != ']' {
 		i++
 	}
 	if i >= len(data) || data[i] != ']' {
 		return 0
 	}
-	id_end := i
+	idEnd := i
 
 	// spacer: colon (space | tab)* newline? (space | tab)*
 	i++
@@ -385,14 +385,14 @@ func isReference(rndr *render, data []byte) int {
 	if data[i] == '<' {
 		i++
 	}
-	link_offset := i
+	linkOffset := i
 	for i < len(data) && data[i] != ' ' && data[i] != '\t' && data[i] != '\n' && data[i] != '\r' {
 		i++
 	}
-	link_end := i
-	if data[link_offset] == '<' && data[link_end-1] == '>' {
-		link_offset++
-		link_end--
+	linkEnd := i
+	if data[linkOffset] == '<' && data[linkEnd-1] == '>' {
+		linkOffset++
+		linkEnd--
 	}
 
 	// optional spacer: (space | tab)* (newline | '\'' | '"' | '(' )
@@ -404,65 +404,65 @@ func isReference(rndr *render, data []byte) int {
 	}
 
 	// compute end-of-line
-	line_end := 0
+	lineEnd := 0
 	if i >= len(data) || data[i] == '\r' || data[i] == '\n' {
-		line_end = i
+		lineEnd = i
 	}
 	if i+1 < len(data) && data[i] == '\r' && data[i+1] == '\n' {
-		line_end++
+		lineEnd++
 	}
 
 	// optional (space|tab)* spacer after a newline
-	if line_end > 0 {
-		i = line_end + 1
+	if lineEnd > 0 {
+		i = lineEnd + 1
 		for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
 			i++
 		}
 	}
 
 	// optional title: any non-newline sequence enclosed in '"() alone on its line
-	title_offset, title_end := 0, 0
+	titleOffset, titleEnd := 0, 0
 	if i+1 < len(data) && (data[i] == '\'' || data[i] == '"' || data[i] == '(') {
 		i++
-		title_offset = i
+		titleOffset = i
 
 		// look for EOL
 		for i < len(data) && data[i] != '\n' && data[i] != '\r' {
 			i++
 		}
 		if i+1 < len(data) && data[i] == '\n' && data[i+1] == '\r' {
-			title_end = i + 1
+			titleEnd = i + 1
 		} else {
-			title_end = i
+			titleEnd = i
 		}
 
 		// step back
 		i--
-		for i > title_offset && (data[i] == ' ' || data[i] == '\t') {
+		for i > titleOffset && (data[i] == ' ' || data[i] == '\t') {
 			i--
 		}
-		if i > title_offset && (data[i] == '\'' || data[i] == '"' || data[i] == ')') {
-			line_end = title_end
-			title_end = i
+		if i > titleOffset && (data[i] == '\'' || data[i] == '"' || data[i] == ')') {
+			lineEnd = titleEnd
+			titleEnd = i
 		}
 	}
-	if line_end == 0 { // garbage after the link
+	if lineEnd == 0 { // garbage after the link
 		return 0
 	}
 
 	// a valid ref has been found
 	if rndr == nil {
-		return line_end
+		return lineEnd
 	}
 
 	// id matches are case-insensitive
-	id := string(bytes.ToLower(data[id_offset:id_end]))
+	id := string(bytes.ToLower(data[idOffset:idEnd]))
 	rndr.refs[id] = &reference{
-		link:  data[link_offset:link_end],
-		title: data[title_offset:title_end],
+		link:  data[linkOffset:linkEnd],
+		title: data[titleOffset:titleEnd],
 	}
 
-	return line_end
+	return lineEnd
 }
 
 
@@ -497,7 +497,7 @@ func isalnum(c byte) bool {
 
 // Replace tab characters with spaces, aligning to the next TAB_SIZE column.
 // always ends output with a newline
-func expandTabs(out *bytes.Buffer, line []byte, tab_size int) {
+func expandTabs(out *bytes.Buffer, line []byte, tabSize int) {
 	// first, check for common cases: no tabs, or only tabs at beginning of line
 	i, prefix := 0, 0
 	slowcase := false
@@ -514,7 +514,7 @@ func expandTabs(out *bytes.Buffer, line []byte, tab_size int) {
 
 	// no need to decode runes if all tabs are at the beginning of the line
 	if !slowcase {
-		for i = 0; i < prefix*tab_size; i++ {
+		for i = 0; i < prefix*tabSize; i++ {
 			out.WriteByte(' ')
 		}
 		out.Write(line[prefix:])
@@ -544,7 +544,7 @@ func expandTabs(out *bytes.Buffer, line []byte, tab_size int) {
 		for {
 			out.WriteByte(' ')
 			column++
-			if column%tab_size == 0 {
+			if column%tabSize == 0 {
 				break
 			}
 		}

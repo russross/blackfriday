@@ -615,13 +615,13 @@ func isHtmlTag(tag []byte, tagname string) bool {
 		i++
 	}
 
-	tag_i := i
-	for ; i < len(tag); i, tag_i = i+1, tag_i+1 {
-		if tag_i >= len(tagname) {
+	j := i
+	for ; i < len(tag); i, j = i+1, j+1 {
+		if j >= len(tagname) {
 			break
 		}
 
-		if tag[i] != tagname[tag_i] {
+		if tag[i] != tagname[j] {
 			return false
 		}
 	}

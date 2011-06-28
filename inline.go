@@ -132,21 +132,21 @@ func inlineCodeSpan(out *bytes.Buffer, rndr *render, data []byte, offset int) in
 	}
 
 	// trim outside whitespace
-	f_begin := nb
-	for f_begin < end && (data[f_begin] == ' ' || data[f_begin] == '\t') {
-		f_begin++
+	fBegin := nb
+	for fBegin < end && (data[fBegin] == ' ' || data[fBegin] == '\t') {
+		fBegin++
 	}
 
-	f_end := end - nb
-	for f_end > f_begin && (data[f_end-1] == ' ' || data[f_end-1] == '\t') {
-		f_end--
+	fEnd := end - nb
+	for fEnd > fBegin && (data[fEnd-1] == ' ' || data[fEnd-1] == '\t') {
+		fEnd--
 	}
 
 	// render the code span
 	if rndr.mk.CodeSpan == nil {
 		return 0
 	}
-	if rndr.mk.CodeSpan(out, data[f_begin:f_end], rndr.mk.Opaque) == 0 {
+	if rndr.mk.CodeSpan(out, data[fBegin:fEnd], rndr.mk.Opaque) == 0 {
 		end = 0
 	}
 
@@ -196,7 +196,7 @@ func inlineLink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 
 	i := 1
 	var title, link []byte
-	text_has_nl := false
+	textHasNl := false
 
 	// check whether the correct renderer exists
 	if (isImg && rndr.mk.Image == nil) || (!isImg && rndr.mk.Link == nil) {
@@ -207,7 +207,7 @@ func inlineLink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 	for level := 1; level > 0 && i < len(data); i++ {
 		switch {
 		case data[i] == '\n':
-			text_has_nl = true
+			textHasNl = true
 
 		case data[i-1] == '\\':
 			continue
@@ -227,7 +227,7 @@ func inlineLink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 		return 0
 	}
 
-	txt_e := i
+	txtE := i
 	i++
 
 	// skip any amount of whitespace or newline
@@ -246,7 +246,7 @@ func inlineLink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 			i++
 		}
 
-		link_b := i
+		linkB := i
 
 		// look for link end: ' " )
 		for i < len(data) {
@@ -263,13 +263,13 @@ func inlineLink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 		if i >= len(data) {
 			return 0
 		}
-		link_e := i
+		linkE := i
 
 		// look for title end if present
-		title_b, title_e := 0, 0
+		titleB, titleE := 0, 0
 		if data[i] == '\'' || data[i] == '"' {
 			i++
-			title_b = i
+			titleB = i
 
 			for i < len(data) {
 				if data[i] == '\\' {
@@ -287,38 +287,38 @@ func inlineLink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 			}
 
 			// skip whitespace after title
-			title_e = i - 1
-			for title_e > title_b && isspace(data[title_e]) {
-				title_e--
+			titleE = i - 1
+			for titleE > titleB && isspace(data[titleE]) {
+				titleE--
 			}
 
 			// check for closing quote presence
-			if data[title_e] != '\'' && data[title_e] != '"' {
-				title_b, title_e = 0, 0
-				link_e = i
+			if data[titleE] != '\'' && data[titleE] != '"' {
+				titleB, titleE = 0, 0
+				linkE = i
 			}
 		}
 
 		// remove whitespace at the end of the link
-		for link_e > link_b && isspace(data[link_e-1]) {
-			link_e--
+		for linkE > linkB && isspace(data[linkE-1]) {
+			linkE--
 		}
 
 		// remove optional angle brackets around the link
-		if data[link_b] == '<' {
-			link_b++
+		if data[linkB] == '<' {
+			linkB++
 		}
-		if data[link_e-1] == '>' {
-			link_e--
+		if data[linkE-1] == '>' {
+			linkE--
 		}
 
 		// build escaped link and title
-		if link_e > link_b {
-			link = data[link_b:link_e]
+		if linkE > linkB {
+			link = data[linkB:linkE]
 		}
 
-		if title_e > title_b {
-			title = data[title_b:title_e]
+		if titleE > titleB {
+			title = data[titleB:titleE]
 		}
 
 		i++
@@ -329,21 +329,21 @@ func inlineLink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 
 		// look for the id
 		i++
-		link_b := i
+		linkB := i
 		for i < len(data) && data[i] != ']' {
 			i++
 		}
 		if i >= len(data) {
 			return 0
 		}
-		link_e := i
+		linkE := i
 
 		// find the reference
-		if link_b == link_e {
-			if text_has_nl {
+		if linkB == linkE {
+			if textHasNl {
 				var b bytes.Buffer
 
-				for j := 1; j < txt_e; j++ {
+				for j := 1; j < txtE; j++ {
 					switch {
 					case data[j] != '\n':
 						b.WriteByte(data[j])
@@ -354,10 +354,10 @@ func inlineLink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 
 				id = b.Bytes()
 			} else {
-				id = data[1:txt_e]
+				id = data[1:txtE]
 			}
 		} else {
-			id = data[link_b:link_e]
+			id = data[linkB:linkE]
 		}
 
 		// find the reference with matching id (ids are case-insensitive)
@@ -377,10 +377,10 @@ func inlineLink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 		var id []byte
 
 		// craft the id
-		if text_has_nl {
+		if textHasNl {
 			var b bytes.Buffer
 
-			for j := 1; j < txt_e; j++ {
+			for j := 1; j < txtE; j++ {
 				switch {
 				case data[j] != '\n':
 					b.WriteByte(data[j])
@@ -391,7 +391,7 @@ func inlineLink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 
 			id = b.Bytes()
 		} else {
-			id = data[1:txt_e]
+			id = data[1:txtE]
 		}
 
 		// find the reference with matching id
@@ -406,28 +406,28 @@ func inlineLink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 		title = lr.title
 
 		// rewind the whitespace
-		i = txt_e + 1
+		i = txtE + 1
 	}
 
 	// build content: img alt is escaped, link content is parsed
 	var content bytes.Buffer
-	if txt_e > 1 {
+	if txtE > 1 {
 		if isImg {
-			content.Write(data[1:txt_e])
+			content.Write(data[1:txtE])
 		} else {
 			// links cannot contain other links, so turn off link parsing temporarily
 			insideLink := rndr.insideLink
 			rndr.insideLink = true
-			parseInline(&content, rndr, data[1:txt_e])
+			parseInline(&content, rndr, data[1:txtE])
 			rndr.insideLink = insideLink
 		}
 	}
 
-	var u_link []byte
+	var uLink []byte
 	if len(link) > 0 {
-		var u_link_buf bytes.Buffer
-		unescapeText(&u_link_buf, link)
-		u_link = u_link_buf.Bytes()
+		var uLinkBuf bytes.Buffer
+		unescapeText(&uLinkBuf, link)
+		uLink = uLinkBuf.Bytes()
 	}
 
 	// call the relevant rendering function
@@ -439,9 +439,9 @@ func inlineLink(out *bytes.Buffer, rndr *render, data []byte, offset int) int {
 			out.Truncate(outSize - 1)
 		}
 
-		ret = rndr.mk.Image(out, u_link, title, content.Bytes(), rndr.mk.Opaque)
+		ret = rndr.mk.Image(out, uLink, title, content.Bytes(), rndr.mk.Opaque)
 	} else {
-		ret = rndr.mk.Link(out, u_link, title, content.Bytes(), rndr.mk.Opaque)
+		ret = rndr.mk.Link(out, uLink, title, content.Bytes(), rndr.mk.Opaque)
 	}
 
 	if ret > 0 {
@@ -460,9 +460,9 @@ func inlineLAngle(out *bytes.Buffer, rndr *render, data []byte, offset int) int 
 	if end > 2 {
 		switch {
 		case rndr.mk.AutoLink != nil && altype != LINK_TYPE_NOT_AUTOLINK:
-			var u_link bytes.Buffer
-			unescapeText(&u_link, data[1:end+1-2])
-			ret = rndr.mk.AutoLink(out, u_link.Bytes(), altype, rndr.mk.Opaque)
+			var uLink bytes.Buffer
+			unescapeText(&uLink, data[1:end+1-2])
+			ret = rndr.mk.AutoLink(out, uLink.Bytes(), altype, rndr.mk.Opaque)
 		case rndr.mk.RawHtmlTag != nil:
 			ret = rndr.mk.RawHtmlTag(out, data[:end], rndr.mk.Opaque)
 		}
@@ -561,26 +561,26 @@ func inlineAutoLink(out *bytes.Buffer, rndr *render, data []byte, offset int) in
 		return 0
 	}
 
-	orig_data := data
+	origData := data
 	data = data[offset-rewind:]
 
 	if !isSafeLink(data) {
 		return 0
 	}
 
-	link_end := 0
-	for link_end < len(data) && !isspace(data[link_end]) {
-		link_end++
+	linkEnd := 0
+	for linkEnd < len(data) && !isspace(data[linkEnd]) {
+		linkEnd++
 	}
 
 	// Skip punctuation at the end of the link
-	if (data[link_end-1] == '.' || data[link_end-1] == ',' || data[link_end-1] == ';') && data[link_end-2] != '\\' {
-		link_end--
+	if (data[linkEnd-1] == '.' || data[linkEnd-1] == ',' || data[linkEnd-1] == ';') && data[linkEnd-2] != '\\' {
+		linkEnd--
 	}
 
 	// See if the link finishes with a punctuation sign that can be closed.
 	var copen byte
-	switch data[link_end-1] {
+	switch data[linkEnd-1] {
 	case '"':
 		copen = '"'
 	case '\'':
@@ -596,9 +596,9 @@ func inlineAutoLink(out *bytes.Buffer, rndr *render, data []byte, offset int) in
 	}
 
 	if copen != 0 {
-		buf_end := offset - rewind + link_end - 2
+		bufEnd := offset - rewind + linkEnd - 2
 
-		open_delim := 1
+		openDelim := 1
 
 		/* Try to close the final punctuation sign in this same line;
 		 * if we managed to close it outside of the URL, that means that it's
@@ -620,20 +620,20 @@ func inlineAutoLink(out *bytes.Buffer, rndr *render, data []byte, offset int) in
 		 *              => foo http://www.pokemon.com/Pikachu_(Electric)
 		 */
 
-		for buf_end >= 0 && orig_data[buf_end] != '\n' && open_delim != 0 {
-			if orig_data[buf_end] == data[link_end-1] {
-				open_delim++
+		for bufEnd >= 0 && origData[bufEnd] != '\n' && openDelim != 0 {
+			if origData[bufEnd] == data[linkEnd-1] {
+				openDelim++
 			}
 
-			if orig_data[buf_end] == copen {
-				open_delim--
+			if origData[bufEnd] == copen {
+				openDelim--
 			}
 
-			buf_end--
+			bufEnd--
 		}
 
-		if open_delim == 0 {
-			link_end--
+		if openDelim == 0 {
+			linkEnd--
 		}
 	}
 
@@ -643,13 +643,13 @@ func inlineAutoLink(out *bytes.Buffer, rndr *render, data []byte, offset int) in
 	}
 
 	if rndr.mk.AutoLink != nil {
-		var u_link bytes.Buffer
-		unescapeText(&u_link, data[:link_end])
+		var uLink bytes.Buffer
+		unescapeText(&uLink, data[:linkEnd])
 
-		rndr.mk.AutoLink(out, u_link.Bytes(), LINK_TYPE_NORMAL, rndr.mk.Opaque)
+		rndr.mk.AutoLink(out, uLink.Bytes(), LINK_TYPE_NORMAL, rndr.mk.Opaque)
 	}
 
-	return link_end - rewind
+	return linkEnd - rewind
 }
 
 var validUris = [][]byte{[]byte("http://"), []byte("https://"), []byte("ftp://"), []byte("mailto://")}
@@ -805,26 +805,26 @@ func inlineHelperFindEmphChar(data []byte, c byte) int {
 
 		if data[i] == '`' {
 			// skip a code span
-			tmp_i := 0
+			tmpI := 0
 			i++
 			for i < len(data) && data[i] != '`' {
-				if tmp_i == 0 && data[i] == c {
-					tmp_i = i
+				if tmpI == 0 && data[i] == c {
+					tmpI = i
 				}
 				i++
 			}
 			if i >= len(data) {
-				return tmp_i
+				return tmpI
 			}
 			i++
 		} else {
 			if data[i] == '[' {
 				// skip a link
-				tmp_i := 0
+				tmpI := 0
 				i++
 				for i < len(data) && data[i] != ']' {
-					if tmp_i == 0 && data[i] == c {
-						tmp_i = i
+					if tmpI == 0 && data[i] == c {
+						tmpI = i
 					}
 					i++
 				}
@@ -833,11 +833,11 @@ func inlineHelperFindEmphChar(data []byte, c byte) int {
 					i++
 				}
 				if i >= len(data) {
-					return tmp_i
+					return tmpI
 				}
 				if data[i] != '[' && data[i] != '(' { // not a link
-					if tmp_i > 0 {
-						return tmp_i
+					if tmpI > 0 {
+						return tmpI
 					} else {
 						continue
 					}
@@ -845,13 +845,13 @@ func inlineHelperFindEmphChar(data []byte, c byte) int {
 				cc := data[i]
 				i++
 				for i < len(data) && data[i] != cc {
-					if tmp_i == 0 && data[i] == c {
-						tmp_i = i
+					if tmpI == 0 && data[i] == c {
+						tmpI = i
 					}
 					i++
 				}
 				if i >= len(data) {
-					return tmp_i
+					return tmpI
 				}
 				i++
 			}
@@ -910,12 +910,12 @@ func inlineHelperEmph1(out *bytes.Buffer, rndr *render, data []byte, c byte) int
 }
 
 func inlineHelperEmph2(out *bytes.Buffer, rndr *render, data []byte, c byte) int {
-	render_method := rndr.mk.DoubleEmphasis
+	renderMethod := rndr.mk.DoubleEmphasis
 	if c == '~' {
-		render_method = rndr.mk.StrikeThrough
+		renderMethod = rndr.mk.StrikeThrough
 	}
 
-	if render_method == nil {
+	if renderMethod == nil {
 		return 0
 	}
 
@@ -931,7 +931,7 @@ func inlineHelperEmph2(out *bytes.Buffer, rndr *render, data []byte, c byte) int
 		if i+1 < len(data) && data[i] == c && data[i+1] == c && i > 0 && !isspace(data[i-1]) {
 			var work bytes.Buffer
 			parseInline(&work, rndr, data[:i])
-			r := render_method(out, work.Bytes(), rndr.mk.Opaque)
+			r := renderMethod(out, work.Bytes(), rndr.mk.Opaque)
 			if r > 0 {
 				return i + 2
 			} else {
@@ -945,7 +945,7 @@ func inlineHelperEmph2(out *bytes.Buffer, rndr *render, data []byte, c byte) int
 
 func inlineHelperEmph3(out *bytes.Buffer, rndr *render, data []byte, offset int, c byte) int {
 	i := 0
-	orig_data := data
+	origData := data
 	data = data[offset:]
 
 	for i < len(data) {
@@ -974,7 +974,7 @@ func inlineHelperEmph3(out *bytes.Buffer, rndr *render, data []byte, offset int,
 			}
 		case (i+1 < len(data) && data[i+1] == c):
 			// double symbol found, hand over to emph1
-			length = inlineHelperEmph1(out, rndr, orig_data[offset-2:], c)
+			length = inlineHelperEmph1(out, rndr, origData[offset-2:], c)
 			if length == 0 {
 				return 0
 			} else {
@@ -982,7 +982,7 @@ func inlineHelperEmph3(out *bytes.Buffer, rndr *render, data []byte, offset int,
 			}
 		default:
 			// single symbol found, hand over to emph2
-			length = inlineHelperEmph2(out, rndr, orig_data[offset-1:], c)
+			length = inlineHelperEmph2(out, rndr, origData[offset-1:], c)
 			if length == 0 {
 				return 0
 			} else {

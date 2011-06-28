@@ -255,33 +255,33 @@ func smartBacktick(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, t
 func smartNumberGeneric(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	if wordBoundary(previousChar) && len(text) >= 3 {
 		// is it of the form digits/digits(word boundary)?, i.e., \d+/\d+\b
-		num_end := 0
-		for len(text) > num_end && isdigit(text[num_end]) {
-			num_end++
+		numEnd := 0
+		for len(text) > numEnd && isdigit(text[numEnd]) {
+			numEnd++
 		}
-		if num_end == 0 {
+		if numEnd == 0 {
 			ob.WriteByte(text[0])
 			return 0
 		}
-		if len(text) < num_end+2 || text[num_end] != '/' {
+		if len(text) < numEnd+2 || text[numEnd] != '/' {
 			ob.WriteByte(text[0])
 			return 0
 		}
-		den_end := num_end + 1
-		for len(text) > den_end && isdigit(text[den_end]) {
-			den_end++
+		denEnd := numEnd + 1
+		for len(text) > denEnd && isdigit(text[denEnd]) {
+			denEnd++
 		}
-		if den_end == num_end+1 {
+		if denEnd == numEnd+1 {
 			ob.WriteByte(text[0])
 			return 0
 		}
-		if len(text) == den_end || wordBoundary(text[den_end]) {
+		if len(text) == denEnd || wordBoundary(text[denEnd]) {
 			ob.WriteString("<sup>")
-			ob.Write(text[:num_end])
+			ob.Write(text[:numEnd])
 			ob.WriteString("</sup>&frasl;<sub>")
-			ob.Write(text[num_end+1 : den_end])
+			ob.Write(text[numEnd+1 : denEnd])
 			ob.WriteString("</sub>")
-			return den_end - 1
+			return denEnd - 1
 		}
 	}
 
