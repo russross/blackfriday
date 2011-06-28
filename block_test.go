@@ -473,3 +473,79 @@ func TestOrderedList(t *testing.T) {
 	}
 	doTestsBlock(t, tests, 0)
 }
+
+func TestPreformattedHtml(t *testing.T) {
+	var tests = []string{
+		"<div></div>\n",
+		"<div></div>\n",
+
+		"<div>\n</div>\n",
+		"<div>\n</div>\n",
+
+		"<div>\n</div>\nParagraph\n",
+		"<p><div>\n</div>\nParagraph</p>\n",
+
+		"<div class=\"foo\">\n</div>\n",
+		"<div class=\"foo\">\n</div>\n",
+
+		"<div>\nAnything here\n</div>\n",
+		"<div>\nAnything here\n</div>\n",
+
+		"<div>\n  Anything here\n</div>\n",
+		"<div>\n  Anything here\n</div>\n",
+
+		"<div>\nAnything here\n  </div>\n",
+		"<div>\nAnything here\n  </div>\n",
+
+		"<div>\nThis is *not* &proceessed\n</div>\n",
+		"<div>\nThis is *not* &proceessed\n</div>\n",
+
+		"<faketag>\n  Something\n</faketag>\n",
+		"<p><faketag>\n  Something\n</faketag></p>\n",
+
+		"<div>\n  Something here\n</divv>\n",
+		"<p><div>\n  Something here\n</divv></p>\n",
+
+		"Paragraph\n<div>\nHere? >&<\n</div>\n",
+		"<p>Paragraph\n<div>\nHere? &gt;&amp;&lt;\n</div></p>\n",
+
+		"Paragraph\n\n<div>\nHow about here? >&<\n</div>\n",
+		"<p>Paragraph</p>\n\n<div>\nHow about here? >&<\n</div>\n",
+
+		"Paragraph\n<div>\nHere? >&<\n</div>\nAnd here?\n",
+		"<p>Paragraph\n<div>\nHere? &gt;&amp;&lt;\n</div>\nAnd here?</p>\n",
+
+		"Paragraph\n\n<div>\nHow about here? >&<\n</div>\nAnd here?\n",
+		"<p>Paragraph</p>\n\n<p><div>\nHow about here? &gt;&amp;&lt;\n</div>\nAnd here?</p>\n",
+
+		"Paragraph\n<div>\nHere? >&<\n</div>\n\nAnd here?\n",
+		"<p>Paragraph\n<div>\nHere? &gt;&amp;&lt;\n</div></p>\n\n<p>And here?</p>\n",
+
+		"Paragraph\n\n<div>\nHow about here? >&<\n</div>\n\nAnd here?\n",
+		"<p>Paragraph</p>\n\n<div>\nHow about here? >&<\n</div>\n\n<p>And here?</p>\n",
+	}
+	doTestsBlock(t, tests, 0)
+}
+
+func TestPreformattedHtmlLax(t *testing.T) {
+	var tests = []string{
+		"Paragraph\n<div>\nHere? >&<\n</div>\n",
+		"<p>Paragraph</p>\n\n<div>\nHere? >&<\n</div>\n",
+
+		"Paragraph\n\n<div>\nHow about here? >&<\n</div>\n",
+		"<p>Paragraph</p>\n\n<div>\nHow about here? >&<\n</div>\n",
+
+		"Paragraph\n<div>\nHere? >&<\n</div>\nAnd here?\n",
+		"<p>Paragraph</p>\n\n<div>\nHere? >&<\n</div>\n\n<p>And here?</p>\n",
+
+		"Paragraph\n\n<div>\nHow about here? >&<\n</div>\nAnd here?\n",
+		"<p>Paragraph</p>\n\n<div>\nHow about here? >&<\n</div>\n\n<p>And here?</p>\n",
+
+		"Paragraph\n<div>\nHere? >&<\n</div>\n\nAnd here?\n",
+		"<p>Paragraph</p>\n\n<div>\nHere? >&<\n</div>\n\n<p>And here?</p>\n",
+
+		"Paragraph\n\n<div>\nHow about here? >&<\n</div>\n\nAnd here?\n",
+		"<p>Paragraph</p>\n\n<div>\nHow about here? >&<\n</div>\n\n<p>And here?</p>\n",
+	}
+	doTestsBlock(t, tests, EXTENSION_LAX_HTML_BLOCKS)
+}
