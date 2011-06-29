@@ -28,6 +28,7 @@ const (
 	HTML_SKIP_LINKS
 	HTML_SAFELINK
 	HTML_TOC
+	HTML_COMPLETE_PAGE
 	HTML_GITHUB_BLOCKCODE
 	HTML_USE_XHTML
 	HTML_USE_SMARTYPANTS
@@ -36,19 +37,23 @@ const (
 )
 
 type htmlOptions struct {
-	flags    int
+	flags    int    // HTML_* options
 	closeTag string // how to end singleton tags: either " />\n" or ">\n"
-	tocData  struct {
-		headerCount  int
-		currentLevel int
-	}
+	title    string // document title
+	css      string // optional css file url (used with HTML_COMPLETE_PAGE)
+
+	// table of contents data
+	headerCount  int
+	currentLevel int
+	toc          *bytes.Buffer
+
 	smartypants *SmartypantsRenderer
 }
 
 var xhtmlClose = " />\n"
 var htmlClose = ">\n"
 
-func HtmlRenderer(flags int) *Renderer {
+func HtmlRenderer(flags int, title string, css string) *Renderer {
 	// configure the rendering engine
 	r := new(Renderer)
 	r.BlockCode = htmlBlockCode
@@ -73,34 +78,34 @@ func HtmlRenderer(flags int) *Renderer {
 	r.RawHtmlTag = htmlRawTag
 	r.TripleEmphasis = htmlTripleEmphasis
 	r.StrikeThrough = htmlStrikeThrough
+
+	r.Entity = htmlEntity
 	r.NormalText = htmlNormalText
+
+	r.DocumentHeader = htmlDocumentHeader
+	r.DocumentFooter = htmlDocumentFooter
 
 	closeTag := htmlClose
 	if flags&HTML_USE_XHTML != 0 {
 		closeTag = xhtmlClose
 	}
-	r.Opaque = &htmlOptions{flags: flags, closeTag: closeTag, smartypants: Smartypants(flags)}
-	return r
-}
-
-func HtmlTocRenderer(flags int) *Renderer {
-	// configure the rendering engine
-	r := new(Renderer)
-	r.Header = htmlTocHeader
-
-	r.CodeSpan = htmlCodeSpan
-	r.DoubleEmphasis = htmlDoubleEmphasis
-	r.Emphasis = htmlEmphasis
-	r.TripleEmphasis = htmlTripleEmphasis
-	r.StrikeThrough = htmlStrikeThrough
-
-	r.DocumentFooter = htmlTocFinalize
-
-	closeTag := ">\n"
-	if flags&HTML_USE_XHTML != 0 {
-		closeTag = " />\n"
+	var toc *bytes.Buffer
+	if flags&HTML_TOC != 0 {
+		toc = new(bytes.Buffer)
 	}
-	r.Opaque = &htmlOptions{flags: flags | HTML_TOC, closeTag: closeTag}
+
+	r.Opaque = &htmlOptions{
+		flags:    flags,
+		closeTag: closeTag,
+		title:    title,
+		css:      css,
+
+		headerCount:  0,
+		currentLevel: 0,
+		toc:          toc,
+
+		smartypants: Smartypants(flags),
+	}
 	return r
 }
 
@@ -159,8 +164,8 @@ func htmlHeader(out *bytes.Buffer, text func() bool, level int, opaque interface
 	}
 
 	if options.flags&HTML_TOC != 0 {
-		out.WriteString(fmt.Sprintf("<h%d id=\"toc_%d\">", level, options.tocData.headerCount))
-		options.tocData.headerCount++
+		out.WriteString(fmt.Sprintf("<h%d id=\"toc_%d\">", level, options.headerCount))
+		options.headerCount++
 	} else {
 		out.WriteString(fmt.Sprintf("<h%d>", level))
 	}
@@ -169,6 +174,12 @@ func htmlHeader(out *bytes.Buffer, text func() bool, level int, opaque interface
 		out.Truncate(marker)
 		return
 	}
+
+	// are we building a table of contents?
+	if options.flags&HTML_TOC != 0 {
+		htmlTocHeader(out.Bytes()[marker:], level, opaque)
+	}
+
 	out.WriteString(fmt.Sprintf("</h%d>\n", level))
 }
 
@@ -553,6 +564,10 @@ func htmlStrikeThrough(out *bytes.Buffer, text []byte, opaque interface{}) bool 
 	return true
 }
 
+func htmlEntity(out *bytes.Buffer, entity []byte, opaque interface{}) {
+	out.Write(entity)
+}
+
 func htmlNormalText(out *bytes.Buffer, text []byte, opaque interface{}) {
 	options := opaque.(*htmlOptions)
 	if options.flags&HTML_USE_SMARTYPANTS != 0 {
@@ -562,46 +577,93 @@ func htmlNormalText(out *bytes.Buffer, text []byte, opaque interface{}) {
 	}
 }
 
-func htmlTocHeader(out *bytes.Buffer, text func() bool, level int, opaque interface{}) {
+func htmlTocHeader(text []byte, level int, opaque interface{}) {
 	options := opaque.(*htmlOptions)
-	marker := out.Len()
 
-	for level > options.tocData.currentLevel {
-		if options.tocData.currentLevel > 0 {
-			out.WriteString("<li>")
+	for level > options.currentLevel {
+		if options.currentLevel > 0 {
+			options.toc.WriteString("<li>")
 		}
-		out.WriteString("<ul>\n")
-		options.tocData.currentLevel++
+		options.toc.WriteString("<ul>\n")
+		options.currentLevel++
 	}
 
-	for level < options.tocData.currentLevel {
-		out.WriteString("</ul>")
-		if options.tocData.currentLevel > 1 {
-			out.WriteString("</li>\n")
+	for level < options.currentLevel {
+		options.toc.WriteString("</ul>")
+		if options.currentLevel > 1 {
+			options.toc.WriteString("</li>\n")
 		}
-		options.tocData.currentLevel--
+		options.currentLevel--
 	}
 
-	out.WriteString("<li><a href=\"#toc_")
-	out.WriteString(strconv.Itoa(options.tocData.headerCount))
-	out.WriteString("\">")
-	options.tocData.headerCount++
+	options.toc.WriteString("<li><a href=\"#toc_")
+	options.toc.WriteString(strconv.Itoa(options.headerCount))
+	options.toc.WriteString("\">")
+	options.headerCount++
 
-	if !text() {
-		out.Truncate(marker)
+	options.toc.Write(text)
+
+	options.toc.WriteString("</a></li>\n")
+}
+
+func htmlDocumentHeader(out *bytes.Buffer, opaque interface{}) {
+	options := opaque.(*htmlOptions)
+	if options.flags&HTML_COMPLETE_PAGE == 0 {
 		return
 	}
-	out.WriteString("</a></li>\n")
+
+	ending := ""
+	if options.flags&HTML_USE_XHTML != 0 {
+		out.WriteString("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" ")
+		out.WriteString("\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n")
+		out.WriteString("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n")
+		ending = " /"
+	} else {
+		out.WriteString("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\" ")
+		out.WriteString("\"http://www.w3.org/TR/html4/strict.dtd\">\n")
+		out.WriteString("<html>\n")
+	}
+	out.WriteString("<head>\n")
+	out.WriteString("  <title>")
+	htmlNormalText(out, []byte(options.title), opaque)
+	out.WriteString("</title>\n")
+	out.WriteString("  <meta name=\"GENERATOR\" content=\"Blackfriday Markdown Processor v")
+	out.WriteString(VERSION)
+	out.WriteString("\"")
+	out.WriteString(ending)
+	out.WriteString(">\n")
+	out.WriteString("  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"")
+	out.WriteString(ending)
+	out.WriteString(">\n")
+	if options.css != "" {
+		out.WriteString("  <link rel=\"stylesheet\" type=\"text/css\" href=\"")
+		attrEscape(out, []byte(options.css))
+		out.WriteString("\"")
+		out.WriteString(ending)
+		out.WriteString(">\n")
+	}
+	out.WriteString("</head>\n")
+	out.WriteString("<body>\n")
+}
+
+func htmlDocumentFooter(out *bytes.Buffer, opaque interface{}) {
+	options := opaque.(*htmlOptions)
+	if options.flags&HTML_COMPLETE_PAGE == 0 {
+		return
+	}
+
+	out.WriteString("\n</body>\n")
+	out.WriteString("</html>\n")
 }
 
 func htmlTocFinalize(out *bytes.Buffer, opaque interface{}) {
 	options := opaque.(*htmlOptions)
-	for options.tocData.currentLevel > 1 {
+	for options.currentLevel > 1 {
 		out.WriteString("</ul></li>\n")
-		options.tocData.currentLevel--
+		options.currentLevel--
 	}
 
-	if options.tocData.currentLevel > 0 {
+	if options.currentLevel > 0 {
 		out.WriteString("</ul>\n")
 	}
 }

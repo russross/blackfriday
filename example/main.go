@@ -16,14 +16,16 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"github.com/russross/blackfriday"
 	"os"
 	"runtime/pprof"
+	"strings"
 )
+
+const DEFAULT_TITLE = ""
 
 func main() {
 	// parse command-line options
@@ -128,7 +130,12 @@ func main() {
 		if latexdashes {
 			htmlFlags |= blackfriday.HTML_SMARTYPANTS_LATEX_DASHES
 		}
-		renderer = blackfriday.HtmlRenderer(htmlFlags)
+		title := ""
+		if page {
+			htmlFlags |= blackfriday.HTML_COMPLETE_PAGE
+			title = getTitle(input)
+		}
+		renderer = blackfriday.HtmlRenderer(htmlFlags, title, css)
 	}
 
 	// parse and render
@@ -149,49 +156,57 @@ func main() {
 		out = os.Stdout
 	}
 
-	if page {
-		// if it starts with an <h1>, make that the title
-		title := ""
-		if bytes.HasPrefix(output, []byte("<h1>")) {
-			end := 0
-			// we know the buffer ends with a newline, so no need to check bounds
-			for output[end] != '\n' {
-				end++
-			}
-			if bytes.HasSuffix(output[:end], []byte("</h1>")) {
-				title = string(output[len("<h1>") : end-len("</h1>")])
-			}
-		}
-
-		ending := ""
-		if xhtml {
-			fmt.Fprint(out, "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" ")
-			fmt.Fprintln(out, "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">")
-			fmt.Fprintln(out, "<html xmlns=\"http://www.w3.org/1999/xhtml\">")
-			ending = " /"
-		} else {
-			fmt.Fprint(out, "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\" ")
-			fmt.Fprintln(out, "\"http://www.w3.org/TR/html4/strict.dtd\">")
-			fmt.Fprintln(out, "<html>")
-		}
-		fmt.Fprintln(out, "<head>")
-		fmt.Fprintf(out, "  <title>%s</title>\n", title)
-		fmt.Fprintf(out, "  <meta name=\"GENERATOR\" content=\"Blackfriday Markdown Processor v%s\"%s>\n",
-			blackfriday.VERSION, ending)
-		fmt.Fprintf(out, "  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"%s>\n",
-			ending)
-		if css != "" {
-			fmt.Fprintf(out, "  <link rel=\"stylesheet\" type=\"text/css\" href=\"%s\" />\n", css)
-		}
-		fmt.Fprintln(out, "</head>")
-		fmt.Fprintln(out, "<body>")
-	}
 	if _, err = out.Write(output); err != nil {
 		fmt.Fprintln(os.Stderr, "Error writing output:", err)
 		os.Exit(-1)
 	}
-	if page {
-		fmt.Fprintln(out, "</body>")
-		fmt.Fprintln(out, "</html>")
+}
+
+// try to guess the title from the input buffer
+// just check if it starts with an <h1> element and use that
+func getTitle(input []byte) string {
+	i := 0
+
+	// skip blank lines
+	for i < len(input) && (input[i] == '\n' || input[i] == '\r') {
+		i++
 	}
+	if i >= len(input) {
+		return DEFAULT_TITLE
+	}
+	if input[i] == '\r' && i+1 < len(input) && input[i+1] == '\n' {
+		i++
+	}
+
+	// find the first line
+	start := i
+	for i < len(input) && input[i] != '\n' && input[i] != '\r' {
+		i++
+	}
+	line1 := input[start:i]
+	if input[i] == '\r' && i+1 < len(input) && input[i+1] == '\n' {
+		i++
+	}
+	i++
+
+	// check for a prefix header
+	if len(line1) >= 3 && line1[0] == '#' && (line1[1] == ' ' || line1[1] == '\t') {
+		return strings.TrimSpace(string(line1[2:]))
+	}
+
+	// check for an underlined header
+	if i >= len(input) || input[i] != '=' {
+		return DEFAULT_TITLE
+	}
+	for i < len(input) && input[i] == '=' {
+		i++
+	}
+	for i < len(input) && (input[i] == ' ' || input[i] == '\t') {
+		i++
+	}
+	if i >= len(input) || (input[i] != '\n' && input[i] != '\r') {
+		return DEFAULT_TITLE
+	}
+
+	return strings.TrimSpace(string(line1))
 }

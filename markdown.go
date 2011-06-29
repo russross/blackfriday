@@ -166,7 +166,7 @@ type Parser struct {
 func MarkdownBasic(input []byte) []byte {
 	// set up the HTML renderer
 	htmlFlags := HTML_USE_XHTML
-	renderer := HtmlRenderer(htmlFlags)
+	renderer := HtmlRenderer(htmlFlags, "", "")
 
 	// set up the parser
 	extensions := 0
@@ -182,7 +182,7 @@ func MarkdownCommon(input []byte) []byte {
 	htmlFlags |= HTML_USE_SMARTYPANTS
 	htmlFlags |= HTML_SMARTYPANTS_FRACTIONS
 	htmlFlags |= HTML_SMARTYPANTS_LATEX_DASHES
-	renderer := HtmlRenderer(htmlFlags)
+	renderer := HtmlRenderer(htmlFlags, "", "")
 
 	// set up the parser
 	extensions := 0
