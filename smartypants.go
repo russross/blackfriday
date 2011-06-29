@@ -369,33 +369,3 @@ func Smartypants(flags int) *SmartypantsRenderer {
 	r['`'] = smartBacktick
 	return r
 }
-
-func htmlSmartypants(out *bytes.Buffer, text []byte, opaque interface{}) {
-	options := opaque.(*htmlOptions)
-	smrt := smartypantsData{false, false}
-
-	// first do normal entity escaping
-	var escaped bytes.Buffer
-	attrEscape(&escaped, text)
-	text = escaped.Bytes()
-
-	mark := 0
-	for i := 0; i < len(text); i++ {
-		if action := options.smartypants[text[i]]; action != nil {
-			if i > mark {
-				out.Write(text[mark:i])
-			}
-
-			previousChar := byte(0)
-			if i > 0 {
-				previousChar = text[i-1]
-			}
-			i += action(out, &smrt, previousChar, text[i:])
-			mark = i + 1
-		}
-	}
-
-	if mark < len(text) {
-		out.Write(text[mark:])
-	}
-}

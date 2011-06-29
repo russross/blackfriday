@@ -36,11 +36,7 @@ func (parser *Parser) parseInline(out *bytes.Buffer, data []byte) {
 			end++
 		}
 
-		if parser.r.NormalText != nil {
-			parser.r.NormalText(out, data[i:end], parser.r.Opaque)
-		} else {
-			out.Write(data[i:end])
-		}
+		parser.r.NormalText(out, data[i:end])
 
 		if end >= len(data) {
 			break
@@ -143,10 +139,7 @@ func inlineCodeSpan(out *bytes.Buffer, parser *Parser, data []byte, offset int) 
 	}
 
 	// render the code span
-	if parser.r.CodeSpan == nil {
-		return 0
-	}
-	if !parser.r.CodeSpan(out, data[fBegin:fEnd], parser.r.Opaque) {
+	if !parser.r.CodeSpan(out, data[fBegin:fEnd]) {
 		end = 0
 	}
 
@@ -171,10 +164,7 @@ func inlineLineBreak(out *bytes.Buffer, parser *Parser, data []byte, offset int)
 		return 0
 	}
 
-	if parser.r.LineBreak == nil {
-		return 0
-	}
-	if parser.r.LineBreak(out, parser.r.Opaque) {
+	if parser.r.LineBreak(out) {
 		return 1
 	} else {
 		return 0
@@ -197,11 +187,6 @@ func inlineLink(out *bytes.Buffer, parser *Parser, data []byte, offset int) int 
 	i := 1
 	var title, link []byte
 	textHasNl := false
-
-	// check whether the correct renderer exists
-	if (isImg && parser.r.Image == nil) || (!isImg && parser.r.Link == nil) {
-		return 0
-	}
 
 	// look for the matching closing bracket
 	for level := 1; level > 0 && i < len(data); i++ {
@@ -439,9 +424,9 @@ func inlineLink(out *bytes.Buffer, parser *Parser, data []byte, offset int) int 
 			out.Truncate(outSize - 1)
 		}
 
-		ret = parser.r.Image(out, uLink, title, content.Bytes(), parser.r.Opaque)
+		ret = parser.r.Image(out, uLink, title, content.Bytes())
 	} else {
-		ret = parser.r.Link(out, uLink, title, content.Bytes(), parser.r.Opaque)
+		ret = parser.r.Link(out, uLink, title, content.Bytes())
 	}
 
 	if ret {
@@ -458,13 +443,12 @@ func inlineLAngle(out *bytes.Buffer, parser *Parser, data []byte, offset int) in
 	ret := false
 
 	if end > 2 {
-		switch {
-		case parser.r.AutoLink != nil && altype != LINK_TYPE_NOT_AUTOLINK:
+		if altype != LINK_TYPE_NOT_AUTOLINK {
 			var uLink bytes.Buffer
 			unescapeText(&uLink, data[1:end+1-2])
-			ret = parser.r.AutoLink(out, uLink.Bytes(), altype, parser.r.Opaque)
-		case parser.r.RawHtmlTag != nil:
-			ret = parser.r.RawHtmlTag(out, data[:end], parser.r.Opaque)
+			ret = parser.r.AutoLink(out, uLink.Bytes(), altype)
+		} else {
+			ret = parser.r.RawHtmlTag(out, data[:end])
 		}
 	}
 
@@ -485,11 +469,7 @@ func inlineEscape(out *bytes.Buffer, parser *Parser, data []byte, offset int) in
 			return 0
 		}
 
-		if parser.r.NormalText != nil {
-			parser.r.NormalText(out, data[1:2], parser.r.Opaque)
-		} else {
-			out.WriteByte(data[1])
-		}
+		parser.r.NormalText(out, data[1:2])
 	}
 
 	return 2
@@ -537,11 +517,7 @@ func inlineEntity(out *bytes.Buffer, parser *Parser, data []byte, offset int) in
 		return 0 // lone '&'
 	}
 
-	if parser.r.Entity != nil {
-		parser.r.Entity(out, data[:end], parser.r.Opaque)
-	} else {
-		out.Write(data[:end])
-	}
+	parser.r.Entity(out, data[:end])
 
 	return end
 }
@@ -642,12 +618,10 @@ func inlineAutoLink(out *bytes.Buffer, parser *Parser, data []byte, offset int) 
 		out.Truncate(len(out.Bytes()) - rewind)
 	}
 
-	if parser.r.AutoLink != nil {
-		var uLink bytes.Buffer
-		unescapeText(&uLink, data[:linkEnd])
+	var uLink bytes.Buffer
+	unescapeText(&uLink, data[:linkEnd])
 
-		parser.r.AutoLink(out, uLink.Bytes(), LINK_TYPE_NORMAL, parser.r.Opaque)
-	}
+	parser.r.AutoLink(out, uLink.Bytes(), LINK_TYPE_NORMAL)
 
 	return linkEnd - rewind
 }
@@ -863,10 +837,6 @@ func inlineHelperFindEmphChar(data []byte, c byte) int {
 func inlineHelperEmph1(out *bytes.Buffer, parser *Parser, data []byte, c byte) int {
 	i := 0
 
-	if parser.r.Emphasis == nil {
-		return 0
-	}
-
 	// skip one symbol if coming from emph3
 	if len(data) > 1 && data[0] == c && data[1] == c {
 		i = 1
@@ -897,7 +867,7 @@ func inlineHelperEmph1(out *bytes.Buffer, parser *Parser, data []byte, c byte) i
 
 			var work bytes.Buffer
 			parser.parseInline(&work, data[:i])
-			if parser.r.Emphasis(out, work.Bytes(), parser.r.Opaque) {
+			if parser.r.Emphasis(out, work.Bytes()) {
 				return i + 1
 			} else {
 				return 0
@@ -909,15 +879,6 @@ func inlineHelperEmph1(out *bytes.Buffer, parser *Parser, data []byte, c byte) i
 }
 
 func inlineHelperEmph2(out *bytes.Buffer, parser *Parser, data []byte, c byte) int {
-	renderMethod := parser.r.DoubleEmphasis
-	if c == '~' {
-		renderMethod = parser.r.StrikeThrough
-	}
-
-	if renderMethod == nil {
-		return 0
-	}
-
 	i := 0
 
 	for i < len(data) {
@@ -930,7 +891,15 @@ func inlineHelperEmph2(out *bytes.Buffer, parser *Parser, data []byte, c byte) i
 		if i+1 < len(data) && data[i] == c && data[i+1] == c && i > 0 && !isspace(data[i-1]) {
 			var work bytes.Buffer
 			parser.parseInline(&work, data[:i])
-			if renderMethod(out, work.Bytes(), parser.r.Opaque) {
+			success := false
+
+			// pick the right renderer
+			if c == '~' {
+				success = parser.r.StrikeThrough(out, work.Bytes())
+			} else {
+				success = parser.r.DoubleEmphasis(out, work.Bytes())
+			}
+			if success {
 				return i + 2
 			} else {
 				return 0
@@ -959,12 +928,12 @@ func inlineHelperEmph3(out *bytes.Buffer, parser *Parser, data []byte, offset in
 		}
 
 		switch {
-		case (i+2 < len(data) && data[i+1] == c && data[i+2] == c && parser.r.TripleEmphasis != nil):
+		case i+2 < len(data) && data[i+1] == c && data[i+2] == c:
 			// triple symbol found
 			var work bytes.Buffer
 
 			parser.parseInline(&work, data[:i])
-			if parser.r.TripleEmphasis(out, work.Bytes(), parser.r.Opaque) {
+			if parser.r.TripleEmphasis(out, work.Bytes()) {
 				return i + 3
 			} else {
 				return 0

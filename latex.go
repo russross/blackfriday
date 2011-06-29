@@ -19,47 +19,16 @@ import (
 	"bytes"
 )
 
-func LatexRenderer(flags int) *Renderer {
-	// configure the rendering engine
-	r := new(Renderer)
+type Latex struct {
 
-	// block-level rendering
-	r.BlockCode = latexBlockCode
-	r.BlockQuote = latexBlockQuote
-	r.BlockHtml = latexBlockHtml
-	r.Header = latexHeader
-	r.HRule = latexHRule
-	r.List = latexList
-	r.ListItem = latexListItem
-	r.Paragraph = latexParagraph
-	r.Table = latexTable
-	r.TableRow = latexTableRow
-	r.TableCell = latexTableCell
+}
 
-	// inline rendering
-	r.AutoLink = latexAutoLink
-	r.CodeSpan = latexCodeSpan
-	r.DoubleEmphasis = latexDoubleEmphasis
-	r.Emphasis = latexEmphasis
-	r.Image = latexImage
-	r.LineBreak = latexLineBreak
-	r.Link = latexLink
-	r.RawHtmlTag = latexRawHtmlTag
-	r.TripleEmphasis = latexTripleEmphasis
-	r.StrikeThrough = latexStrikeThrough
-
-	r.Entity = latexEntity
-	r.NormalText = latexNormalText
-
-	r.DocumentHeader = latexDocumentHeader
-	r.DocumentFooter = latexDocumentFooter
-
-	r.Opaque = nil
-	return r
+func LatexRenderer(flags int) Renderer {
+	return &Latex{}
 }
 
 // render code chunks using verbatim, or listings if we have a language
-func latexBlockCode(out *bytes.Buffer, text []byte, lang string, opaque interface{}) {
+func (options *Latex) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 	if lang == "" {
 		out.WriteString("\n\\begin{verbatim}\n")
 	} else {
@@ -75,20 +44,20 @@ func latexBlockCode(out *bytes.Buffer, text []byte, lang string, opaque interfac
 	}
 }
 
-func latexBlockQuote(out *bytes.Buffer, text []byte, opaque interface{}) {
+func (options *Latex) BlockQuote(out *bytes.Buffer, text []byte) {
 	out.WriteString("\n\\begin{quotation}\n")
 	out.Write(text)
 	out.WriteString("\n\\end{quotation}\n")
 }
 
-func latexBlockHtml(out *bytes.Buffer, text []byte, opaque interface{}) {
+func (options *Latex) BlockHtml(out *bytes.Buffer, text []byte) {
 	// a pretty lame thing to do...
 	out.WriteString("\n\\begin{verbatim}\n")
 	out.Write(text)
 	out.WriteString("\n\\end{verbatim}\n")
 }
 
-func latexHeader(out *bytes.Buffer, text func() bool, level int, opaque interface{}) {
+func (options *Latex) Header(out *bytes.Buffer, text func() bool, level int) {
 	marker := out.Len()
 
 	switch level {
@@ -112,11 +81,11 @@ func latexHeader(out *bytes.Buffer, text func() bool, level int, opaque interfac
 	out.WriteString("}\n")
 }
 
-func latexHRule(out *bytes.Buffer, opaque interface{}) {
+func (options *Latex) HRule(out *bytes.Buffer) {
 	out.WriteString("\n\\HRule\n")
 }
 
-func latexList(out *bytes.Buffer, text func() bool, flags int, opaque interface{}) {
+func (options *Latex) List(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
 	if flags&LIST_TYPE_ORDERED != 0 {
 		out.WriteString("\n\\begin{enumerate}\n")
@@ -134,12 +103,12 @@ func latexList(out *bytes.Buffer, text func() bool, flags int, opaque interface{
 	}
 }
 
-func latexListItem(out *bytes.Buffer, text []byte, flags int, opaque interface{}) {
+func (options *Latex) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	out.WriteString("\n\\item ")
 	out.Write(text)
 }
 
-func latexParagraph(out *bytes.Buffer, text func() bool, opaque interface{}) {
+func (options *Latex) Paragraph(out *bytes.Buffer, text func() bool) {
 	marker := out.Len()
 	out.WriteString("\n")
 	if !text() {
@@ -149,7 +118,7 @@ func latexParagraph(out *bytes.Buffer, text func() bool, opaque interface{}) {
 	out.WriteString("\n")
 }
 
-func latexTable(out *bytes.Buffer, header []byte, body []byte, columnData []int, opaque interface{}) {
+func (options *Latex) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int) {
 	out.WriteString("\n\\begin{tabular}{")
 	for _, elt := range columnData {
 		switch elt {
@@ -168,21 +137,21 @@ func latexTable(out *bytes.Buffer, header []byte, body []byte, columnData []int,
 	out.WriteString("\n\\end{tabular}\n")
 }
 
-func latexTableRow(out *bytes.Buffer, text []byte, opaque interface{}) {
+func (options *Latex) TableRow(out *bytes.Buffer, text []byte) {
 	if out.Len() > 0 {
 		out.WriteString(" \\\\\n")
 	}
 	out.Write(text)
 }
 
-func latexTableCell(out *bytes.Buffer, text []byte, align int, opaque interface{}) {
+func (options *Latex) TableCell(out *bytes.Buffer, text []byte, align int) {
 	if out.Len() > 0 {
 		out.WriteString(" & ")
 	}
 	out.Write(text)
 }
 
-func latexAutoLink(out *bytes.Buffer, link []byte, kind int, opaque interface{}) bool {
+func (options *Latex) AutoLink(out *bytes.Buffer, link []byte, kind int) bool {
 	out.WriteString("\\href{")
 	if kind == LINK_TYPE_EMAIL {
 		out.WriteString("mailto:")
@@ -194,28 +163,28 @@ func latexAutoLink(out *bytes.Buffer, link []byte, kind int, opaque interface{})
 	return true
 }
 
-func latexCodeSpan(out *bytes.Buffer, text []byte, opaque interface{}) bool {
+func (options *Latex) CodeSpan(out *bytes.Buffer, text []byte) bool {
 	out.WriteString("\\texttt{")
 	escapeSpecialChars(out, text)
 	out.WriteString("}")
 	return true
 }
 
-func latexDoubleEmphasis(out *bytes.Buffer, text []byte, opaque interface{}) bool {
+func (options *Latex) DoubleEmphasis(out *bytes.Buffer, text []byte) bool {
 	out.WriteString("\\textbf{")
 	out.Write(text)
 	out.WriteString("}")
 	return true
 }
 
-func latexEmphasis(out *bytes.Buffer, text []byte, opaque interface{}) bool {
+func (options *Latex) Emphasis(out *bytes.Buffer, text []byte) bool {
 	out.WriteString("\\textit{")
 	out.Write(text)
 	out.WriteString("}")
 	return true
 }
 
-func latexImage(out *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{}) bool {
+func (options *Latex) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) bool {
 	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
 		// treat it like a link
 		out.WriteString("\\href{")
@@ -231,12 +200,12 @@ func latexImage(out *bytes.Buffer, link []byte, title []byte, alt []byte, opaque
 	return true
 }
 
-func latexLineBreak(out *bytes.Buffer, opaque interface{}) bool {
+func (options *Latex) LineBreak(out *bytes.Buffer) bool {
 	out.WriteString(" \\\\\n")
 	return true
 }
 
-func latexLink(out *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{}) bool {
+func (options *Latex) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) bool {
 	out.WriteString("\\href{")
 	out.Write(link)
 	out.WriteString("}{")
@@ -245,18 +214,18 @@ func latexLink(out *bytes.Buffer, link []byte, title []byte, content []byte, opa
 	return true
 }
 
-func latexRawHtmlTag(out *bytes.Buffer, tag []byte, opaque interface{}) bool {
+func (options *Latex) RawHtmlTag(out *bytes.Buffer, tag []byte) bool {
 	return true
 }
 
-func latexTripleEmphasis(out *bytes.Buffer, text []byte, opaque interface{}) bool {
+func (options *Latex) TripleEmphasis(out *bytes.Buffer, text []byte) bool {
 	out.WriteString("\\textbf{\\textit{")
 	out.Write(text)
 	out.WriteString("}}")
 	return true
 }
 
-func latexStrikeThrough(out *bytes.Buffer, text []byte, opaque interface{}) bool {
+func (options *Latex) StrikeThrough(out *bytes.Buffer, text []byte) bool {
 	out.WriteString("\\sout{")
 	out.Write(text)
 	out.WriteString("}")
@@ -293,17 +262,17 @@ func escapeSpecialChars(out *bytes.Buffer, text []byte) {
 	}
 }
 
-func latexEntity(out *bytes.Buffer, entity []byte, opaque interface{}) {
+func (options *Latex) Entity(out *bytes.Buffer, entity []byte) {
 	// TODO: convert this into a unicode character or something
 	out.Write(entity)
 }
 
-func latexNormalText(out *bytes.Buffer, text []byte, opaque interface{}) {
+func (options *Latex) NormalText(out *bytes.Buffer, text []byte) {
 	escapeSpecialChars(out, text)
 }
 
 // header and footer
-func latexDocumentHeader(out *bytes.Buffer, opaque interface{}) {
+func (options *Latex) DocumentHeader(out *bytes.Buffer) {
 	out.WriteString("\\documentclass{article}\n")
 	out.WriteString("\n")
 	out.WriteString("\\usepackage{graphicx}\n")
@@ -332,6 +301,6 @@ func latexDocumentHeader(out *bytes.Buffer, opaque interface{}) {
 	out.WriteString("\\begin{document}\n")
 }
 
-func latexDocumentFooter(out *bytes.Buffer, opaque interface{}) {
+func (options *Latex) DocumentFooter(out *bytes.Buffer) {
 	out.WriteString("\n\\end{document}\n")
 }

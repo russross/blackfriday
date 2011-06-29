@@ -105,48 +105,45 @@ var blockTags = map[string]bool{
 //
 // This is mostly of interest if you are implementing a new rendering format.
 // Most users will use the convenience functions to fill in this structure.
-type Renderer struct {
-	// block-level callbacks---nil skips the block
-	BlockCode  func(out *bytes.Buffer, text []byte, lang string, opaque interface{})
-	BlockQuote func(out *bytes.Buffer, text []byte, opaque interface{})
-	BlockHtml  func(out *bytes.Buffer, text []byte, opaque interface{})
-	Header     func(out *bytes.Buffer, text func() bool, level int, opaque interface{})
-	HRule      func(out *bytes.Buffer, opaque interface{})
-	List       func(out *bytes.Buffer, text func() bool, flags int, opaque interface{})
-	ListItem   func(out *bytes.Buffer, text []byte, flags int, opaque interface{})
-	Paragraph  func(out *bytes.Buffer, text func() bool, opaque interface{})
-	Table      func(out *bytes.Buffer, header []byte, body []byte, columnData []int, opaque interface{})
-	TableRow   func(out *bytes.Buffer, text []byte, opaque interface{})
-	TableCell  func(out *bytes.Buffer, text []byte, flags int, opaque interface{})
+type Renderer interface {
+	// block-level callbacks
+	BlockCode(out *bytes.Buffer, text []byte, lang string)
+	BlockQuote(out *bytes.Buffer, text []byte)
+	BlockHtml(out *bytes.Buffer, text []byte)
+	Header(out *bytes.Buffer, text func() bool, level int)
+	HRule(out *bytes.Buffer)
+	List(out *bytes.Buffer, text func() bool, flags int)
+	ListItem(out *bytes.Buffer, text []byte, flags int)
+	Paragraph(out *bytes.Buffer, text func() bool)
+	Table(out *bytes.Buffer, header []byte, body []byte, columnData []int)
+	TableRow(out *bytes.Buffer, text []byte)
+	TableCell(out *bytes.Buffer, text []byte, flags int)
 
-	// Span-level callbacks---nil or return false prints the span verbatim
-	AutoLink       func(out *bytes.Buffer, link []byte, kind int, opaque interface{}) bool
-	CodeSpan       func(out *bytes.Buffer, text []byte, opaque interface{}) bool
-	DoubleEmphasis func(out *bytes.Buffer, text []byte, opaque interface{}) bool
-	Emphasis       func(out *bytes.Buffer, text []byte, opaque interface{}) bool
-	Image          func(out *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{}) bool
-	LineBreak      func(out *bytes.Buffer, opaque interface{}) bool
-	Link           func(out *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{}) bool
-	RawHtmlTag     func(out *bytes.Buffer, tag []byte, opaque interface{}) bool
-	TripleEmphasis func(out *bytes.Buffer, text []byte, opaque interface{}) bool
-	StrikeThrough  func(out *bytes.Buffer, text []byte, opaque interface{}) bool
+	// Span-level callbacks---return false prints the span verbatim
+	AutoLink(out *bytes.Buffer, link []byte, kind int) bool
+	CodeSpan(out *bytes.Buffer, text []byte) bool
+	DoubleEmphasis(out *bytes.Buffer, text []byte) bool
+	Emphasis(out *bytes.Buffer, text []byte) bool
+	Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) bool
+	LineBreak(out *bytes.Buffer) bool
+	Link(out *bytes.Buffer, link []byte, title []byte, content []byte) bool
+	RawHtmlTag(out *bytes.Buffer, tag []byte) bool
+	TripleEmphasis(out *bytes.Buffer, text []byte) bool
+	StrikeThrough(out *bytes.Buffer, text []byte) bool
 
-	// Low-level callbacks---nil copies input directly into the output
-	Entity     func(out *bytes.Buffer, entity []byte, opaque interface{})
-	NormalText func(out *bytes.Buffer, text []byte, opaque interface{})
+	// Low-level callbacks
+	Entity(out *bytes.Buffer, entity []byte)
+	NormalText(out *bytes.Buffer, text []byte)
 
 	// Header and footer
-	DocumentHeader func(out *bytes.Buffer, opaque interface{})
-	DocumentFooter func(out *bytes.Buffer, opaque interface{})
-
-	// User data---passed back to every callback
-	Opaque interface{}
+	DocumentHeader(out *bytes.Buffer)
+	DocumentFooter(out *bytes.Buffer)
 }
 
 type inlineParser func(out *bytes.Buffer, parser *Parser, data []byte, offset int) int
 
 type Parser struct {
-	r          *Renderer
+	r          Renderer
 	refs       map[string]*reference
 	inline     [256]inlineParser
 	flags      int
@@ -199,7 +196,7 @@ func MarkdownCommon(input []byte) []byte {
 // Parse and render a block of markdown-encoded text.
 // The renderer is used to format the output, and extensions dictates which
 // non-standard extensions are enabled.
-func Markdown(input []byte, renderer *Renderer, extensions int) []byte {
+func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	// no point in parsing if we can't render
 	if renderer == nil {
 		return nil
@@ -214,22 +211,14 @@ func Markdown(input []byte, renderer *Renderer, extensions int) []byte {
 	parser.insideLink = false
 
 	// register inline parsers
-	if parser.r.Emphasis != nil || parser.r.DoubleEmphasis != nil || parser.r.TripleEmphasis != nil {
-		parser.inline['*'] = inlineEmphasis
-		parser.inline['_'] = inlineEmphasis
-		if extensions&EXTENSION_STRIKETHROUGH != 0 {
-			parser.inline['~'] = inlineEmphasis
-		}
+	parser.inline['*'] = inlineEmphasis
+	parser.inline['_'] = inlineEmphasis
+	if extensions&EXTENSION_STRIKETHROUGH != 0 {
+		parser.inline['~'] = inlineEmphasis
 	}
-	if parser.r.CodeSpan != nil {
-		parser.inline['`'] = inlineCodeSpan
-	}
-	if parser.r.LineBreak != nil {
-		parser.inline['\n'] = inlineLineBreak
-	}
-	if parser.r.Image != nil || parser.r.Link != nil {
-		parser.inline['['] = inlineLink
-	}
+	parser.inline['`'] = inlineCodeSpan
+	parser.inline['\n'] = inlineLineBreak
+	parser.inline['['] = inlineLink
 	parser.inline['<'] = inlineLAngle
 	parser.inline['\\'] = inlineEscape
 	parser.inline['&'] = inlineEntity
@@ -291,15 +280,10 @@ func firstPass(parser *Parser, input []byte) []byte {
 // second pass: actual rendering
 func secondPass(parser *Parser, input []byte) []byte {
 	var output bytes.Buffer
-	if parser.r.DocumentHeader != nil {
-		parser.r.DocumentHeader(&output, parser.r.Opaque)
-	}
 
+	parser.r.DocumentHeader(&output)
 	parser.parseBlock(&output, input)
-
-	if parser.r.DocumentFooter != nil {
-		parser.r.DocumentFooter(&output, parser.r.Opaque)
-	}
+	parser.r.DocumentFooter(&output)
 
 	if parser.nesting != 0 {
 		panic("Nesting level did not end at zero")

@@ -43,7 +43,7 @@ func (parser *Parser) parseBlock(out *bytes.Buffer, data []byte) {
 		// <div>
 		//     ...
 		// </div>
-		if data[0] == '<' && parser.r.BlockHtml != nil {
+		if data[0] == '<' {
 			if i := parser.blockHtml(out, data, true); i > 0 {
 				data = data[i:]
 				continue
@@ -64,9 +64,7 @@ func (parser *Parser) parseBlock(out *bytes.Buffer, data []byte) {
 		// or
 		// ______
 		if parser.isHRule(data) {
-			if parser.r.HRule != nil {
-				parser.r.HRule(out, parser.r.Opaque)
-			}
+			parser.r.HRule(out)
 			var i int
 			for i = 0; i < len(data) && data[i] != '\n'; i++ {
 			}
@@ -189,13 +187,11 @@ func (parser *Parser) blockPrefixHeader(out *bytes.Buffer, data []byte) int {
 		end--
 	}
 	if end > i {
-		if parser.r.Header != nil {
-			work := func() bool {
-				parser.parseInline(out, data[i:end])
-				return true
-			}
-			parser.r.Header(out, work, level, parser.r.Opaque)
+		work := func() bool {
+			parser.parseInline(out, data[i:end])
+			return true
 		}
+		parser.r.Header(out, work, level)
 	}
 	return skip
 }
@@ -261,8 +257,8 @@ func (parser *Parser) blockHtml(out *bytes.Buffer, data []byte, doRender bool) i
 
 			if j > 0 {
 				size := i + j
-				if doRender && parser.r.BlockHtml != nil {
-					parser.r.BlockHtml(out, data[:size], parser.r.Opaque)
+				if doRender {
+					parser.r.BlockHtml(out, data[:size])
 				}
 				return size
 			}
@@ -283,8 +279,8 @@ func (parser *Parser) blockHtml(out *bytes.Buffer, data []byte, doRender bool) i
 				j = parser.isEmpty(data[i:])
 				if j > 0 {
 					size := i + j
-					if doRender && parser.r.BlockHtml != nil {
-						parser.r.BlockHtml(out, data[:size], parser.r.Opaque)
+					if doRender {
+						parser.r.BlockHtml(out, data[:size])
 					}
 					return size
 				}
@@ -329,8 +325,8 @@ func (parser *Parser) blockHtml(out *bytes.Buffer, data []byte, doRender bool) i
 	}
 
 	// the end of the block has been found
-	if doRender && parser.r.BlockHtml != nil {
-		parser.r.BlockHtml(out, data[:i], parser.r.Opaque)
+	if doRender {
+		parser.r.BlockHtml(out, data[:i])
 	}
 
 	return i
@@ -566,14 +562,12 @@ func (parser *Parser) blockFencedCode(out *bytes.Buffer, data []byte) int {
 		work.WriteByte('\n')
 	}
 
-	if parser.r.BlockCode != nil {
-		syntax := ""
-		if lang != nil {
-			syntax = *lang
-		}
-
-		parser.r.BlockCode(out, work.Bytes(), syntax, parser.r.Opaque)
+	syntax := ""
+	if lang != nil {
+		syntax = *lang
 	}
+
+	parser.r.BlockCode(out, work.Bytes(), syntax)
 
 	return beg
 }
@@ -604,9 +598,7 @@ func (parser *Parser) blockTable(out *bytes.Buffer, data []byte) int {
 		i++
 	}
 
-	if parser.r.Table != nil {
-		parser.r.Table(out, headerWork.Bytes(), bodyWork.Bytes(), colData, parser.r.Opaque)
-	}
+	parser.r.Table(out, headerWork.Bytes(), bodyWork.Bytes(), colData)
 
 	return i
 }
@@ -725,31 +717,25 @@ func (parser *Parser) blockTableRow(out *bytes.Buffer, data []byte, columns int,
 		var cellWork bytes.Buffer
 		parser.parseInline(&cellWork, data[cellStart:cellEnd+1])
 
-		if parser.r.TableCell != nil {
-			cdata := 0
-			if col < len(colData) {
-				cdata = colData[col]
-			}
-			parser.r.TableCell(&rowWork, cellWork.Bytes(), cdata, parser.r.Opaque)
+		cdata := 0
+		if col < len(colData) {
+			cdata = colData[col]
 		}
+		parser.r.TableCell(&rowWork, cellWork.Bytes(), cdata)
 
 		i++
 	}
 
 	for ; col < columns; col++ {
 		emptyCell := []byte{}
-		if parser.r.TableCell != nil {
-			cdata := 0
-			if col < len(colData) {
-				cdata = colData[col]
-			}
-			parser.r.TableCell(&rowWork, emptyCell, cdata, parser.r.Opaque)
+		cdata := 0
+		if col < len(colData) {
+			cdata = colData[col]
 		}
+		parser.r.TableCell(&rowWork, emptyCell, cdata)
 	}
 
-	if parser.r.TableRow != nil {
-		parser.r.TableRow(out, rowWork.Bytes(), parser.r.Opaque)
-	}
+	parser.r.TableRow(out, rowWork.Bytes())
 }
 
 // returns blockquote prefix length
@@ -794,9 +780,7 @@ func (parser *Parser) blockQuote(out *bytes.Buffer, data []byte) int {
 	}
 
 	parser.parseBlock(&block, work.Bytes())
-	if parser.r.BlockQuote != nil {
-		parser.r.BlockQuote(out, block.Bytes(), parser.r.Opaque)
-	}
+	parser.r.BlockQuote(out, block.Bytes())
 	return end
 }
 
@@ -851,9 +835,7 @@ func (parser *Parser) blockCode(out *bytes.Buffer, data []byte) int {
 
 	work.WriteByte('\n')
 
-	if parser.r.BlockCode != nil {
-		parser.r.BlockCode(out, work.Bytes(), "", parser.r.Opaque)
-	}
+	parser.r.BlockCode(out, work.Bytes(), "")
 
 	return beg
 }
@@ -915,9 +897,7 @@ func (parser *Parser) blockList(out *bytes.Buffer, data []byte, flags int) int {
 		return true
 	}
 
-	if parser.r.List != nil {
-		parser.r.List(out, work, flags, parser.r.Opaque)
-	}
+	parser.r.List(out, work, flags)
 	return i
 }
 
@@ -1061,9 +1041,7 @@ func (parser *Parser) blockListItem(out *bytes.Buffer, data []byte, flags *int) 
 	}
 
 	// render li itself
-	if parser.r.ListItem != nil {
-		parser.r.ListItem(out, inter.Bytes(), *flags, parser.r.Opaque)
-	}
+	parser.r.ListItem(out, inter.Bytes(), *flags)
 
 	return beg
 }
@@ -1081,7 +1059,7 @@ func (parser *Parser) renderParagraph(out *bytes.Buffer, data []byte) {
 	for end > beg && isspace(data[end-1]) {
 		end--
 	}
-	if end == beg || parser.r.Paragraph == nil {
+	if end == beg {
 		return
 	}
 
@@ -1089,7 +1067,7 @@ func (parser *Parser) renderParagraph(out *bytes.Buffer, data []byte) {
 		parser.parseInline(out, data[beg:end])
 		return true
 	}
-	parser.r.Paragraph(out, work, parser.r.Opaque)
+	parser.r.Paragraph(out, work)
 }
 
 func (parser *Parser) blockParagraph(out *bytes.Buffer, data []byte) int {
@@ -1112,7 +1090,7 @@ func (parser *Parser) blockParagraph(out *bytes.Buffer, data []byte) int {
 		}
 
 		// an underline under some text marks a header, so our paragraph ended on prev line
-		if i > 0 && parser.r.Header != nil {
+		if i > 0 {
 			if level := parser.isUnderlinedHeader(current); level > 0 {
 				// render the paragraph
 				parser.renderParagraph(out, data[:prev])
@@ -1134,7 +1112,7 @@ func (parser *Parser) blockParagraph(out *bytes.Buffer, data []byte) int {
 						return true
 					}
 				}(out, parser, data[prev:eol])
-				parser.r.Header(out, work, level, parser.r.Opaque)
+				parser.r.Header(out, work, level)
 
 				// find the end of the underline
 				for ; i < len(data) && data[i] != '\n'; i++ {
@@ -1145,7 +1123,7 @@ func (parser *Parser) blockParagraph(out *bytes.Buffer, data []byte) int {
 
 		// if the next line starts a block of HTML, then the paragraph ends here
 		if parser.flags&EXTENSION_LAX_HTML_BLOCKS != 0 {
-			if data[i] == '<' && parser.r.BlockHtml != nil && parser.blockHtml(out, current, false) > 0 {
+			if data[i] == '<' && parser.blockHtml(out, current, false) > 0 {
 				// rewind to before the HTML block
 				parser.renderParagraph(out, data[:i])
 				return i

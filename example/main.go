@@ -121,7 +121,7 @@ func main() {
 	extensions |= blackfriday.EXTENSION_STRIKETHROUGH
 	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
 
-	var renderer *blackfriday.Renderer
+	var renderer blackfriday.Renderer
 	if latex {
 		// render the data into LaTeX
 		renderer = blackfriday.LatexRenderer(0)
