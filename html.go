@@ -610,8 +610,18 @@ func (options *Html) DocumentFooter(out *bytes.Buffer) {
 		// now clear the copied material from the main output buffer
 		out.Truncate(options.tocMarker)
 
+		// corner case spacing issue
+		if options.flags&HTML_COMPLETE_PAGE != 0 {
+			out.WriteByte('\n')
+		}
+
 		// insert the table of contents
 		out.Write(options.toc.Bytes())
+
+		// corner case spacing issue
+		if options.flags&HTML_COMPLETE_PAGE == 0 && options.flags&HTML_OMIT_CONTENTS == 0 {
+			out.WriteByte('\n')
+		}
 
 		// write out everything that came after it
 		if options.flags&HTML_OMIT_CONTENTS == 0 {
@@ -630,13 +640,17 @@ func (options *Html) TocHeader(text []byte, level int) {
 	for level > options.currentLevel {
 		switch {
 		case bytes.HasSuffix(options.toc.Bytes(), []byte("</li>\n")):
+			// this sublist can nest underneath a header
 			size := options.toc.Len()
 			options.toc.Truncate(size - len("</li>\n"))
 
 		case options.currentLevel > 0:
 			options.toc.WriteString("<li>")
 		}
-		options.toc.WriteString("\n<ul>\n")
+		if options.toc.Len() > 0 {
+			options.toc.WriteByte('\n')
+		}
+		options.toc.WriteString("<ul>\n")
 		options.currentLevel++
 	}
 
