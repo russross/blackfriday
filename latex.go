@@ -20,11 +20,13 @@ import (
 )
 
 func LatexRenderer(flags int) *Renderer {
-	// block-level rendering
+	// configure the rendering engine
 	r := new(Renderer)
+
+	// block-level rendering
 	r.BlockCode = latexBlockCode
 	r.BlockQuote = latexBlockQuote
-	//r.BlockHtml = ?
+	r.BlockHtml = latexBlockHtml
 	r.Header = latexHeader
 	r.HRule = latexHRule
 	r.List = latexList
@@ -42,9 +44,11 @@ func LatexRenderer(flags int) *Renderer {
 	r.Image = latexImage
 	r.LineBreak = latexLineBreak
 	r.Link = latexLink
-	//r.rawHtmlTag = ?
+	r.RawHtmlTag = latexRawHtmlTag
+	r.TripleEmphasis = latexTripleEmphasis
 	r.StrikeThrough = latexStrikeThrough
 
+	r.Entity = latexEntity
 	r.NormalText = latexNormalText
 
 	r.DocumentHeader = latexDocumentHeader
@@ -77,7 +81,12 @@ func latexBlockQuote(out *bytes.Buffer, text []byte, opaque interface{}) {
 	out.WriteString("\n\\end{quotation}\n")
 }
 
-//BlockHtml  func(out *bytes.Buffer, text []byte, opaque interface{})
+func latexBlockHtml(out *bytes.Buffer, text []byte, opaque interface{}) {
+	// a pretty lame thing to do...
+	out.WriteString("\n\\begin{verbatim}\n")
+	out.Write(text)
+	out.WriteString("\n\\end{verbatim}\n")
+}
 
 func latexHeader(out *bytes.Buffer, text func() bool, level int, opaque interface{}) {
 	marker := out.Len()
@@ -282,6 +291,11 @@ func escapeSpecialChars(out *bytes.Buffer, text []byte) {
 		out.WriteByte('\\')
 		out.WriteByte(text[i])
 	}
+}
+
+func latexEntity(out *bytes.Buffer, entity []byte, opaque interface{}) {
+	// TODO: convert this into a unicode character or something
+	out.Write(entity)
 }
 
 func latexNormalText(out *bytes.Buffer, text []byte, opaque interface{}) {

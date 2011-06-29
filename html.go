@@ -58,6 +58,7 @@ var htmlClose = ">\n"
 func HtmlRenderer(flags int, title string, css string) *Renderer {
 	// configure the rendering engine
 	r := new(Renderer)
+
 	r.BlockCode = htmlBlockCode
 	r.BlockQuote = htmlBlockQuote
 	r.BlockHtml = htmlBlockHtml
