@@ -224,7 +224,7 @@ func TestCodeSpan(t *testing.T) {
 		"<p>a single multi-tick marker with ``` no text</p>\n",
 
 		"markers with ` ` a space\n",
-		"<p>markers with <code></code> a space</p>\n",
+		"<p>markers with  a space</p>\n",
 
 		"`source code` and a `stray\n",
 		"<p><code>source code</code> and a `stray</p>\n",

@@ -139,7 +139,9 @@ func inlineCodeSpan(parser *Parser, out *bytes.Buffer, data []byte, offset int) 
 	}
 
 	// render the code span
-	parser.r.CodeSpan(out, data[fBegin:fEnd])
+	if fBegin != fEnd {
+		parser.r.CodeSpan(out, data[fBegin:fEnd])
+	}
 
 	return end
 
@@ -409,7 +411,7 @@ func inlineLink(parser *Parser, out *bytes.Buffer, data []byte, offset int) int 
 	}
 
 	// links need something to click on and somewhere to go
-	if len(uLink) == 0 || content.Len() == 0 {
+	if len(uLink) == 0 || (!isImg && content.Len() == 0) {
 		return 0
 	}
 
@@ -439,7 +441,9 @@ func inlineLAngle(parser *Parser, out *bytes.Buffer, data []byte, offset int) in
 		if altype != LINK_TYPE_NOT_AUTOLINK {
 			var uLink bytes.Buffer
 			unescapeText(&uLink, data[1:end+1-2])
-			parser.r.AutoLink(out, uLink.Bytes(), altype)
+			if uLink.Len() > 0 {
+				parser.r.AutoLink(out, uLink.Bytes(), altype)
+			}
 		} else {
 			parser.r.RawHtmlTag(out, data[:end])
 		}
@@ -611,7 +615,9 @@ func inlineAutoLink(parser *Parser, out *bytes.Buffer, data []byte, offset int) 
 	var uLink bytes.Buffer
 	unescapeText(&uLink, data[:linkEnd])
 
-	parser.r.AutoLink(out, uLink.Bytes(), LINK_TYPE_NORMAL)
+	if uLink.Len() > 0 {
+		parser.r.AutoLink(out, uLink.Bytes(), LINK_TYPE_NORMAL)
+	}
 
 	return linkEnd - rewind
 }
@@ -879,11 +885,13 @@ func inlineHelperEmph2(parser *Parser, out *bytes.Buffer, data []byte, c byte) i
 			var work bytes.Buffer
 			parser.parseInline(&work, data[:i])
 
-			// pick the right renderer
-			if c == '~' {
-				parser.r.StrikeThrough(out, work.Bytes())
-			} else {
-				parser.r.DoubleEmphasis(out, work.Bytes())
+			if work.Len() > 0 {
+				// pick the right renderer
+				if c == '~' {
+					parser.r.StrikeThrough(out, work.Bytes())
+				} else {
+					parser.r.DoubleEmphasis(out, work.Bytes())
+				}
 			}
 			return i + 2
 		}
@@ -915,7 +923,9 @@ func inlineHelperEmph3(parser *Parser, out *bytes.Buffer, data []byte, offset in
 			var work bytes.Buffer
 
 			parser.parseInline(&work, data[:i])
-			parser.r.TripleEmphasis(out, work.Bytes())
+			if work.Len() > 0 {
+				parser.r.TripleEmphasis(out, work.Bytes())
+			}
 			return i + 3
 		case (i+1 < len(data) && data[i+1] == c):
 			// double symbol found, hand over to emph1

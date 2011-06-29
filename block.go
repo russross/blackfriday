@@ -258,7 +258,12 @@ func (parser *Parser) blockHtml(out *bytes.Buffer, data []byte, doRender bool) i
 			if j > 0 {
 				size := i + j
 				if doRender {
-					parser.r.BlockHtml(out, data[:size])
+					// trim newlines
+					end := size
+					for end > 0 && data[end-1] == '\n' {
+						end--
+					}
+					parser.r.BlockHtml(out, data[:end])
 				}
 				return size
 			}
@@ -280,7 +285,12 @@ func (parser *Parser) blockHtml(out *bytes.Buffer, data []byte, doRender bool) i
 				if j > 0 {
 					size := i + j
 					if doRender {
-						parser.r.BlockHtml(out, data[:size])
+						// trim newlines
+						end := size
+						for end > 0 && data[end-1] == '\n' {
+							end--
+						}
+						parser.r.BlockHtml(out, data[:end])
 					}
 					return size
 				}
@@ -326,7 +336,12 @@ func (parser *Parser) blockHtml(out *bytes.Buffer, data []byte, doRender bool) i
 
 	// the end of the block has been found
 	if doRender {
-		parser.r.BlockHtml(out, data[:i])
+		// trim newlines
+		end := i
+		for end > 0 && data[end-1] == '\n' {
+			end--
+		}
+		parser.r.BlockHtml(out, data[:end])
 	}
 
 	return i
@@ -931,11 +946,11 @@ func (parser *Parser) blockListItem(out *bytes.Buffer, data []byte, flags *int) 
 	}
 
 	// get working buffers
-	var work bytes.Buffer
-	var inter bytes.Buffer
+	var rawItem bytes.Buffer
+	var parsed bytes.Buffer
 
 	// put the first line into the working buffer
-	work.Write(data[beg:end])
+	rawItem.Write(data[beg:end])
 	beg = end
 
 	// process the following lines
@@ -984,7 +999,7 @@ func (parser *Parser) blockListItem(out *bytes.Buffer, data []byte, flags *int) 
 			}
 
 			if sublist == 0 {
-				sublist = work.Len()
+				sublist = rawItem.Len()
 			}
 		} else {
 			// how about a nested prefix header?
@@ -1002,7 +1017,7 @@ func (parser *Parser) blockListItem(out *bytes.Buffer, data []byte, flags *int) 
 					break
 				} else {
 					if containsBlankLine {
-						work.WriteByte('\n')
+						rawItem.WriteByte('\n')
 						containsBlock = true
 					}
 				}
@@ -1012,7 +1027,7 @@ func (parser *Parser) blockListItem(out *bytes.Buffer, data []byte, flags *int) 
 		containsBlankLine = false
 
 		// add the line into the working buffer without prefix
-		work.Write(data[beg+i : end])
+		rawItem.Write(data[beg+i : end])
 		beg = end
 	}
 
@@ -1021,27 +1036,32 @@ func (parser *Parser) blockListItem(out *bytes.Buffer, data []byte, flags *int) 
 		*flags |= LIST_ITEM_CONTAINS_BLOCK
 	}
 
-	workbytes := work.Bytes()
+	rawItemBytes := rawItem.Bytes()
 	if *flags&LIST_ITEM_CONTAINS_BLOCK != 0 {
 		// intermediate render of block li
-		if sublist > 0 && sublist < len(workbytes) {
-			parser.parseBlock(&inter, workbytes[:sublist])
-			parser.parseBlock(&inter, workbytes[sublist:])
+		if sublist > 0 && sublist < len(rawItemBytes) {
+			parser.parseBlock(&parsed, rawItemBytes[:sublist])
+			parser.parseBlock(&parsed, rawItemBytes[sublist:])
 		} else {
-			parser.parseBlock(&inter, workbytes)
+			parser.parseBlock(&parsed, rawItemBytes)
 		}
 	} else {
 		// intermediate render of inline li
-		if sublist > 0 && sublist < len(workbytes) {
-			parser.parseInline(&inter, workbytes[:sublist])
-			parser.parseBlock(&inter, workbytes[sublist:])
+		if sublist > 0 && sublist < len(rawItemBytes) {
+			parser.parseInline(&parsed, rawItemBytes[:sublist])
+			parser.parseBlock(&parsed, rawItemBytes[sublist:])
 		} else {
-			parser.parseInline(&inter, workbytes)
+			parser.parseInline(&parsed, rawItemBytes)
 		}
 	}
 
 	// render li itself
-	parser.r.ListItem(out, inter.Bytes(), *flags)
+	parsedBytes := parsed.Bytes()
+	parsedEnd := len(parsedBytes)
+	for parsedEnd > 0 && parsedBytes[parsedEnd-1] == '\n' {
+		parsedEnd--
+	}
+	parser.r.ListItem(out, parsedBytes[:parsedEnd], *flags)
 
 	return beg
 }

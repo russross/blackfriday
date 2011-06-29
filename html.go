@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -126,10 +127,7 @@ func attrEscape(out *bytes.Buffer, src []byte) {
 
 func (options *Html) Header(out *bytes.Buffer, text func() bool, level int) {
 	marker := out.Len()
-
-	if marker > 0 {
-		out.WriteByte('\n')
-	}
+	doubleSpace(out)
 
 	if options.flags&HTML_TOC != 0 {
 		// headerCount is incremented in htmlTocHeader
@@ -157,28 +155,13 @@ func (options *Html) BlockHtml(out *bytes.Buffer, text []byte) {
 		return
 	}
 
-	sz := len(text)
-	for sz > 0 && text[sz-1] == '\n' {
-		sz--
-	}
-	org := 0
-	for org < sz && text[org] == '\n' {
-		org++
-	}
-	if org >= sz {
-		return
-	}
-	if out.Len() > 0 {
-		out.WriteByte('\n')
-	}
-	out.Write(text[org:sz])
+	doubleSpace(out)
+	out.Write(text)
 	out.WriteByte('\n')
 }
 
 func (options *Html) HRule(out *bytes.Buffer) {
-	if out.Len() > 0 {
-		out.WriteByte('\n')
-	}
+	doubleSpace(out)
 	out.WriteString("<hr")
 	out.WriteString(options.closeTag)
 }
@@ -192,44 +175,33 @@ func (options *Html) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 }
 
 func (options *Html) BlockCodeNormal(out *bytes.Buffer, text []byte, lang string) {
-	if out.Len() > 0 {
-		out.WriteByte('\n')
-	}
+	doubleSpace(out)
 
-	if lang != "" {
-		out.WriteString("<pre><code class=\"")
-
-		for i, cls := 0, 0; i < len(lang); i, cls = i+1, cls+1 {
-			for i < len(lang) && isspace(lang[i]) {
-				i++
-			}
-
-			if i < len(lang) {
-				org := i
-				for i < len(lang) && !isspace(lang[i]) {
-					i++
-				}
-
-				if lang[org] == '.' {
-					org++
-				}
-
-				if cls > 0 {
-					out.WriteByte(' ')
-				}
-				attrEscape(out, []byte(lang[org:]))
-			}
+	// parse out the language names/classes
+	count := 0
+	for _, elt := range strings.Fields(lang) {
+		if elt[0] == '.' {
+			elt = elt[1:]
 		}
+		if len(elt) == 0 {
+			continue
+		}
+		if count == 0 {
+			out.WriteString("<pre><code class=\"")
+		} else {
+			out.WriteByte(' ')
+		}
+		attrEscape(out, []byte(elt))
+		count++
+	}
 
-		out.WriteString("\">")
-	} else {
+	if count == 0 {
 		out.WriteString("<pre><code>")
+	} else {
+		out.WriteString("\">")
 	}
 
-	if len(text) > 0 {
-		attrEscape(out, text)
-	}
-
+	attrEscape(out, text)
 	out.WriteString("</code></pre>\n")
 }
 
@@ -252,33 +224,29 @@ func (options *Html) BlockCodeNormal(out *bytes.Buffer, text []byte, lang string
  *              ~~~~ {.python .numbered}        =>      <pre lang="python"><code>
  */
 func (options *Html) BlockCodeGithub(out *bytes.Buffer, text []byte, lang string) {
-	if out.Len() > 0 {
-		out.WriteByte('\n')
+	doubleSpace(out)
+
+	// parse out the language name
+	count := 0
+	for _, elt := range strings.Fields(lang) {
+		if elt[0] == '.' {
+			elt = elt[1:]
+		}
+		if len(elt) == 0 {
+			continue
+		}
+		out.WriteString("<pre lang=\"")
+		attrEscape(out, []byte(elt))
+		out.WriteString("\"><code>")
+		count++
+		break
 	}
 
-	if len(lang) > 0 {
-		out.WriteString("<pre lang=\"")
-
-		i := 0
-		for i < len(lang) && !isspace(lang[i]) {
-			i++
-		}
-
-		if lang[0] == '.' {
-			attrEscape(out, []byte(lang[1:i]))
-		} else {
-			attrEscape(out, []byte(lang[:i]))
-		}
-
-		out.WriteString("\"><code>")
-	} else {
+	if count == 0 {
 		out.WriteString("<pre><code>")
 	}
 
-	if len(text) > 0 {
-		attrEscape(out, text)
-	}
-
+	attrEscape(out, text)
 	out.WriteString("</code></pre>\n")
 }
 
@@ -290,29 +258,23 @@ func (options *Html) BlockQuote(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Html) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int) {
-	if out.Len() > 0 {
-		out.WriteByte('\n')
-	}
-	out.WriteString("<table><thead>\n")
+	doubleSpace(out)
+	out.WriteString("<table>\n<thead>\n")
 	out.Write(header)
-	out.WriteString("\n</thead><tbody>\n")
+	out.WriteString("\n</thead>\n<tbody>\n")
 	out.Write(body)
-	out.WriteString("\n</tbody></table>")
+	out.WriteString("\n</tbody>\n</table>")
 }
 
 func (options *Html) TableRow(out *bytes.Buffer, text []byte) {
-	if out.Len() > 0 {
-		out.WriteByte('\n')
-	}
+	doubleSpace(out)
 	out.WriteString("<tr>\n")
 	out.Write(text)
 	out.WriteString("\n</tr>")
 }
 
 func (options *Html) TableCell(out *bytes.Buffer, text []byte, align int) {
-	if out.Len() > 0 {
-		out.WriteByte('\n')
-	}
+	doubleSpace(out)
 	switch align {
 	case TABLE_ALIGNMENT_LEFT:
 		out.WriteString("<td align=\"left\">")
@@ -330,10 +292,8 @@ func (options *Html) TableCell(out *bytes.Buffer, text []byte, align int) {
 
 func (options *Html) List(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
+	doubleSpace(out)
 
-	if marker > 0 {
-		out.WriteByte('\n')
-	}
 	if flags&LIST_TYPE_ORDERED != 0 {
 		out.WriteString("<ol>\n")
 	} else {
@@ -352,19 +312,13 @@ func (options *Html) List(out *bytes.Buffer, text func() bool, flags int) {
 
 func (options *Html) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	out.WriteString("<li>")
-	size := len(text)
-	for size > 0 && text[size-1] == '\n' {
-		size--
-	}
-	out.Write(text[:size])
+	out.Write(text)
 	out.WriteString("</li>\n")
 }
 
 func (options *Html) Paragraph(out *bytes.Buffer, text func() bool) {
 	marker := out.Len()
-	if marker > 0 {
-		out.WriteByte('\n')
-	}
+	doubleSpace(out)
 
 	out.WriteString("<p>")
 	if !text() {
@@ -375,10 +329,11 @@ func (options *Html) Paragraph(out *bytes.Buffer, text func() bool) {
 }
 
 func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
-	if len(link) == 0 {
-		return
-	}
 	if options.flags&HTML_SAFELINK != 0 && !isSafeLink(link) && kind != LINK_TYPE_EMAIL {
+		// mark it but don't link it if it is not a safe link: no smartypants
+		out.WriteString("<tt>")
+		attrEscape(out, link)
+		out.WriteString("</tt>")
 		return
 	}
 
@@ -389,16 +344,14 @@ func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	attrEscape(out, link)
 	out.WriteString("\">")
 
-	/*
-	 * Pretty print: if we get an email address as
-	 * an actual URI, e.g. `mailto:foo@bar.com`, we don't
-	 * want to print the `mailto:` prefix
-	 */
+	// Pretty print: if we get an email address as
+	// an actual URI, e.g. `mailto:foo@bar.com`, we don't
+	// want to print the `mailto:` prefix
 	switch {
 	case bytes.HasPrefix(link, []byte("mailto://")):
-		attrEscape(out, link[9:])
+		attrEscape(out, link[len("mailto://"):])
 	case bytes.HasPrefix(link, []byte("mailto:")):
-		attrEscape(out, link[7:])
+		attrEscape(out, link[len("mailto:"):])
 	default:
 		attrEscape(out, link)
 	}
@@ -413,9 +366,6 @@ func (options *Html) CodeSpan(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Html) DoubleEmphasis(out *bytes.Buffer, text []byte) {
-	if len(text) == 0 {
-		return
-	}
 	out.WriteString("<strong>")
 	out.Write(text)
 	out.WriteString("</strong>")
@@ -435,9 +385,6 @@ func (options *Html) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 		return
 	}
 
-	if len(link) == 0 {
-		return
-	}
 	out.WriteString("<img src=\"")
 	attrEscape(out, link)
 	out.WriteString("\" alt=\"")
@@ -461,10 +408,18 @@ func (options *Html) LineBreak(out *bytes.Buffer) {
 
 func (options *Html) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
 	if options.flags&HTML_SKIP_LINKS != 0 {
+		// write the link text out but don't link it, just mark it with typewriter font
+		out.WriteString("<tt>")
+		attrEscape(out, content)
+		out.WriteString("</tt>")
 		return
 	}
 
 	if options.flags&HTML_SAFELINK != 0 && !isSafeLink(link) {
+		// write the link text out but don't link it, just mark it with typewriter font
+		out.WriteString("<tt>")
+		attrEscape(out, content)
+		out.WriteString("</tt>")
 		return
 	}
 
@@ -497,18 +452,12 @@ func (options *Html) RawHtmlTag(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Html) TripleEmphasis(out *bytes.Buffer, text []byte) {
-	if len(text) == 0 {
-		return
-	}
 	out.WriteString("<strong><em>")
 	out.Write(text)
 	out.WriteString("</em></strong>")
 }
 
 func (options *Html) StrikeThrough(out *bytes.Buffer, text []byte) {
-	if len(text) == 0 {
-		return
-	}
 	out.WriteString("<del>")
 	out.Write(text)
 	out.WriteString("</del>")
@@ -717,4 +666,10 @@ func isHtmlTag(tag []byte, tagname string) bool {
 	}
 
 	return isspace(tag[i]) || tag[i] == '>'
+}
+
+func doubleSpace(out *bytes.Buffer) {
+	if out.Len() > 0 {
+		out.WriteByte('\n')
+	}
 }
