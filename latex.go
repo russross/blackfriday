@@ -151,7 +151,7 @@ func (options *Latex) TableCell(out *bytes.Buffer, text []byte, align int) {
 	out.Write(text)
 }
 
-func (options *Latex) AutoLink(out *bytes.Buffer, link []byte, kind int) bool {
+func (options *Latex) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	out.WriteString("\\href{")
 	if kind == LINK_TYPE_EMAIL {
 		out.WriteString("mailto:")
@@ -160,31 +160,27 @@ func (options *Latex) AutoLink(out *bytes.Buffer, link []byte, kind int) bool {
 	out.WriteString("}{")
 	out.Write(link)
 	out.WriteString("}")
-	return true
 }
 
-func (options *Latex) CodeSpan(out *bytes.Buffer, text []byte) bool {
+func (options *Latex) CodeSpan(out *bytes.Buffer, text []byte) {
 	out.WriteString("\\texttt{")
 	escapeSpecialChars(out, text)
 	out.WriteString("}")
-	return true
 }
 
-func (options *Latex) DoubleEmphasis(out *bytes.Buffer, text []byte) bool {
+func (options *Latex) DoubleEmphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("\\textbf{")
 	out.Write(text)
 	out.WriteString("}")
-	return true
 }
 
-func (options *Latex) Emphasis(out *bytes.Buffer, text []byte) bool {
+func (options *Latex) Emphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("\\textit{")
 	out.Write(text)
 	out.WriteString("}")
-	return true
 }
 
-func (options *Latex) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) bool {
+func (options *Latex) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
 	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
 		// treat it like a link
 		out.WriteString("\\href{")
@@ -197,39 +193,33 @@ func (options *Latex) Image(out *bytes.Buffer, link []byte, title []byte, alt []
 		out.Write(link)
 		out.WriteString("}")
 	}
-	return true
 }
 
-func (options *Latex) LineBreak(out *bytes.Buffer) bool {
+func (options *Latex) LineBreak(out *bytes.Buffer) {
 	out.WriteString(" \\\\\n")
-	return true
 }
 
-func (options *Latex) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) bool {
+func (options *Latex) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
 	out.WriteString("\\href{")
 	out.Write(link)
 	out.WriteString("}{")
 	out.Write(content)
 	out.WriteString("}")
-	return true
 }
 
-func (options *Latex) RawHtmlTag(out *bytes.Buffer, tag []byte) bool {
-	return true
+func (options *Latex) RawHtmlTag(out *bytes.Buffer, tag []byte) {
 }
 
-func (options *Latex) TripleEmphasis(out *bytes.Buffer, text []byte) bool {
+func (options *Latex) TripleEmphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("\\textbf{\\textit{")
 	out.Write(text)
 	out.WriteString("}}")
-	return true
 }
 
-func (options *Latex) StrikeThrough(out *bytes.Buffer, text []byte) bool {
+func (options *Latex) StrikeThrough(out *bytes.Buffer, text []byte) {
 	out.WriteString("\\sout{")
 	out.Write(text)
 	out.WriteString("}")
-	return true
 }
 
 func needsBackslash(c byte) bool {

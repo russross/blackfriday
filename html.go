@@ -374,12 +374,12 @@ func (options *Html) Paragraph(out *bytes.Buffer, text func() bool) {
 	out.WriteString("</p>\n")
 }
 
-func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) bool {
+func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	if len(link) == 0 {
-		return false
+		return
 	}
 	if options.flags&HTML_SAFELINK != 0 && !isSafeLink(link) && kind != LINK_TYPE_EMAIL {
-		return false
+		return
 	}
 
 	out.WriteString("<a href=\"")
@@ -404,44 +404,39 @@ func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) bool {
 	}
 
 	out.WriteString("</a>")
-
-	return true
 }
 
-func (options *Html) CodeSpan(out *bytes.Buffer, text []byte) bool {
+func (options *Html) CodeSpan(out *bytes.Buffer, text []byte) {
 	out.WriteString("<code>")
 	attrEscape(out, text)
 	out.WriteString("</code>")
-	return true
 }
 
-func (options *Html) DoubleEmphasis(out *bytes.Buffer, text []byte) bool {
+func (options *Html) DoubleEmphasis(out *bytes.Buffer, text []byte) {
 	if len(text) == 0 {
-		return false
+		return
 	}
 	out.WriteString("<strong>")
 	out.Write(text)
 	out.WriteString("</strong>")
-	return true
 }
 
-func (options *Html) Emphasis(out *bytes.Buffer, text []byte) bool {
+func (options *Html) Emphasis(out *bytes.Buffer, text []byte) {
 	if len(text) == 0 {
-		return false
+		return
 	}
 	out.WriteString("<em>")
 	out.Write(text)
 	out.WriteString("</em>")
-	return true
 }
 
-func (options *Html) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) bool {
+func (options *Html) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
 	if options.flags&HTML_SKIP_IMAGES != 0 {
-		return false
+		return
 	}
 
 	if len(link) == 0 {
-		return false
+		return
 	}
 	out.WriteString("<img src=\"")
 	attrEscape(out, link)
@@ -456,22 +451,21 @@ func (options *Html) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 
 	out.WriteByte('"')
 	out.WriteString(options.closeTag)
-	return true
+	return
 }
 
-func (options *Html) LineBreak(out *bytes.Buffer) bool {
+func (options *Html) LineBreak(out *bytes.Buffer) {
 	out.WriteString("<br")
 	out.WriteString(options.closeTag)
-	return true
 }
 
-func (options *Html) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) bool {
+func (options *Html) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
 	if options.flags&HTML_SKIP_LINKS != 0 {
-		return false
+		return
 	}
 
 	if options.flags&HTML_SAFELINK != 0 && !isSafeLink(link) {
-		return false
+		return
 	}
 
 	out.WriteString("<a href=\"")
@@ -483,44 +477,41 @@ func (options *Html) Link(out *bytes.Buffer, link []byte, title []byte, content 
 	out.WriteString("\">")
 	out.Write(content)
 	out.WriteString("</a>")
-	return true
+	return
 }
 
-func (options *Html) RawHtmlTag(out *bytes.Buffer, text []byte) bool {
+func (options *Html) RawHtmlTag(out *bytes.Buffer, text []byte) {
 	if options.flags&HTML_SKIP_HTML != 0 {
-		return true
+		return
 	}
 	if options.flags&HTML_SKIP_STYLE != 0 && isHtmlTag(text, "style") {
-		return true
+		return
 	}
 	if options.flags&HTML_SKIP_LINKS != 0 && isHtmlTag(text, "a") {
-		return true
+		return
 	}
 	if options.flags&HTML_SKIP_IMAGES != 0 && isHtmlTag(text, "img") {
-		return true
+		return
 	}
 	out.Write(text)
-	return true
 }
 
-func (options *Html) TripleEmphasis(out *bytes.Buffer, text []byte) bool {
+func (options *Html) TripleEmphasis(out *bytes.Buffer, text []byte) {
 	if len(text) == 0 {
-		return false
+		return
 	}
 	out.WriteString("<strong><em>")
 	out.Write(text)
 	out.WriteString("</em></strong>")
-	return true
 }
 
-func (options *Html) StrikeThrough(out *bytes.Buffer, text []byte) bool {
+func (options *Html) StrikeThrough(out *bytes.Buffer, text []byte) {
 	if len(text) == 0 {
-		return false
+		return
 	}
 	out.WriteString("<del>")
 	out.Write(text)
 	out.WriteString("</del>")
-	return true
 }
 
 func (options *Html) Entity(out *bytes.Buffer, entity []byte) {

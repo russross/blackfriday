@@ -114,17 +114,17 @@ type Renderer interface {
 	TableRow(out *bytes.Buffer, text []byte)
 	TableCell(out *bytes.Buffer, text []byte, flags int)
 
-	// Span-level callbacks---return false prints the span verbatim
-	AutoLink(out *bytes.Buffer, link []byte, kind int) bool
-	CodeSpan(out *bytes.Buffer, text []byte) bool
-	DoubleEmphasis(out *bytes.Buffer, text []byte) bool
-	Emphasis(out *bytes.Buffer, text []byte) bool
-	Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) bool
-	LineBreak(out *bytes.Buffer) bool
-	Link(out *bytes.Buffer, link []byte, title []byte, content []byte) bool
-	RawHtmlTag(out *bytes.Buffer, tag []byte) bool
-	TripleEmphasis(out *bytes.Buffer, text []byte) bool
-	StrikeThrough(out *bytes.Buffer, text []byte) bool
+	// Span-level callbacks
+	AutoLink(out *bytes.Buffer, link []byte, kind int)
+	CodeSpan(out *bytes.Buffer, text []byte)
+	DoubleEmphasis(out *bytes.Buffer, text []byte)
+	Emphasis(out *bytes.Buffer, text []byte)
+	Image(out *bytes.Buffer, link []byte, title []byte, alt []byte)
+	LineBreak(out *bytes.Buffer)
+	Link(out *bytes.Buffer, link []byte, title []byte, content []byte)
+	RawHtmlTag(out *bytes.Buffer, tag []byte)
+	TripleEmphasis(out *bytes.Buffer, text []byte)
+	StrikeThrough(out *bytes.Buffer, text []byte)
 
 	// Low-level callbacks
 	Entity(out *bytes.Buffer, entity []byte)

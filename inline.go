@@ -139,9 +139,7 @@ func inlineCodeSpan(parser *Parser, out *bytes.Buffer, data []byte, offset int) 
 	}
 
 	// render the code span
-	if !parser.r.CodeSpan(out, data[fBegin:fEnd]) {
-		end = 0
-	}
+	parser.r.CodeSpan(out, data[fBegin:fEnd])
 
 	return end
 
@@ -164,13 +162,8 @@ func inlineLineBreak(parser *Parser, out *bytes.Buffer, data []byte, offset int)
 		return 0
 	}
 
-	if parser.r.LineBreak(out) {
-		return 1
-	} else {
-		return 0
-	}
-
-	return 0
+	parser.r.LineBreak(out)
+	return 1
 }
 
 // '[': parse a link or an image
@@ -415,8 +408,12 @@ func inlineLink(parser *Parser, out *bytes.Buffer, data []byte, offset int) int 
 		uLink = uLinkBuf.Bytes()
 	}
 
+	// links need something to click on and somewhere to go
+	if len(uLink) == 0 || content.Len() == 0 {
+		return 0
+	}
+
 	// call the relevant rendering function
-	ret := false
 	if isImg {
 		outSize := out.Len()
 		outBytes := out.Bytes()
@@ -424,15 +421,12 @@ func inlineLink(parser *Parser, out *bytes.Buffer, data []byte, offset int) int 
 			out.Truncate(outSize - 1)
 		}
 
-		ret = parser.r.Image(out, uLink, title, content.Bytes())
+		parser.r.Image(out, uLink, title, content.Bytes())
 	} else {
-		ret = parser.r.Link(out, uLink, title, content.Bytes())
+		parser.r.Link(out, uLink, title, content.Bytes())
 	}
 
-	if ret {
-		return i
-	}
-	return 0
+	return i
 }
 
 // '<' when tags or autolinks are allowed
@@ -440,21 +434,17 @@ func inlineLAngle(parser *Parser, out *bytes.Buffer, data []byte, offset int) in
 	data = data[offset:]
 	altype := LINK_TYPE_NOT_AUTOLINK
 	end := tagLength(data, &altype)
-	ret := false
 
 	if end > 2 {
 		if altype != LINK_TYPE_NOT_AUTOLINK {
 			var uLink bytes.Buffer
 			unescapeText(&uLink, data[1:end+1-2])
-			ret = parser.r.AutoLink(out, uLink.Bytes(), altype)
+			parser.r.AutoLink(out, uLink.Bytes(), altype)
 		} else {
-			ret = parser.r.RawHtmlTag(out, data[:end])
+			parser.r.RawHtmlTag(out, data[:end])
 		}
 	}
 
-	if !ret {
-		return 0
-	}
 	return end
 }
 
@@ -867,11 +857,8 @@ func inlineHelperEmph1(parser *Parser, out *bytes.Buffer, data []byte, c byte) i
 
 			var work bytes.Buffer
 			parser.parseInline(&work, data[:i])
-			if parser.r.Emphasis(out, work.Bytes()) {
-				return i + 1
-			} else {
-				return 0
-			}
+			parser.r.Emphasis(out, work.Bytes())
+			return i + 1
 		}
 	}
 
@@ -891,19 +878,14 @@ func inlineHelperEmph2(parser *Parser, out *bytes.Buffer, data []byte, c byte) i
 		if i+1 < len(data) && data[i] == c && data[i+1] == c && i > 0 && !isspace(data[i-1]) {
 			var work bytes.Buffer
 			parser.parseInline(&work, data[:i])
-			success := false
 
 			// pick the right renderer
 			if c == '~' {
-				success = parser.r.StrikeThrough(out, work.Bytes())
+				parser.r.StrikeThrough(out, work.Bytes())
 			} else {
-				success = parser.r.DoubleEmphasis(out, work.Bytes())
+				parser.r.DoubleEmphasis(out, work.Bytes())
 			}
-			if success {
-				return i + 2
-			} else {
-				return 0
-			}
+			return i + 2
 		}
 		i++
 	}
@@ -933,11 +915,8 @@ func inlineHelperEmph3(parser *Parser, out *bytes.Buffer, data []byte, offset in
 			var work bytes.Buffer
 
 			parser.parseInline(&work, data[:i])
-			if parser.r.TripleEmphasis(out, work.Bytes()) {
-				return i + 3
-			} else {
-				return 0
-			}
+			parser.r.TripleEmphasis(out, work.Bytes())
+			return i + 3
 		case (i+1 < len(data) && data[i+1] == c):
 			// double symbol found, hand over to emph1
 			length = inlineHelperEmph1(parser, out, origData[offset-2:], c)
