@@ -173,7 +173,7 @@ func latexTableCell(out *bytes.Buffer, text []byte, align int, opaque interface{
 	out.Write(text)
 }
 
-func latexAutoLink(out *bytes.Buffer, link []byte, kind int, opaque interface{}) int {
+func latexAutoLink(out *bytes.Buffer, link []byte, kind int, opaque interface{}) bool {
 	out.WriteString("\\href{")
 	if kind == LINK_TYPE_EMAIL {
 		out.WriteString("mailto:")
@@ -182,31 +182,31 @@ func latexAutoLink(out *bytes.Buffer, link []byte, kind int, opaque interface{})
 	out.WriteString("}{")
 	out.Write(link)
 	out.WriteString("}")
-	return 1
+	return true
 }
 
-func latexCodeSpan(out *bytes.Buffer, text []byte, opaque interface{}) int {
+func latexCodeSpan(out *bytes.Buffer, text []byte, opaque interface{}) bool {
 	out.WriteString("\\texttt{")
 	escapeSpecialChars(out, text)
 	out.WriteString("}")
-	return 1
+	return true
 }
 
-func latexDoubleEmphasis(out *bytes.Buffer, text []byte, opaque interface{}) int {
+func latexDoubleEmphasis(out *bytes.Buffer, text []byte, opaque interface{}) bool {
 	out.WriteString("\\textbf{")
 	out.Write(text)
 	out.WriteString("}")
-	return 1
+	return true
 }
 
-func latexEmphasis(out *bytes.Buffer, text []byte, opaque interface{}) int {
+func latexEmphasis(out *bytes.Buffer, text []byte, opaque interface{}) bool {
 	out.WriteString("\\textit{")
 	out.Write(text)
 	out.WriteString("}")
-	return 1
+	return true
 }
 
-func latexImage(out *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{}) int {
+func latexImage(out *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{}) bool {
 	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
 		// treat it like a link
 		out.WriteString("\\href{")
@@ -219,39 +219,39 @@ func latexImage(out *bytes.Buffer, link []byte, title []byte, alt []byte, opaque
 		out.Write(link)
 		out.WriteString("}")
 	}
-	return 1
+	return true
 }
 
-func latexLineBreak(out *bytes.Buffer, opaque interface{}) int {
+func latexLineBreak(out *bytes.Buffer, opaque interface{}) bool {
 	out.WriteString(" \\\\\n")
-	return 1
+	return true
 }
 
-func latexLink(out *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{}) int {
+func latexLink(out *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{}) bool {
 	out.WriteString("\\href{")
 	out.Write(link)
 	out.WriteString("}{")
 	out.Write(content)
 	out.WriteString("}")
-	return 1
+	return true
 }
 
-func latexRawHtmlTag(out *bytes.Buffer, tag []byte, opaque interface{}) int {
-	return 0
+func latexRawHtmlTag(out *bytes.Buffer, tag []byte, opaque interface{}) bool {
+	return true
 }
 
-func latexTripleEmphasis(out *bytes.Buffer, text []byte, opaque interface{}) int {
+func latexTripleEmphasis(out *bytes.Buffer, text []byte, opaque interface{}) bool {
 	out.WriteString("\\textbf{\\textit{")
 	out.Write(text)
 	out.WriteString("}}")
-	return 1
+	return true
 }
 
-func latexStrikeThrough(out *bytes.Buffer, text []byte, opaque interface{}) int {
+func latexStrikeThrough(out *bytes.Buffer, text []byte, opaque interface{}) bool {
 	out.WriteString("\\sout{")
 	out.Write(text)
 	out.WriteString("}")
-	return 1
+	return true
 }
 
 func needsBackslash(c byte) bool {

@@ -146,7 +146,7 @@ func inlineCodeSpan(out *bytes.Buffer, parser *Parser, data []byte, offset int) 
 	if parser.r.CodeSpan == nil {
 		return 0
 	}
-	if parser.r.CodeSpan(out, data[fBegin:fEnd], parser.r.Opaque) == 0 {
+	if !parser.r.CodeSpan(out, data[fBegin:fEnd], parser.r.Opaque) {
 		end = 0
 	}
 
@@ -174,7 +174,7 @@ func inlineLineBreak(out *bytes.Buffer, parser *Parser, data []byte, offset int)
 	if parser.r.LineBreak == nil {
 		return 0
 	}
-	if parser.r.LineBreak(out, parser.r.Opaque) > 0 {
+	if parser.r.LineBreak(out, parser.r.Opaque) {
 		return 1
 	} else {
 		return 0
@@ -431,7 +431,7 @@ func inlineLink(out *bytes.Buffer, parser *Parser, data []byte, offset int) int 
 	}
 
 	// call the relevant rendering function
-	ret := 0
+	ret := false
 	if isImg {
 		outSize := out.Len()
 		outBytes := out.Bytes()
@@ -444,7 +444,7 @@ func inlineLink(out *bytes.Buffer, parser *Parser, data []byte, offset int) int 
 		ret = parser.r.Link(out, uLink, title, content.Bytes(), parser.r.Opaque)
 	}
 
-	if ret > 0 {
+	if ret {
 		return i
 	}
 	return 0
@@ -455,7 +455,7 @@ func inlineLAngle(out *bytes.Buffer, parser *Parser, data []byte, offset int) in
 	data = data[offset:]
 	altype := LINK_TYPE_NOT_AUTOLINK
 	end := tagLength(data, &altype)
-	ret := 0
+	ret := false
 
 	if end > 2 {
 		switch {
@@ -468,7 +468,7 @@ func inlineLAngle(out *bytes.Buffer, parser *Parser, data []byte, offset int) in
 		}
 	}
 
-	if ret == 0 {
+	if !ret {
 		return 0
 	}
 	return end
@@ -897,8 +897,7 @@ func inlineHelperEmph1(out *bytes.Buffer, parser *Parser, data []byte, c byte) i
 
 			var work bytes.Buffer
 			parser.parseInline(&work, data[:i])
-			r := parser.r.Emphasis(out, work.Bytes(), parser.r.Opaque)
-			if r > 0 {
+			if parser.r.Emphasis(out, work.Bytes(), parser.r.Opaque) {
 				return i + 1
 			} else {
 				return 0
@@ -931,8 +930,7 @@ func inlineHelperEmph2(out *bytes.Buffer, parser *Parser, data []byte, c byte) i
 		if i+1 < len(data) && data[i] == c && data[i+1] == c && i > 0 && !isspace(data[i-1]) {
 			var work bytes.Buffer
 			parser.parseInline(&work, data[:i])
-			r := renderMethod(out, work.Bytes(), parser.r.Opaque)
-			if r > 0 {
+			if renderMethod(out, work.Bytes(), parser.r.Opaque) {
 				return i + 2
 			} else {
 				return 0
@@ -966,8 +964,7 @@ func inlineHelperEmph3(out *bytes.Buffer, parser *Parser, data []byte, offset in
 			var work bytes.Buffer
 
 			parser.parseInline(&work, data[:i])
-			r := parser.r.TripleEmphasis(out, work.Bytes(), parser.r.Opaque)
-			if r > 0 {
+			if parser.r.TripleEmphasis(out, work.Bytes(), parser.r.Opaque) {
 				return i + 3
 			} else {
 				return 0

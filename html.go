@@ -51,15 +51,9 @@ var htmlClose = ">\n"
 func HtmlRenderer(flags int) *Renderer {
 	// configure the rendering engine
 	r := new(Renderer)
-	if flags&HTML_GITHUB_BLOCKCODE == 0 {
-		r.BlockCode = htmlBlockCode
-	} else {
-		r.BlockCode = htmlBlockCodeGithub
-	}
+	r.BlockCode = htmlBlockCode
 	r.BlockQuote = htmlBlockQuote
-	if flags&HTML_SKIP_HTML == 0 {
-		r.BlockHtml = htmlRawBlock
-	}
+	r.BlockHtml = htmlBlockHtml
 	r.Header = htmlHeader
 	r.HRule = htmlHRule
 	r.List = htmlList
@@ -73,30 +67,19 @@ func HtmlRenderer(flags int) *Renderer {
 	r.CodeSpan = htmlCodeSpan
 	r.DoubleEmphasis = htmlDoubleEmphasis
 	r.Emphasis = htmlEmphasis
-	if flags&HTML_SKIP_IMAGES == 0 {
-		r.Image = htmlImage
-	}
+	r.Image = htmlImage
 	r.LineBreak = htmlLineBreak
-	if flags&HTML_SKIP_LINKS == 0 {
-		r.Link = htmlLink
-	}
+	r.Link = htmlLink
 	r.RawHtmlTag = htmlRawTag
 	r.TripleEmphasis = htmlTripleEmphasis
 	r.StrikeThrough = htmlStrikeThrough
-
-	var cb *SmartypantsRenderer
-	if flags&HTML_USE_SMARTYPANTS == 0 {
-		r.NormalText = htmlNormalText
-	} else {
-		cb = Smartypants(flags)
-		r.NormalText = htmlSmartypants
-	}
+	r.NormalText = htmlNormalText
 
 	closeTag := htmlClose
 	if flags&HTML_USE_XHTML != 0 {
 		closeTag = xhtmlClose
 	}
-	r.Opaque = &htmlOptions{flags: flags, closeTag: closeTag, smartypants: cb}
+	r.Opaque = &htmlOptions{flags: flags, closeTag: closeTag, smartypants: Smartypants(flags)}
 	return r
 }
 
@@ -189,7 +172,12 @@ func htmlHeader(out *bytes.Buffer, text func() bool, level int, opaque interface
 	out.WriteString(fmt.Sprintf("</h%d>\n", level))
 }
 
-func htmlRawBlock(out *bytes.Buffer, text []byte, opaque interface{}) {
+func htmlBlockHtml(out *bytes.Buffer, text []byte, opaque interface{}) {
+	options := opaque.(*htmlOptions)
+	if options.flags&HTML_SKIP_HTML != 0 {
+		return
+	}
+
 	sz := len(text)
 	for sz > 0 && text[sz-1] == '\n' {
 		sz--
@@ -219,6 +207,15 @@ func htmlHRule(out *bytes.Buffer, opaque interface{}) {
 }
 
 func htmlBlockCode(out *bytes.Buffer, text []byte, lang string, opaque interface{}) {
+	options := opaque.(*htmlOptions)
+	if options.flags&HTML_GITHUB_BLOCKCODE != 0 {
+		htmlBlockCodeGithub(out, text, lang, opaque)
+	} else {
+		htmlBlockCodeNormal(out, text, lang, opaque)
+	}
+}
+
+func htmlBlockCodeNormal(out *bytes.Buffer, text []byte, lang string, opaque interface{}) {
 	if out.Len() > 0 {
 		out.WriteByte('\n')
 	}
@@ -401,14 +398,14 @@ func htmlParagraph(out *bytes.Buffer, text func() bool, opaque interface{}) {
 	out.WriteString("</p>\n")
 }
 
-func htmlAutoLink(out *bytes.Buffer, link []byte, kind int, opaque interface{}) int {
+func htmlAutoLink(out *bytes.Buffer, link []byte, kind int, opaque interface{}) bool {
 	options := opaque.(*htmlOptions)
 
 	if len(link) == 0 {
-		return 0
+		return false
 	}
 	if options.flags&HTML_SAFELINK != 0 && !isSafeLink(link) && kind != LINK_TYPE_EMAIL {
-		return 0
+		return false
 	}
 
 	out.WriteString("<a href=\"")
@@ -434,40 +431,44 @@ func htmlAutoLink(out *bytes.Buffer, link []byte, kind int, opaque interface{}) 
 
 	out.WriteString("</a>")
 
-	return 1
+	return true
 }
 
-func htmlCodeSpan(out *bytes.Buffer, text []byte, opaque interface{}) int {
+func htmlCodeSpan(out *bytes.Buffer, text []byte, opaque interface{}) bool {
 	out.WriteString("<code>")
 	attrEscape(out, text)
 	out.WriteString("</code>")
-	return 1
+	return true
 }
 
-func htmlDoubleEmphasis(out *bytes.Buffer, text []byte, opaque interface{}) int {
+func htmlDoubleEmphasis(out *bytes.Buffer, text []byte, opaque interface{}) bool {
 	if len(text) == 0 {
-		return 0
+		return false
 	}
 	out.WriteString("<strong>")
 	out.Write(text)
 	out.WriteString("</strong>")
-	return 1
+	return true
 }
 
-func htmlEmphasis(out *bytes.Buffer, text []byte, opaque interface{}) int {
+func htmlEmphasis(out *bytes.Buffer, text []byte, opaque interface{}) bool {
 	if len(text) == 0 {
-		return 0
+		return false
 	}
 	out.WriteString("<em>")
 	out.Write(text)
 	out.WriteString("</em>")
-	return 1
+	return true
 }
 
-func htmlImage(out *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{}) int {
+func htmlImage(out *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{}) bool {
 	options := opaque.(*htmlOptions)
+	if options.flags&HTML_SKIP_IMAGES != 0 {
+		return false
+	}
+
 	if len(link) == 0 {
-		return 0
+		return false
 	}
 	out.WriteString("<img src=\"")
 	attrEscape(out, link)
@@ -482,21 +483,24 @@ func htmlImage(out *bytes.Buffer, link []byte, title []byte, alt []byte, opaque 
 
 	out.WriteByte('"')
 	out.WriteString(options.closeTag)
-	return 1
+	return true
 }
 
-func htmlLineBreak(out *bytes.Buffer, opaque interface{}) int {
+func htmlLineBreak(out *bytes.Buffer, opaque interface{}) bool {
 	options := opaque.(*htmlOptions)
 	out.WriteString("<br")
 	out.WriteString(options.closeTag)
-	return 1
+	return true
 }
 
-func htmlLink(out *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{}) int {
+func htmlLink(out *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{}) bool {
 	options := opaque.(*htmlOptions)
+	if options.flags&HTML_SKIP_LINKS != 0 {
+		return false
+	}
 
 	if options.flags&HTML_SAFELINK != 0 && !isSafeLink(link) {
-		return 0
+		return false
 	}
 
 	out.WriteString("<a href=\"")
@@ -508,49 +512,54 @@ func htmlLink(out *bytes.Buffer, link []byte, title []byte, content []byte, opaq
 	out.WriteString("\">")
 	out.Write(content)
 	out.WriteString("</a>")
-	return 1
+	return true
 }
 
-func htmlRawTag(out *bytes.Buffer, text []byte, opaque interface{}) int {
+func htmlRawTag(out *bytes.Buffer, text []byte, opaque interface{}) bool {
 	options := opaque.(*htmlOptions)
 	if options.flags&HTML_SKIP_HTML != 0 {
-		return 1
+		return true
 	}
 	if options.flags&HTML_SKIP_STYLE != 0 && isHtmlTag(text, "style") {
-		return 1
+		return true
 	}
 	if options.flags&HTML_SKIP_LINKS != 0 && isHtmlTag(text, "a") {
-		return 1
+		return true
 	}
 	if options.flags&HTML_SKIP_IMAGES != 0 && isHtmlTag(text, "img") {
-		return 1
+		return true
 	}
 	out.Write(text)
-	return 1
+	return true
 }
 
-func htmlTripleEmphasis(out *bytes.Buffer, text []byte, opaque interface{}) int {
+func htmlTripleEmphasis(out *bytes.Buffer, text []byte, opaque interface{}) bool {
 	if len(text) == 0 {
-		return 0
+		return false
 	}
 	out.WriteString("<strong><em>")
 	out.Write(text)
 	out.WriteString("</em></strong>")
-	return 1
+	return true
 }
 
-func htmlStrikeThrough(out *bytes.Buffer, text []byte, opaque interface{}) int {
+func htmlStrikeThrough(out *bytes.Buffer, text []byte, opaque interface{}) bool {
 	if len(text) == 0 {
-		return 0
+		return false
 	}
 	out.WriteString("<del>")
 	out.Write(text)
 	out.WriteString("</del>")
-	return 1
+	return true
 }
 
 func htmlNormalText(out *bytes.Buffer, text []byte, opaque interface{}) {
-	attrEscape(out, text)
+	options := opaque.(*htmlOptions)
+	if options.flags&HTML_USE_SMARTYPANTS != 0 {
+		htmlSmartypants(out, text, opaque)
+	} else {
+		attrEscape(out, text)
+	}
 }
 
 func htmlTocHeader(out *bytes.Buffer, text func() bool, level int, opaque interface{}) {

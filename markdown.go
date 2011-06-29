@@ -119,17 +119,17 @@ type Renderer struct {
 	TableRow   func(out *bytes.Buffer, text []byte, opaque interface{})
 	TableCell  func(out *bytes.Buffer, text []byte, flags int, opaque interface{})
 
-	// Span-level callbacks---nil or return 0 prints the span verbatim
-	AutoLink       func(out *bytes.Buffer, link []byte, kind int, opaque interface{}) int
-	CodeSpan       func(out *bytes.Buffer, text []byte, opaque interface{}) int
-	DoubleEmphasis func(out *bytes.Buffer, text []byte, opaque interface{}) int
-	Emphasis       func(out *bytes.Buffer, text []byte, opaque interface{}) int
-	Image          func(out *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{}) int
-	LineBreak      func(out *bytes.Buffer, opaque interface{}) int
-	Link           func(out *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{}) int
-	RawHtmlTag     func(out *bytes.Buffer, tag []byte, opaque interface{}) int
-	TripleEmphasis func(out *bytes.Buffer, text []byte, opaque interface{}) int
-	StrikeThrough  func(out *bytes.Buffer, text []byte, opaque interface{}) int
+	// Span-level callbacks---nil or return false prints the span verbatim
+	AutoLink       func(out *bytes.Buffer, link []byte, kind int, opaque interface{}) bool
+	CodeSpan       func(out *bytes.Buffer, text []byte, opaque interface{}) bool
+	DoubleEmphasis func(out *bytes.Buffer, text []byte, opaque interface{}) bool
+	Emphasis       func(out *bytes.Buffer, text []byte, opaque interface{}) bool
+	Image          func(out *bytes.Buffer, link []byte, title []byte, alt []byte, opaque interface{}) bool
+	LineBreak      func(out *bytes.Buffer, opaque interface{}) bool
+	Link           func(out *bytes.Buffer, link []byte, title []byte, content []byte, opaque interface{}) bool
+	RawHtmlTag     func(out *bytes.Buffer, tag []byte, opaque interface{}) bool
+	TripleEmphasis func(out *bytes.Buffer, text []byte, opaque interface{}) bool
+	StrikeThrough  func(out *bytes.Buffer, text []byte, opaque interface{}) bool
 
 	// Low-level callbacks---nil copies input directly into the output
 	Entity     func(out *bytes.Buffer, entity []byte, opaque interface{})

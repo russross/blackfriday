@@ -39,7 +39,7 @@ func isdigit(c byte) bool {
 	return c >= '0' && c <= '9'
 }
 
-func smartQuotesHelper(ob *bytes.Buffer, previousChar byte, nextChar byte, quote byte, isOpen *bool) bool {
+func smartQuotesHelper(out *bytes.Buffer, previousChar byte, nextChar byte, quote byte, isOpen *bool) bool {
 	// edge of the buffer is likely to be a tag that we don't get to see,
 	// so we treat it like text sometimes
 
@@ -96,18 +96,18 @@ func smartQuotesHelper(ob *bytes.Buffer, previousChar byte, nextChar byte, quote
 		*isOpen = false
 	}
 
-	ob.WriteByte('&')
+	out.WriteByte('&')
 	if *isOpen {
-		ob.WriteByte('l')
+		out.WriteByte('l')
 	} else {
-		ob.WriteByte('r')
+		out.WriteByte('r')
 	}
-	ob.WriteByte(quote)
-	ob.WriteString("quo;")
+	out.WriteByte(quote)
+	out.WriteString("quo;")
 	return true
 }
 
-func smartSquote(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+func smartSquote(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	if len(text) >= 2 {
 		t1 := tolower(text[1])
 
@@ -116,21 +116,22 @@ func smartSquote(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, tex
 			if len(text) >= 3 {
 				nextChar = text[2]
 			}
-			if smartQuotesHelper(ob, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
+			if smartQuotesHelper(out, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
 				return 1
 			}
 		}
 
 		if (t1 == 's' || t1 == 't' || t1 == 'm' || t1 == 'd') && (len(text) < 3 || wordBoundary(text[2])) {
-			ob.WriteString("&rsquo;")
+			out.WriteString("&rsquo;")
 			return 0
 		}
 
 		if len(text) >= 3 {
 			t2 := tolower(text[2])
 
-			if ((t1 == 'r' && t2 == 'e') || (t1 == 'l' && t2 == 'l') || (t1 == 'v' && t2 == 'e')) && (len(text) < 4 || wordBoundary(text[3])) {
-				ob.WriteString("&rsquo;")
+			if ((t1 == 'r' && t2 == 'e') || (t1 == 'l' && t2 == 'l') || (t1 == 'v' && t2 == 'e')) &&
+				(len(text) < 4 || wordBoundary(text[3])) {
+				out.WriteString("&rsquo;")
 				return 0
 			}
 		}
@@ -140,77 +141,77 @@ func smartSquote(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, tex
 	if len(text) > 1 {
 		nextChar = text[1]
 	}
-	if smartQuotesHelper(ob, previousChar, nextChar, 's', &smrt.inSingleQuote) {
+	if smartQuotesHelper(out, previousChar, nextChar, 's', &smrt.inSingleQuote) {
 		return 0
 	}
 
-	ob.WriteByte(text[0])
+	out.WriteByte(text[0])
 	return 0
 }
 
-func smartParens(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+func smartParens(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	if len(text) >= 3 {
 		t1 := tolower(text[1])
 		t2 := tolower(text[2])
 
 		if t1 == 'c' && t2 == ')' {
-			ob.WriteString("&copy;")
+			out.WriteString("&copy;")
 			return 2
 		}
 
 		if t1 == 'r' && t2 == ')' {
-			ob.WriteString("&reg;")
+			out.WriteString("&reg;")
 			return 2
 		}
 
 		if len(text) >= 4 && t1 == 't' && t2 == 'm' && text[3] == ')' {
-			ob.WriteString("&trade;")
+			out.WriteString("&trade;")
 			return 3
 		}
 	}
 
-	ob.WriteByte(text[0])
+	out.WriteByte(text[0])
 	return 0
 }
 
-func smartDash(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+func smartDash(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	if len(text) >= 2 {
 		if text[1] == '-' {
-			ob.WriteString("&mdash;")
+			out.WriteString("&mdash;")
 			return 1
 		}
 
 		if wordBoundary(previousChar) && wordBoundary(text[1]) {
-			ob.WriteString("&ndash;")
+			out.WriteString("&ndash;")
 			return 0
 		}
 	}
 
-	ob.WriteByte(text[0])
+	out.WriteByte(text[0])
 	return 0
 }
 
-func smartDashLatex(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+func smartDashLatex(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	if len(text) >= 3 && text[1] == '-' && text[2] == '-' {
-		ob.WriteString("&mdash;")
+		out.WriteString("&mdash;")
 		return 2
 	}
 	if len(text) >= 2 && text[1] == '-' {
-		ob.WriteString("&ndash;")
+		out.WriteString("&ndash;")
 		return 1
 	}
 
-	ob.WriteByte(text[0])
+	out.WriteByte(text[0])
 	return 0
 }
 
-func smartAmp(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+func smartAmp(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	if bytes.HasPrefix(text, []byte("&quot;")) {
 		nextChar := byte(0)
 		if len(text) >= 7 {
 			nextChar = text[6]
 		}
-		if smartQuotesHelper(ob, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
+		if smartQuotesHelper(out, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
 			return 5
 		}
 	}
@@ -219,32 +220,32 @@ func smartAmp(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text [
 		return 3
 	}
 
-	ob.WriteByte('&')
+	out.WriteByte('&')
 	return 0
 }
 
-func smartPeriod(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+func smartPeriod(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	if len(text) >= 3 && text[1] == '.' && text[2] == '.' {
-		ob.WriteString("&hellip;")
+		out.WriteString("&hellip;")
 		return 2
 	}
 
 	if len(text) >= 5 && text[1] == ' ' && text[2] == '.' && text[3] == ' ' && text[4] == '.' {
-		ob.WriteString("&hellip;")
+		out.WriteString("&hellip;")
 		return 4
 	}
 
-	ob.WriteByte(text[0])
+	out.WriteByte(text[0])
 	return 0
 }
 
-func smartBacktick(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+func smartBacktick(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	if len(text) >= 2 && text[1] == '`' {
 		nextChar := byte(0)
 		if len(text) >= 3 {
 			nextChar = text[2]
 		}
-		if smartQuotesHelper(ob, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
+		if smartQuotesHelper(out, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
 			return 1
 		}
 	}
@@ -252,7 +253,7 @@ func smartBacktick(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, t
 	return 0
 }
 
-func smartNumberGeneric(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+func smartNumberGeneric(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	if wordBoundary(previousChar) && len(text) >= 3 {
 		// is it of the form digits/digits(word boundary)?, i.e., \d+/\d+\b
 		numEnd := 0
@@ -260,11 +261,11 @@ func smartNumberGeneric(ob *bytes.Buffer, smrt *smartypantsData, previousChar by
 			numEnd++
 		}
 		if numEnd == 0 {
-			ob.WriteByte(text[0])
+			out.WriteByte(text[0])
 			return 0
 		}
 		if len(text) < numEnd+2 || text[numEnd] != '/' {
-			ob.WriteByte(text[0])
+			out.WriteByte(text[0])
 			return 0
 		}
 		denEnd := numEnd + 1
@@ -272,75 +273,75 @@ func smartNumberGeneric(ob *bytes.Buffer, smrt *smartypantsData, previousChar by
 			denEnd++
 		}
 		if denEnd == numEnd+1 {
-			ob.WriteByte(text[0])
+			out.WriteByte(text[0])
 			return 0
 		}
 		if len(text) == denEnd || wordBoundary(text[denEnd]) {
-			ob.WriteString("<sup>")
-			ob.Write(text[:numEnd])
-			ob.WriteString("</sup>&frasl;<sub>")
-			ob.Write(text[numEnd+1 : denEnd])
-			ob.WriteString("</sub>")
+			out.WriteString("<sup>")
+			out.Write(text[:numEnd])
+			out.WriteString("</sup>&frasl;<sub>")
+			out.Write(text[numEnd+1 : denEnd])
+			out.WriteString("</sub>")
 			return denEnd - 1
 		}
 	}
 
-	ob.WriteByte(text[0])
+	out.WriteByte(text[0])
 	return 0
 }
 
-func smartNumber(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+func smartNumber(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	if wordBoundary(previousChar) && len(text) >= 3 {
 		if text[0] == '1' && text[1] == '/' && text[2] == '2' {
 			if len(text) < 4 || wordBoundary(text[3]) {
-				ob.WriteString("&frac12;")
+				out.WriteString("&frac12;")
 				return 2
 			}
 		}
 
 		if text[0] == '1' && text[1] == '/' && text[2] == '4' {
 			if len(text) < 4 || wordBoundary(text[3]) || (len(text) >= 5 && tolower(text[3]) == 't' && tolower(text[4]) == 'h') {
-				ob.WriteString("&frac14;")
+				out.WriteString("&frac14;")
 				return 2
 			}
 		}
 
 		if text[0] == '3' && text[1] == '/' && text[2] == '4' {
 			if len(text) < 4 || wordBoundary(text[3]) || (len(text) >= 6 && tolower(text[3]) == 't' && tolower(text[4]) == 'h' && tolower(text[5]) == 's') {
-				ob.WriteString("&frac34;")
+				out.WriteString("&frac34;")
 				return 2
 			}
 		}
 	}
 
-	ob.WriteByte(text[0])
+	out.WriteByte(text[0])
 	return 0
 }
 
-func smartDquote(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+func smartDquote(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	nextChar := byte(0)
 	if len(text) > 1 {
 		nextChar = text[1]
 	}
-	if !smartQuotesHelper(ob, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
-		ob.WriteString("&quot;")
+	if !smartQuotesHelper(out, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
+		out.WriteString("&quot;")
 	}
 
 	return 0
 }
 
-func smartLtag(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+func smartLtag(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	i := 0
 
 	for i < len(text) && text[i] != '>' {
 		i++
 	}
 
-	ob.Write(text[:i+1])
+	out.Write(text[:i+1])
 	return i
 }
 
-type smartCallback func(ob *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int
+type smartCallback func(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int
 
 type SmartypantsRenderer [256]smartCallback
 
@@ -369,7 +370,7 @@ func Smartypants(flags int) *SmartypantsRenderer {
 	return r
 }
 
-func htmlSmartypants(ob *bytes.Buffer, text []byte, opaque interface{}) {
+func htmlSmartypants(out *bytes.Buffer, text []byte, opaque interface{}) {
 	options := opaque.(*htmlOptions)
 	smrt := smartypantsData{false, false}
 
@@ -382,19 +383,19 @@ func htmlSmartypants(ob *bytes.Buffer, text []byte, opaque interface{}) {
 	for i := 0; i < len(text); i++ {
 		if action := options.smartypants[text[i]]; action != nil {
 			if i > mark {
-				ob.Write(text[mark:i])
+				out.Write(text[mark:i])
 			}
 
 			previousChar := byte(0)
 			if i > 0 {
 				previousChar = text[i-1]
 			}
-			i += action(ob, &smrt, previousChar, text[i:])
+			i += action(out, &smrt, previousChar, text[i:])
 			mark = i + 1
 		}
 	}
 
 	if mark < len(text) {
-		ob.Write(text[mark:])
+		out.Write(text[mark:])
 	}
 }
