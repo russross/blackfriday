@@ -28,6 +28,7 @@ const (
 	HTML_SKIP_LINKS
 	HTML_SAFELINK
 	HTML_TOC
+	HTML_OMIT_CONTENTS
 	HTML_COMPLETE_PAGE
 	HTML_GITHUB_BLOCKCODE
 	HTML_USE_XHTML
@@ -43,6 +44,7 @@ type htmlOptions struct {
 	css      string // optional css file url (used with HTML_COMPLETE_PAGE)
 
 	// table of contents data
+	tocMarker    int
 	headerCount  int
 	currentLevel int
 	toc          *bytes.Buffer
@@ -89,10 +91,6 @@ func HtmlRenderer(flags int, title string, css string) *Renderer {
 	if flags&HTML_USE_XHTML != 0 {
 		closeTag = xhtmlClose
 	}
-	var toc *bytes.Buffer
-	if flags&HTML_TOC != 0 {
-		toc = new(bytes.Buffer)
-	}
 
 	r.Opaque = &htmlOptions{
 		flags:    flags,
@@ -102,7 +100,7 @@ func HtmlRenderer(flags int, title string, css string) *Renderer {
 
 		headerCount:  0,
 		currentLevel: 0,
-		toc:          toc,
+		toc:          new(bytes.Buffer),
 
 		smartypants: Smartypants(flags),
 	}
@@ -164,12 +162,13 @@ func htmlHeader(out *bytes.Buffer, text func() bool, level int, opaque interface
 	}
 
 	if options.flags&HTML_TOC != 0 {
+		// headerCount is incremented in htmlTocHeader
 		out.WriteString(fmt.Sprintf("<h%d id=\"toc_%d\">", level, options.headerCount))
-		options.headerCount++
 	} else {
 		out.WriteString(fmt.Sprintf("<h%d>", level))
 	}
 
+	tocMarker := out.Len()
 	if !text() {
 		out.Truncate(marker)
 		return
@@ -177,7 +176,7 @@ func htmlHeader(out *bytes.Buffer, text func() bool, level int, opaque interface
 
 	// are we building a table of contents?
 	if options.flags&HTML_TOC != 0 {
-		htmlTocHeader(out.Bytes()[marker:], level, opaque)
+		htmlTocHeader(out.Bytes()[tocMarker:], level, opaque)
 	}
 
 	out.WriteString(fmt.Sprintf("</h%d>\n", level))
@@ -577,35 +576,6 @@ func htmlNormalText(out *bytes.Buffer, text []byte, opaque interface{}) {
 	}
 }
 
-func htmlTocHeader(text []byte, level int, opaque interface{}) {
-	options := opaque.(*htmlOptions)
-
-	for level > options.currentLevel {
-		if options.currentLevel > 0 {
-			options.toc.WriteString("<li>")
-		}
-		options.toc.WriteString("<ul>\n")
-		options.currentLevel++
-	}
-
-	for level < options.currentLevel {
-		options.toc.WriteString("</ul>")
-		if options.currentLevel > 1 {
-			options.toc.WriteString("</li>\n")
-		}
-		options.currentLevel--
-	}
-
-	options.toc.WriteString("<li><a href=\"#toc_")
-	options.toc.WriteString(strconv.Itoa(options.headerCount))
-	options.toc.WriteString("\">")
-	options.headerCount++
-
-	options.toc.Write(text)
-
-	options.toc.WriteString("</a></li>\n")
-}
-
 func htmlDocumentHeader(out *bytes.Buffer, opaque interface{}) {
 	options := opaque.(*htmlOptions)
 	if options.flags&HTML_COMPLETE_PAGE == 0 {
@@ -644,27 +614,85 @@ func htmlDocumentHeader(out *bytes.Buffer, opaque interface{}) {
 	}
 	out.WriteString("</head>\n")
 	out.WriteString("<body>\n")
+
+	options.tocMarker = out.Len()
 }
 
 func htmlDocumentFooter(out *bytes.Buffer, opaque interface{}) {
 	options := opaque.(*htmlOptions)
-	if options.flags&HTML_COMPLETE_PAGE == 0 {
-		return
+
+	// finalize and insert the table of contents
+	if options.flags&HTML_TOC != 0 {
+		htmlTocFinalize(opaque)
+
+		// now we have to insert the table of contents into the document
+		var temp bytes.Buffer
+
+		// start by making a copy of everything after the document header
+		temp.Write(out.Bytes()[options.tocMarker:])
+
+		// now clear the copied material from the main output buffer
+		out.Truncate(options.tocMarker)
+
+		// insert the table of contents
+		out.Write(options.toc.Bytes())
+
+		// write out everything that came after it
+		if options.flags&HTML_OMIT_CONTENTS == 0 {
+			out.Write(temp.Bytes())
+		}
 	}
 
-	out.WriteString("\n</body>\n")
-	out.WriteString("</html>\n")
+	if options.flags&HTML_COMPLETE_PAGE != 0 {
+		out.WriteString("\n</body>\n")
+		out.WriteString("</html>\n")
+	}
+
 }
 
-func htmlTocFinalize(out *bytes.Buffer, opaque interface{}) {
+func htmlTocHeader(text []byte, level int, opaque interface{}) {
+	options := opaque.(*htmlOptions)
+
+	for level > options.currentLevel {
+		switch {
+		case bytes.HasSuffix(options.toc.Bytes(), []byte("</li>\n")):
+			size := options.toc.Len()
+			options.toc.Truncate(size - len("</li>\n"))
+
+		case options.currentLevel > 0:
+			options.toc.WriteString("<li>")
+		}
+		options.toc.WriteString("\n<ul>\n")
+		options.currentLevel++
+	}
+
+	for level < options.currentLevel {
+		options.toc.WriteString("</ul>")
+		if options.currentLevel > 1 {
+			options.toc.WriteString("</li>\n")
+		}
+		options.currentLevel--
+	}
+
+	options.toc.WriteString("<li><a href=\"#toc_")
+	options.toc.WriteString(strconv.Itoa(options.headerCount))
+	options.toc.WriteString("\">")
+	options.headerCount++
+
+	options.toc.Write(text)
+
+	options.toc.WriteString("</a></li>\n")
+}
+
+func htmlTocFinalize(opaque interface{}) {
 	options := opaque.(*htmlOptions)
 	for options.currentLevel > 1 {
-		out.WriteString("</ul></li>\n")
+		options.toc.WriteString("</ul></li>\n")
 		options.currentLevel--
 	}
 
 	if options.currentLevel > 0 {
-		out.WriteString("</ul>\n")
+		options.toc.WriteString("</ul>\n")
 	}
 }
 
