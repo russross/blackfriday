@@ -45,7 +45,7 @@ func (parser *Parser) parseInline(out *bytes.Buffer, data []byte) {
 
 		// call the trigger
 		handler := parser.inline[data[end]]
-		if consumed := handler(out, parser, data, i); consumed == 0 {
+		if consumed := handler(parser, out, data, i); consumed == 0 {
 			// no action from the callback; buffer the byte for later
 			end = i + 1
 		} else {
@@ -59,7 +59,7 @@ func (parser *Parser) parseInline(out *bytes.Buffer, data []byte) {
 }
 
 // single and double emphasis parsing
-func inlineEmphasis(out *bytes.Buffer, parser *Parser, data []byte, offset int) int {
+func inlineEmphasis(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
 	c := data[0]
 	ret := 0
@@ -70,7 +70,7 @@ func inlineEmphasis(out *bytes.Buffer, parser *Parser, data []byte, offset int) 
 		if c == '~' || isspace(data[1]) {
 			return 0
 		}
-		if ret = inlineHelperEmph1(out, parser, data[1:], c); ret == 0 {
+		if ret = inlineHelperEmph1(parser, out, data[1:], c); ret == 0 {
 			return 0
 		}
 
@@ -81,7 +81,7 @@ func inlineEmphasis(out *bytes.Buffer, parser *Parser, data []byte, offset int) 
 		if isspace(data[2]) {
 			return 0
 		}
-		if ret = inlineHelperEmph2(out, parser, data[2:], c); ret == 0 {
+		if ret = inlineHelperEmph2(parser, out, data[2:], c); ret == 0 {
 			return 0
 		}
 
@@ -92,7 +92,7 @@ func inlineEmphasis(out *bytes.Buffer, parser *Parser, data []byte, offset int) 
 		if c == '~' || isspace(data[3]) {
 			return 0
 		}
-		if ret = inlineHelperEmph3(out, parser, data, 3, c); ret == 0 {
+		if ret = inlineHelperEmph3(parser, out, data, 3, c); ret == 0 {
 			return 0
 		}
 
@@ -102,7 +102,7 @@ func inlineEmphasis(out *bytes.Buffer, parser *Parser, data []byte, offset int) 
 	return 0
 }
 
-func inlineCodeSpan(out *bytes.Buffer, parser *Parser, data []byte, offset int) int {
+func inlineCodeSpan(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
 
 	nb := 0
@@ -149,7 +149,7 @@ func inlineCodeSpan(out *bytes.Buffer, parser *Parser, data []byte, offset int) 
 
 // newline preceded by two spaces becomes <br>
 // newline without two spaces works when EXTENSION_HARD_LINE_BREAK is enabled
-func inlineLineBreak(out *bytes.Buffer, parser *Parser, data []byte, offset int) int {
+func inlineLineBreak(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
 	// remove trailing spaces from out
 	outBytes := out.Bytes()
 	end := len(outBytes)
@@ -174,7 +174,7 @@ func inlineLineBreak(out *bytes.Buffer, parser *Parser, data []byte, offset int)
 }
 
 // '[': parse a link or an image
-func inlineLink(out *bytes.Buffer, parser *Parser, data []byte, offset int) int {
+func inlineLink(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
 	// no links allowed inside other links
 	if parser.insideLink {
 		return 0
@@ -436,7 +436,7 @@ func inlineLink(out *bytes.Buffer, parser *Parser, data []byte, offset int) int 
 }
 
 // '<' when tags or autolinks are allowed
-func inlineLAngle(out *bytes.Buffer, parser *Parser, data []byte, offset int) int {
+func inlineLAngle(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
 	altype := LINK_TYPE_NOT_AUTOLINK
 	end := tagLength(data, &altype)
@@ -461,7 +461,7 @@ func inlineLAngle(out *bytes.Buffer, parser *Parser, data []byte, offset int) in
 // '\\' backslash escape
 var escapeChars = []byte("\\`*_{}[]()#+-.!:|&<>")
 
-func inlineEscape(out *bytes.Buffer, parser *Parser, data []byte, offset int) int {
+func inlineEscape(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
 
 	if len(data) > 1 {
@@ -498,7 +498,7 @@ func unescapeText(ob *bytes.Buffer, src []byte) {
 
 // '&' escaped when it doesn't belong to an entity
 // valid entities are assumed to be anything matching &#?[A-Za-z0-9]+;
-func inlineEntity(out *bytes.Buffer, parser *Parser, data []byte, offset int) int {
+func inlineEntity(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
 
 	end := 1
@@ -522,7 +522,7 @@ func inlineEntity(out *bytes.Buffer, parser *Parser, data []byte, offset int) in
 	return end
 }
 
-func inlineAutoLink(out *bytes.Buffer, parser *Parser, data []byte, offset int) int {
+func inlineAutoLink(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
 	// quick check to rule out most false hits on ':'
 	if parser.insideLink || len(data) < offset+3 || data[offset+1] != '/' || data[offset+2] != '/' {
 		return 0
@@ -834,7 +834,7 @@ func inlineHelperFindEmphChar(data []byte, c byte) int {
 	return 0
 }
 
-func inlineHelperEmph1(out *bytes.Buffer, parser *Parser, data []byte, c byte) int {
+func inlineHelperEmph1(parser *Parser, out *bytes.Buffer, data []byte, c byte) int {
 	i := 0
 
 	// skip one symbol if coming from emph3
@@ -878,7 +878,7 @@ func inlineHelperEmph1(out *bytes.Buffer, parser *Parser, data []byte, c byte) i
 	return 0
 }
 
-func inlineHelperEmph2(out *bytes.Buffer, parser *Parser, data []byte, c byte) int {
+func inlineHelperEmph2(parser *Parser, out *bytes.Buffer, data []byte, c byte) int {
 	i := 0
 
 	for i < len(data) {
@@ -910,7 +910,7 @@ func inlineHelperEmph2(out *bytes.Buffer, parser *Parser, data []byte, c byte) i
 	return 0
 }
 
-func inlineHelperEmph3(out *bytes.Buffer, parser *Parser, data []byte, offset int, c byte) int {
+func inlineHelperEmph3(parser *Parser, out *bytes.Buffer, data []byte, offset int, c byte) int {
 	i := 0
 	origData := data
 	data = data[offset:]
@@ -940,7 +940,7 @@ func inlineHelperEmph3(out *bytes.Buffer, parser *Parser, data []byte, offset in
 			}
 		case (i+1 < len(data) && data[i+1] == c):
 			// double symbol found, hand over to emph1
-			length = inlineHelperEmph1(out, parser, origData[offset-2:], c)
+			length = inlineHelperEmph1(parser, out, origData[offset-2:], c)
 			if length == 0 {
 				return 0
 			} else {
@@ -948,7 +948,7 @@ func inlineHelperEmph3(out *bytes.Buffer, parser *Parser, data []byte, offset in
 			}
 		default:
 			// single symbol found, hand over to emph2
-			length = inlineHelperEmph2(out, parser, origData[offset-1:], c)
+			length = inlineHelperEmph2(parser, out, origData[offset-1:], c)
 			if length == 0 {
 				return 0
 			} else {

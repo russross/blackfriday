@@ -97,14 +97,9 @@ var blockTags = map[string]bool{
 	"blockquote": true,
 }
 
-// This struct defines the rendering interface.
-// A series of callback functions are registered to form a complete renderer.
-// A single interface{} value field is provided, and that value is handed to
-// each callback. Leaving a field blank suppresses rendering that type of output
-// except where noted.
-//
+// This interface defines the rendering interface.
 // This is mostly of interest if you are implementing a new rendering format.
-// Most users will use the convenience functions to fill in this structure.
+// Currently Html and Latex implementations are provided
 type Renderer interface {
 	// block-level callbacks
 	BlockCode(out *bytes.Buffer, text []byte, lang string)
@@ -140,8 +135,13 @@ type Renderer interface {
 	DocumentFooter(out *bytes.Buffer)
 }
 
-type inlineParser func(out *bytes.Buffer, parser *Parser, data []byte, offset int) int
+// Callback functions for inline parsing. One such function is defined
+// for each character that triggers a response when parsing inline data.
+type inlineParser func(parser *Parser, out *bytes.Buffer, data []byte, offset int) int
 
+// The main parser object.
+// This is constructed by the Markdown function and
+// contains state used during the parsing process.
 type Parser struct {
 	r          Renderer
 	refs       map[string]*reference

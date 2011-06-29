@@ -71,6 +71,10 @@ All features of upskirt are supported, including:
     informal testing suggests it is around 3--4x slower than upskirt
     for general input. It blows away most other markdown processors.
 
+*   Thread safe. You can run multiple parsers is different
+    goroutines without ill effect. There is no dependence on global
+    shared state.
+
 *   Minimal dependencies. Blackfriday only depends on standard
     library packages in Go. The source code is pretty
     self-contained, so it is easy to add to any project.
