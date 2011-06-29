@@ -143,10 +143,10 @@ type Renderer struct {
 	Opaque interface{}
 }
 
-type inlineParser func(out *bytes.Buffer, rndr *render, data []byte, offset int) int
+type inlineParser func(out *bytes.Buffer, parser *Parser, data []byte, offset int) int
 
-type render struct {
-	mk         *Renderer
+type Parser struct {
+	r          *Renderer
 	refs       map[string]*reference
 	inline     [256]inlineParser
 	flags      int
@@ -206,40 +206,40 @@ func Markdown(input []byte, renderer *Renderer, extensions int) []byte {
 	}
 
 	// fill in the render structure
-	rndr := new(render)
-	rndr.mk = renderer
-	rndr.flags = extensions
-	rndr.refs = make(map[string]*reference)
-	rndr.maxNesting = 16
-	rndr.insideLink = false
+	parser := new(Parser)
+	parser.r = renderer
+	parser.flags = extensions
+	parser.refs = make(map[string]*reference)
+	parser.maxNesting = 16
+	parser.insideLink = false
 
 	// register inline parsers
-	if rndr.mk.Emphasis != nil || rndr.mk.DoubleEmphasis != nil || rndr.mk.TripleEmphasis != nil {
-		rndr.inline['*'] = inlineEmphasis
-		rndr.inline['_'] = inlineEmphasis
+	if parser.r.Emphasis != nil || parser.r.DoubleEmphasis != nil || parser.r.TripleEmphasis != nil {
+		parser.inline['*'] = inlineEmphasis
+		parser.inline['_'] = inlineEmphasis
 		if extensions&EXTENSION_STRIKETHROUGH != 0 {
-			rndr.inline['~'] = inlineEmphasis
+			parser.inline['~'] = inlineEmphasis
 		}
 	}
-	if rndr.mk.CodeSpan != nil {
-		rndr.inline['`'] = inlineCodeSpan
+	if parser.r.CodeSpan != nil {
+		parser.inline['`'] = inlineCodeSpan
 	}
-	if rndr.mk.LineBreak != nil {
-		rndr.inline['\n'] = inlineLineBreak
+	if parser.r.LineBreak != nil {
+		parser.inline['\n'] = inlineLineBreak
 	}
-	if rndr.mk.Image != nil || rndr.mk.Link != nil {
-		rndr.inline['['] = inlineLink
+	if parser.r.Image != nil || parser.r.Link != nil {
+		parser.inline['['] = inlineLink
 	}
-	rndr.inline['<'] = inlineLAngle
-	rndr.inline['\\'] = inlineEscape
-	rndr.inline['&'] = inlineEntity
+	parser.inline['<'] = inlineLAngle
+	parser.inline['\\'] = inlineEscape
+	parser.inline['&'] = inlineEntity
 
 	if extensions&EXTENSION_AUTOLINK != 0 {
-		rndr.inline[':'] = inlineAutoLink
+		parser.inline[':'] = inlineAutoLink
 	}
 
-	first := firstPass(rndr, input)
-	second := secondPass(rndr, first)
+	first := firstPass(parser, input)
+	second := secondPass(parser, first)
 
 	return second
 }
@@ -249,15 +249,15 @@ func Markdown(input []byte, renderer *Renderer, extensions int) []byte {
 // - expand tabs
 // - normalize newlines
 // - copy everything else
-func firstPass(rndr *render, input []byte) []byte {
+func firstPass(parser *Parser, input []byte) []byte {
 	var out bytes.Buffer
 	tabSize := TAB_SIZE_DEFAULT
-	if rndr.flags&EXTENSION_TAB_SIZE_EIGHT != 0 {
+	if parser.flags&EXTENSION_TAB_SIZE_EIGHT != 0 {
 		tabSize = TAB_SIZE_EIGHT
 	}
 	beg, end := 0, 0
 	for beg < len(input) { // iterate over lines
-		if end = isReference(rndr, input[beg:]); end > 0 {
+		if end = isReference(parser, input[beg:]); end > 0 {
 			beg += end
 		} else { // skip to the next line
 			end = beg
@@ -267,7 +267,7 @@ func firstPass(rndr *render, input []byte) []byte {
 
 			// add the line body if present
 			if end > beg {
-				if rndr.flags&EXTENSION_NO_EXPAND_TABS == 0 {
+				if parser.flags&EXTENSION_NO_EXPAND_TABS == 0 {
 					expandTabs(&out, input[beg:end], tabSize)
 				} else {
 					out.Write(input[beg:end])
@@ -289,19 +289,19 @@ func firstPass(rndr *render, input []byte) []byte {
 }
 
 // second pass: actual rendering
-func secondPass(rndr *render, input []byte) []byte {
+func secondPass(parser *Parser, input []byte) []byte {
 	var output bytes.Buffer
-	if rndr.mk.DocumentHeader != nil {
-		rndr.mk.DocumentHeader(&output, rndr.mk.Opaque)
+	if parser.r.DocumentHeader != nil {
+		parser.r.DocumentHeader(&output, parser.r.Opaque)
 	}
 
-	parseBlock(&output, rndr, input)
+	parser.parseBlock(&output, input)
 
-	if rndr.mk.DocumentFooter != nil {
-		rndr.mk.DocumentFooter(&output, rndr.mk.Opaque)
+	if parser.r.DocumentFooter != nil {
+		parser.r.DocumentFooter(&output, parser.r.Opaque)
 	}
 
-	if rndr.nesting != 0 {
+	if parser.nesting != 0 {
 		panic("Nesting level did not end at zero")
 	}
 
@@ -335,7 +335,7 @@ type reference struct {
 // (in the render struct).
 // Returns the number of bytes to skip to move past it,
 // or zero if the first line is not a reference.
-func isReference(rndr *render, data []byte) int {
+func isReference(parser *Parser, data []byte) int {
 	// up to 3 optional leading spaces
 	if len(data) < 4 {
 		return 0
@@ -451,13 +451,13 @@ func isReference(rndr *render, data []byte) int {
 	}
 
 	// a valid ref has been found
-	if rndr == nil {
+	if parser == nil {
 		return lineEnd
 	}
 
 	// id matches are case-insensitive
 	id := string(bytes.ToLower(data[idOffset:idEnd]))
-	rndr.refs[id] = &reference{
+	parser.refs[id] = &reference{
 		link:  data[linkOffset:linkEnd],
 		title: data[titleOffset:titleEnd],
 	}
