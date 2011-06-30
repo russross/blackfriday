@@ -17,8 +17,14 @@ import (
 	"bytes"
 )
 
-// parse block-level data
+// Parse block-level data.
+// Note: this function and many that it calls assume that
+// the input buffer ends with a newline.
 func (parser *Parser) parseBlock(out *bytes.Buffer, data []byte) {
+	if len(data) == 0 || data[len(data)-1] != '\n' {
+		panic("parseBlock input is missing terminating newline")
+	}
+
 	// this is called recursively: enforce a maximum depth
 	if parser.nesting >= parser.maxNesting {
 		return
@@ -66,7 +72,7 @@ func (parser *Parser) parseBlock(out *bytes.Buffer, data []byte) {
 		if parser.isHRule(data) {
 			parser.r.HRule(out)
 			var i int
-			for i = 0; i < len(data) && data[i] != '\n'; i++ {
+			for i = 0; data[i] != '\n'; i++ {
 			}
 			data = data[i:]
 			continue
@@ -159,10 +165,10 @@ func (parser *Parser) isPrefixHeader(data []byte) bool {
 
 	if parser.flags&EXTENSION_SPACE_HEADERS != 0 {
 		level := 0
-		for level < len(data) && level < 6 && data[level] == '#' {
+		for level < 6 && data[level] == '#' {
 			level++
 		}
-		if level < len(data) && data[level] != ' ' && data[level] != '\t' {
+		if data[level] != ' ' && data[level] != '\t' {
 			return false
 		}
 	}
@@ -171,13 +177,13 @@ func (parser *Parser) isPrefixHeader(data []byte) bool {
 
 func (parser *Parser) blockPrefixHeader(out *bytes.Buffer, data []byte) int {
 	level := 0
-	for level < len(data) && level < 6 && data[level] == '#' {
+	for level < 6 && data[level] == '#' {
 		level++
 	}
 	i, end := 0, 0
-	for i = level; i < len(data) && (data[i] == ' ' || data[i] == '\t'); i++ {
+	for i = level; data[i] == ' ' || data[i] == '\t'; i++ {
 	}
-	for end = i; end < len(data) && data[end] != '\n'; end++ {
+	for end = i; data[end] != '\n'; end++ {
 	}
 	skip := end
 	for end > 0 && data[end-1] == '#' {
@@ -197,16 +203,16 @@ func (parser *Parser) blockPrefixHeader(out *bytes.Buffer, data []byte) int {
 }
 
 func (parser *Parser) isUnderlinedHeader(data []byte) int {
-	i := 0
-
 	// test of level 1 header
-	if data[i] == '=' {
-		for i = 1; i < len(data) && data[i] == '='; i++ {
-		}
-		for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
+	if data[0] == '=' {
+		i := 1
+		for data[i] == '=' {
 			i++
 		}
-		if i >= len(data) || data[i] == '\n' {
+		for data[i] == ' ' || data[i] == '\t' {
+			i++
+		}
+		if data[i] == '\n' {
 			return 1
 		} else {
 			return 0
@@ -214,13 +220,15 @@ func (parser *Parser) isUnderlinedHeader(data []byte) int {
 	}
 
 	// test of level 2 header
-	if data[i] == '-' {
-		for i = 1; i < len(data) && data[i] == '-'; i++ {
-		}
-		for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
+	if data[0] == '-' {
+		i := 1
+		for data[i] == '-' {
 			i++
 		}
-		if i >= len(data) || data[i] == '\n' {
+		for data[i] == ' ' || data[i] == '\t' {
+			i++
+		}
+		if data[i] == '\n' {
 			return 2
 		} else {
 			return 0
@@ -234,67 +242,21 @@ func (parser *Parser) blockHtml(out *bytes.Buffer, data []byte, doRender bool) i
 	var i, j int
 
 	// identify the opening tag
-	if len(data) < 2 || data[0] != '<' {
+	if data[0] != '<' {
 		return 0
 	}
 	curtag, tagfound := parser.blockHtmlFindTag(data[1:])
 
 	// handle special cases
 	if !tagfound {
-
-		// HTML comment, lax form
-		if len(data) > 5 && data[1] == '!' && data[2] == '-' && data[3] == '-' {
-			i = 5
-
-			for i < len(data) && !(data[i-2] == '-' && data[i-1] == '-' && data[i] == '>') {
-				i++
-			}
-			i++
-
-			if i < len(data) {
-				j = parser.isEmpty(data[i:])
-			}
-
-			if j > 0 {
-				size := i + j
-				if doRender {
-					// trim newlines
-					end := size
-					for end > 0 && data[end-1] == '\n' {
-						end--
-					}
-					parser.r.BlockHtml(out, data[:end])
-				}
-				return size
-			}
+		// check for an HTML comment
+		if size := parser.blockHtmlComment(out, data, doRender); size > 0 {
+			return size
 		}
 
-		// HR, which is the only self-closing block tag considered
-		if len(data) > 4 &&
-			(data[1] == 'h' || data[1] == 'H') &&
-			(data[2] == 'r' || data[2] == 'R') {
-
-			i = 3
-			for i < len(data) && data[i] != '>' {
-				i++
-			}
-
-			if i+1 < len(data) {
-				i++
-				j = parser.isEmpty(data[i:])
-				if j > 0 {
-					size := i + j
-					if doRender {
-						// trim newlines
-						end := size
-						for end > 0 && data[end-1] == '\n' {
-							end--
-						}
-						parser.r.BlockHtml(out, data[:end])
-					}
-					return size
-				}
-			}
+		// check for an <hr> tag
+		if size := parser.blockHtmlHr(out, data, doRender); size > 0 {
+			return size
 		}
 
 		// no special case recognized
@@ -302,13 +264,40 @@ func (parser *Parser) blockHtml(out *bytes.Buffer, data []byte, doRender bool) i
 	}
 
 	// look for an unindented matching closing tag
-	//      followed by a blank line
-	i = 1
+	// followed by a blank line
 	found := false
+	/*
+		closetag := []byte("\n</" + curtag + ">")
+		j = len(curtag) + 1
+		for !found {
+			// scan for a closing tag at the beginning of a line
+			if skip := bytes.Index(data[j:], closetag); skip >= 0 {
+				j += skip + len(closetag)
+			} else {
+				break
+			}
+
+			// see if it is the only thing on the line
+			if skip := parser.isEmpty(data[j:]); skip > 0 {
+				// see if it is followed by a blank line/eof
+				j += skip
+				if j >= len(data) {
+					found = true
+					i = j
+				} else {
+					if skip := parser.isEmpty(data[j:]); skip > 0 {
+						j += skip
+						found = true
+						i = j
+					}
+				}
+			}
+		}
+	*/
 
 	// if not found, try a second pass looking for indented match
 	// but not if tag is "ins" or "del" (following original Markdown.pl)
-	if curtag != "ins" && curtag != "del" {
+	if !found && curtag != "ins" && curtag != "del" {
 		i = 1
 		for i < len(data) {
 			i++
@@ -347,13 +336,80 @@ func (parser *Parser) blockHtml(out *bytes.Buffer, data []byte, doRender bool) i
 	return i
 }
 
-func (parser *Parser) blockHtmlFindTag(data []byte) (string, bool) {
-	i := 0
-	for i < len(data) && isalnum(data[i]) {
+// HTML comment, lax form
+func (parser *Parser) blockHtmlComment(out *bytes.Buffer, data []byte, doRender bool) int {
+	if data[0] != '<' || data[1] != '!' || data[2] != '-' || data[3] != '-' {
+		return 0
+	}
+
+	i := 5
+
+	// scan for an end-of-comment marker, across lines if necessary
+	for i < len(data) && !(data[i-2] == '-' && data[i-1] == '-' && data[i] == '>') {
 		i++
 	}
+	i++
+
+	// no end-of-comment marker
 	if i >= len(data) {
-		return "", false
+		return 0
+	}
+
+	// needs to end with a blank line
+	if j := parser.isEmpty(data[i:]); j > 0 {
+		size := i + j
+		if doRender {
+			// trim trailing newlines
+			end := size
+			for end > 0 && data[end-1] == '\n' {
+				end--
+			}
+			parser.r.BlockHtml(out, data[:end])
+		}
+		return size
+	}
+
+	return 0
+}
+
+// HR, which is the only self-closing block tag considered
+func (parser *Parser) blockHtmlHr(out *bytes.Buffer, data []byte, doRender bool) int {
+	if data[0] != '<' || (data[1] != 'h' && data[1] != 'H') || (data[2] != 'r' && data[2] != 'R') {
+		return 0
+	}
+	if data[3] != ' ' && data[3] != '\t' && data[3] != '/' && data[3] != '>' {
+		// not an <hr> tag after all; at least not a valid one
+		return 0
+	}
+
+	i := 3
+	for data[i] != '>' && data[i] != '\n' {
+		i++
+	}
+
+	if data[i] == '>' {
+		i++
+		if j := parser.isEmpty(data[i:]); j > 0 {
+			size := i + j
+			if doRender {
+				// trim newlines
+				end := size
+				for end > 0 && data[end-1] == '\n' {
+					end--
+				}
+				parser.r.BlockHtml(out, data[:end])
+			}
+			return size
+		}
+	}
+
+	return 0
+}
+
+func (parser *Parser) blockHtmlFindTag(data []byte) (string, bool) {
+	i := 0
+	for isalnum(data[i]) {
+		i++
 	}
 	key := string(data[:i])
 	if blockTags[key] {
@@ -366,40 +422,43 @@ func (parser *Parser) blockHtmlFindEnd(tag string, data []byte) int {
 	// assume data[0] == '<' && data[1] == '/' already tested
 
 	// check if tag is a match
-	if len(data) < len(tag)+3 || data[len(tag)+2] != '>' ||
-		bytes.Compare(data[2:2+len(tag)], []byte(tag)) != 0 {
+	closetag := []byte("</" + tag + ">")
+	if !bytes.HasPrefix(data, closetag) {
+		return 0
+	}
+	i := len(closetag)
+
+	// check that the rest of the line is blank
+	skip := 0
+	if skip = parser.isEmpty(data[i:]); skip == 0 {
+		return 0
+	}
+	i += skip
+	skip = 0
+
+	if i >= len(data) {
+		return i
+	}
+
+	if parser.flags&EXTENSION_LAX_HTML_BLOCKS != 0 {
+		return i
+	}
+	if skip = parser.isEmpty(data[i:]); skip == 0 {
+		// following line must be blank
 		return 0
 	}
 
-	// check for blank line/eof after the closing tag
-	i := len(tag) + 3
-	w := 0
-	if i < len(data) {
-		if w = parser.isEmpty(data[i:]); w == 0 {
-			return 0 // non-blank after tag
-		}
-	}
-	i += w
-	w = 0
-
-	if parser.flags&EXTENSION_LAX_HTML_BLOCKS != 0 {
-		if i < len(data) {
-			w = parser.isEmpty(data[i:])
-		}
-	} else {
-		if i < len(data) {
-			if w = parser.isEmpty(data[i:]); w == 0 {
-				return 0 // non-blank line after tag line
-			}
-		}
-	}
-
-	return i + w
+	return i + skip
 }
 
 func (parser *Parser) isEmpty(data []byte) int {
+	// it is okay to call isEmpty on an empty buffer
+	if len(data) == 0 {
+		return 0
+	}
+
 	var i int
-	for i = 0; i < len(data) && data[i] != '\n'; i++ {
+	for i = 0; data[i] != '\n'; i++ {
 		if data[i] != ' ' && data[i] != '\t' {
 			return 0
 		}
@@ -408,10 +467,6 @@ func (parser *Parser) isEmpty(data []byte) int {
 }
 
 func (parser *Parser) isHRule(data []byte) bool {
-	// skip initial spaces
-	if len(data) < 3 {
-		return false
-	}
 	i := 0
 
 	// skip up to three spaces
@@ -420,14 +475,14 @@ func (parser *Parser) isHRule(data []byte) bool {
 	}
 
 	// look at the hrule char
-	if i+2 >= len(data) || (data[i] != '*' && data[i] != '-' && data[i] != '_') {
+	if data[i] != '*' && data[i] != '-' && data[i] != '_' {
 		return false
 	}
 	c := data[i]
 
 	// the whole line must be the char or whitespace
 	n := 0
-	for i < len(data) && data[i] != '\n' {
+	for data[i] != '\n' {
 		switch {
 		case data[i] == c:
 			n++
@@ -444,29 +499,20 @@ func (parser *Parser) isFencedCode(data []byte, syntax **string, oldmarker strin
 	i, size := 0, 0
 	skip = 0
 
-	// skip initial spaces
-	if len(data) < 3 {
-		return
-	}
-	if data[0] == ' ' {
+	// skip up to three spaces
+	for i < 3 && data[i] == ' ' {
 		i++
-		if data[1] == ' ' {
-			i++
-			if data[2] == ' ' {
-				i++
-			}
-		}
 	}
 
 	// check for the marker characters: ~ or `
-	if i+2 >= len(data) || !(data[i] == '~' || data[i] == '`') {
+	if data[i] != '~' && data[i] != '`' {
 		return
 	}
 
 	c := data[i]
 
 	// the whole line must be the same char or whitespace
-	for i < len(data) && data[i] == c {
+	for data[i] == c {
 		size++
 		i++
 	}
@@ -485,22 +531,22 @@ func (parser *Parser) isFencedCode(data []byte, syntax **string, oldmarker strin
 	if syntax != nil {
 		syn := 0
 
-		for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
+		for data[i] == ' ' || data[i] == '\t' {
 			i++
 		}
 
 		syntaxStart := i
 
-		if i < len(data) && data[i] == '{' {
+		if data[i] == '{' {
 			i++
 			syntaxStart++
 
-			for i < len(data) && data[i] != '}' && data[i] != '\n' {
+			for data[i] != '}' && data[i] != '\n' {
 				syn++
 				i++
 			}
 
-			if i == len(data) || data[i] != '}' {
+			if data[i] != '}' {
 				return
 			}
 
@@ -517,7 +563,7 @@ func (parser *Parser) isFencedCode(data []byte, syntax **string, oldmarker strin
 
 			i++
 		} else {
-			for i < len(data) && !isspace(data[i]) {
+			for !isspace(data[i]) {
 				syn++
 				i++
 			}
@@ -527,7 +573,7 @@ func (parser *Parser) isFencedCode(data []byte, syntax **string, oldmarker strin
 		*syntax = &language
 	}
 
-	for ; i < len(data) && data[i] != '\n'; i++ {
+	for ; data[i] != '\n'; i++ {
 		if !isspace(data[i]) {
 			return
 		}
@@ -756,11 +802,11 @@ func (parser *Parser) blockTableRow(out *bytes.Buffer, data []byte, columns int,
 // returns blockquote prefix length
 func (parser *Parser) blockQuotePrefix(data []byte) int {
 	i := 0
-	for i < len(data) && i < 3 && data[i] == ' ' {
+	for i < 3 && data[i] == ' ' {
 		i++
 	}
-	if i < len(data) && data[i] == '>' {
-		if i+1 < len(data) && (data[i+1] == ' ' || data[i+1] == '\t') {
+	if data[i] == '>' {
+		if data[i+1] == ' ' || data[i+1] == '\t' {
 			return i + 2
 		}
 		return i + 1
@@ -770,17 +816,18 @@ func (parser *Parser) blockQuotePrefix(data []byte) int {
 
 // parse a blockquote fragment
 func (parser *Parser) blockQuote(out *bytes.Buffer, data []byte) int {
-	var block bytes.Buffer
-	var work bytes.Buffer
+	var raw bytes.Buffer
 	beg, end := 0, 0
 	for beg < len(data) {
-		for end = beg + 1; end < len(data) && data[end-1] != '\n'; end++ {
+		for end = beg + 1; data[end-1] != '\n'; end++ {
 		}
 
 		if pre := parser.blockQuotePrefix(data[beg:]); pre > 0 {
-			beg += pre // skip prefix
+			// string the prefix
+			beg += pre
 		} else {
-			// empty line followed by non-quote line
+			// blockquote ends with at least one blank line
+			// followed by something without a blockquote prefix
 			if parser.isEmpty(data[beg:]) > 0 &&
 				(end >= len(data) ||
 					(parser.blockQuotePrefix(data[end:]) == 0 && parser.isEmpty(data[end:]) == 0)) {
@@ -788,14 +835,14 @@ func (parser *Parser) blockQuote(out *bytes.Buffer, data []byte) int {
 			}
 		}
 
-		if beg < end { // copy into the in-place working buffer
-			work.Write(data[beg:end])
-		}
+		// this line is part of the blockquote
+		raw.Write(data[beg:end])
 		beg = end
 	}
 
-	parser.parseBlock(&block, work.Bytes())
-	parser.r.BlockQuote(out, block.Bytes())
+	var cooked bytes.Buffer
+	parser.parseBlock(&cooked, raw.Bytes())
+	parser.r.BlockQuote(out, cooked.Bytes())
 	return end
 }
 
