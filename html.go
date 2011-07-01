@@ -262,16 +262,16 @@ func (options *Html) Table(out *bytes.Buffer, header []byte, body []byte, column
 	doubleSpace(out)
 	out.WriteString("<table>\n<thead>\n")
 	out.Write(header)
-	out.WriteString("\n</thead>\n<tbody>\n")
+	out.WriteString("</thead>\n\n<tbody>\n")
 	out.Write(body)
-	out.WriteString("\n</tbody>\n</table>\n")
+	out.WriteString("</tbody>\n</table>\n")
 }
 
 func (options *Html) TableRow(out *bytes.Buffer, text []byte) {
 	doubleSpace(out)
 	out.WriteString("<tr>\n")
 	out.Write(text)
-	out.WriteString("\n</tr>")
+	out.WriteString("\n</tr>\n")
 }
 
 func (options *Html) TableCell(out *bytes.Buffer, text []byte, align int) {

@@ -62,19 +62,16 @@ func (parser *Parser) parseBlock(out *bytes.Buffer, data []byte) {
 			continue
 		}
 
-		// horizontal rule:
+		// indented code block:
 		//
-		// ------
-		// or
-		// ******
-		// or
-		// ______
-		if parser.isHRule(data) {
-			parser.r.HRule(out)
-			var i int
-			for i = 0; data[i] != '\n'; i++ {
-			}
-			data = data[i:]
+		//     func max(a, b int) int {
+		//         if a > b {
+		//             return a
+		//         }
+		//         return b
+		//      }
+		if parser.blockCodePrefix(data) > 0 {
+			data = data[parser.blockCode(out, data):]
 			continue
 		}
 
@@ -95,17 +92,20 @@ func (parser *Parser) parseBlock(out *bytes.Buffer, data []byte) {
 			}
 		}
 
-		// table:
+		// horizontal rule:
 		//
-		// Name  | Age | Phone
-		// ------|-----|---------
-		// Bob   | 31  | 555-1234
-		// Alice | 27  | 555-4321
-		if parser.flags&EXTENSION_TABLES != 0 {
-			if i := parser.blockTable(out, data); i > 0 {
-				data = data[i:]
-				continue
+		// ------
+		// or
+		// ******
+		// or
+		// ______
+		if parser.isHRule(data) {
+			parser.r.HRule(out)
+			var i int
+			for i = 0; data[i] != '\n'; i++ {
 			}
+			data = data[i:]
+			continue
 		}
 
 		// block quote:
@@ -117,17 +117,17 @@ func (parser *Parser) parseBlock(out *bytes.Buffer, data []byte) {
 			continue
 		}
 
-		// indented code block:
+		// table:
 		//
-		//     func max(a, b int) int {
-		//         if a > b {
-		//             return a
-		//         }
-		//         return b
-		//      }
-		if parser.blockCodePrefix(data) > 0 {
-			data = data[parser.blockCode(out, data):]
-			continue
+		// Name  | Age | Phone
+		// ------|-----|---------
+		// Bob   | 31  | 555-1234
+		// Alice | 27  | 555-4321
+		if parser.flags&EXTENSION_TABLES != 0 {
+			if i := parser.blockTable(out, data); i > 0 {
+				data = data[i:]
+				continue
+			}
 		}
 
 		// an itemized/unordered list:
@@ -573,10 +573,11 @@ func (parser *Parser) isFencedCode(data []byte, syntax **string, oldmarker strin
 		*syntax = &language
 	}
 
-	for ; data[i] != '\n'; i++ {
-		if !isspace(data[i]) {
-			return
-		}
+	for data[i] == ' ' {
+		i++
+	}
+	if data[i] != '\n' {
+		return
 	}
 
 	skip = i + 1
@@ -586,41 +587,37 @@ func (parser *Parser) isFencedCode(data []byte, syntax **string, oldmarker strin
 func (parser *Parser) blockFencedCode(out *bytes.Buffer, data []byte) int {
 	var lang *string
 	beg, marker := parser.isFencedCode(data, &lang, "")
-	if beg == 0 {
+	if beg == 0 || beg >= len(data) {
 		return 0
 	}
 
 	var work bytes.Buffer
 
-	for beg < len(data) {
+	for {
+		// safe to assume beg < len(data)
+
+		// check for the end of the code block
 		fenceEnd, _ := parser.isFencedCode(data[beg:], nil, marker)
 		if fenceEnd != 0 {
 			beg += fenceEnd
 			break
 		}
 
-		var end int
-		for end = beg + 1; end < len(data) && data[end-1] != '\n'; end++ {
+		// copy the current line
+		end := beg
+		for data[end] != '\n' {
+			end++
 		}
+		end++
 
-		if beg < end {
-			// verbatim copy to the working buffer
-			if parser.isEmpty(data[beg:]) > 0 {
-				work.WriteByte('\n')
-			} else {
-				work.Write(data[beg:end])
-			}
-		}
-		beg = end
-
-		// did we find the end of the buffer without a closing marker?
-		if beg >= len(data) {
+		// did we reach the end of the buffer without a closing marker?
+		if end >= len(data) {
 			return 0
 		}
-	}
 
-	if work.Len() > 0 && work.Bytes()[work.Len()-1] != '\n' {
-		work.WriteByte('\n')
+		// verbatim copy to the working buffer
+		work.Write(data[beg:end])
+		beg = end
 	}
 
 	syntax := ""
@@ -634,167 +631,174 @@ func (parser *Parser) blockFencedCode(out *bytes.Buffer, data []byte) int {
 }
 
 func (parser *Parser) blockTable(out *bytes.Buffer, data []byte) int {
-	var headerWork bytes.Buffer
-	i, columns, colData := parser.blockTableHeader(&headerWork, data)
+	var header bytes.Buffer
+	i, columns := parser.blockTableHeader(&header, data)
 	if i == 0 {
 		return 0
 	}
 
-	var bodyWork bytes.Buffer
+	var body bytes.Buffer
 
 	for i < len(data) {
 		pipes, rowStart := 0, i
-		for ; i < len(data) && data[i] != '\n'; i++ {
+		for ; data[i] != '\n'; i++ {
 			if data[i] == '|' {
 				pipes++
 			}
 		}
 
-		if pipes == 0 || i == len(data) {
+		if pipes == 0 {
 			i = rowStart
 			break
 		}
 
-		parser.blockTableRow(&bodyWork, data[rowStart:i], columns, colData)
+		// include the newline in data sent to blockTableRow
 		i++
+		parser.blockTableRow(&body, data[rowStart:i], columns)
 	}
 
-	parser.r.Table(out, headerWork.Bytes(), bodyWork.Bytes(), colData)
+	parser.r.Table(out, header.Bytes(), body.Bytes(), columns)
 
 	return i
 }
 
-func (parser *Parser) blockTableHeader(out *bytes.Buffer, data []byte) (size int, columns int, columnData []int) {
-	i, pipes := 0, 0
-	columnData = []int{}
-	for i = 0; i < len(data) && data[i] != '\n'; i++ {
+func (parser *Parser) blockTableHeader(out *bytes.Buffer, data []byte) (size int, columns []int) {
+	i := 0
+	colCount := 1
+	for i = 0; data[i] != '\n'; i++ {
 		if data[i] == '|' {
-			pipes++
+			colCount++
 		}
 	}
 
-	if i == len(data) || pipes == 0 {
-		return 0, 0, columnData
+	// doesn't look like a table header
+	if colCount == 1 {
+		return
 	}
 
-	headerEnd := i
+	// include the newline in the data sent to blockTableRow
+	header := data[:i+1]
 
+	// column count ignores pipes at beginning or end of line
 	if data[0] == '|' {
-		pipes--
+		colCount--
 	}
-
 	if i > 2 && data[i-1] == '|' {
-		pipes--
+		colCount--
 	}
 
-	columns = pipes + 1
-	columnData = make([]int, columns)
+	columns = make([]int, colCount)
 
-	// parse the header underline
+	// move on to the header underline
 	i++
-	if i < len(data) && data[i] == '|' {
+	if i >= len(data) {
+		return
+	}
+
+	if data[i] == '|' {
+		i++
+	}
+	for data[i] == ' ' {
 		i++
 	}
 
-	underEnd := i
-	for underEnd < len(data) && data[underEnd] != '\n' {
-		underEnd++
-	}
-
+	// each column header is of form: / *:?-+:? *|/ with # dashes + # colons >= 3
+	// and trailing | optional on last column
 	col := 0
-	for ; col < columns && i < underEnd; col++ {
+	for data[i] != '\n' {
 		dashes := 0
-
-		for i < underEnd && data[i] == ' ' {
-			i++
-		}
 
 		if data[i] == ':' {
 			i++
-			columnData[col] |= TABLE_ALIGNMENT_LEFT
+			columns[col] |= TABLE_ALIGNMENT_LEFT
 			dashes++
 		}
-
-		for i < underEnd && data[i] == '-' {
+		for data[i] == '-' {
 			i++
 			dashes++
 		}
-
-		if i < underEnd && data[i] == ':' {
+		if data[i] == ':' {
 			i++
-			columnData[col] |= TABLE_ALIGNMENT_RIGHT
+			columns[col] |= TABLE_ALIGNMENT_RIGHT
 			dashes++
 		}
-
-		for i < underEnd && data[i] == ' ' {
+		for data[i] == ' ' {
 			i++
 		}
 
-		if i < underEnd && data[i] != '|' {
-			break
-		}
+		// end of column test is messy
+		switch {
+		case dashes < 3:
+			// not a valid column
+			return
 
-		if dashes < 3 {
-			break
-		}
+		case data[i] == '|':
+			// marker found, now skip past trailing whitespace
+			col++
+			i++
+			for data[i] == ' ' {
+				i++
+			}
 
-		i++
+		case data[i] != '|' && col+1 < colCount:
+			// something else found where marker was required
+			return
+
+		case data[i] == '\n':
+			// marker is optional for the last column
+			col++
+
+		default:
+			// trailing junk found after last column
+			return
+		}
+	}
+	if col != colCount {
+		return
 	}
 
-	if col < columns {
-		return 0, 0, columnData
-	}
-
-	parser.blockTableRow(out, data[:headerEnd], columns, columnData)
-	size = underEnd + 1
+	parser.blockTableRow(out, header, columns)
+	size = i + 1
 	return
 }
 
-func (parser *Parser) blockTableRow(out *bytes.Buffer, data []byte, columns int, colData []int) {
+func (parser *Parser) blockTableRow(out *bytes.Buffer, data []byte, columns []int) {
 	i, col := 0, 0
 	var rowWork bytes.Buffer
 
-	if i < len(data) && data[i] == '|' {
+	if data[i] == '|' {
 		i++
 	}
 
-	for col = 0; col < columns && i < len(data); col++ {
-		for i < len(data) && isspace(data[i]) {
+	for col = 0; col < len(columns) && data[i] != '\n'; col++ {
+		for data[i] == ' ' {
 			i++
 		}
 
 		cellStart := i
 
-		for i < len(data) && data[i] != '|' {
+		for data[i] != '|' && data[i] != '\n' {
 			i++
 		}
 
-		cellEnd := i - 1
+		cellEnd := i
+		i++
 
-		for cellEnd > cellStart && isspace(data[cellEnd]) {
+		for cellEnd > cellStart && data[cellEnd-1] == ' ' {
 			cellEnd--
 		}
 
 		var cellWork bytes.Buffer
-		parser.parseInline(&cellWork, data[cellStart:cellEnd+1])
-
-		cdata := 0
-		if col < len(colData) {
-			cdata = colData[col]
-		}
-		parser.r.TableCell(&rowWork, cellWork.Bytes(), cdata)
-
-		i++
+		parser.parseInline(&cellWork, data[cellStart:cellEnd])
+		parser.r.TableCell(&rowWork, cellWork.Bytes(), columns[col])
 	}
 
-	for ; col < columns; col++ {
-		emptyCell := []byte{}
-		cdata := 0
-		if col < len(colData) {
-			cdata = colData[col]
-		}
-		parser.r.TableCell(&rowWork, emptyCell, cdata)
+	// pad it out with empty columns to get the right number
+	for ; col < len(columns); col++ {
+		parser.r.TableCell(&rowWork, nil, columns[col])
 	}
+
+	// silently ignore rows with too many cells
 
 	parser.r.TableRow(out, rowWork.Bytes())
 }
@@ -819,8 +823,11 @@ func (parser *Parser) blockQuote(out *bytes.Buffer, data []byte) int {
 	var raw bytes.Buffer
 	beg, end := 0, 0
 	for beg < len(data) {
-		for end = beg + 1; data[end-1] != '\n'; end++ {
+		end = beg
+		for data[end] != '\n' {
+			end++
 		}
+		end++
 
 		if pre := parser.blockQuotePrefix(data[beg:]); pre > 0 {
 			// string the prefix
@@ -848,12 +855,13 @@ func (parser *Parser) blockQuote(out *bytes.Buffer, data []byte) int {
 
 // returns prefix length for block code
 func (parser *Parser) blockCodePrefix(data []byte) int {
-	if len(data) > 3 && data[0] == ' ' && data[1] == ' ' && data[2] == ' ' && data[3] == ' ' {
+	if data[0] == ' ' && data[1] == ' ' && data[2] == ' ' && data[3] == ' ' {
 		return 4
 	}
 	return 0
 }
 
+// TODO: continue redundant end-of-buffer check removal here
 func (parser *Parser) blockCode(out *bytes.Buffer, data []byte) int {
 	var work bytes.Buffer
 
