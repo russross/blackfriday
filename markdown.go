@@ -33,7 +33,6 @@ const (
 	EXTENSION_LAX_HTML_BLOCKS
 	EXTENSION_SPACE_HEADERS
 	EXTENSION_HARD_LINE_BREAK
-	EXTENSION_NO_EXPAND_TABS
 	EXTENSION_TAB_SIZE_EIGHT
 )
 
@@ -256,11 +255,7 @@ func firstPass(parser *Parser, input []byte) []byte {
 
 			// add the line body if present
 			if end > beg {
-				if parser.flags&EXTENSION_NO_EXPAND_TABS == 0 {
-					expandTabs(&out, input[beg:end], tabSize)
-				} else {
-					out.Write(input[beg:end])
-				}
+				expandTabs(&out, input[beg:end], tabSize)
 			}
 			out.WriteByte('\n')
 
