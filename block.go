@@ -168,7 +168,7 @@ func (parser *Parser) isPrefixHeader(data []byte) bool {
 		for level < 6 && data[level] == '#' {
 			level++
 		}
-		if data[level] != ' ' && data[level] != '\t' {
+		if data[level] != ' ' {
 			return false
 		}
 	}
@@ -181,7 +181,7 @@ func (parser *Parser) blockPrefixHeader(out *bytes.Buffer, data []byte) int {
 		level++
 	}
 	i, end := 0, 0
-	for i = level; data[i] == ' ' || data[i] == '\t'; i++ {
+	for i = level; data[i] == ' '; i++ {
 	}
 	for end = i; data[end] != '\n'; end++ {
 	}
@@ -189,7 +189,7 @@ func (parser *Parser) blockPrefixHeader(out *bytes.Buffer, data []byte) int {
 	for end > 0 && data[end-1] == '#' {
 		end--
 	}
-	for end > 0 && (data[end-1] == ' ' || data[end-1] == '\t') {
+	for end > 0 && data[end-1] == ' ' {
 		end--
 	}
 	if end > i {
@@ -209,7 +209,7 @@ func (parser *Parser) isUnderlinedHeader(data []byte) int {
 		for data[i] == '=' {
 			i++
 		}
-		for data[i] == ' ' || data[i] == '\t' {
+		for data[i] == ' ' {
 			i++
 		}
 		if data[i] == '\n' {
@@ -225,7 +225,7 @@ func (parser *Parser) isUnderlinedHeader(data []byte) int {
 		for data[i] == '-' {
 			i++
 		}
-		for data[i] == ' ' || data[i] == '\t' {
+		for data[i] == ' ' {
 			i++
 		}
 		if data[i] == '\n' {
@@ -377,7 +377,7 @@ func (parser *Parser) blockHtmlHr(out *bytes.Buffer, data []byte, doRender bool)
 	if data[0] != '<' || (data[1] != 'h' && data[1] != 'H') || (data[2] != 'r' && data[2] != 'R') {
 		return 0
 	}
-	if data[3] != ' ' && data[3] != '\t' && data[3] != '/' && data[3] != '>' {
+	if data[3] != ' ' && data[3] != '/' && data[3] != '>' {
 		// not an <hr> tag after all; at least not a valid one
 		return 0
 	}
@@ -459,7 +459,7 @@ func (parser *Parser) isEmpty(data []byte) int {
 
 	var i int
 	for i = 0; data[i] != '\n'; i++ {
-		if data[i] != ' ' && data[i] != '\t' {
+		if data[i] != ' ' {
 			return 0
 		}
 	}
@@ -486,7 +486,7 @@ func (parser *Parser) isHRule(data []byte) bool {
 		switch {
 		case data[i] == c:
 			n++
-		case data[i] != ' ' && data[i] != '\t':
+		case data[i] != ' ':
 			return false
 		}
 		i++
@@ -531,7 +531,7 @@ func (parser *Parser) isFencedCode(data []byte, syntax **string, oldmarker strin
 	if syntax != nil {
 		syn := 0
 
-		for data[i] == ' ' || data[i] == '\t' {
+		for data[i] == ' ' {
 			i++
 		}
 
@@ -705,7 +705,7 @@ func (parser *Parser) blockTableHeader(out *bytes.Buffer, data []byte) (size int
 	for ; col < columns && i < underEnd; col++ {
 		dashes := 0
 
-		for i < underEnd && (data[i] == ' ' || data[i] == '\t') {
+		for i < underEnd && data[i] == ' ' {
 			i++
 		}
 
@@ -726,7 +726,7 @@ func (parser *Parser) blockTableHeader(out *bytes.Buffer, data []byte) (size int
 			dashes++
 		}
 
-		for i < underEnd && (data[i] == ' ' || data[i] == '\t') {
+		for i < underEnd && data[i] == ' ' {
 			i++
 		}
 
@@ -806,7 +806,7 @@ func (parser *Parser) blockQuotePrefix(data []byte) int {
 		i++
 	}
 	if data[i] == '>' {
-		if data[i+1] == ' ' || data[i+1] == '\t' {
+		if data[i+1] == ' ' {
 			return i + 2
 		}
 		return i + 1
@@ -848,9 +848,6 @@ func (parser *Parser) blockQuote(out *bytes.Buffer, data []byte) int {
 
 // returns prefix length for block code
 func (parser *Parser) blockCodePrefix(data []byte) int {
-	if len(data) > 0 && data[0] == '\t' {
-		return 1
-	}
 	if len(data) > 3 && data[0] == ' ' && data[1] == ' ' && data[2] == ' ' && data[3] == ' ' {
 		return 4
 	}
@@ -914,7 +911,7 @@ func (parser *Parser) blockUliPrefix(data []byte) int {
 	// need a *, +, or - followed by a space/tab
 	if i+1 >= len(data) ||
 		(data[i] != '*' && data[i] != '+' && data[i] != '-') ||
-		(data[i+1] != ' ' && data[i+1] != '\t') {
+		data[i+1] != ' ' {
 		return 0
 	}
 	return i + 2
@@ -936,8 +933,7 @@ func (parser *Parser) blockOliPrefix(data []byte) int {
 	}
 
 	// we need >= 1 digits followed by a dot and a space/tab
-	if start == i || data[i] != '.' || i+1 >= len(data) ||
-		(data[i+1] != ' ' && data[i+1] != '\t') {
+	if start == i || data[i] != '.' || i+1 >= len(data) || data[i+1] != ' ' {
 		return 0
 	}
 	return i + 2
@@ -982,7 +978,7 @@ func (parser *Parser) blockListItem(out *bytes.Buffer, data []byte, flags *int) 
 	}
 
 	// skip leading whitespace on first line
-	for beg < len(data) && (data[beg] == ' ' || data[beg] == '\t') {
+	for beg < len(data) && data[beg] == ' ' {
 		beg++
 	}
 
@@ -1023,14 +1019,6 @@ func (parser *Parser) blockListItem(out *bytes.Buffer, data []byte, flags *int) 
 		}
 
 		pre = i
-		if data[beg] == '\t' {
-			i = 1
-			pre = TAB_SIZE_DEFAULT
-			if parser.flags&EXTENSION_TAB_SIZE_EIGHT != 0 {
-				pre = TAB_SIZE_EIGHT
-			}
-		}
-
 		chunk := data[beg+i : end]
 
 		// check for a nested list item
@@ -1052,14 +1040,14 @@ func (parser *Parser) blockListItem(out *bytes.Buffer, data []byte, flags *int) 
 			// how about a nested prefix header?
 			if parser.isPrefixHeader(chunk) {
 				// only nest headers that are indented
-				if containsBlankLine && i < 4 && data[beg] != '\t' {
+				if containsBlankLine && i < 4 {
 					*flags |= LIST_ITEM_END_OF_LIST
 					break
 				}
 				containsBlock = true
 			} else {
 				// only join stuff after empty lines when indented
-				if containsBlankLine && i < 4 && data[beg] != '\t' {
+				if containsBlankLine && i < 4 {
 					*flags |= LIST_ITEM_END_OF_LIST
 					break
 				} else {
@@ -1164,10 +1152,10 @@ func (parser *Parser) blockParagraph(out *bytes.Buffer, data []byte) int {
 
 				// ignore leading and trailing whitespace
 				eol := i - 1
-				for prev < eol && (data[prev] == ' ' || data[prev] == '\t') {
+				for prev < eol && data[prev] == ' ' {
 					prev++
 				}
-				for eol > prev && (data[eol-1] == ' ' || data[eol-1] == '\t') {
+				for eol > prev && data[eol-1] == ' ' {
 					eol--
 				}
 

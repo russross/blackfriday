@@ -129,12 +129,12 @@ func inlineCodeSpan(parser *Parser, out *bytes.Buffer, data []byte, offset int) 
 
 	// trim outside whitespace
 	fBegin := nb
-	for fBegin < end && (data[fBegin] == ' ' || data[fBegin] == '\t') {
+	for fBegin < end && data[fBegin] == ' ' {
 		fBegin++
 	}
 
 	fEnd := end - nb
-	for fEnd > fBegin && (data[fEnd-1] == ' ' || data[fEnd-1] == '\t') {
+	for fEnd > fBegin && data[fEnd-1] == ' ' {
 		fEnd--
 	}
 
@@ -154,7 +154,7 @@ func inlineLineBreak(parser *Parser, out *bytes.Buffer, data []byte, offset int)
 	outBytes := out.Bytes()
 	end := len(outBytes)
 	eol := end
-	for eol > 0 && (outBytes[eol-1] == ' ' || outBytes[eol-1] == '\t') {
+	for eol > 0 && outBytes[eol-1] == ' ' {
 		eol--
 	}
 	out.Truncate(eol)
@@ -799,7 +799,7 @@ func inlineHelperFindEmphChar(data []byte, c byte) int {
 					i++
 				}
 				i++
-				for i < len(data) && (data[i] == ' ' || data[i] == '\t' || data[i] == '\n') {
+				for i < len(data) && (data[i] == ' ' || data[i] == '\n') {
 					i++
 				}
 				if i >= len(data) {
