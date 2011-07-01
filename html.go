@@ -252,9 +252,10 @@ func (options *Html) BlockCodeGithub(out *bytes.Buffer, text []byte, lang string
 
 
 func (options *Html) BlockQuote(out *bytes.Buffer, text []byte) {
+	doubleSpace(out)
 	out.WriteString("<blockquote>\n")
 	out.Write(text)
-	out.WriteString("</blockquote>")
+	out.WriteString("</blockquote>\n")
 }
 
 func (options *Html) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int) {
@@ -263,7 +264,7 @@ func (options *Html) Table(out *bytes.Buffer, header []byte, body []byte, column
 	out.Write(header)
 	out.WriteString("\n</thead>\n<tbody>\n")
 	out.Write(body)
-	out.WriteString("\n</tbody>\n</table>")
+	out.WriteString("\n</tbody>\n</table>\n")
 }
 
 func (options *Html) TableRow(out *bytes.Buffer, text []byte) {
@@ -295,9 +296,9 @@ func (options *Html) List(out *bytes.Buffer, text func() bool, flags int) {
 	doubleSpace(out)
 
 	if flags&LIST_TYPE_ORDERED != 0 {
-		out.WriteString("<ol>\n")
+		out.WriteString("<ol>")
 	} else {
-		out.WriteString("<ul>\n")
+		out.WriteString("<ul>")
 	}
 	if !text() {
 		out.Truncate(marker)
@@ -311,6 +312,9 @@ func (options *Html) List(out *bytes.Buffer, text func() bool, flags int) {
 }
 
 func (options *Html) ListItem(out *bytes.Buffer, text []byte, flags int) {
+	if flags&LIST_ITEM_CONTAINS_BLOCK != 0 || flags&LIST_ITEM_BEGINNING_OF_LIST != 0 {
+		doubleSpace(out)
+	}
 	out.WriteString("<li>")
 	out.Write(text)
 	out.WriteString("</li>\n")

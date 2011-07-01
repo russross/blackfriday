@@ -86,10 +86,10 @@ func TestPrefixHeaderNoExtensions(t *testing.T) {
 		"<p>Hello</p>\n\n<h1>Header 1</h1>\n\n<p>Goodbye</p>\n",
 
 		"* List\n# Header\n* List\n",
-		"<ul>\n<li><p>List</p>\n\n<h1>Header</h1></li>\n<li><p>List</p></li>\n</ul>\n",
+		"<ul>\n<li><p>List</p>\n\n<h1>Header</h1></li>\n\n<li><p>List</p></li>\n</ul>\n",
 
 		"* List\n#Header\n* List\n",
-		"<ul>\n<li><p>List</p>\n\n<h1>Header</h1></li>\n<li><p>List</p></li>\n</ul>\n",
+		"<ul>\n<li><p>List</p>\n\n<h1>Header</h1></li>\n\n<li><p>List</p></li>\n</ul>\n",
 
 		"*   List\n    * Nested list\n    # Nested header\n",
 		"<ul>\n<li><p>List</p>\n\n<ul>\n<li><p>Nested list</p>\n\n" +
@@ -146,7 +146,7 @@ func TestPrefixHeaderSpaceExtension(t *testing.T) {
 		"<p>Hello</p>\n\n<h1>Header 1</h1>\n\n<p>Goodbye</p>\n",
 
 		"* List\n# Header\n* List\n",
-		"<ul>\n<li><p>List</p>\n\n<h1>Header</h1></li>\n<li><p>List</p></li>\n</ul>\n",
+		"<ul>\n<li><p>List</p>\n\n<h1>Header</h1></li>\n\n<li><p>List</p></li>\n</ul>\n",
 
 		"* List\n#Header\n* List\n",
 		"<ul>\n<li>List\n#Header</li>\n<li>List</li>\n</ul>\n",
@@ -285,10 +285,10 @@ func TestUnorderedList(t *testing.T) {
 		"<ul>\n<li>Ting</li>\n<li>Bong</li>\n<li>Goo</li>\n</ul>\n",
 
 		"* Yin\n\n* Yang\n",
-		"<ul>\n<li><p>Yin</p></li>\n<li><p>Yang</p></li>\n</ul>\n",
+		"<ul>\n<li><p>Yin</p></li>\n\n<li><p>Yang</p></li>\n</ul>\n",
 
 		"* Ting\n\n* Bong\n* Goo\n",
-		"<ul>\n<li><p>Ting</p></li>\n<li><p>Bong</p></li>\n<li><p>Goo</p></li>\n</ul>\n",
+		"<ul>\n<li><p>Ting</p></li>\n\n<li><p>Bong</p></li>\n\n<li><p>Goo</p></li>\n</ul>\n",
 
 		"+ Hello\n",
 		"<ul>\n<li>Hello</li>\n</ul>\n",
@@ -300,10 +300,10 @@ func TestUnorderedList(t *testing.T) {
 		"<ul>\n<li>Ting</li>\n<li>Bong</li>\n<li>Goo</li>\n</ul>\n",
 
 		"+ Yin\n\n+ Yang\n",
-		"<ul>\n<li><p>Yin</p></li>\n<li><p>Yang</p></li>\n</ul>\n",
+		"<ul>\n<li><p>Yin</p></li>\n\n<li><p>Yang</p></li>\n</ul>\n",
 
 		"+ Ting\n\n+ Bong\n+ Goo\n",
-		"<ul>\n<li><p>Ting</p></li>\n<li><p>Bong</p></li>\n<li><p>Goo</p></li>\n</ul>\n",
+		"<ul>\n<li><p>Ting</p></li>\n\n<li><p>Bong</p></li>\n\n<li><p>Goo</p></li>\n</ul>\n",
 
 		"- Hello\n",
 		"<ul>\n<li>Hello</li>\n</ul>\n",
@@ -315,10 +315,10 @@ func TestUnorderedList(t *testing.T) {
 		"<ul>\n<li>Ting</li>\n<li>Bong</li>\n<li>Goo</li>\n</ul>\n",
 
 		"- Yin\n\n- Yang\n",
-		"<ul>\n<li><p>Yin</p></li>\n<li><p>Yang</p></li>\n</ul>\n",
+		"<ul>\n<li><p>Yin</p></li>\n\n<li><p>Yang</p></li>\n</ul>\n",
 
 		"- Ting\n\n- Bong\n- Goo\n",
-		"<ul>\n<li><p>Ting</p></li>\n<li><p>Bong</p></li>\n<li><p>Goo</p></li>\n</ul>\n",
+		"<ul>\n<li><p>Ting</p></li>\n\n<li><p>Bong</p></li>\n\n<li><p>Goo</p></li>\n</ul>\n",
 
 		"*Hello\n",
 		"<p>*Hello</p>\n",
@@ -393,10 +393,10 @@ func TestOrderedList(t *testing.T) {
 		"<ol>\n<li>Ting</li>\n<li>Bong</li>\n<li>Goo</li>\n</ol>\n",
 
 		"1. Yin\n\n2. Yang\n",
-		"<ol>\n<li><p>Yin</p></li>\n<li><p>Yang</p></li>\n</ol>\n",
+		"<ol>\n<li><p>Yin</p></li>\n\n<li><p>Yang</p></li>\n</ol>\n",
 
 		"1. Ting\n\n2. Bong\n3. Goo\n",
-		"<ol>\n<li><p>Ting</p></li>\n<li><p>Bong</p></li>\n<li><p>Goo</p></li>\n</ol>\n",
+		"<ol>\n<li><p>Ting</p></li>\n\n<li><p>Bong</p></li>\n\n<li><p>Goo</p></li>\n</ol>\n",
 
 		"1 Hello\n",
 		"<p>1 Hello</p>\n",

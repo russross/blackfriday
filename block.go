@@ -942,6 +942,7 @@ func (parser *Parser) blockOliPrefix(data []byte) int {
 // parse ordered or unordered list block
 func (parser *Parser) blockList(out *bytes.Buffer, data []byte, flags int) int {
 	i := 0
+	flags |= LIST_ITEM_BEGINNING_OF_LIST
 	work := func() bool {
 		j := 0
 		for i < len(data) {
@@ -951,6 +952,7 @@ func (parser *Parser) blockList(out *bytes.Buffer, data []byte, flags int) int {
 			if j == 0 || flags&LIST_ITEM_END_OF_LIST != 0 {
 				break
 			}
+			flags &= ^LIST_ITEM_BEGINNING_OF_LIST
 		}
 		return true
 	}
