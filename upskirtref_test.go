@@ -25,26 +25,45 @@ func runMarkdownReference(input string) string {
 }
 
 func doTestsReference(t *testing.T, files []string) {
-	for _, basename := range files {
-		fn := filepath.Join("upskirtref", basename+".text")
-		actualdata, err := ioutil.ReadFile(fn)
-		if err != nil {
-			t.Errorf("Couldn't open '%s', error: %v\n", fn, err)
-			continue
+	// catch and report panics
+	var candidate string
+	defer func() {
+		if err := recover(); err != nil {
+			t.Errorf("\npanic while processing [%#v]\n", candidate)
 		}
-		fn = filepath.Join("upskirtref", basename+".html")
-		expecteddata, err := ioutil.ReadFile(fn)
-		if err != nil {
-			t.Errorf("Couldn't open '%s', error: %v\n", fn, err)
-			continue
-		}
+	}()
 
-		actual := string(actualdata)
-		actual = string(runMarkdownReference(actual))
-		expected := string(expecteddata)
+	for _, basename := range files {
+		filename := filepath.Join("upskirtref", basename+".text")
+		inputBytes, err := ioutil.ReadFile(filename)
+		if err != nil {
+			t.Errorf("Couldn't open '%s', error: %v\n", filename, err)
+			continue
+		}
+		input := string(inputBytes)
+
+		filename = filepath.Join("upskirtref", basename+".html")
+		expectedBytes, err := ioutil.ReadFile(filename)
+		if err != nil {
+			t.Errorf("Couldn't open '%s', error: %v\n", filename, err)
+			continue
+		}
+		expected := string(expectedBytes)
+
+		actual := string(runMarkdownReference(input))
 		if actual != expected {
 			t.Errorf("\n    [%#v]\nExpected[%#v]\nActual  [%#v]",
 				basename+".text", expected, actual)
+		}
+
+		// now test every substring of every input to check for
+		// bounds checking
+		if !testing.Short() {
+			start := 0
+			for end := start + 1; end <= len(input); end++ {
+				candidate = input[start:end]
+				_ = runMarkdownReference(candidate)
+			}
 		}
 	}
 }

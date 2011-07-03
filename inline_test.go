@@ -31,13 +31,32 @@ func runMarkdownInline(input string) string {
 }
 
 func doTestsInline(t *testing.T, tests []string) {
+	// catch and report panics
+	var candidate string
+	defer func() {
+		if err := recover(); err != nil {
+			t.Errorf("\npanic while processing [%#v]\n", candidate)
+		}
+	}()
+
 	for i := 0; i+1 < len(tests); i += 2 {
 		input := tests[i]
+		candidate = input
 		expected := tests[i+1]
-		actual := runMarkdownInline(input)
+		actual := runMarkdownInline(candidate)
 		if actual != expected {
 			t.Errorf("\nInput   [%#v]\nExpected[%#v]\nActual  [%#v]",
-				input, expected, actual)
+				candidate, expected, actual)
+		}
+
+		// now test every substring to stress test bounds checking
+		if !testing.Short() {
+			for start := 0; start < len(input); start++ {
+				for end := start + 1; end <= len(input); end++ {
+					candidate = input[start:end]
+					_ = runMarkdownInline(candidate)
+				}
+			}
 		}
 	}
 }

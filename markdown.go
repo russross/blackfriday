@@ -270,6 +270,12 @@ func firstPass(parser *Parser, input []byte) []byte {
 			beg = end
 		}
 	}
+
+	// empty input?
+	if out.Len() == 0 {
+		out.WriteByte('\n')
+	}
+
 	return out.Bytes()
 }
 
