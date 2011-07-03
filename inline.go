@@ -667,14 +667,14 @@ func tagLength(data []byte, autolink *int) int {
 		i++
 	}
 
-	if i > 1 && data[i] == '@' {
+	if i > 1 && i < len(data) && data[i] == '@' {
 		if j = isMailtoAutoLink(data[i:]); j != 0 {
 			*autolink = LINK_TYPE_EMAIL
 			return i + j
 		}
 	}
 
-	if i > 2 && data[i] == ':' {
+	if i > 2 && i < len(data) && data[i] == ':' {
 		*autolink = LINK_TYPE_NORMAL
 		i++
 	}
