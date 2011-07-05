@@ -22,7 +22,7 @@ import (
 // data is the complete block being rendered
 // offset is the number of valid chars before the current cursor
 
-func (parser *Parser) parseInline(out *bytes.Buffer, data []byte) {
+func (parser *Parser) inline(out *bytes.Buffer, data []byte) {
 	// this is called recursively: enforce a maximum depth
 	if parser.nesting >= parser.maxNesting {
 		return
@@ -32,7 +32,7 @@ func (parser *Parser) parseInline(out *bytes.Buffer, data []byte) {
 	i, end := 0, 0
 	for i < len(data) {
 		// copy inactive chars into the output
-		for end < len(data) && parser.inline[data[end]] == nil {
+		for end < len(data) && parser.inlineCallback[data[end]] == nil {
 			end++
 		}
 
@@ -44,7 +44,7 @@ func (parser *Parser) parseInline(out *bytes.Buffer, data []byte) {
 		i = end
 
 		// call the trigger
-		handler := parser.inline[data[end]]
+		handler := parser.inlineCallback[data[end]]
 		if consumed := handler(parser, out, data, i); consumed == 0 {
 			// no action from the callback; buffer the byte for later
 			end = i + 1
@@ -59,7 +59,7 @@ func (parser *Parser) parseInline(out *bytes.Buffer, data []byte) {
 }
 
 // single and double emphasis parsing
-func inlineEmphasis(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
+func emphasis(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
 	c := data[0]
 	ret := 0
@@ -70,7 +70,7 @@ func inlineEmphasis(parser *Parser, out *bytes.Buffer, data []byte, offset int) 
 		if c == '~' || isspace(data[1]) {
 			return 0
 		}
-		if ret = inlineHelperEmph1(parser, out, data[1:], c); ret == 0 {
+		if ret = helperEmphasis(parser, out, data[1:], c); ret == 0 {
 			return 0
 		}
 
@@ -81,7 +81,7 @@ func inlineEmphasis(parser *Parser, out *bytes.Buffer, data []byte, offset int) 
 		if isspace(data[2]) {
 			return 0
 		}
-		if ret = inlineHelperEmph2(parser, out, data[2:], c); ret == 0 {
+		if ret = helperDoubleEmphasis(parser, out, data[2:], c); ret == 0 {
 			return 0
 		}
 
@@ -92,7 +92,7 @@ func inlineEmphasis(parser *Parser, out *bytes.Buffer, data []byte, offset int) 
 		if c == '~' || isspace(data[3]) {
 			return 0
 		}
-		if ret = inlineHelperEmph3(parser, out, data, 3, c); ret == 0 {
+		if ret = helperTripleEmphasis(parser, out, data, 3, c); ret == 0 {
 			return 0
 		}
 
@@ -102,7 +102,7 @@ func inlineEmphasis(parser *Parser, out *bytes.Buffer, data []byte, offset int) 
 	return 0
 }
 
-func inlineCodeSpan(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
+func codeSpan(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
 
 	nb := 0
@@ -149,7 +149,7 @@ func inlineCodeSpan(parser *Parser, out *bytes.Buffer, data []byte, offset int) 
 
 // newline preceded by two spaces becomes <br>
 // newline without two spaces works when EXTENSION_HARD_LINE_BREAK is enabled
-func inlineLineBreak(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
+func lineBreak(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
 	// remove trailing spaces from out
 	outBytes := out.Bytes()
 	end := len(outBytes)
@@ -169,7 +169,7 @@ func inlineLineBreak(parser *Parser, out *bytes.Buffer, data []byte, offset int)
 }
 
 // '[': parse a link or an image
-func inlineLink(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
+func link(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
 	// no links allowed inside other links
 	if parser.insideLink {
 		return 0
@@ -229,13 +229,16 @@ func inlineLink(parser *Parser, out *bytes.Buffer, data []byte, offset int) int 
 		linkB := i
 
 		// look for link end: ' " )
+	findlinkend:
 		for i < len(data) {
-			if data[i] == '\\' {
+			switch {
+			case data[i] == '\\':
 				i += 2
-			} else {
-				if data[i] == ')' || data[i] == '\'' || data[i] == '"' {
-					break
-				}
+
+			case data[i] == ')' || data[i] == '\'' || data[i] == '"':
+				break findlinkend
+
+			default:
 				i++
 			}
 		}
@@ -251,13 +254,16 @@ func inlineLink(parser *Parser, out *bytes.Buffer, data []byte, offset int) int 
 			i++
 			titleB = i
 
+		findtitleend:
 			for i < len(data) {
-				if data[i] == '\\' {
+				switch {
+				case data[i] == '\\':
 					i += 2
-				} else {
-					if data[i] == ')' {
-						break
-					}
+
+				case data[i] == ')':
+					break findtitleend
+
+				default:
 					i++
 				}
 			}
@@ -398,7 +404,7 @@ func inlineLink(parser *Parser, out *bytes.Buffer, data []byte, offset int) int 
 			// links cannot contain other links, so turn off link parsing temporarily
 			insideLink := parser.insideLink
 			parser.insideLink = true
-			parser.parseInline(&content, data[1:txtE])
+			parser.inline(&content, data[1:txtE])
 			parser.insideLink = insideLink
 		}
 	}
@@ -432,7 +438,7 @@ func inlineLink(parser *Parser, out *bytes.Buffer, data []byte, offset int) int 
 }
 
 // '<' when tags or autolinks are allowed
-func inlineLAngle(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
+func leftAngle(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
 	altype := LINK_TYPE_NOT_AUTOLINK
 	end := tagLength(data, &altype)
@@ -455,7 +461,7 @@ func inlineLAngle(parser *Parser, out *bytes.Buffer, data []byte, offset int) in
 // '\\' backslash escape
 var escapeChars = []byte("\\`*_{}[]()#+-.!:|&<>")
 
-func inlineEscape(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
+func escape(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
 
 	if len(data) > 1 {
@@ -492,7 +498,7 @@ func unescapeText(ob *bytes.Buffer, src []byte) {
 
 // '&' escaped when it doesn't belong to an entity
 // valid entities are assumed to be anything matching &#?[A-Za-z0-9]+;
-func inlineEntity(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
+func entity(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
 
 	end := 1
@@ -516,7 +522,7 @@ func inlineEntity(parser *Parser, out *bytes.Buffer, data []byte, offset int) in
 	return end
 }
 
-func inlineAutoLink(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
+func autoLink(parser *Parser, out *bytes.Buffer, data []byte, offset int) int {
 	// quick check to rule out most false hits on ':'
 	if parser.insideLink || len(data) < offset+3 || data[offset+1] != '/' || data[offset+2] != '/' {
 		return 0
@@ -689,12 +695,10 @@ func tagLength(data []byte, autolink *int) int {
 		for i < len(data) {
 			if data[i] == '\\' {
 				i += 2
+			} else if data[i] == '>' || data[i] == '\'' || data[i] == '"' || isspace(data[i]) {
+				break
 			} else {
-				if data[i] == '>' || data[i] == '\'' || data[i] == '"' || isspace(data[i]) {
-					break
-				} else {
-					i++
-				}
+				i++
 			}
 
 		}
@@ -753,7 +757,7 @@ func isMailtoAutoLink(data []byte) int {
 }
 
 // look for the next emph char, skipping other constructs
-func inlineHelperFindEmphChar(data []byte, c byte) int {
+func helperFindEmphChar(data []byte, c byte) int {
 	i := 1
 
 	for i < len(data) {
@@ -787,50 +791,48 @@ func inlineHelperFindEmphChar(data []byte, c byte) int {
 				return tmpI
 			}
 			i++
-		} else {
-			if data[i] == '[' {
-				// skip a link
-				tmpI := 0
-				i++
-				for i < len(data) && data[i] != ']' {
-					if tmpI == 0 && data[i] == c {
-						tmpI = i
-					}
-					i++
-				}
-				i++
-				for i < len(data) && (data[i] == ' ' || data[i] == '\n') {
-					i++
-				}
-				if i >= len(data) {
-					return tmpI
-				}
-				if data[i] != '[' && data[i] != '(' { // not a link
-					if tmpI > 0 {
-						return tmpI
-					} else {
-						continue
-					}
-				}
-				cc := data[i]
-				i++
-				for i < len(data) && data[i] != cc {
-					if tmpI == 0 && data[i] == c {
-						tmpI = i
-					}
-					i++
-				}
-				if i >= len(data) {
-					return tmpI
+		} else if data[i] == '[' {
+			// skip a link
+			tmpI := 0
+			i++
+			for i < len(data) && data[i] != ']' {
+				if tmpI == 0 && data[i] == c {
+					tmpI = i
 				}
 				i++
 			}
+			i++
+			for i < len(data) && (data[i] == ' ' || data[i] == '\n') {
+				i++
+			}
+			if i >= len(data) {
+				return tmpI
+			}
+			if data[i] != '[' && data[i] != '(' { // not a link
+				if tmpI > 0 {
+					return tmpI
+				} else {
+					continue
+				}
+			}
+			cc := data[i]
+			i++
+			for i < len(data) && data[i] != cc {
+				if tmpI == 0 && data[i] == c {
+					tmpI = i
+				}
+				i++
+			}
+			if i >= len(data) {
+				return tmpI
+			}
+			i++
 		}
 	}
 	return 0
 }
 
-func inlineHelperEmph1(parser *Parser, out *bytes.Buffer, data []byte, c byte) int {
+func helperEmphasis(parser *Parser, out *bytes.Buffer, data []byte, c byte) int {
 	i := 0
 
 	// skip one symbol if coming from emph3
@@ -839,7 +841,7 @@ func inlineHelperEmph1(parser *Parser, out *bytes.Buffer, data []byte, c byte) i
 	}
 
 	for i < len(data) {
-		length := inlineHelperFindEmphChar(data[i:], c)
+		length := helperFindEmphChar(data[i:], c)
 		if length == 0 {
 			return 0
 		}
@@ -862,7 +864,7 @@ func inlineHelperEmph1(parser *Parser, out *bytes.Buffer, data []byte, c byte) i
 			}
 
 			var work bytes.Buffer
-			parser.parseInline(&work, data[:i])
+			parser.inline(&work, data[:i])
 			parser.r.Emphasis(out, work.Bytes())
 			return i + 1
 		}
@@ -871,11 +873,11 @@ func inlineHelperEmph1(parser *Parser, out *bytes.Buffer, data []byte, c byte) i
 	return 0
 }
 
-func inlineHelperEmph2(parser *Parser, out *bytes.Buffer, data []byte, c byte) int {
+func helperDoubleEmphasis(parser *Parser, out *bytes.Buffer, data []byte, c byte) int {
 	i := 0
 
 	for i < len(data) {
-		length := inlineHelperFindEmphChar(data[i:], c)
+		length := helperFindEmphChar(data[i:], c)
 		if length == 0 {
 			return 0
 		}
@@ -883,7 +885,7 @@ func inlineHelperEmph2(parser *Parser, out *bytes.Buffer, data []byte, c byte) i
 
 		if i+1 < len(data) && data[i] == c && data[i+1] == c && i > 0 && !isspace(data[i-1]) {
 			var work bytes.Buffer
-			parser.parseInline(&work, data[:i])
+			parser.inline(&work, data[:i])
 
 			if work.Len() > 0 {
 				// pick the right renderer
@@ -900,13 +902,13 @@ func inlineHelperEmph2(parser *Parser, out *bytes.Buffer, data []byte, c byte) i
 	return 0
 }
 
-func inlineHelperEmph3(parser *Parser, out *bytes.Buffer, data []byte, offset int, c byte) int {
+func helperTripleEmphasis(parser *Parser, out *bytes.Buffer, data []byte, offset int, c byte) int {
 	i := 0
 	origData := data
 	data = data[offset:]
 
 	for i < len(data) {
-		length := inlineHelperFindEmphChar(data[i:], c)
+		length := helperFindEmphChar(data[i:], c)
 		if length == 0 {
 			return 0
 		}
@@ -922,14 +924,14 @@ func inlineHelperEmph3(parser *Parser, out *bytes.Buffer, data []byte, offset in
 			// triple symbol found
 			var work bytes.Buffer
 
-			parser.parseInline(&work, data[:i])
+			parser.inline(&work, data[:i])
 			if work.Len() > 0 {
 				parser.r.TripleEmphasis(out, work.Bytes())
 			}
 			return i + 3
 		case (i+1 < len(data) && data[i+1] == c):
 			// double symbol found, hand over to emph1
-			length = inlineHelperEmph1(parser, out, origData[offset-2:], c)
+			length = helperEmphasis(parser, out, origData[offset-2:], c)
 			if length == 0 {
 				return 0
 			} else {
@@ -937,7 +939,7 @@ func inlineHelperEmph3(parser *Parser, out *bytes.Buffer, data []byte, offset in
 			}
 		default:
 			// single symbol found, hand over to emph2
-			length = inlineHelperEmph2(parser, out, origData[offset-1:], c)
+			length = helperDoubleEmphasis(parser, out, origData[offset-1:], c)
 			if length == 0 {
 				return 0
 			} else {

@@ -143,13 +143,13 @@ type inlineParser func(parser *Parser, out *bytes.Buffer, data []byte, offset in
 // This is constructed by the Markdown function and
 // contains state used during the parsing process.
 type Parser struct {
-	r          Renderer
-	refs       map[string]*reference
-	inline     [256]inlineParser
-	flags      int
-	nesting    int
-	maxNesting int
-	insideLink bool
+	r              Renderer
+	refs           map[string]*reference
+	inlineCallback [256]inlineParser
+	flags          int
+	nesting        int
+	maxNesting     int
+	insideLink     bool
 }
 
 
@@ -211,20 +211,20 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	parser.insideLink = false
 
 	// register inline parsers
-	parser.inline['*'] = inlineEmphasis
-	parser.inline['_'] = inlineEmphasis
+	parser.inlineCallback['*'] = emphasis
+	parser.inlineCallback['_'] = emphasis
 	if extensions&EXTENSION_STRIKETHROUGH != 0 {
-		parser.inline['~'] = inlineEmphasis
+		parser.inlineCallback['~'] = emphasis
 	}
-	parser.inline['`'] = inlineCodeSpan
-	parser.inline['\n'] = inlineLineBreak
-	parser.inline['['] = inlineLink
-	parser.inline['<'] = inlineLAngle
-	parser.inline['\\'] = inlineEscape
-	parser.inline['&'] = inlineEntity
+	parser.inlineCallback['`'] = codeSpan
+	parser.inlineCallback['\n'] = lineBreak
+	parser.inlineCallback['['] = link
+	parser.inlineCallback['<'] = leftAngle
+	parser.inlineCallback['\\'] = escape
+	parser.inlineCallback['&'] = entity
 
 	if extensions&EXTENSION_AUTOLINK != 0 {
-		parser.inline[':'] = inlineAutoLink
+		parser.inlineCallback[':'] = autoLink
 	}
 
 	first := firstPass(parser, input)
@@ -284,7 +284,7 @@ func secondPass(parser *Parser, input []byte) []byte {
 	var output bytes.Buffer
 
 	parser.r.DocumentHeader(&output)
-	parser.parseBlock(&output, input)
+	parser.block(&output, input)
 	parser.r.DocumentFooter(&output)
 
 	if parser.nesting != 0 {

@@ -39,7 +39,7 @@ func isdigit(c byte) bool {
 	return c >= '0' && c <= '9'
 }
 
-func smartQuotesHelper(out *bytes.Buffer, previousChar byte, nextChar byte, quote byte, isOpen *bool) bool {
+func smartQuoteHelper(out *bytes.Buffer, previousChar byte, nextChar byte, quote byte, isOpen *bool) bool {
 	// edge of the buffer is likely to be a tag that we don't get to see,
 	// so we treat it like text sometimes
 
@@ -107,7 +107,7 @@ func smartQuotesHelper(out *bytes.Buffer, previousChar byte, nextChar byte, quot
 	return true
 }
 
-func smartSquote(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+func smartSingleQuote(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	if len(text) >= 2 {
 		t1 := tolower(text[1])
 
@@ -116,7 +116,7 @@ func smartSquote(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, te
 			if len(text) >= 3 {
 				nextChar = text[2]
 			}
-			if smartQuotesHelper(out, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
+			if smartQuoteHelper(out, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
 				return 1
 			}
 		}
@@ -141,7 +141,7 @@ func smartSquote(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, te
 	if len(text) > 1 {
 		nextChar = text[1]
 	}
-	if smartQuotesHelper(out, previousChar, nextChar, 's', &smrt.inSingleQuote) {
+	if smartQuoteHelper(out, previousChar, nextChar, 's', &smrt.inSingleQuote) {
 		return 0
 	}
 
@@ -211,7 +211,7 @@ func smartAmp(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text 
 		if len(text) >= 7 {
 			nextChar = text[6]
 		}
-		if smartQuotesHelper(out, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
+		if smartQuoteHelper(out, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
 			return 5
 		}
 	}
@@ -245,7 +245,7 @@ func smartBacktick(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, 
 		if len(text) >= 3 {
 			nextChar = text[2]
 		}
-		if smartQuotesHelper(out, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
+		if smartQuoteHelper(out, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
 			return 1
 		}
 	}
@@ -318,19 +318,19 @@ func smartNumber(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, te
 	return 0
 }
 
-func smartDquote(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+func smartDoubleQuote(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	nextChar := byte(0)
 	if len(text) > 1 {
 		nextChar = text[1]
 	}
-	if !smartQuotesHelper(out, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
+	if !smartQuoteHelper(out, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
 		out.WriteString("&quot;")
 	}
 
 	return 0
 }
 
-func smartLtag(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+func smartLeftAngle(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
 	i := 0
 
 	for i < len(text) && text[i] != '>' {
@@ -347,9 +347,9 @@ type SmartypantsRenderer [256]smartCallback
 
 func Smartypants(flags int) *SmartypantsRenderer {
 	r := new(SmartypantsRenderer)
-	r['"'] = smartDquote
+	r['"'] = smartDoubleQuote
 	r['&'] = smartAmp
-	r['\''] = smartSquote
+	r['\''] = smartSingleQuote
 	r['('] = smartParens
 	if flags&HTML_SMARTYPANTS_LATEX_DASHES == 0 {
 		r['-'] = smartDash
@@ -365,7 +365,7 @@ func Smartypants(flags int) *SmartypantsRenderer {
 			r[ch] = smartNumberGeneric
 		}
 	}
-	r['<'] = smartLtag
+	r['<'] = smartLeftAngle
 	r['`'] = smartBacktick
 	return r
 }
