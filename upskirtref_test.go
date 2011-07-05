@@ -56,7 +56,7 @@ func doTestsReference(t *testing.T, files []string) {
 				basename+".text", expected, actual)
 		}
 
-		// now test every substring of every input to check for
+		// now test every prefix of every input to check for
 		// bounds checking
 		if !testing.Short() {
 			start := 0

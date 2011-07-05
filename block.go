@@ -861,50 +861,51 @@ func (parser *Parser) blockCodePrefix(data []byte) int {
 	return 0
 }
 
-// TODO: continue redundant end-of-buffer check removal here
 func (parser *Parser) blockCode(out *bytes.Buffer, data []byte) int {
 	var work bytes.Buffer
 
-	beg, end := 0, 0
-	for beg < len(data) {
-		for end = beg + 1; end < len(data) && data[end-1] != '\n'; end++ {
+	i := 0
+	for i < len(data) {
+		beg := i
+		for data[i] != '\n' {
+			i++
 		}
+		i++
 
-		if pre := parser.blockCodePrefix(data[beg:end]); pre > 0 {
+		blankline := parser.isEmpty(data[beg:i]) > 0
+		if pre := parser.blockCodePrefix(data[beg:i]); pre > 0 {
 			beg += pre
 		} else {
-			if parser.isEmpty(data[beg:end]) == 0 {
-				// non-empty non-prefixed line breaks the pre
+			if !blankline {
+				// non-empty, non-prefixed line breaks the pre
+				i = beg
 				break
 			}
 		}
 
-		if beg < end {
-			// verbatim copy to the working buffer, escaping entities
-			if parser.isEmpty(data[beg:end]) > 0 {
-				work.WriteByte('\n')
-			} else {
-				work.Write(data[beg:end])
-			}
+		// verbatim copy to the working buffeu
+		if blankline {
+			work.WriteByte('\n')
+		} else {
+			work.Write(data[beg:i])
 		}
-		beg = end
 	}
 
 	// trim all the \n off the end of work
 	workbytes := work.Bytes()
-	n := 0
-	for len(workbytes) > n && workbytes[len(workbytes)-n-1] == '\n' {
-		n++
+	eol := len(workbytes)
+	for eol > 0 && workbytes[eol-1] == '\n' {
+		eol--
 	}
-	if n > 0 {
-		work.Truncate(len(workbytes) - n)
+	if eol != len(workbytes) {
+		work.Truncate(eol)
 	}
 
 	work.WriteByte('\n')
 
 	parser.r.BlockCode(out, work.Bytes(), "")
 
-	return beg
+	return i
 }
 
 // returns unordered list item prefix
@@ -912,13 +913,12 @@ func (parser *Parser) blockUliPrefix(data []byte) int {
 	i := 0
 
 	// start with up to 3 spaces
-	for i < len(data) && i < 3 && data[i] == ' ' {
+	for i < 3 && data[i] == ' ' {
 		i++
 	}
 
 	// need a *, +, or - followed by a space/tab
-	if i+1 >= len(data) ||
-		(data[i] != '*' && data[i] != '+' && data[i] != '-') ||
+	if (data[i] != '*' && data[i] != '+' && data[i] != '-') ||
 		data[i+1] != ' ' {
 		return 0
 	}
@@ -930,18 +930,18 @@ func (parser *Parser) blockOliPrefix(data []byte) int {
 	i := 0
 
 	// start with up to 3 spaces
-	for i < len(data) && i < 3 && data[i] == ' ' {
+	for i < 3 && data[i] == ' ' {
 		i++
 	}
 
 	// count the digits
 	start := i
-	for i < len(data) && data[i] >= '0' && data[i] <= '9' {
+	for data[i] >= '0' && data[i] <= '9' {
 		i++
 	}
 
 	// we need >= 1 digits followed by a dot and a space/tab
-	if start == i || data[i] != '.' || i+1 >= len(data) || data[i+1] != ' ' {
+	if start == i || data[i] != '.' || data[i+1] != ' ' {
 		return 0
 	}
 	return i + 2
@@ -952,12 +952,11 @@ func (parser *Parser) blockList(out *bytes.Buffer, data []byte, flags int) int {
 	i := 0
 	flags |= LIST_ITEM_BEGINNING_OF_LIST
 	work := func() bool {
-		j := 0
 		for i < len(data) {
-			j = parser.blockListItem(out, data[i:], &flags)
-			i += j
+			skip := parser.blockListItem(out, data[i:], &flags)
+			i += skip
 
-			if j == 0 || flags&LIST_ITEM_END_OF_LIST != 0 {
+			if skip == 0 || flags&LIST_ITEM_END_OF_LIST != 0 {
 				break
 			}
 			flags &= ^LIST_ITEM_BEGINNING_OF_LIST
@@ -969,163 +968,173 @@ func (parser *Parser) blockList(out *bytes.Buffer, data []byte, flags int) int {
 	return i
 }
 
-// parse a single list item
-// assumes initial prefix is already removed
+// Parse a single list item.
+// Assumes initial prefix is already removed if this is a sublist.
 func (parser *Parser) blockListItem(out *bytes.Buffer, data []byte, flags *int) int {
-	// keep track of the first indentation prefix
-	beg, end, pre, sublist, orgpre, i := 0, 0, 0, 0, 0, 0
-
-	for orgpre < 3 && orgpre < len(data) && data[orgpre] == ' ' {
-		orgpre++
+	// keep track of the indentation of the first line
+	itemIndent := 0
+	for itemIndent < 3 && data[itemIndent] == ' ' {
+		itemIndent++
 	}
 
-	beg = parser.blockUliPrefix(data)
-	if beg == 0 {
-		beg = parser.blockOliPrefix(data)
+	i := parser.blockUliPrefix(data)
+	if i == 0 {
+		i = parser.blockOliPrefix(data)
 	}
-	if beg == 0 {
+	if i == 0 {
 		return 0
 	}
 
 	// skip leading whitespace on first line
-	for beg < len(data) && data[beg] == ' ' {
-		beg++
+	for data[i] == ' ' {
+		i++
 	}
 
-	// skip to the beginning of the following line
-	end = beg
-	for end < len(data) && data[end-1] != '\n' {
-		end++
+	// find the end of the line
+	line := i
+	for data[i-1] != '\n' {
+		i++
 	}
 
-	// get working buffers
-	var rawItem bytes.Buffer
-	var parsed bytes.Buffer
+	// get working buffer
+	var raw bytes.Buffer
 
 	// put the first line into the working buffer
-	rawItem.Write(data[beg:end])
-	beg = end
+	raw.Write(data[line:i])
+	line = i
 
 	// process the following lines
-	containsBlankLine, containsBlock := false, false
-	for beg < len(data) {
-		end++
+	containsBlankLine := false
+	sublist := 0
 
-		for end < len(data) && data[end-1] != '\n' {
-			end++
+loop:
+	for line < len(data) {
+		i++
+
+		// find the end of this line
+		for data[i-1] != '\n' {
+			i++
 		}
 
-		// process an empty line
-		if parser.isEmpty(data[beg:end]) > 0 {
+		// if it is an empty line, guess that it is part of this item
+		// and move on to the next line
+		if parser.isEmpty(data[line:i]) > 0 {
 			containsBlankLine = true
-			beg = end
+			line = i
 			continue
 		}
 
 		// calculate the indentation
-		i = 0
-		for i < 4 && beg+i < end && data[beg+i] == ' ' {
-			i++
+		indent := 0
+		for indent < 4 && line+indent < i && data[line+indent] == ' ' {
+			indent++
 		}
 
-		pre = i
-		chunk := data[beg+i : end]
+		chunk := data[line+indent : i]
 
-		// check for a nested list item
-		if (parser.blockUliPrefix(chunk) > 0 && !parser.isHRule(chunk)) ||
-			parser.blockOliPrefix(chunk) > 0 {
+		// evaluate how this line fits in
+		switch {
+		// is this a nested list item?
+		case (parser.blockUliPrefix(chunk) > 0 && !parser.isHRule(chunk)) ||
+			parser.blockOliPrefix(chunk) > 0:
+
 			if containsBlankLine {
-				containsBlock = true
+				*flags |= LIST_ITEM_CONTAINS_BLOCK
 			}
 
-			// the following item must have the same indentation
-			if pre == orgpre {
-				break
+			// to be a nested list, it must be indented more
+			// if not, it is the next item in the same list
+			if indent <= itemIndent {
+				break loop
 			}
 
+			// is this the first item in the the nested list?
 			if sublist == 0 {
-				sublist = rawItem.Len()
+				sublist = raw.Len()
 			}
-		} else {
-			// how about a nested prefix header?
-			if parser.isPrefixHeader(chunk) {
-				// only nest headers that are indented
-				if containsBlankLine && i < 4 {
-					*flags |= LIST_ITEM_END_OF_LIST
-					break
-				}
-				containsBlock = true
-			} else {
-				// only join stuff after empty lines when indented
-				if containsBlankLine && i < 4 {
-					*flags |= LIST_ITEM_END_OF_LIST
-					break
-				} else {
-					if containsBlankLine {
-						rawItem.WriteByte('\n')
-						containsBlock = true
-					}
-				}
+
+		// is this a nested prefix header?
+		case parser.isPrefixHeader(chunk):
+			// if the header is not indented, it is not nested in the list
+			// and thus ends the list
+			if containsBlankLine && indent < 4 {
+				*flags |= LIST_ITEM_END_OF_LIST
+				break loop
 			}
+			*flags |= LIST_ITEM_CONTAINS_BLOCK
+
+		// anything following an empty line is only part
+		// of this item if it is indented 4 spaces
+		// (regardless of the indentation of the beginning of the item)
+		case containsBlankLine && indent < 4:
+			*flags |= LIST_ITEM_END_OF_LIST
+			break loop
+
+		// a blank line means this should be parsed as a block
+		case containsBlankLine:
+			raw.WriteByte('\n')
+			*flags |= LIST_ITEM_CONTAINS_BLOCK
 		}
 
 		containsBlankLine = false
 
 		// add the line into the working buffer without prefix
-		rawItem.Write(data[beg+i : end])
-		beg = end
+		raw.Write(data[line+indent : i])
+		line = i
 	}
 
-	// render li contents
-	if containsBlock {
-		*flags |= LIST_ITEM_CONTAINS_BLOCK
-	}
-
-	rawItemBytes := rawItem.Bytes()
+	// render the contents of the list item
+	rawBytes := raw.Bytes()
+	var cooked bytes.Buffer
 	if *flags&LIST_ITEM_CONTAINS_BLOCK != 0 {
 		// intermediate render of block li
-		if sublist > 0 && sublist < len(rawItemBytes) {
-			parser.parseBlock(&parsed, rawItemBytes[:sublist])
-			parser.parseBlock(&parsed, rawItemBytes[sublist:])
+		if sublist > 0 {
+			parser.parseBlock(&cooked, rawBytes[:sublist])
+			parser.parseBlock(&cooked, rawBytes[sublist:])
 		} else {
-			parser.parseBlock(&parsed, rawItemBytes)
+			parser.parseBlock(&cooked, rawBytes)
 		}
 	} else {
 		// intermediate render of inline li
-		if sublist > 0 && sublist < len(rawItemBytes) {
-			parser.parseInline(&parsed, rawItemBytes[:sublist])
-			parser.parseBlock(&parsed, rawItemBytes[sublist:])
+		if sublist > 0 {
+			parser.parseInline(&cooked, rawBytes[:sublist])
+			parser.parseBlock(&cooked, rawBytes[sublist:])
 		} else {
-			parser.parseInline(&parsed, rawItemBytes)
+			parser.parseInline(&cooked, rawBytes)
 		}
 	}
 
-	// render li itself
-	parsedBytes := parsed.Bytes()
-	parsedEnd := len(parsedBytes)
-	for parsedEnd > 0 && parsedBytes[parsedEnd-1] == '\n' {
+	// render the actual list item
+	cookedBytes := cooked.Bytes()
+	parsedEnd := len(cookedBytes)
+
+	// strip trailing newlines
+	for parsedEnd > 0 && cookedBytes[parsedEnd-1] == '\n' {
 		parsedEnd--
 	}
-	parser.r.ListItem(out, parsedBytes[:parsedEnd], *flags)
+	parser.r.ListItem(out, cookedBytes[:parsedEnd], *flags)
 
-	return beg
+	return line
 }
 
 // render a single paragraph that has already been parsed out
 func (parser *Parser) renderParagraph(out *bytes.Buffer, data []byte) {
-	// trim leading whitespace
+	if len(data) == 0 {
+		return
+	}
+
+	// trim leading spaces
 	beg := 0
-	for beg < len(data) && isspace(data[beg]) {
+	for data[beg] == ' ' {
 		beg++
 	}
 
-	// trim trailing whitespace
-	end := len(data)
-	for end > beg && isspace(data[end-1]) {
+	// trim trailing newline
+	end := len(data) - 1
+
+	// trim trailing spaces
+	for end > beg && data[end-1] == ' ' {
 		end--
-	}
-	if end == beg {
-		return
 	}
 
 	work := func() bool {
@@ -1180,7 +1189,8 @@ func (parser *Parser) blockParagraph(out *bytes.Buffer, data []byte) int {
 				parser.r.Header(out, work, level)
 
 				// find the end of the underline
-				for ; i < len(data) && data[i] != '\n'; i++ {
+				for data[i] != '\n' {
+					i++
 				}
 				return i
 			}
@@ -1202,10 +1212,10 @@ func (parser *Parser) blockParagraph(out *bytes.Buffer, data []byte) int {
 		}
 
 		// otherwise, scan to the beginning of the next line
-		i++
-		for i < len(data) && data[i-1] != '\n' {
+		for data[i] != '\n' {
 			i++
 		}
+		i++
 	}
 
 	parser.renderParagraph(out, data[:i])
