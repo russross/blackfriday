@@ -46,7 +46,9 @@ command-line markdown tool:
     cd $GOROOT/src/pkg/github.com/russross/blackfriday/example
     gomake
 
-will build the binary `markdown` in the `example` directory.
+will build the binary `markdown` in the `example` directory. This is
+a statically-linked binary that can be copied to wherever you need
+it without worrying about dependencies and library versions.
 
 
 Features
@@ -54,47 +56,94 @@ Features
 
 All features of upskirt are supported, including:
 
-*   The Markdown v1.0.3 test suite passes with the `--tidy` option.
-    Without `--tidy`, the differences appear to be bugs/dubious
-    features in the original, mostly related to whitespace.
+*   **Compatibility**. The Markdown v1.0.3 test suite passes with
+    the `--tidy` option.  Without `--tidy`, the differences are
+    mostly in whitespace and entity escaping, where blackfriday is
+    more consistent and cleaner.
 
-*   Common extensions, including table support, fenced code blocks,
-    autolinks, strikethroughs, non-strict emphasis, etc.
+*   **Common extensions**, including table support, fenced code
+    blocks, autolinks, strikethroughs, non-strict emphasis, etc.
 
-*   Paranoid parsing, making it safe to feed untrusted used input
-    without fear of bad things happening. There are still some
-    corner cases that are untested, but it is already more strict
-    than upskirt (bounds checking in Go uncovered a few off-by-one
-    errors that were present in upskirt).
+*   **Safety**. Blackfriday is paranoid when parsing, making it safe
+    to feed untrusted user input without fear of bad things
+    happening. The test suite stress tests this and there are no
+    known inputs that make it crash.  If you find one, please let me
+    know and send me the input that does it.
 
-*   Good performance. I have not done rigorous benchmarking, but
-    informal testing suggests it is around 3--4x slower than upskirt
-    for general input. It blows away most other markdown processors.
+*   **Fast processing**. It is fast enough to render on-demand in
+    most web applications without having to cache the output.
 
-*   Thread safe. You can run multiple parsers is different
+*   **Thread safety**. You can run multiple parsers is different
     goroutines without ill effect. There is no dependence on global
     shared state.
 
-*   Minimal dependencies. Blackfriday only depends on standard
+*   **Minimal dependencies**. Blackfriday only depends on standard
     library packages in Go. The source code is pretty
-    self-contained, so it is easy to add to any project.
+    self-contained, so it is easy to add to any project, including
+    Google App Engine projects.
 
-*   Output successfully validates using the W3C validation tool for
-    HTML 4.01 and XHTML 1.0 Transitional.
+*   **Standards compliant**. Output successfully validates using the
+    W3C validation tool for HTML 4.01 and XHTML 1.0 Transitional.
 
 
 Extensions
 ----------
 
-In addition to the extensions offered by upskirt, this package
-implements two additional Smartypants options:
+In addition to the standard markdown syntax, this package
+implements the following extensions:
 
-*   LaTeX-style dash parsing, where `--` is translated into
-    `&ndash;`, and `---` is translated into `&mdash;`
-*   Generic fractions, where anything that looks like a fraction is
-    translated into suitable HTML (instead of just a few special
-    cases).  For example, `4/5` becomes
-    `<sup>4</sup>&frasl;<sub>5</sub>`, which renders as
+*   **Intra-word emphasis supression**. The `_` character is
+    commonly used inside words when discussing code, so having
+    markdown interpret it as an emphasis command is usually the
+    wrong thing. Blackfriday lets you treat all emphasis markers as
+    normal characters when they occur inside a word.
+
+*   **Tables**. Tables can be created using a simple syntax:
+
+        Name    | Age
+        --------|------
+        Bob     | 27
+        Alice   | 23
+
+*   **Fenced code blocks**. In addition to the normal 4-space
+    indentation to mark code blocks, you can explicitly mark them
+    and supply a language (to make syntax highlighting simple). Just
+    mark it like this:
+
+        ``` go
+        func getTrue() bool {
+            return true
+        }
+        ```
+
+    You can use 3 or more backticks to mark the beginning of the
+    block, and the same number to mark the end of the block.
+
+*   **Autolinking**. Blackfriday can find URLs that have not been
+    explicitly marked as links and turn them into links.
+
+*   **Strikethrough**. Use two tildes (`~~`) to mark text that
+    should be crossed out.
+
+*   **Hard line breaks**. With this extension enabled (it is off by
+    default in the `MarkdownBasic` and `MarkdownCommon` convenience
+    functions), newlines in the input translate into line breaks in
+    the output.
+
+*   **Smart quotes**. Smartypants-style punctuation substitution is
+    supported, turning normal double- and single-quote marks into
+    curly quotes, etc.
+
+*   **LaTeX-style dash parsing** is an additional option, where `--`
+    is translated into `&ndash;`, and `---` is translated into
+    `&mdash;`. This differs from most smartypants processors, which
+    turn a single hyphen into an ndash and a double hyphen into an
+    mdash.
+
+*   **Smart fractions**, where anything that looks like a fraction
+    is translated into suitable HTML (instead of just a few special
+    cases like most smartypant processors). For example, `4/5`
+    becomes `<sup>4</sup>&frasl;<sub>5</sub>`, which renders as
     <sup>4</sup>&frasl;<sub>5</sub>.
 
 
