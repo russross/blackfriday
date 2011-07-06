@@ -98,7 +98,8 @@ implements the following extensions:
     wrong thing. Blackfriday lets you treat all emphasis markers as
     normal characters when they occur inside a word.
 
-*   **Tables**. Tables can be created using a simple syntax:
+*   **Tables**. Tables can be created by drawing them in the input
+    using a simple syntax:
 
         Name    | Age
         --------|------
