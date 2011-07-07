@@ -38,6 +38,9 @@ const (
 	HTML_SMARTYPANTS_LATEX_DASHES
 )
 
+// Html is a type that implements the Renderer interface for HTML output.
+//
+// Do not create this directly, instead use the HtmlRenderer function.
 type Html struct {
 	flags    int    // HTML_* options
 	closeTag string // how to end singleton tags: either " />\n" or ">\n"
@@ -50,7 +53,7 @@ type Html struct {
 	currentLevel int
 	toc          *bytes.Buffer
 
-	smartypants *SmartypantsRenderer
+	smartypants *smartypantsRenderer
 }
 
 const (
@@ -58,6 +61,13 @@ const (
 	htmlClose  = ">\n"
 )
 
+// HtmlRenderer creates and configures an Html object, which
+// satisfies the Renderer interface.
+//
+// flags is a set of HTML_* options ORed together.
+// title is the title of the document, and css is a URL for the document's
+// stylesheet.
+// title and css are only used when HTML_COMPLETE_PAGE is selected.
 func HtmlRenderer(flags int, title string, css string) Renderer {
 	// configure the rendering engine
 	closeTag := htmlClose
@@ -75,7 +85,7 @@ func HtmlRenderer(flags int, title string, css string) Renderer {
 		currentLevel: 0,
 		toc:          new(bytes.Buffer),
 
-		smartypants: Smartypants(flags),
+		smartypants: smartypants(flags),
 	}
 }
 

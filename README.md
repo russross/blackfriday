@@ -164,8 +164,6 @@ Todo
 ----
 
 *   More unit testing
-*   Code cleanup
-*   Better code documentation
 *   Markdown pretty-printer output engine
 *   Improve unicode support. It does not understand all unicode
     rules (about what constitutes a letter, a punctuation symbol,

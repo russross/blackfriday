@@ -19,10 +19,18 @@ import (
 	"bytes"
 )
 
+// Latex is a type that implements the Renderer interface for LaTeX output.
+//
+// Do not create this directly, instead use the LatexRenderer function.
 type Latex struct {
 
 }
 
+// LatexRenderer creates and configures a Latex object, which
+// satisfies the Renderer interface.
+//
+// flags is a set of LATEX_* options ORed together (currently no such options
+// are defined).
 func LatexRenderer(flags int) Renderer {
 	return &Latex{}
 }

@@ -45,7 +45,7 @@ const (
 	LINK_TYPE_EMAIL
 )
 
-// These are the possible flag values for the listitem renderer.
+// These are the possible flag values for the ListItem renderer.
 // Multiple flag values may be ORed together.
 // These are mostly of interest if you are writing a new output format.
 const (
@@ -97,8 +97,17 @@ var blockTags = map[string]bool{
 	"blockquote": true,
 }
 
-// This interface defines the rendering interface.
+// Renderer is the rendering interface.
 // This is mostly of interest if you are implementing a new rendering format.
+//
+// When a byte slice is provided, it contains the (rendered) contents of the
+// element.
+//
+// When a callback is provided instead, it will write the contents of the
+// respective element directly to the output buffer and return true on success.
+// If the callback returns false, the rendering function should reset the
+// output buffer as though it had never been called.
+//
 // Currently Html and Latex implementations are provided
 type Renderer interface {
 	// block-level callbacks
@@ -137,12 +146,11 @@ type Renderer interface {
 
 // Callback functions for inline parsing. One such function is defined
 // for each character that triggers a response when parsing inline data.
-type inlineParser func(parser *Parser, out *bytes.Buffer, data []byte, offset int) int
+type inlineParser func(p *parser, out *bytes.Buffer, data []byte, offset int) int
 
-// The main parser object.
-// This is constructed by the Markdown function and
-// contains state used during the parsing process.
-type Parser struct {
+// Parser holds runtime state used by the parser.
+// This is constructed by the Markdown function.
+type parser struct {
 	r              Renderer
 	refs           map[string]*reference
 	inlineCallback [256]inlineParser
@@ -159,7 +167,8 @@ type Parser struct {
 //
 //
 
-// Call Markdown with no extensions
+// MarkdownBasic is a convenience function for simple rendering.
+// It processes markdown input with no extensions enabled.
 func MarkdownBasic(input []byte) []byte {
 	// set up the HTML renderer
 	htmlFlags := HTML_USE_XHTML
@@ -172,6 +181,22 @@ func MarkdownBasic(input []byte) []byte {
 }
 
 // Call Markdown with most useful extensions enabled
+// MarkdownCommon is a convenience function for simple rendering.
+// It processes markdown input with common extensions enabled, including:
+//
+// * Smartypants processing with smart fractions and LaTeX dashes
+//
+// * Intra-word emphasis supression
+//
+// * Tables
+//
+// * Fenced code blocks
+//
+// * Autolinking
+//
+// * Strikethrough support
+//
+// * Strict header parsing
 func MarkdownCommon(input []byte) []byte {
 	// set up the HTML renderer
 	htmlFlags := 0
@@ -193,9 +218,13 @@ func MarkdownCommon(input []byte) []byte {
 	return Markdown(input, renderer, extensions)
 }
 
-// Parse and render a block of markdown-encoded text.
-// The renderer is used to format the output, and extensions dictates which
-// non-standard extensions are enabled.
+// Markdown is the main rendering function.
+// It parses and renders a block of markdown-encoded text.
+// The supplied Renderer is used to format the output, and extensions dictates
+// which non-standard extensions are enabled.
+//
+// To use the supplied Html or LaTeX renderers, see HtmlRenderer and
+// LatexRenderer, respectively.
 func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	// no point in parsing if we can't render
 	if renderer == nil {
@@ -203,32 +232,32 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	}
 
 	// fill in the render structure
-	parser := new(Parser)
-	parser.r = renderer
-	parser.flags = extensions
-	parser.refs = make(map[string]*reference)
-	parser.maxNesting = 16
-	parser.insideLink = false
+	p := new(parser)
+	p.r = renderer
+	p.flags = extensions
+	p.refs = make(map[string]*reference)
+	p.maxNesting = 16
+	p.insideLink = false
 
 	// register inline parsers
-	parser.inlineCallback['*'] = emphasis
-	parser.inlineCallback['_'] = emphasis
+	p.inlineCallback['*'] = emphasis
+	p.inlineCallback['_'] = emphasis
 	if extensions&EXTENSION_STRIKETHROUGH != 0 {
-		parser.inlineCallback['~'] = emphasis
+		p.inlineCallback['~'] = emphasis
 	}
-	parser.inlineCallback['`'] = codeSpan
-	parser.inlineCallback['\n'] = lineBreak
-	parser.inlineCallback['['] = link
-	parser.inlineCallback['<'] = leftAngle
-	parser.inlineCallback['\\'] = escape
-	parser.inlineCallback['&'] = entity
+	p.inlineCallback['`'] = codeSpan
+	p.inlineCallback['\n'] = lineBreak
+	p.inlineCallback['['] = link
+	p.inlineCallback['<'] = leftAngle
+	p.inlineCallback['\\'] = escape
+	p.inlineCallback['&'] = entity
 
 	if extensions&EXTENSION_AUTOLINK != 0 {
-		parser.inlineCallback[':'] = autoLink
+		p.inlineCallback[':'] = autoLink
 	}
 
-	first := firstPass(parser, input)
-	second := secondPass(parser, first)
+	first := firstPass(p, input)
+	second := secondPass(p, first)
 
 	return second
 }
@@ -238,15 +267,15 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 // - expand tabs
 // - normalize newlines
 // - copy everything else
-func firstPass(parser *Parser, input []byte) []byte {
+func firstPass(p *parser, input []byte) []byte {
 	var out bytes.Buffer
 	tabSize := TAB_SIZE_DEFAULT
-	if parser.flags&EXTENSION_TAB_SIZE_EIGHT != 0 {
+	if p.flags&EXTENSION_TAB_SIZE_EIGHT != 0 {
 		tabSize = TAB_SIZE_EIGHT
 	}
 	beg, end := 0, 0
 	for beg < len(input) { // iterate over lines
-		if end = isReference(parser, input[beg:]); end > 0 {
+		if end = isReference(p, input[beg:]); end > 0 {
 			beg += end
 		} else { // skip to the next line
 			end = beg
@@ -280,14 +309,14 @@ func firstPass(parser *Parser, input []byte) []byte {
 }
 
 // second pass: actual rendering
-func secondPass(parser *Parser, input []byte) []byte {
+func secondPass(p *parser, input []byte) []byte {
 	var output bytes.Buffer
 
-	parser.r.DocumentHeader(&output)
-	parser.block(&output, input)
-	parser.r.DocumentFooter(&output)
+	p.r.DocumentHeader(&output)
+	p.block(&output, input)
+	p.r.DocumentFooter(&output)
 
-	if parser.nesting != 0 {
+	if p.nesting != 0 {
 		panic("Nesting level did not end at zero")
 	}
 
@@ -321,7 +350,7 @@ type reference struct {
 // (in the render struct).
 // Returns the number of bytes to skip to move past it,
 // or zero if the first line is not a reference.
-func isReference(parser *Parser, data []byte) int {
+func isReference(p *parser, data []byte) int {
 	// up to 3 optional leading spaces
 	if len(data) < 4 {
 		return 0
@@ -437,13 +466,10 @@ func isReference(parser *Parser, data []byte) int {
 	}
 
 	// a valid ref has been found
-	if parser == nil {
-		return lineEnd
-	}
 
 	// id matches are case-insensitive
 	id := string(bytes.ToLower(data[idOffset:idEnd]))
-	parser.refs[id] = &reference{
+	p.refs[id] = &reference{
 		link:  data[linkOffset:linkEnd],
 		title: data[titleOffset:titleEnd],
 	}

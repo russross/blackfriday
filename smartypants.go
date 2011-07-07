@@ -343,10 +343,10 @@ func smartLeftAngle(out *bytes.Buffer, smrt *smartypantsData, previousChar byte,
 
 type smartCallback func(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int
 
-type SmartypantsRenderer [256]smartCallback
+type smartypantsRenderer [256]smartCallback
 
-func Smartypants(flags int) *SmartypantsRenderer {
-	r := new(SmartypantsRenderer)
+func smartypants(flags int) *smartypantsRenderer {
+	r := new(smartypantsRenderer)
 	r['"'] = smartDoubleQuote
 	r['&'] = smartAmp
 	r['\''] = smartSingleQuote
