@@ -13,6 +13,9 @@
 //
 //
 
+// Blackfriday markdown processor.
+//
+// Translates plain text with simple formatting rules into HTML or LaTeX.
 package blackfriday
 
 import (
@@ -25,15 +28,15 @@ const VERSION = "0.6"
 // These are the supported markdown parsing extensions.
 // OR these values together to select multiple extensions.
 const (
-	EXTENSION_NO_INTRA_EMPHASIS = 1 << iota
-	EXTENSION_TABLES
-	EXTENSION_FENCED_CODE
-	EXTENSION_AUTOLINK
-	EXTENSION_STRIKETHROUGH
-	EXTENSION_LAX_HTML_BLOCKS
-	EXTENSION_SPACE_HEADERS
-	EXTENSION_HARD_LINE_BREAK
-	EXTENSION_TAB_SIZE_EIGHT
+	EXTENSION_NO_INTRA_EMPHASIS = 1 << iota // ignore emphasis markers inside words
+	EXTENSION_TABLES                        // render tables
+	EXTENSION_FENCED_CODE                   // render fenced code blocks
+	EXTENSION_AUTOLINK                      // detect embedded URLs that are not explicitly marked
+	EXTENSION_STRIKETHROUGH                 // strikethrough text using ~~test~~
+	EXTENSION_LAX_HTML_BLOCKS               // loosen up HTML block parsing rules
+	EXTENSION_SPACE_HEADERS                 // be strict about prefix header rules
+	EXTENSION_HARD_LINE_BREAK               // translate newlines into line breaks
+	EXTENSION_TAB_SIZE_EIGHT                // expand tabs to eight spaces instead of four
 )
 
 // These are the possible flag values for the link renderer.

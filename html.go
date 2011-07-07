@@ -22,20 +22,21 @@ import (
 	"strings"
 )
 
+// Html renderer configuration options.
 const (
-	HTML_SKIP_HTML = 1 << iota
-	HTML_SKIP_STYLE
-	HTML_SKIP_IMAGES
-	HTML_SKIP_LINKS
-	HTML_SAFELINK
-	HTML_TOC
-	HTML_OMIT_CONTENTS
-	HTML_COMPLETE_PAGE
-	HTML_GITHUB_BLOCKCODE
-	HTML_USE_XHTML
-	HTML_USE_SMARTYPANTS
-	HTML_SMARTYPANTS_FRACTIONS
-	HTML_SMARTYPANTS_LATEX_DASHES
+	HTML_SKIP_HTML                = 1 << iota // skip preformatted HTML blocks
+	HTML_SKIP_STYLE                           // skip embedded <style> elements
+	HTML_SKIP_IMAGES                          // skip embedded images
+	HTML_SKIP_LINKS                           // skip all links
+	HTML_SAFELINK                             // only link to trusted protocols
+	HTML_TOC                                  // generate a table of contents
+	HTML_OMIT_CONTENTS                        // skip the main contents (for a standalone table of contents)
+	HTML_COMPLETE_PAGE                        // generate a complete HTML page
+	HTML_GITHUB_BLOCKCODE                     // use github fenced code rendering rules
+	HTML_USE_XHTML                            // generate XHTML output instead of HTML
+	HTML_USE_SMARTYPANTS                      // enable smart punctuation substitutions
+	HTML_SMARTYPANTS_FRACTIONS                // enable smart fractions (with HTML_USE_SMARTYPANTS)
+	HTML_SMARTYPANTS_LATEX_DASHES             // enable LaTeX-style dashes (with HTML_USE_SMARTYPANTS)
 )
 
 // Html is a type that implements the Renderer interface for HTML output.
