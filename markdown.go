@@ -23,7 +23,7 @@ import (
 	"utf8"
 )
 
-const VERSION = "0.6"
+const VERSION = "1.0"
 
 // These are the supported markdown parsing extensions.
 // OR these values together to select multiple extensions.
