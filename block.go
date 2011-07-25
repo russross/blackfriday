@@ -770,7 +770,7 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int) {
 		i++
 	}
 
-	for col = 0; col < len(columns) && data[i] != '\n'; col++ {
+	for col = 0; col < len(columns) && i < len(data); col++ {
 		for data[i] == ' ' {
 			i++
 		}
@@ -782,6 +782,8 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int) {
 		}
 
 		cellEnd := i
+
+		// skip the end-of-cell marker, possibly taking us past end of buffer
 		i++
 
 		for cellEnd > cellStart && data[cellEnd-1] == ' ' {
