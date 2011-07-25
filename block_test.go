@@ -642,3 +642,47 @@ func TestFencedCodeBlock(t *testing.T) {
 	}
 	doTestsBlock(t, tests, EXTENSION_FENCED_CODE)
 }
+
+func TestTable(t *testing.T) {
+	var tests = []string{
+		"a | b\n---|---\nc | d\n",
+		"<table>\n<thead>\n<tr>\n<td>a</td>\n<td>b</td>\n</tr>\n</thead>\n\n" +
+			"<tbody>\n<tr>\n<td>c</td>\n<td>d</td>\n</tr>\n</tbody>\n</table>\n",
+
+		"a | b\n---|--\nc | d\n",
+		"<p>a | b\n---|--\nc | d</p>\n",
+
+		"|a|b|c|d|\n|----|----|----|---|\n|e|f|g|h|\n",
+		"<table>\n<thead>\n<tr>\n<td>a</td>\n<td>b</td>\n<td>c</td>\n<td>d</td>\n</tr>\n</thead>\n\n" +
+			"<tbody>\n<tr>\n<td>e</td>\n<td>f</td>\n<td>g</td>\n<td>h</td>\n</tr>\n</tbody>\n</table>\n",
+
+		"*a*|__b__|[c](C)|d\n---|---|---|---\ne|f|g|h\n",
+		"<table>\n<thead>\n<tr>\n<td><em>a</em></td>\n<td><strong>b</strong></td>\n<td><a href=\"C\">c</a></td>\n<td>d</td>\n</tr>\n</thead>\n\n" +
+			"<tbody>\n<tr>\n<td>e</td>\n<td>f</td>\n<td>g</td>\n<td>h</td>\n</tr>\n</tbody>\n</table>\n",
+
+		"a|b|c\n---|---|---\nd|e|f\ng|h\ni|j|k|l|m\nn|o|p\n",
+		"<table>\n<thead>\n<tr>\n<td>a</td>\n<td>b</td>\n<td>c</td>\n</tr>\n</thead>\n\n" +
+			"<tbody>\n<tr>\n<td>d</td>\n<td>e</td>\n<td>f</td>\n</tr>\n\n" +
+			"<tr>\n<td>g</td>\n<td>h</td>\n<td></td>\n</tr>\n\n" +
+			"<tr>\n<td>i</td>\n<td>j</td>\n<td>k</td>\n</tr>\n\n" +
+			"<tr>\n<td>n</td>\n<td>o</td>\n<td>p</td>\n</tr>\n</tbody>\n</table>\n",
+
+		"a|b|c\n---|---|---\n*d*|__e__|f\n",
+		"<table>\n<thead>\n<tr>\n<td>a</td>\n<td>b</td>\n<td>c</td>\n</tr>\n</thead>\n\n" +
+			"<tbody>\n<tr>\n<td><em>d</em></td>\n<td><strong>e</strong></td>\n<td>f</td>\n</tr>\n</tbody>\n</table>\n",
+
+		"a|b|c|d\n:--|--:|:-:|---\ne|f|g|h\n",
+		"<table>\n<thead>\n<tr>\n<td align=\"left\">a</td>\n<td align=\"right\">b</td>\n" +
+			"<td align=\"center\">c</td>\n<td>d</td>\n</tr>\n</thead>\n\n" +
+			"<tbody>\n<tr>\n<td align=\"left\">e</td>\n<td align=\"right\">f</td>\n" +
+			"<td align=\"center\">g</td>\n<td>h</td>\n</tr>\n</tbody>\n</table>\n",
+
+		"a|b|c\n---|---|---\n",
+		"<table>\n<thead>\n<tr>\n<td>a</td>\n<td>b</td>\n<td>c</td>\n</tr>\n</thead>\n\n<tbody>\n</tbody>\n</table>\n",
+
+		"a| b|c | d | e\n---|---|---|---|---\nf| g|h | i |j\n",
+		"<table>\n<thead>\n<tr>\n<td>a</td>\n<td>b</td>\n<td>c</td>\n<td>d</td>\n<td>e</td>\n</tr>\n</thead>\n\n" +
+			"<tbody>\n<tr>\n<td>f</td>\n<td>g</td>\n<td>h</td>\n<td>i</td>\n<td>j</td>\n</tr>\n</tbody>\n</table>\n",
+	}
+	doTestsBlock(t, tests, EXTENSION_TABLES)
+}

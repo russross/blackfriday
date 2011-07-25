@@ -740,6 +740,11 @@ func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns 
 				i++
 			}
 
+			// trailing junk found after last column
+			if col >= colCount && data[i] != '\n' {
+				return
+			}
+
 		case data[i] != '|' && col+1 < colCount:
 			// something else found where marker was required
 			return
