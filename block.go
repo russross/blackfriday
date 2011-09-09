@@ -1079,10 +1079,16 @@ gatherlines:
 			*flags |= LIST_ITEM_CONTAINS_BLOCK
 		}
 
-		containsBlankLine = false
+		// if this line was preceeded by one or more blanks,
+		// re-introduce the blank into the buffer
+		if containsBlankLine {
+			containsBlankLine = false
+			raw.WriteByte('\n')
+		}
 
 		// add the line into the working buffer without prefix
 		raw.Write(data[line+indent : i])
+
 		line = i
 	}
 
