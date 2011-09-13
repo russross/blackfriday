@@ -686,6 +686,9 @@ func TestTable(t *testing.T) {
 		"a| b|c | d | e\n---|---|---|---|---\nf| g|h | i |j\n",
 		"<table>\n<thead>\n<tr>\n<td>a</td>\n<td>b</td>\n<td>c</td>\n<td>d</td>\n<td>e</td>\n</tr>\n</thead>\n\n" +
 			"<tbody>\n<tr>\n<td>f</td>\n<td>g</td>\n<td>h</td>\n<td>i</td>\n<td>j</td>\n</tr>\n</tbody>\n</table>\n",
+
+		"a|b\\|c|d\n---|---|---\nf|g\\|h|i\n",
+		"<table>\n<thead>\n<tr>\n<td>a</td>\n<td>b|c</td>\n<td>d</td>\n</tr>\n</thead>\n\n<tbody>\n<tr>\n<td>f</td>\n<td>g|h</td>\n<td>i</td>\n</tr>\n</tbody>\n</table>\n",
 	}
 	doTestsBlock(t, tests, EXTENSION_TABLES)
 }

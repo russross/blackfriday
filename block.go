@@ -662,11 +662,20 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 	return i
 }
 
+// check if the specified position is preceeded by an odd number of backslashes
+func isBackslashEscaped(data []byte, i int) bool {
+	backslashes := 0
+	for i-backslashes-1 >= 0 && data[i-backslashes-1] == '\\' {
+		backslashes++
+	}
+	return backslashes&1 == 1
+}
+
 func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns []int) {
 	i := 0
 	colCount := 1
 	for i = 0; data[i] != '\n'; i++ {
-		if data[i] == '|' {
+		if data[i] == '|' && !isBackslashEscaped(data, i) {
 			colCount++
 		}
 	}
@@ -683,7 +692,7 @@ func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns 
 	if data[0] == '|' {
 		colCount--
 	}
-	if i > 2 && data[i-1] == '|' {
+	if i > 2 && data[i-1] == '|' && !isBackslashEscaped(data, i-1) {
 		colCount--
 	}
 
@@ -695,7 +704,7 @@ func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns 
 		return
 	}
 
-	if data[i] == '|' {
+	if data[i] == '|' && !isBackslashEscaped(data, i) {
 		i++
 	}
 	for data[i] == ' ' {
@@ -732,7 +741,7 @@ func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns 
 			// not a valid column
 			return
 
-		case data[i] == '|':
+		case data[i] == '|' && !isBackslashEscaped(data, i):
 			// marker found, now skip past trailing whitespace
 			col++
 			i++
@@ -745,7 +754,7 @@ func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns 
 				return
 			}
 
-		case data[i] != '|' && col+1 < colCount:
+		case (data[i] != '|' || isBackslashEscaped(data, i)) && col+1 < colCount:
 			// something else found where marker was required
 			return
 
@@ -771,7 +780,7 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int) {
 	i, col := 0, 0
 	var rowWork bytes.Buffer
 
-	if data[i] == '|' {
+	if data[i] == '|' && !isBackslashEscaped(data, i) {
 		i++
 	}
 
@@ -782,7 +791,7 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int) {
 
 		cellStart := i
 
-		for data[i] != '|' && data[i] != '\n' {
+		for (data[i] != '|' || isBackslashEscaped(data, i)) && data[i] != '\n' {
 			i++
 		}
 
