@@ -25,8 +25,10 @@ import (
 // Html renderer configuration options.
 const (
 	HTML_SKIP_HTML                = 1 << iota // skip preformatted HTML blocks
+    HTML_ESCAPE_HTML                          // escape embedded HTML               -bmatsuo
 	HTML_SKIP_STYLE                           // skip embedded <style> elements
 	HTML_SKIP_IMAGES                          // skip embedded images
+    HTML_LINK_IMAGES                          // replace embedded images with links -bmatsuo
 	HTML_SKIP_LINKS                           // skip all links
 	HTML_SAFELINK                             // only link to trusted protocols
 	HTML_TOC                                  // generate a table of contents
@@ -167,7 +169,11 @@ func (options *Html) BlockHtml(out *bytes.Buffer, text []byte) {
 	}
 
 	doubleSpace(out)
-	out.Write(text)
+    if options.flags&HTML_ESCAPE_HTML != 0 {
+        attrEscape(out, text)
+    } else {
+	    out.Write(text)
+    }
 	out.WriteByte('\n')
 }
 
@@ -400,6 +406,16 @@ func (options *Html) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 		return
 	}
 
+    if options.flags&HTML_LINK_IMAGES != 0 {
+        out.WriteString(`<a href="`)
+        attrEscape(out, link)
+        out.WriteString(`">`)
+        if len(title) > 0 {
+            attrEscape(out, title)
+        }
+        return
+    }
+
 	out.WriteString("<img src=\"")
 	attrEscape(out, link)
 	out.WriteString("\" alt=\"")
@@ -454,6 +470,10 @@ func (options *Html) RawHtmlTag(out *bytes.Buffer, text []byte) {
 	if options.flags&HTML_SKIP_HTML != 0 {
 		return
 	}
+    if options.flags&HTML_ESCAPE_HTML != 0 {
+        attrEscape(out, text)
+        return
+    }
 	if options.flags&HTML_SKIP_STYLE != 0 && isHtmlTag(text, "style") {
 		return
 	}
