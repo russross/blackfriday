@@ -409,10 +409,13 @@ func (options *Html) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 		out.WriteString(`<a href="`)
 		attrEscape(out, link)
 		out.WriteString(`">`)
-		if len(title) > 0 {
+		switch {
+		case len(title) > 0:
 			attrEscape(out, title)
-		} else if len(alt) > 0 {
+		case len(alt) > 0:
 			attrEscape(out, alt)
+		default:
+			attrEscape(out, link)
 		}
 		out.WriteString("</a>")
 		return
