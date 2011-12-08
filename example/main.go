@@ -42,7 +42,7 @@ func main() {
 		"Use XHTML-style tags in HTML output")
 	flag.BoolVar(&htmlesc, "htmlesc", false,
 		"Escape html tags within source text.")
-	flag.BoolVar(&imglink, "imglink", true,
+	flag.BoolVar(&imglink, "imglink", false,
 		"Replace embedded images with links to the images.")
 	flag.BoolVar(&latex, "latex", false,
 		"Generate LaTeX output instead of HTML")
