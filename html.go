@@ -406,17 +406,20 @@ func (options *Html) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 	}
 
 	if options.flags&HTML_LINK_IMAGES != 0 {
-		out.WriteString(`<a href="`)
-		attrEscape(out, link)
-		out.WriteString(`">`)
+		title := title
 		switch {
 		case len(title) > 0:
-			attrEscape(out, title)
 		case len(alt) > 0:
-			attrEscape(out, alt)
+			title = alt
 		default:
-			attrEscape(out, link)
+			title = link
 		}
+		out.WriteString(`<a href="`)
+		attrEscape(out, link)
+		out.WriteString(`" title="`)
+		attrEscape(out, title)
+		out.WriteString(`">`)
+		attrEscape(out, title)
 		out.WriteString("</a>")
 		return
 	}
