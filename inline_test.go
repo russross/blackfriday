@@ -17,12 +17,10 @@ import (
 	"testing"
 )
 
-func runMarkdownInline(input string) string {
-	extensions := 0
+func runMarkdownInlineCustom(input string, extensions, htmlFlags int) string {
 	extensions |= EXTENSION_AUTOLINK
 	extensions |= EXTENSION_STRIKETHROUGH
 
-	htmlFlags := 0
 	htmlFlags |= HTML_USE_XHTML
 
 	renderer := HtmlRenderer(htmlFlags, "", "")
@@ -30,7 +28,15 @@ func runMarkdownInline(input string) string {
 	return string(Markdown([]byte(input), renderer, extensions))
 }
 
-func doTestsInline(t *testing.T, tests []string) {
+func runMarkdownInlineEscapeHTML(input string) string {
+	return runMarkdownInlineCustom(input, 0, HTML_ESCAPE_HTML)
+}
+
+func runMarkdownInline(input string) string {
+	return runMarkdownInlineCustom(input, 0, 0)
+}
+
+func doTestsInlineCustom(t *testing.T, tests []string, extensions, htmlFlags int) {
 	// catch and report panics
 	var candidate string
 	defer func() {
@@ -43,7 +49,7 @@ func doTestsInline(t *testing.T, tests []string) {
 		input := tests[i]
 		candidate = input
 		expected := tests[i+1]
-		actual := runMarkdownInline(candidate)
+		actual := runMarkdownInlineCustom(candidate, extensions, htmlFlags)
 		if actual != expected {
 			t.Errorf("\nInput   [%#v]\nExpected[%#v]\nActual  [%#v]",
 				candidate, expected, actual)
@@ -54,11 +60,15 @@ func doTestsInline(t *testing.T, tests []string) {
 			for start := 0; start < len(input); start++ {
 				for end := start + 1; end <= len(input); end++ {
 					candidate = input[start:end]
-					_ = runMarkdownInline(candidate)
+					_ = runMarkdownInlineCustom(candidate, extensions, htmlFlags)
 				}
 			}
 		}
 	}
+}
+
+func doTestsInline(t *testing.T, tests []string) {
+	doTestsInlineCustom(t, tests, 0, 0)
 }
 
 func TestEmphasis(t *testing.T) {
@@ -463,4 +473,21 @@ func TestAutoLink(t *testing.T) {
 			"http://new.com?q=&gt;&amp;etc</a></p>\n",
 	}
 	doTestsInline(t, tests)
+}
+
+func TestTagsEscapeHTML(t *testing.T) {
+	var tests = []string{
+		"a <span>tag</span>\n",
+		"<p>a &lt;span&gt;tag&lt;/span&gt;</p>\n",
+
+		"<span>tag</span>\n",
+		"<p>&lt;span&gt;tag&lt;/span&gt;</p>\n",
+
+		"<span>mismatch</spandex>\n",
+		"<p>&lt;span&gt;mismatch&lt;/spandex&gt;</p>\n",
+
+		"a <singleton /> tag\n",
+		"<p>a &lt;singleton /&gt; tag</p>\n",
+	}
+	doTestsInlineCustom(t, tests, 0, HTML_ESCAPE_HTML)
 }
