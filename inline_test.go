@@ -28,10 +28,6 @@ func runMarkdownInlineCustom(input string, extensions, htmlFlags int) string {
 	return string(Markdown([]byte(input), renderer, extensions))
 }
 
-func runMarkdownInlineEscapeHTML(input string) string {
-	return runMarkdownInlineCustom(input, 0, HTML_ESCAPE_HTML)
-}
-
 func runMarkdownInline(input string) string {
 	return runMarkdownInlineCustom(input, 0, 0)
 }
@@ -380,6 +376,29 @@ func TestInlineLink(t *testing.T) {
 		"<p><a href=\"/url/&amp;query\">link</a></p>\n",
 	}
 	doTestsInline(t, tests)
+}
+
+func TestInlineLinkedImage(t *testing.T) {
+	var tests = []string{
+		"![foo](/bar/)\n",
+		"<p><a href=\"/bar/\" title=\"foo\">foo</a>\n</p>\n",
+
+		"![foo with a title](/bar/ \"title\")\n",
+		"<p><a href=\"/bar/\" title=\"title\">title</a>\n</p>\n",
+
+		"![foo with a title](/bar/\t\"title\")\n",
+		"<p><a href=\"/bar/\" title=\"title\">title</a>\n</p>\n",
+
+		"![foo with a title](/bar/ \"title\"  )\n",
+		"<p><a href=\"/bar/\" title=\"title\">title</a>\n</p>\n",
+
+		"![foo with a title](/bar/ title with no quotes)\n",
+		"<p><a href=\"/bar/ title with no quotes\" title=\"foo with a title\">foo with a title</a>\n</p>\n",
+
+		"![foo]()\n",
+		"<p>![foo]()</p>\n",
+	}
+	doTestsInlineCustom(t, tests, 0, HTML_LINK_IMAGES)
 }
 
 func TestReferenceLink(t *testing.T) {

@@ -420,7 +420,8 @@ func (options *Html) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 		attrEscape(out, title)
 		out.WriteString(`">`)
 		attrEscape(out, title)
-		out.WriteString("</a>")
+		out.WriteString("</a")
+		out.WriteString(htmlClose)
 		return
 	}
 
