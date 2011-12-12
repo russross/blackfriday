@@ -29,7 +29,7 @@ const DEFAULT_TITLE = ""
 
 func main() {
 	// parse command-line options
-	var page, toc, toconly, xhtml, latex, smartypants, latexdashes, fractions, htmlesc, imglink bool
+	var page, toc, toconly, xhtml, latex, smartypants, latexdashes, fractions, htmlesc, img2link bool
 	var css, cpuprofile string
 	var repeat int
 	flag.BoolVar(&page, "page", false,
@@ -42,7 +42,7 @@ func main() {
 		"Use XHTML-style tags in HTML output")
 	flag.BoolVar(&htmlesc, "htmlesc", false,
 		"Escape html tags within source text.")
-	flag.BoolVar(&imglink, "imglink", false,
+	flag.BoolVar(&img2link, "img2link", false,
 		"Replace embedded images with links to the images.")
 	flag.BoolVar(&latex, "latex", false,
 		"Generate LaTeX output instead of HTML")
@@ -147,8 +147,8 @@ func main() {
 		if htmlesc {
 			htmlFlags |= blackfriday.HTML_ESCAPE_HTML
 		}
-		if imglink {
-			htmlFlags |= blackfriday.HTML_LINK_IMAGES
+		if img2link {
+			htmlFlags |= blackfriday.HTML_REPLACE_IMAGES
 		}
 		title := ""
 		if page {
