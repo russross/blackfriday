@@ -28,7 +28,7 @@ const (
 	HTML_ESCAPE_HTML                          // escape embedded HTML
 	HTML_SKIP_STYLE                           // skip embedded <style> elements
 	HTML_SKIP_IMAGES                          // skip embedded images
-	HTML_LINK_IMAGES                          // replace embedded images with links
+	HTML_REPLACE_IMAGES                       // replace embedded images with links
 	HTML_SKIP_LINKS                           // skip all links
 	HTML_SAFELINK                             // only link to trusted protocols
 	HTML_TOC                                  // generate a table of contents
@@ -405,7 +405,7 @@ func (options *Html) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 		return
 	}
 
-	if options.flags&HTML_LINK_IMAGES != 0 {
+	if options.flags&HTML_REPLACE_IMAGES != 0 {
 		title := title
 		switch {
 		case len(title) > 0:

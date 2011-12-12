@@ -398,7 +398,7 @@ func TestInlineLinkedImage(t *testing.T) {
 		"![foo]()\n",
 		"<p>![foo]()</p>\n",
 	}
-	doTestsInlineCustom(t, tests, 0, HTML_LINK_IMAGES)
+	doTestsInlineCustom(t, tests, 0, HTML_REPLACE_IMAGES)
 }
 
 func TestReferenceLink(t *testing.T) {
