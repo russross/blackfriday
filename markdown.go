@@ -20,7 +20,7 @@ package blackfriday
 
 import (
 	"bytes"
-	"utf8"
+	"unicode/utf8"
 )
 
 const VERSION = "1.1"
@@ -162,7 +162,6 @@ type parser struct {
 	maxNesting     int
 	insideLink     bool
 }
-
 
 //
 //
@@ -326,7 +325,6 @@ func secondPass(p *parser, input []byte) []byte {
 	return output.Bytes()
 }
 
-
 //
 // Link references
 //
@@ -480,13 +478,11 @@ func isReference(p *parser, data []byte) int {
 	return lineEnd
 }
 
-
 //
 //
 // Miscellaneous helper functions
 //
 //
-
 
 // Test if a character is a punctuation symbol.
 // Taken from a private function in regexp in the stdlib.
