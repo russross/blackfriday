@@ -18,10 +18,7 @@ Installation
 
 Assuming you have recent version of Go installed, along with git:
 
-    goinstall github.com/russross/blackfriday
-
-will download, compile, and install the package into
-`$GOROOT/src/pkg/github.com/russross/blackfriday`.
+    go get -u github.com/russross/blackfriday
 
 For basic usage, it is as simple as getting your input into a byte
 slice and calling:
