@@ -18,6 +18,7 @@ Installation
 
 Assuming you have recent version of Go installed, along with git:
 
+    go get github.com/russross/blackfriday
     go install github.com/russross/blackfriday
 
 will download, compile, and install the package into
