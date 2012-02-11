@@ -18,7 +18,7 @@ Installation
 
 Assuming you have recent version of Go installed, along with git:
 
-    goinstall github.com/russross/blackfriday
+    go install github.com/russross/blackfriday
 
 will download, compile, and install the package into
 `$GOROOT/src/pkg/github.com/russross/blackfriday`.
@@ -40,11 +40,11 @@ implementations of `MarkdownBasic` and `MarkdownCommon` in
 `markdown.go`.
 
 You can also check out `example/main.go` for a more complete example
-of how to use it. Run `gomake` in that directory to build a simple
+of how to use it. Run `go build` in that directory to build a simple
 command-line markdown tool:
 
     cd $GOROOT/src/pkg/github.com/russross/blackfriday/example
-    gomake
+    go build
 
 will build the binary `markdown` in the `example` directory. This is
 a statically-linked binary that can be copied to wherever you need
