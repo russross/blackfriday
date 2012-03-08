@@ -23,7 +23,6 @@ import (
 //
 // Do not create this directly, instead use the LatexRenderer function.
 type Latex struct {
-
 }
 
 // LatexRenderer creates and configures a Latex object, which

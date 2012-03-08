@@ -261,7 +261,6 @@ func (options *Html) BlockCodeGithub(out *bytes.Buffer, text []byte, lang string
 	out.WriteString("</code></pre>\n")
 }
 
-
 func (options *Html) BlockQuote(out *bytes.Buffer, text []byte) {
 	doubleSpace(out)
 	out.WriteString("<blockquote>\n")
