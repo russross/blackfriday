@@ -58,7 +58,9 @@ of how to use it. Download and install it using:
 This is a simple command-line tool that allows you to process a
 markdown file using a standalone program.  You can also browse the
 source directly on github if you are just looking for some example
-code.
+code:
+
+* <http://github.com/russross/blackfriday-tool>
 
 Note that if you have not already done so, installing
 `blackfriday-tool` will be sufficient to download and install
