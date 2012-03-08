@@ -16,12 +16,23 @@ It started as a translation from C of [upskirt][3].
 Installation
 ------------
 
-Assuming you have recent version of Go installed, along with git:
+Blackfriday is compatible with Go 1. If you are using an older
+release of Go, consider using v1.1 of blackfriday, which was based
+on the last stable release of Go prior to Go 1. You can find it as a
+tagged commit on github.
 
-    goinstall github.com/russross/blackfriday
+With Go 1 and git installed:
 
-will download, compile, and install the package into
-`$GOROOT/src/pkg/github.com/russross/blackfriday`.
+    go get github.com/russross/blackfriday
+
+will download, compile, and install the package into your `$GOROOT`
+directory hierarchy. Alternatively, you can import it into a
+project:
+
+    import "github.com/russross/blackfriday"
+
+and when you build that project with `go build`, blackfriday will be
+downloaded and installed automatically.
 
 For basic usage, it is as simple as getting your input into a byte
 slice and calling:
@@ -39,16 +50,22 @@ call the more general `Markdown` function. For examples, see the
 implementations of `MarkdownBasic` and `MarkdownCommon` in
 `markdown.go`.
 
-You can also check out `example/main.go` for a more complete example
-of how to use it. Run `gomake` in that directory to build a simple
-command-line markdown tool:
+You can also check out `blackfriday-tool` for a more complete example
+of how to use it. Download and install it using:
 
-    cd $GOROOT/src/pkg/github.com/russross/blackfriday/example
-    gomake
+    go get github.com/russross/blackfriday-tool
 
-will build the binary `markdown` in the `example` directory. This is
-a statically-linked binary that can be copied to wherever you need
-it without worrying about dependencies and library versions.
+This is a simple command-line tool that allows you to process a
+markdown file using a standalone program.  You can also browse the
+source directly on github if you are just looking for some example
+code.
+
+Note that if you have not already done so, installing
+`blackfriday-tool` will be sufficient to download and install
+blackfriday in addition to the tool itself. The tool binary will be
+installed in `$GOROOT/bin`.  This is a statically-linked binary that
+can be copied to wherever you need it without worrying about
+dependencies and library versions.
 
 
 Features
