@@ -92,7 +92,7 @@ func HtmlRenderer(flags int, title string, css string) Renderer {
 }
 
 func (options *Html) attrEscape(out *bytes.Buffer, src []byte) {
-	if options.flags&HTML_SKIP_ESCAPE == 0 {
+	if options.flags&HTML_SKIP_ESCAPE > 0 {
 		out.Write(src)
 		return
 	}
