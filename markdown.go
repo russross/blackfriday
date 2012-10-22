@@ -98,6 +98,20 @@ var blockTags = map[string]bool{
 	"fieldset":   true,
 	"noscript":   true,
 	"blockquote": true,
+
+	// HTML5
+	"video":      true,
+	"aside":      true,
+	"canvas":     true,
+	"figure":     true,
+	"footer":     true,
+	"header":     true,
+	"hgroup":     true,
+	"output":     true,
+	"article":    true,
+	"section":    true,
+	"progress":   true,
+	"figcaption": true,
 }
 
 // Renderer is the rendering interface.
