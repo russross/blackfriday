@@ -530,8 +530,7 @@ func (options *Html) DocumentHeader(out *bytes.Buffer) {
 		out.WriteString("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n")
 		ending = " /"
 	} else {
-		out.WriteString("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\" ")
-		out.WriteString("\"http://www.w3.org/TR/html4/strict.dtd\">\n")
+		out.WriteString("<!DOCTYPE html>\n")
 		out.WriteString("<html>\n")
 	}
 	out.WriteString("<head>\n")
@@ -543,7 +542,7 @@ func (options *Html) DocumentHeader(out *bytes.Buffer) {
 	out.WriteString("\"")
 	out.WriteString(ending)
 	out.WriteString(">\n")
-	out.WriteString("  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"")
+	out.WriteString("  <meta charset=\"utf-8\"")
 	out.WriteString(ending)
 	out.WriteString(">\n")
 	if options.css != "" {
@@ -579,7 +578,9 @@ func (options *Html) DocumentFooter(out *bytes.Buffer) {
 		}
 
 		// insert the table of contents
+		out.WriteString("<nav>\n")
 		out.Write(options.toc.Bytes())
+		out.WriteString("</nav>\n")
 
 		// corner case spacing issue
 		if options.flags&HTML_COMPLETE_PAGE == 0 && options.flags&HTML_OMIT_CONTENTS == 0 {
