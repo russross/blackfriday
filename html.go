@@ -220,7 +220,7 @@ func (options *Html) BlockCodeNormal(out *bytes.Buffer, text []byte, lang string
 //
 //              <pre lang="LANG"><code>
 //              ...
-//              </pre></code>
+//              </code></pre>
 //
 // Unlike other parsers, we store the language identifier in the <pre>,
 // and don't let the user generate custom classes.
