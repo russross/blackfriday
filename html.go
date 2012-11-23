@@ -216,24 +216,22 @@ func (options *Html) BlockCodeNormal(out *bytes.Buffer, text []byte, lang string
 	out.WriteString("</code></pre>\n")
 }
 
-/*
- * GitHub style code block:
- *
- *              <pre lang="LANG"><code>
- *              ...
- *              </pre></code>
- *
- * Unlike other parsers, we store the language identifier in the <pre>,
- * and don't let the user generate custom classes.
- *
- * The language identifier in the <pre> block gets postprocessed and all
- * the code inside gets syntax highlighted with Pygments. This is much safer
- * than letting the user specify a CSS class for highlighting.
- *
- * Note that we only generate HTML for the first specifier.
- * E.g.
- *              ~~~~ {.python .numbered}        =>      <pre lang="python"><code>
- */
+// GitHub style code block:
+//
+//              <pre lang="LANG"><code>
+//              ...
+//              </code></pre>
+//
+// Unlike other parsers, we store the language identifier in the <pre>,
+// and don't let the user generate custom classes.
+//
+// The language identifier in the <pre> block gets postprocessed and all
+// the code inside gets syntax highlighted with Pygments. This is much safer
+// than letting the user specify a CSS class for highlighting.
+//
+// Note that we only generate HTML for the first specifier.
+// E.g.
+//              ~~~~ {.python .numbered}        =>      <pre lang="python"><code>
 func (options *Html) BlockCodeGithub(out *bytes.Buffer, text []byte, lang string) {
 	doubleSpace(out)
 
