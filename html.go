@@ -28,6 +28,7 @@ const (
 	HTML_SKIP_STYLE                           // skip embedded <style> elements
 	HTML_SKIP_IMAGES                          // skip embedded images
 	HTML_SKIP_LINKS                           // skip all links
+	HTML_SKIP_SCRIPT                          // skip embedded <script> elements
 	HTML_SAFELINK                             // only link to trusted protocols
 	HTML_TOC                                  // generate a table of contents
 	HTML_OMIT_CONTENTS                        // skip the main contents (for a standalone table of contents)
@@ -458,6 +459,9 @@ func (options *Html) RawHtmlTag(out *bytes.Buffer, text []byte) {
 		return
 	}
 	if options.flags&HTML_SKIP_IMAGES != 0 && isHtmlTag(text, "img") {
+		return
+	}
+	if options.flags&HTML_SKIP_SCRIPT != 0 && isHtmlTag(text, "script") {
 		return
 	}
 	out.Write(text)

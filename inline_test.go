@@ -70,8 +70,20 @@ func TestRawHtmlTag(t *testing.T) {
 
 		"zz <STYLE>p {}</STYLE>\n",
 		"<p>zz p {}</p>\n",
+
+		"<SCRIPT>alert()</SCRIPT>\n",
+		"<p>alert()</p>\n",
+
+		"zz <SCRIPT>alert()</SCRIPT>\n",
+		"<p>zz alert()</p>\n",
+
+		"zz <script>alert()</script>\n",
+		"<p>zz alert()</p>\n",
+
+		" <script>alert()</script>\n",
+		"<p>alert()</p>\n",
 	}
-	doTestsInlineParam(t, tests, 0, HTML_SKIP_STYLE)
+	doTestsInlineParam(t, tests, 0, HTML_SKIP_STYLE|HTML_SKIP_SCRIPT)
 }
 
 func TestEmphasis(t *testing.T) {
