@@ -63,6 +63,14 @@ func doTestsInlineParam(t *testing.T, tests []string, extensions, htmlFlags int)
 	}
 }
 
+func TestRawHtmlTag(t *testing.T) {
+	tests := []string{
+		"zz <style>p {}</style>\n",
+		"<p>zz p {}</p>\n",
+	}
+	doTestsInlineParam(t, tests, 0, HTML_SKIP_STYLE)
+}
+
 func TestEmphasis(t *testing.T) {
 	var tests = []string{
 		"nothing inline\n",

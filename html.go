@@ -663,7 +663,7 @@ func isHtmlTag(tag []byte, tagname string) bool {
 		i++
 	}
 
-	j := i
+	j := 0
 	for ; i < len(tag); i, j = i+1, j+1 {
 		if j >= len(tagname) {
 			break
