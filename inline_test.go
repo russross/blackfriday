@@ -67,6 +67,9 @@ func TestRawHtmlTag(t *testing.T) {
 	tests := []string{
 		"zz <style>p {}</style>\n",
 		"<p>zz p {}</p>\n",
+
+		"zz <STYLE>p {}</STYLE>\n",
+		"<p>zz p {}</p>\n",
 	}
 	doTestsInlineParam(t, tests, 0, HTML_SKIP_STYLE)
 }

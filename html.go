@@ -664,7 +664,7 @@ func isHtmlTag(tag []byte, tagname string) bool {
 			break
 		}
 
-		if tag[i] != tagname[j] {
+		if strings.ToLower(string(tag[i]))[0] != tagname[j] {
 			return false
 		}
 	}
