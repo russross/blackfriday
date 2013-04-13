@@ -85,6 +85,12 @@ func TestRawHtmlTag(t *testing.T) {
 
 		"<script>alert()</script>\n",
 		"<p>alert()</p>\n",
+
+		"zz <script src='foo'></script>\n",
+		"<p>zz </p>\n",
+
+		"zz <script src=foo></script>\n",
+		"<p>zz </p>\n",
 	}
 	doTestsInlineParam(t, tests, 0, HTML_SKIP_STYLE|HTML_SKIP_SCRIPT)
 }
