@@ -651,18 +651,13 @@ func isHtmlTag(tag []byte, tagname string) bool {
 		return false
 	}
 	i++
-	for i < len(tag) && isspace(tag[i]) {
-		i++
-	}
+	i = skipSpace(tag, i)
 
 	if i < len(tag) && tag[i] == '/' {
 		i++
 	}
 
-	for i < len(tag) && isspace(tag[i]) {
-		i++
-	}
-
+	i = skipSpace(tag, i)
 	j := 0
 	for ; i < len(tag); i, j = i+1, j+1 {
 		if j >= len(tagname) {
@@ -679,6 +674,13 @@ func isHtmlTag(tag []byte, tagname string) bool {
 	}
 
 	return isspace(tag[i]) || tag[i] == '>'
+}
+
+func skipSpace(tag []byte, i int) int {
+	for i < len(tag) && isspace(tag[i]) {
+		i++
+	}
+	return i
 }
 
 func doubleSpace(out *bytes.Buffer) {
