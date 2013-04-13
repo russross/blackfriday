@@ -202,7 +202,7 @@ func MarkdownBasic(input []byte) []byte {
 //
 // * Smartypants processing with smart fractions and LaTeX dashes
 //
-// * Intra-word emphasis supression
+// * Intra-word emphasis suppression
 //
 // * Tables
 //
