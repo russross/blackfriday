@@ -17,12 +17,10 @@ import (
 	"testing"
 )
 
-func runMarkdownInline(input string) string {
-	extensions := 0
+func runMarkdownInline(input string, extensions, htmlFlags int) string {
 	extensions |= EXTENSION_AUTOLINK
 	extensions |= EXTENSION_STRIKETHROUGH
 
-	htmlFlags := 0
 	htmlFlags |= HTML_USE_XHTML
 
 	renderer := HtmlRenderer(htmlFlags, "", "")
@@ -31,6 +29,10 @@ func runMarkdownInline(input string) string {
 }
 
 func doTestsInline(t *testing.T, tests []string) {
+	doTestsInlineParam(t, tests, 0, 0)
+}
+
+func doTestsInlineParam(t *testing.T, tests []string, extensions, htmlFlags int) {
 	// catch and report panics
 	var candidate string
 	defer func() {
@@ -43,7 +45,7 @@ func doTestsInline(t *testing.T, tests []string) {
 		input := tests[i]
 		candidate = input
 		expected := tests[i+1]
-		actual := runMarkdownInline(candidate)
+		actual := runMarkdownInline(candidate, extensions, htmlFlags)
 		if actual != expected {
 			t.Errorf("\nInput   [%#v]\nExpected[%#v]\nActual  [%#v]",
 				candidate, expected, actual)
@@ -54,7 +56,7 @@ func doTestsInline(t *testing.T, tests []string) {
 			for start := 0; start < len(input); start++ {
 				for end := start + 1; end <= len(input); end++ {
 					candidate = input[start:end]
-					_ = runMarkdownInline(candidate)
+					_ = runMarkdownInline(candidate, extensions, htmlFlags)
 				}
 			}
 		}
