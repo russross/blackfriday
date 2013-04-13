@@ -220,6 +220,7 @@ func MarkdownCommon(input []byte) []byte {
 	htmlFlags |= HTML_USE_SMARTYPANTS
 	htmlFlags |= HTML_SMARTYPANTS_FRACTIONS
 	htmlFlags |= HTML_SMARTYPANTS_LATEX_DASHES
+	htmlFlags |= HTML_SKIP_SCRIPT
 	renderer := HtmlRenderer(htmlFlags, "", "")
 
 	// set up the parser
