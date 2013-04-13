@@ -168,8 +168,22 @@ func (options *Html) BlockHtml(out *bytes.Buffer, text []byte) {
 	}
 
 	doubleSpace(out)
-	out.Write(text)
+	if options.flags&HTML_SKIP_SCRIPT != 0 {
+		out.Write(stripTag(string(text), "script", "p"))
+	} else {
+		out.Write(text)
+	}
 	out.WriteByte('\n')
+}
+
+// This is a trivial implementation for the simplest possible case
+func stripTag(text, tag, newTag string) []byte {
+	openTag := fmt.Sprintf("<%s>", tag)
+	closeTag := fmt.Sprintf("</%s>", tag)
+	openNewTag := fmt.Sprintf("<%s>", newTag)
+	closeNewTag := fmt.Sprintf("</%s>", newTag)
+	noOpen := strings.Replace(text, openTag, openNewTag, -1)
+	return []byte(strings.Replace(noOpen, closeTag, closeNewTag, -1))
 }
 
 func (options *Html) HRule(out *bytes.Buffer) {
