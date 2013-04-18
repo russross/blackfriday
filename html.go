@@ -176,13 +176,21 @@ func (options *Html) BlockHtml(out *bytes.Buffer, text []byte) {
 	out.WriteByte('\n')
 }
 
-// This is a trivial implementation for the simplest possible case
 func stripTag(text, tag, newTag string) []byte {
-	openTag := fmt.Sprintf("<%s>", tag)
-	closeTag := fmt.Sprintf("</%s>", tag)
-	openNewTag := fmt.Sprintf("<%s>", newTag)
 	closeNewTag := fmt.Sprintf("</%s>", newTag)
-	noOpen := strings.Replace(text, openTag, openNewTag, -1)
+	i := 0
+	for i < len(text) && text[i] != '<' {
+		i++
+	}
+	if i == len(text) {
+		return []byte(text)
+	}
+	found, end := findHtmlTagPos([]byte(text[i:]), tag)
+	closeTag := fmt.Sprintf("</%s>", tag)
+	noOpen := text
+	if found {
+		noOpen = text[0:i+1] + newTag + text[end:]
+	}
 	return []byte(strings.Replace(noOpen, closeTag, closeNewTag, -1))
 }
 
@@ -664,9 +672,14 @@ func (options *Html) TocFinalize() {
 }
 
 func isHtmlTag(tag []byte, tagname string) bool {
+	found, _ := findHtmlTagPos(tag, tagname)
+	return found
+}
+
+func findHtmlTagPos(tag []byte, tagname string) (bool, int) {
 	i := 0
 	if i < len(tag) && tag[0] != '<' {
-		return false
+		return false, -1
 	}
 	i++
 	i = skipSpace(tag, i)
@@ -683,15 +696,34 @@ func isHtmlTag(tag []byte, tagname string) bool {
 		}
 
 		if strings.ToLower(string(tag[i]))[0] != tagname[j] {
-			return false
+			return false, -1
 		}
 	}
 
 	if i == len(tag) {
-		return false
+		return false, -1
 	}
 
-	return isspace(tag[i]) || tag[i] == '>'
+	// Now look for closing '>', but ignore it when it's in any kind of quotes,
+	// it might be JavaScript
+	inSingleQuote := false
+	inDoubleQuote := false
+	inGraveQuote := false
+	for i < len(tag) {
+		switch {
+		case tag[i] == '>' && !inSingleQuote && !inDoubleQuote && !inGraveQuote:
+			return true, i
+		case tag[i] == '\'':
+			inSingleQuote = !inSingleQuote
+		case tag[i] == '"':
+			inDoubleQuote = !inDoubleQuote
+		case tag[i] == '`':
+			inGraveQuote = !inGraveQuote
+		}
+		i++
+	}
+
+	return false, -1
 }
 
 func skipSpace(tag []byte, i int) int {

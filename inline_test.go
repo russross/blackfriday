@@ -86,6 +86,9 @@ func TestRawHtmlTag(t *testing.T) {
 		"<script>alert()</script>\n",
 		"<p>alert()</p>\n",
 
+		"<script src='foo'></script>\n",
+		"<p></p>\n",
+
 		"zz <script src='foo'></script>\n",
 		"<p>zz </p>\n",
 
