@@ -170,11 +170,6 @@ func lineBreak(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 // '[': parse a link or an image
 func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
-	// no links allowed inside other links
-	if p.insideLink {
-		return 0
-	}
-
 	isImg := offset > 0 && data[offset-1] == '!'
 
 	data = data[offset:]
@@ -431,6 +426,10 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 		p.r.Image(out, uLink, title, content.Bytes())
 	} else {
+		// no links allowed inside other links
+		if p.insideLink {
+			return 0
+		}
 		p.r.Link(out, uLink, title, content.Bytes())
 	}
 
