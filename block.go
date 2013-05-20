@@ -831,6 +831,12 @@ func (p *parser) quotePrefix(data []byte) int {
 		}
 		return i + 1
 	}
+	if len(data) > 4 && string(data[i:i+4]) == "&gt;" {
+		if data[i+5] == ' ' {
+			return i + 5
+		}
+		return i + 4
+	}
 	return 0
 }
 

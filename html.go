@@ -28,6 +28,7 @@ const (
 	HTML_SKIP_STYLE                           // skip embedded <style> elements
 	HTML_SKIP_IMAGES                          // skip embedded images
 	HTML_SKIP_LINKS                           // skip all links
+	HTML_SKIP_ESCAPE                          // skips escaping; useful when everything is escaped before
 	HTML_SAFELINK                             // only link to trusted protocols
 	HTML_TOC                                  // generate a table of contents
 	HTML_OMIT_CONTENTS                        // skip the main contents (for a standalone table of contents)
@@ -90,7 +91,12 @@ func HtmlRenderer(flags int, title string, css string) Renderer {
 	}
 }
 
-func attrEscape(out *bytes.Buffer, src []byte) {
+func (options *Html) attrEscape(out *bytes.Buffer, src []byte) {
+	if options.flags&HTML_SKIP_ESCAPE > 0 {
+		out.Write(src)
+		return
+	}
+
 	org := 0
 	for i, ch := range src {
 		// using if statements is a bit faster than a switch statement.
@@ -202,7 +208,7 @@ func (options *Html) BlockCodeNormal(out *bytes.Buffer, text []byte, lang string
 		} else {
 			out.WriteByte(' ')
 		}
-		attrEscape(out, []byte(elt))
+		options.attrEscape(out, []byte(elt))
 		count++
 	}
 
@@ -212,7 +218,7 @@ func (options *Html) BlockCodeNormal(out *bytes.Buffer, text []byte, lang string
 		out.WriteString("\">")
 	}
 
-	attrEscape(out, text)
+	options.attrEscape(out, text)
 	out.WriteString("</code></pre>\n")
 }
 
@@ -245,7 +251,7 @@ func (options *Html) BlockCodeGithub(out *bytes.Buffer, text []byte, lang string
 			continue
 		}
 		out.WriteString("<pre lang=\"")
-		attrEscape(out, []byte(elt))
+		options.attrEscape(out, []byte(elt))
 		out.WriteString("\"><code>")
 		count++
 		break
@@ -255,7 +261,7 @@ func (options *Html) BlockCodeGithub(out *bytes.Buffer, text []byte, lang string
 		out.WriteString("<pre><code>")
 	}
 
-	attrEscape(out, text)
+	options.attrEscape(out, text)
 	out.WriteString("</code></pre>\n")
 }
 
@@ -344,7 +350,7 @@ func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	if options.flags&HTML_SAFELINK != 0 && !isSafeLink(link) && kind != LINK_TYPE_EMAIL {
 		// mark it but don't link it if it is not a safe link: no smartypants
 		out.WriteString("<tt>")
-		attrEscape(out, link)
+		options.attrEscape(out, link)
 		out.WriteString("</tt>")
 		return
 	}
@@ -353,7 +359,7 @@ func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	if kind == LINK_TYPE_EMAIL {
 		out.WriteString("mailto:")
 	}
-	attrEscape(out, link)
+	options.attrEscape(out, link)
 	out.WriteString("\">")
 
 	// Pretty print: if we get an email address as
@@ -361,11 +367,11 @@ func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	// want to print the `mailto:` prefix
 	switch {
 	case bytes.HasPrefix(link, []byte("mailto://")):
-		attrEscape(out, link[len("mailto://"):])
+		options.attrEscape(out, link[len("mailto://"):])
 	case bytes.HasPrefix(link, []byte("mailto:")):
-		attrEscape(out, link[len("mailto:"):])
+		options.attrEscape(out, link[len("mailto:"):])
 	default:
-		attrEscape(out, link)
+		options.attrEscape(out, link)
 	}
 
 	out.WriteString("</a>")
@@ -373,7 +379,7 @@ func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 
 func (options *Html) CodeSpan(out *bytes.Buffer, text []byte) {
 	out.WriteString("<code>")
-	attrEscape(out, text)
+	options.attrEscape(out, text)
 	out.WriteString("</code>")
 }
 
@@ -398,14 +404,14 @@ func (options *Html) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 	}
 
 	out.WriteString("<img src=\"")
-	attrEscape(out, link)
+	options.attrEscape(out, link)
 	out.WriteString("\" alt=\"")
 	if len(alt) > 0 {
-		attrEscape(out, alt)
+		options.attrEscape(out, alt)
 	}
 	if len(title) > 0 {
 		out.WriteString("\" title=\"")
-		attrEscape(out, title)
+		options.attrEscape(out, title)
 	}
 
 	out.WriteByte('"')
@@ -422,7 +428,7 @@ func (options *Html) Link(out *bytes.Buffer, link []byte, title []byte, content 
 	if options.flags&HTML_SKIP_LINKS != 0 {
 		// write the link text out but don't link it, just mark it with typewriter font
 		out.WriteString("<tt>")
-		attrEscape(out, content)
+		options.attrEscape(out, content)
 		out.WriteString("</tt>")
 		return
 	}
@@ -430,16 +436,16 @@ func (options *Html) Link(out *bytes.Buffer, link []byte, title []byte, content 
 	if options.flags&HTML_SAFELINK != 0 && !isSafeLink(link) {
 		// write the link text out but don't link it, just mark it with typewriter font
 		out.WriteString("<tt>")
-		attrEscape(out, content)
+		options.attrEscape(out, content)
 		out.WriteString("</tt>")
 		return
 	}
 
 	out.WriteString("<a href=\"")
-	attrEscape(out, link)
+	options.attrEscape(out, link)
 	if len(title) > 0 {
 		out.WriteString("\" title=\"")
-		attrEscape(out, title)
+		options.attrEscape(out, title)
 	}
 	out.WriteString("\">")
 	out.Write(content)
@@ -483,7 +489,7 @@ func (options *Html) NormalText(out *bytes.Buffer, text []byte) {
 	if options.flags&HTML_USE_SMARTYPANTS != 0 {
 		options.Smartypants(out, text)
 	} else {
-		attrEscape(out, text)
+		options.attrEscape(out, text)
 	}
 }
 
@@ -492,7 +498,7 @@ func (options *Html) Smartypants(out *bytes.Buffer, text []byte) {
 
 	// first do normal entity escaping
 	var escaped bytes.Buffer
-	attrEscape(&escaped, text)
+	options.attrEscape(&escaped, text)
 	text = escaped.Bytes()
 
 	mark := 0
@@ -545,7 +551,7 @@ func (options *Html) DocumentHeader(out *bytes.Buffer) {
 	out.WriteString(">\n")
 	if options.css != "" {
 		out.WriteString("  <link rel=\"stylesheet\" type=\"text/css\" href=\"")
-		attrEscape(out, []byte(options.css))
+		options.attrEscape(out, []byte(options.css))
 		out.WriteString("\"")
 		out.WriteString(ending)
 		out.WriteString(">\n")
