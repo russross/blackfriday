@@ -120,10 +120,12 @@ implements the following extensions:
 *   **Tables**. Tables can be created by drawing them in the input
     using a simple syntax:
 
-        Name    | Age
-        --------|------
-        Bob     | 27
-        Alice   | 23
+    ```
+    Name    | Age
+    --------|------
+    Bob     | 27
+    Alice   | 23
+    ```
 
 *   **Fenced code blocks**. In addition to the normal 4-space
     indentation to mark code blocks, you can explicitly mark them
