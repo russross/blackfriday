@@ -8,5 +8,6 @@ Just a [URL](/url/).
 
 [URL and title](/url/ "title has spaces afterward"  ).
 
+[![alt text](/url/)](/url/ "title").
 
 [Empty]().
