@@ -202,7 +202,7 @@ func MarkdownBasic(input []byte) []byte {
 //
 // * Smartypants processing with smart fractions and LaTeX dashes
 //
-// * Intra-word emphasis supression
+// * Intra-word emphasis suppression
 //
 // * Tables
 //
@@ -220,6 +220,7 @@ func MarkdownCommon(input []byte) []byte {
 	htmlFlags |= HTML_USE_SMARTYPANTS
 	htmlFlags |= HTML_SMARTYPANTS_FRACTIONS
 	htmlFlags |= HTML_SMARTYPANTS_LATEX_DASHES
+	htmlFlags |= HTML_SKIP_SCRIPT
 	renderer := HtmlRenderer(htmlFlags, "", "")
 
 	// set up the parser
