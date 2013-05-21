@@ -28,6 +28,7 @@ const (
 	HTML_SKIP_STYLE                           // skip embedded <style> elements
 	HTML_SKIP_IMAGES                          // skip embedded images
 	HTML_SKIP_LINKS                           // skip all links
+	HTML_SKIP_SCRIPT                          // skip embedded <script> elements
 	HTML_SAFELINK                             // only link to trusted protocols
 	HTML_TOC                                  // generate a table of contents
 	HTML_OMIT_CONTENTS                        // skip the main contents (for a standalone table of contents)
@@ -167,8 +168,30 @@ func (options *Html) BlockHtml(out *bytes.Buffer, text []byte) {
 	}
 
 	doubleSpace(out)
-	out.Write(text)
+	if options.flags&HTML_SKIP_SCRIPT != 0 {
+		out.Write(stripTag(string(text), "script", "p"))
+	} else {
+		out.Write(text)
+	}
 	out.WriteByte('\n')
+}
+
+func stripTag(text, tag, newTag string) []byte {
+	closeNewTag := fmt.Sprintf("</%s>", newTag)
+	i := 0
+	for i < len(text) && text[i] != '<' {
+		i++
+	}
+	if i == len(text) {
+		return []byte(text)
+	}
+	found, end := findHtmlTagPos([]byte(text[i:]), tag)
+	closeTag := fmt.Sprintf("</%s>", tag)
+	noOpen := text
+	if found {
+		noOpen = text[0:i+1] + newTag + text[end:]
+	}
+	return []byte(strings.Replace(noOpen, closeTag, closeNewTag, -1))
 }
 
 func (options *Html) HRule(out *bytes.Buffer) {
@@ -460,6 +483,9 @@ func (options *Html) RawHtmlTag(out *bytes.Buffer, text []byte) {
 	if options.flags&HTML_SKIP_IMAGES != 0 && isHtmlTag(text, "img") {
 		return
 	}
+	if options.flags&HTML_SKIP_SCRIPT != 0 && isHtmlTag(text, "script") {
+		return
+	}
 	out.Write(text)
 }
 
@@ -646,39 +672,65 @@ func (options *Html) TocFinalize() {
 }
 
 func isHtmlTag(tag []byte, tagname string) bool {
+	found, _ := findHtmlTagPos(tag, tagname)
+	return found
+}
+
+func findHtmlTagPos(tag []byte, tagname string) (bool, int) {
 	i := 0
 	if i < len(tag) && tag[0] != '<' {
-		return false
+		return false, -1
 	}
 	i++
-	for i < len(tag) && isspace(tag[i]) {
-		i++
-	}
+	i = skipSpace(tag, i)
 
 	if i < len(tag) && tag[i] == '/' {
 		i++
 	}
 
-	for i < len(tag) && isspace(tag[i]) {
-		i++
-	}
-
-	j := i
+	i = skipSpace(tag, i)
+	j := 0
 	for ; i < len(tag); i, j = i+1, j+1 {
 		if j >= len(tagname) {
 			break
 		}
 
-		if tag[i] != tagname[j] {
-			return false
+		if strings.ToLower(string(tag[i]))[0] != tagname[j] {
+			return false, -1
 		}
 	}
 
 	if i == len(tag) {
-		return false
+		return false, -1
 	}
 
-	return isspace(tag[i]) || tag[i] == '>'
+	// Now look for closing '>', but ignore it when it's in any kind of quotes,
+	// it might be JavaScript
+	inSingleQuote := false
+	inDoubleQuote := false
+	inGraveQuote := false
+	for i < len(tag) {
+		switch {
+		case tag[i] == '>' && !inSingleQuote && !inDoubleQuote && !inGraveQuote:
+			return true, i
+		case tag[i] == '\'':
+			inSingleQuote = !inSingleQuote
+		case tag[i] == '"':
+			inDoubleQuote = !inDoubleQuote
+		case tag[i] == '`':
+			inGraveQuote = !inGraveQuote
+		}
+		i++
+	}
+
+	return false, -1
+}
+
+func skipSpace(tag []byte, i int) int {
+	for i < len(tag) && isspace(tag[i]) {
+		i++
+	}
+	return i
 }
 
 func doubleSpace(out *bytes.Buffer) {
