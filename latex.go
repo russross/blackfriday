@@ -158,6 +158,11 @@ func (options *Latex) TableCell(out *bytes.Buffer, text []byte, align int) {
 	out.Write(text)
 }
 
+// TODO: this
+func (options *Latex) Footnotes(out *bytes.Buffer, p *parser) {
+
+}
+
 func (options *Latex) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	out.WriteString("\\href{")
 	if kind == LINK_TYPE_EMAIL {
@@ -227,6 +232,11 @@ func (options *Latex) StrikeThrough(out *bytes.Buffer, text []byte) {
 	out.WriteString("\\sout{")
 	out.Write(text)
 	out.WriteString("}")
+}
+
+// TODO: this
+func (options *Latex) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
+
 }
 
 func needsBackslash(c byte) bool {

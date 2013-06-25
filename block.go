@@ -1101,8 +1101,9 @@ gatherlines:
 		line = i
 	}
 
-	// render the contents of the list item
 	rawBytes := raw.Bytes()
+
+	// render the contents of the list item
 	var cooked bytes.Buffer
 	if *flags&LIST_ITEM_CONTAINS_BLOCK != 0 {
 		// intermediate render of block li

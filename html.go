@@ -322,6 +322,20 @@ func (options *Html) TableCell(out *bytes.Buffer, text []byte, align int) {
 	out.WriteString("</td>")
 }
 
+func (options *Html) Footnotes(out *bytes.Buffer, p *parser) {
+	out.WriteString("<div class=\"footnotes\">\n")
+	options.HRule(out)
+	options.List(out, func() bool {
+		for _, ref := range p.notes {
+			out.WriteString("<li>\n")
+			out.Write(ref.title)
+			out.WriteString("</li>\n")
+		}
+		return true
+	}, LIST_TYPE_ORDERED)
+	out.WriteString("</div>\n")
+}
+
 func (options *Html) List(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
 	doubleSpace(out)
@@ -499,6 +513,17 @@ func (options *Html) StrikeThrough(out *bytes.Buffer, text []byte) {
 	out.WriteString("<del>")
 	out.Write(text)
 	out.WriteString("</del>")
+}
+
+func (options *Html) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
+	slug := slugify(ref)
+	out.WriteString(`<sup class="footnote-ref" id="fnref:`)
+	out.Write(slug)
+	out.WriteString(`"><a rel="footnote" href="#fn:`)
+	out.Write(slug)
+	out.WriteString(`">`)
+	out.WriteString(strconv.Itoa(id))
+	out.WriteString(`</a></sup>`)
 }
 
 func (options *Html) Entity(out *bytes.Buffer, entity []byte) {

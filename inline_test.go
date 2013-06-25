@@ -37,7 +37,8 @@ func doTestsInlineParam(t *testing.T, tests []string, extensions, htmlFlags int)
 	var candidate string
 	defer func() {
 		if err := recover(); err != nil {
-			t.Errorf("\npanic while processing [%#v]\n", candidate)
+			panic(err)
+			t.Errorf("\npanic while processing [%#v] (%v)\n", candidate, err)
 		}
 	}()
 
@@ -500,4 +501,46 @@ func TestAutoLink(t *testing.T) {
 			"http://new.com?q=&gt;&amp;etc</a></p>\n",
 	}
 	doTestsInline(t, tests)
+}
+
+func TestFootnotes(t *testing.T) {
+	tests := []string{
+		"testing footnotes.[^a]\n\n[^a]: This is the note\n",
+		"",
+
+		`testing long[^b] notes.
+
+[^b]: Paragraph 1
+
+	Paragraph 2
+
+	` + "```\n\tsome code\n\t```" + `
+	
+	Paragraph 3
+
+No longer in the footnote
+`,
+		"",
+
+		`testing[^c] multiple[^d] notes.
+
+[^c]: this is note c
+
+
+omg
+
+[^d]: this is note d
+
+what happens here
+`,
+		"",
+	}
+
+	for _, test := range tests {
+		if len(test) > 0 {
+			t.Errorf("Output:\n%s\n", runMarkdownInline(test, EXTENSION_FOOTNOTES, 0))
+		}
+	}
+
+	//doTestsInlineParam(t, tests, EXTENSION_FOOTNOTES, 0)
 }
