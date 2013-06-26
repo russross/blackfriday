@@ -193,7 +193,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	if offset > 0 && data[offset-1] == '!' {
 		t = linkImg
 	} else if p.flags&EXTENSION_FOOTNOTES != 0 {
-		if len(data) > offset && data[offset+1] == '^' {
+		if len(data)-1 > offset && data[offset+1] == '^' {
 			t = linkDeferredFootnote
 		}
 	}

@@ -140,7 +140,8 @@ type Renderer interface {
 	Table(out *bytes.Buffer, header []byte, body []byte, columnData []int)
 	TableRow(out *bytes.Buffer, text []byte)
 	TableCell(out *bytes.Buffer, text []byte, flags int)
-	Footnotes(out *bytes.Buffer, p *parser)
+	Footnotes(out *bytes.Buffer, text func() bool)
+	FootnoteItem(out *bytes.Buffer, name, text []byte, flags int)
 
 	// Span-level callbacks
 	AutoLink(out *bytes.Buffer, link []byte, kind int)
@@ -344,10 +345,23 @@ func secondPass(p *parser, input []byte) []byte {
 	p.r.DocumentHeader(&output)
 	p.block(&output, input)
 
-	// NOTE: this is a big hack because we need the parser again for the
-	// footnotes, so this can't really go in the public interface
 	if p.flags&EXTENSION_FOOTNOTES != 0 && len(p.notes) > 0 {
-		p.r.Footnotes(&output, p)
+		p.r.Footnotes(&output, func() bool {
+			flags := LIST_ITEM_BEGINNING_OF_LIST
+			for _, ref := range p.notes {
+				var buf bytes.Buffer
+				if ref.hasBlock {
+					flags |= LIST_ITEM_CONTAINS_BLOCK
+					p.block(&buf, ref.title)
+				} else {
+					p.inline(&buf, ref.title)
+				}
+				p.r.FootnoteItem(&output, ref.link, buf.Bytes(), flags)
+				flags &^= LIST_ITEM_BEGINNING_OF_LIST | LIST_ITEM_CONTAINS_BLOCK
+			}
+
+			return true
+		})
 	}
 
 	p.r.DocumentFooter(&output)
@@ -390,9 +404,10 @@ func secondPass(p *parser, input []byte) []byte {
 
 // References are parsed and stored in this struct.
 type reference struct {
-	link   []byte
-	title  []byte
-	noteId int // 0 if not a footnote ref
+	link     []byte
+	title    []byte
+	noteId   int // 0 if not a footnote ref
+	hasBlock bool
 }
 
 // Check whether or not data starts with a reference link.
@@ -401,7 +416,8 @@ type reference struct {
 // Returns the number of bytes to skip to move past it,
 // or zero if the first line is not a reference.
 func isReference(p *parser, data []byte, tabSize int) int {
-	println("[", string(data), "]")
+	if len(data) >= 5 {
+	}
 	// up to 3 optional leading spaces
 	if len(data) < 4 {
 		return 0
@@ -434,7 +450,6 @@ func isReference(p *parser, data []byte, tabSize int) int {
 	idEnd := i
 
 	// spacer: colon (space | tab)* newline? (space | tab)*
-	// /:[ \t]*\n?[ \t]*/
 	i++
 	if i >= len(data) || data[i] != ':' {
 		return 0
@@ -461,11 +476,12 @@ func isReference(p *parser, data []byte, tabSize int) int {
 		titleOffset, titleEnd int
 		lineEnd               int
 		raw                   []byte
+		hasBlock              bool
 	)
 
 	if p.flags&EXTENSION_FOOTNOTES != 0 && noteId > 0 {
-		linkOffset, linkEnd, raw = scanFootnote(p, data, i, tabSize)
-		lineEnd = linkEnd + linkOffset
+		linkOffset, linkEnd, raw, hasBlock = scanFootnote(p, data, i, tabSize)
+		lineEnd = linkEnd
 	} else {
 		linkOffset, linkEnd, titleOffset, titleEnd, lineEnd = scanLinkRef(p, data, i)
 	}
@@ -476,11 +492,12 @@ func isReference(p *parser, data []byte, tabSize int) int {
 	// a valid ref has been found
 
 	ref := &reference{
-		noteId: noteId,
+		noteId:   noteId,
+		hasBlock: hasBlock,
 	}
 
 	if noteId > 0 {
-		// reusing the link field for the id since footnotes don't have titles
+		// reusing the link field for the id since footnotes don't have links
 		ref.link = data[idOffset:idEnd]
 		// if footnote, it's not really a title, it's the contained text
 		ref.title = raw
@@ -570,7 +587,7 @@ func scanLinkRef(p *parser, data []byte, i int) (linkOffset, linkEnd, titleOffse
 // blockEnd is the end of the section in the input buffer, and contents is the
 // extracted text that was shifted over one tab. It will need to be rendered at
 // the end of the document.
-func scanFootnote(p *parser, data []byte, i, indentSize int) (blockStart, blockEnd int, contents []byte) {
+func scanFootnote(p *parser, data []byte, i, indentSize int) (blockStart, blockEnd int, contents []byte, hasBlock bool) {
 	if i == 0 {
 		return
 	}
@@ -584,10 +601,7 @@ func scanFootnote(p *parser, data []byte, i, indentSize int) (blockStart, blockE
 
 	// find the end of the line
 	blockEnd = i
-	for data[i-1] != '\n' {
-		if i >= len(data) {
-			return
-		}
+	for i < len(data) && data[i-1] != '\n' {
 		i++
 	}
 
@@ -600,14 +614,13 @@ func scanFootnote(p *parser, data []byte, i, indentSize int) (blockStart, blockE
 
 	// process the following lines
 	containsBlankLine := false
-	hasBlock := false
 
 gatherLines:
 	for blockEnd < len(data) {
 		i++
 
 		// find the end of this line
-		for data[i-1] != '\n' {
+		for i < len(data) && data[i-1] != '\n' {
 			i++
 		}
 
@@ -628,27 +641,22 @@ gatherLines:
 
 		// if there were blank lines before this one, insert a new one now
 		if containsBlankLine {
-			hasBlock = true
 			raw.WriteByte('\n')
 			containsBlankLine = false
 		}
 
 		// get rid of that first tab, write to buffer
 		raw.Write(data[blockEnd+n : i])
+		hasBlock = true
 
 		blockEnd = i
 	}
 
-	rawBytes := raw.Bytes()
-	println("raw: {" + string(raw.Bytes()) + "}")
-	buf := new(bytes.Buffer)
-
-	if hasBlock {
-		p.block(buf, rawBytes)
-	} else {
-		p.inline(buf, rawBytes)
+	if data[blockEnd-1] != '\n' {
+		raw.WriteByte('\n')
 	}
-	contents = buf.Bytes()
+
+	contents = raw.Bytes()
 
 	return
 }

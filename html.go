@@ -322,18 +322,22 @@ func (options *Html) TableCell(out *bytes.Buffer, text []byte, align int) {
 	out.WriteString("</td>")
 }
 
-func (options *Html) Footnotes(out *bytes.Buffer, p *parser) {
+func (options *Html) Footnotes(out *bytes.Buffer, text func() bool) {
 	out.WriteString("<div class=\"footnotes\">\n")
 	options.HRule(out)
-	options.List(out, func() bool {
-		for _, ref := range p.notes {
-			out.WriteString("<li>\n")
-			out.Write(ref.title)
-			out.WriteString("</li>\n")
-		}
-		return true
-	}, LIST_TYPE_ORDERED)
+	options.List(out, text, LIST_TYPE_ORDERED)
 	out.WriteString("</div>\n")
+}
+
+func (options *Html) FootnoteItem(out *bytes.Buffer, name, text []byte, flags int) {
+	if flags&LIST_ITEM_CONTAINS_BLOCK != 0 || flags&LIST_ITEM_BEGINNING_OF_LIST != 0 {
+		doubleSpace(out)
+	}
+	out.WriteString(`<li class="`)
+	out.Write(slugify(name))
+	out.WriteString(`">`)
+	out.Write(text)
+	out.WriteString("</li>\n")
 }
 
 func (options *Html) List(out *bytes.Buffer, text func() bool, flags int) {

@@ -35,12 +35,13 @@ func doTestsInline(t *testing.T, tests []string) {
 func doTestsInlineParam(t *testing.T, tests []string, extensions, htmlFlags int) {
 	// catch and report panics
 	var candidate string
-	defer func() {
-		if err := recover(); err != nil {
-			panic(err)
-			t.Errorf("\npanic while processing [%#v] (%v)\n", candidate, err)
-		}
-	}()
+	/*
+		defer func() {
+			if err := recover(); err != nil {
+				t.Errorf("\npanic while processing [%#v] (%v)\n", candidate, err)
+			}
+		}()
+	*/
 
 	for i := 0; i+1 < len(tests); i += 2 {
 		input := tests[i]
@@ -506,25 +507,55 @@ func TestAutoLink(t *testing.T) {
 func TestFootnotes(t *testing.T) {
 	tests := []string{
 		"testing footnotes.[^a]\n\n[^a]: This is the note\n",
-		"",
+		`<p>testing footnotes.<sup class="footnote-ref" id="fnref:a"><a rel="footnote" href="#fn:a">1</a></sup></p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li class="a">This is the note
+</li>
+</ol>
+</div>
+`,
 
 		`testing long[^b] notes.
 
 [^b]: Paragraph 1
 
 	Paragraph 2
-
+	
 	` + "```\n\tsome code\n\t```" + `
 	
 	Paragraph 3
 
 No longer in the footnote
 `,
-		"",
+		`<p>testing long<sup class="footnote-ref" id="fnref:b"><a rel="footnote" href="#fn:b">1</a></sup> notes.</p>
+
+<p>No longer in the footnote</p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li class="b"><p>Paragraph 1</p>
+
+<p>Paragraph 2</p>
+
+<p><code>
+some code
+</code></p>
+
+<p>Paragraph 3</p>
+</li>
+</ol>
+</div>
+`,
 
 		`testing[^c] multiple[^d] notes.
 
-[^c]: this is note c
+[^c]: this is [note] c
 
 
 omg
@@ -532,15 +563,28 @@ omg
 [^d]: this is note d
 
 what happens here
+
+[note]: /link/c
+
 `,
-		"",
+		`<p>testing<sup class="footnote-ref" id="fnref:c"><a rel="footnote" href="#fn:c">1</a></sup> multiple<sup class="footnote-ref" id="fnref:d"><a rel="footnote" href="#fn:d">2</a></sup> notes.</p>
+
+<p>omg</p>
+
+<p>what happens here</p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li class="c">this is <a href="/link/c">note</a> c
+</li>
+<li class="d">this is note d
+</li>
+</ol>
+</div>
+`,
 	}
 
-	for _, test := range tests {
-		if len(test) > 0 {
-			t.Errorf("Output:\n%s\n", runMarkdownInline(test, EXTENSION_FOOTNOTES, 0))
-		}
-	}
-
-	//doTestsInlineParam(t, tests, EXTENSION_FOOTNOTES, 0)
+	doTestsInlineParam(t, tests, EXTENSION_FOOTNOTES, 0)
 }
