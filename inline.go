@@ -15,6 +15,7 @@ package blackfriday
 
 import (
 	"bytes"
+	"strconv"
 )
 
 // Functions to parse text within a block
@@ -174,8 +175,7 @@ const (
 	linkNormal linkType = iota
 	linkImg
 	linkDeferredFootnote
-
-//	linkInlineFootnote
+	linkInlineFootnote
 )
 
 // '[': parse a link or an image or a footnote
@@ -193,7 +193,9 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	if offset > 0 && data[offset-1] == '!' {
 		t = linkImg
 	} else if p.flags&EXTENSION_FOOTNOTES != 0 {
-		if len(data)-1 > offset && data[offset+1] == '^' {
+		if offset > 0 && data[offset-1] == '^' {
+			t = linkInlineFootnote
+		} else if len(data)-1 > offset && data[offset+1] == '^' {
 			t = linkDeferredFootnote
 		}
 	}
@@ -387,7 +389,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		title = lr.title
 		i++
 
-	// shortcut reference style link or footnote
+	// shortcut reference style link or reference or inline footnote
 	default:
 		var id []byte
 
@@ -407,24 +409,58 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			id = b.Bytes()
 		} else {
 			if t == linkDeferredFootnote {
-				id = data[2:txtE]
+				id = data[2:txtE] // get rid of the ^
 			} else {
 				id = data[1:txtE]
 			}
 		}
 
-		// find the reference with matching id
 		key := string(bytes.ToLower(id))
-		lr, ok := p.refs[key]
-		if !ok {
-			return 0
-		}
+		if t == linkInlineFootnote {
+			// create a new reference
+			noteId = len(p.notes) + 1
 
-		// keep link and title from reference
-		link = lr.link
-		// if inline footnote, title == footnote contents
-		title = lr.title
-		noteId = lr.noteId
+			var fragment []byte
+			if len(id) > 0 {
+				if len(id) < 16 {
+					fragment = make([]byte, len(id))
+				} else {
+					fragment = make([]byte, 16)
+				}
+				copy(fragment, slugify(id))
+			} else {
+				fragment = append([]byte("footnote-"), []byte(strconv.Itoa(noteId))...)
+			}
+
+			ref := &reference{
+				noteId:   noteId,
+				hasBlock: false,
+				link:     fragment,
+				title:    id,
+			}
+
+			p.notes = append(p.notes, ref)
+
+			link = ref.link
+			title = ref.title
+		} else {
+			// find the reference with matching id
+			lr, ok := p.refs[key]
+			if !ok {
+				return 0
+			}
+
+			if t == linkDeferredFootnote {
+				lr.noteId = len(p.notes) + 1
+				p.notes = append(p.notes, lr)
+			}
+
+			// keep link and title from reference
+			link = lr.link
+			// if inline footnote, title == footnote contents
+			title = lr.title
+			noteId = lr.noteId
+		}
 
 		// rewind the whitespace
 		i = txtE + 1
@@ -469,6 +505,15 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		}
 
 		p.r.Image(out, uLink, title, content.Bytes())
+
+	case linkInlineFootnote:
+		outSize := out.Len()
+		outBytes := out.Bytes()
+		if outSize > 0 && outBytes[outSize-1] == '^' {
+			out.Truncate(outSize - 1)
+		}
+
+		p.r.FootnoteRef(out, link, noteId)
 
 	case linkDeferredFootnote:
 		p.r.FootnoteRef(out, link, noteId)

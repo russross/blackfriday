@@ -333,7 +333,7 @@ func (options *Html) FootnoteItem(out *bytes.Buffer, name, text []byte, flags in
 	if flags&LIST_ITEM_CONTAINS_BLOCK != 0 || flags&LIST_ITEM_BEGINNING_OF_LIST != 0 {
 		doubleSpace(out)
 	}
-	out.WriteString(`<li class="`)
+	out.WriteString(`<li id="fn:`)
 	out.Write(slugify(name))
 	out.WriteString(`">`)
 	out.Write(text)

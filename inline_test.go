@@ -513,7 +513,7 @@ func TestFootnotes(t *testing.T) {
 <hr />
 
 <ol>
-<li class="a">This is the note
+<li id="fn:a">This is the note
 </li>
 </ol>
 </div>
@@ -539,7 +539,7 @@ No longer in the footnote
 <hr />
 
 <ol>
-<li class="b"><p>Paragraph 1</p>
+<li id="fn:b"><p>Paragraph 1</p>
 
 <p>Paragraph 2</p>
 
@@ -577,9 +577,39 @@ what happens here
 <hr />
 
 <ol>
-<li class="c">this is <a href="/link/c">note</a> c
+<li id="fn:c">this is <a href="/link/c">note</a> c
 </li>
-<li class="d">this is note d
+<li id="fn:d">this is note d
+</li>
+</ol>
+</div>
+`,
+
+		"testing inline^[this is the note] notes.\n",
+		`<p>testing inline<sup class="footnote-ref" id="fnref:this-is-the-note"><a rel="footnote" href="#fn:this-is-the-note">1</a></sup> notes.</p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:this-is-the-note">this is the note</li>
+</ol>
+</div>
+`,
+
+		"testing multiple[^1] types^[inline note] of notes[^2]\n\n[^2]: the second deferred note\n[^1]: the first deferred note\n\n\twhich happens to be a block\n",
+		`<p>testing multiple<sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup> types<sup class="footnote-ref" id="fnref:inline-note"><a rel="footnote" href="#fn:inline-note">2</a></sup> of notes<sup class="footnote-ref" id="fnref:2"><a rel="footnote" href="#fn:2">3</a></sup></p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:1"><p>the first deferred note</p>
+
+<p>which happens to be a block</p>
+</li>
+<li id="fn:inline-note">inline note</li>
+<li id="fn:2">the second deferred note
 </li>
 </ol>
 </div>

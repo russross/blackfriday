@@ -436,7 +436,9 @@ func isReference(p *parser, data []byte, tabSize int) int {
 	i++
 	if p.flags&EXTENSION_FOOTNOTES != 0 {
 		if data[i] == '^' {
-			noteId = len(p.notes) + 1
+			// we can set it to anything here because the proper noteIds will
+			// be assigned later during the second pass. It just has to be != 0
+			noteId = 1
 			i++
 		}
 	}
@@ -479,7 +481,7 @@ func isReference(p *parser, data []byte, tabSize int) int {
 		hasBlock              bool
 	)
 
-	if p.flags&EXTENSION_FOOTNOTES != 0 && noteId > 0 {
+	if p.flags&EXTENSION_FOOTNOTES != 0 && noteId != 0 {
 		linkOffset, linkEnd, raw, hasBlock = scanFootnote(p, data, i, tabSize)
 		lineEnd = linkEnd
 	} else {
@@ -501,7 +503,6 @@ func isReference(p *parser, data []byte, tabSize int) int {
 		ref.link = data[idOffset:idEnd]
 		// if footnote, it's not really a title, it's the contained text
 		ref.title = raw
-		p.notes = append(p.notes, ref)
 	} else {
 		ref.link = data[linkOffset:linkEnd]
 		ref.title = data[titleOffset:titleEnd]
