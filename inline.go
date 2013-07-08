@@ -481,15 +481,17 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	}
 
 	var uLink []byte
-	if len(link) > 0 {
-		var uLinkBuf bytes.Buffer
-		unescapeText(&uLinkBuf, link)
-		uLink = uLinkBuf.Bytes()
-	}
+	if t == linkNormal || t == linkImg {
+		if len(link) > 0 {
+			var uLinkBuf bytes.Buffer
+			unescapeText(&uLinkBuf, link)
+			uLink = uLinkBuf.Bytes()
+		}
 
-	// links need something to click on and somewhere to go
-	if len(uLink) == 0 || (t == linkNormal && content.Len() == 0) {
-		return 0
+		// links need something to click on and somewhere to go
+		if len(uLink) == 0 || (t == linkNormal && content.Len() == 0) {
+			return 0
+		}
 	}
 
 	// call the relevant rendering function

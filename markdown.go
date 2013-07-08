@@ -508,7 +508,9 @@ func isReference(p *parser, data []byte, tabSize int) int {
 
 	// id matches are case-insensitive
 	id := string(bytes.ToLower(data[idOffset:idEnd]))
+
 	p.refs[id] = ref
+
 	return lineEnd
 }
 

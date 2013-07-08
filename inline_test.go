@@ -635,6 +635,9 @@ what happens here
 </ol>
 </div>
 `,
+
+		"empty footnote[^]\n\n[^]: fn text",
+		"<p>empty footnote<sup class=\"footnote-ref\" id=\"fnref:\"><a rel=\"footnote\" href=\"#fn:\">1</a></sup></p>\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:\">fn text\n</li>\n</ol>\n</div>\n",
 	}
 
 	doTestsInlineParam(t, tests, EXTENSION_FOOTNOTES, 0)
