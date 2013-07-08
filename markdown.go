@@ -589,12 +589,12 @@ func scanLinkRef(p *parser, data []byte, i int) (linkOffset, linkEnd, titleOffse
 // extracted text that was shifted over one tab. It will need to be rendered at
 // the end of the document.
 func scanFootnote(p *parser, data []byte, i, indentSize int) (blockStart, blockEnd int, contents []byte, hasBlock bool) {
-	if i == 0 {
+	if i == 0 || len(data) == 0 {
 		return
 	}
 
 	// skip leading whitespace on first line
-	for data[i] == ' ' {
+	for i < len(data) && data[i] == ' ' {
 		i++
 	}
 

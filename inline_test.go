@@ -614,6 +614,27 @@ what happens here
 </ol>
 </div>
 `,
+
+		`This is a footnote[^1]^[and this is an inline footnote]
+
+[^1]: the footnote text.
+
+    may be multiple paragraphs.
+`,
+		`<p>This is a footnote<sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup><sup class="footnote-ref" id="fnref:and-this-is-an-i"><a rel="footnote" href="#fn:and-this-is-an-i">2</a></sup></p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:1"><p>the footnote text.</p>
+
+<p>may be multiple paragraphs.</p>
+</li>
+<li id="fn:and-this-is-an-i">and this is an inline footnote</li>
+</ol>
+</div>
+`,
 	}
 
 	doTestsInlineParam(t, tests, EXTENSION_FOOTNOTES, 0)
