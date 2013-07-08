@@ -416,8 +416,6 @@ type reference struct {
 // Returns the number of bytes to skip to move past it,
 // or zero if the first line is not a reference.
 func isReference(p *parser, data []byte, tabSize int) int {
-	if len(data) >= 5 {
-	}
 	// up to 3 optional leading spaces
 	if len(data) < 4 {
 		return 0
