@@ -15,6 +15,7 @@ package blackfriday
 
 import (
 	"bytes"
+	"strconv"
 )
 
 // Functions to parse text within a block
@@ -168,20 +169,49 @@ func lineBreak(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	return 1
 }
 
-// '[': parse a link or an image
+type linkType int
+
+const (
+	linkNormal linkType = iota
+	linkImg
+	linkDeferredFootnote
+	linkInlineFootnote
+)
+
+// '[': parse a link or an image or a footnote
 func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	// no links allowed inside other links
 	if p.insideLink {
 		return 0
 	}
 
-	isImg := offset > 0 && data[offset-1] == '!'
+	// [text] == regular link
+	// ![alt] == image
+	// ^[text] == inline footnote
+	// [^refId] == deferred footnote
+	var t linkType
+	if offset > 0 && data[offset-1] == '!' {
+		t = linkImg
+	} else if p.flags&EXTENSION_FOOTNOTES != 0 {
+		if offset > 0 && data[offset-1] == '^' {
+			t = linkInlineFootnote
+		} else if len(data)-1 > offset && data[offset+1] == '^' {
+			t = linkDeferredFootnote
+		}
+	}
 
 	data = data[offset:]
 
-	i := 1
-	var title, link []byte
-	textHasNl := false
+	var (
+		i           = 1
+		noteId      int
+		title, link []byte
+		textHasNl   = false
+	)
+
+	if t == linkDeferredFootnote {
+		i++
+	}
 
 	// look for the matching closing bracket
 	for level := 1; level > 0 && i < len(data); i++ {
@@ -351,6 +381,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		lr, ok := p.refs[key]
 		if !ok {
 			return 0
+
 		}
 
 		// keep link and title from reference
@@ -358,7 +389,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		title = lr.title
 		i++
 
-	// shortcut reference style link
+	// shortcut reference style link or reference or inline footnote
 	default:
 		var id []byte
 
@@ -377,19 +408,59 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 			id = b.Bytes()
 		} else {
-			id = data[1:txtE]
+			if t == linkDeferredFootnote {
+				id = data[2:txtE] // get rid of the ^
+			} else {
+				id = data[1:txtE]
+			}
 		}
 
-		// find the reference with matching id
 		key := string(bytes.ToLower(id))
-		lr, ok := p.refs[key]
-		if !ok {
-			return 0
-		}
+		if t == linkInlineFootnote {
+			// create a new reference
+			noteId = len(p.notes) + 1
 
-		// keep link and title from reference
-		link = lr.link
-		title = lr.title
+			var fragment []byte
+			if len(id) > 0 {
+				if len(id) < 16 {
+					fragment = make([]byte, len(id))
+				} else {
+					fragment = make([]byte, 16)
+				}
+				copy(fragment, slugify(id))
+			} else {
+				fragment = append([]byte("footnote-"), []byte(strconv.Itoa(noteId))...)
+			}
+
+			ref := &reference{
+				noteId:   noteId,
+				hasBlock: false,
+				link:     fragment,
+				title:    id,
+			}
+
+			p.notes = append(p.notes, ref)
+
+			link = ref.link
+			title = ref.title
+		} else {
+			// find the reference with matching id
+			lr, ok := p.refs[key]
+			if !ok {
+				return 0
+			}
+
+			if t == linkDeferredFootnote {
+				lr.noteId = len(p.notes) + 1
+				p.notes = append(p.notes, lr)
+			}
+
+			// keep link and title from reference
+			link = lr.link
+			// if inline footnote, title == footnote contents
+			title = lr.title
+			noteId = lr.noteId
+		}
 
 		// rewind the whitespace
 		i = txtE + 1
@@ -398,7 +469,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	// build content: img alt is escaped, link content is parsed
 	var content bytes.Buffer
 	if txtE > 1 {
-		if isImg {
+		if t == linkImg {
 			content.Write(data[1:txtE])
 		} else {
 			// links cannot contain other links, so turn off link parsing temporarily
@@ -410,19 +481,25 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	}
 
 	var uLink []byte
-	if len(link) > 0 {
-		var uLinkBuf bytes.Buffer
-		unescapeText(&uLinkBuf, link)
-		uLink = uLinkBuf.Bytes()
-	}
+	if t == linkNormal || t == linkImg {
+		if len(link) > 0 {
+			var uLinkBuf bytes.Buffer
+			unescapeText(&uLinkBuf, link)
+			uLink = uLinkBuf.Bytes()
+		}
 
-	// links need something to click on and somewhere to go
-	if len(uLink) == 0 || (!isImg && content.Len() == 0) {
-		return 0
+		// links need something to click on and somewhere to go
+		if len(uLink) == 0 || (t == linkNormal && content.Len() == 0) {
+			return 0
+		}
 	}
 
 	// call the relevant rendering function
-	if isImg {
+	switch t {
+	case linkNormal:
+		p.r.Link(out, uLink, title, content.Bytes())
+
+	case linkImg:
 		outSize := out.Len()
 		outBytes := out.Bytes()
 		if outSize > 0 && outBytes[outSize-1] == '!' {
@@ -430,8 +507,21 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		}
 
 		p.r.Image(out, uLink, title, content.Bytes())
-	} else {
-		p.r.Link(out, uLink, title, content.Bytes())
+
+	case linkInlineFootnote:
+		outSize := out.Len()
+		outBytes := out.Bytes()
+		if outSize > 0 && outBytes[outSize-1] == '^' {
+			out.Truncate(outSize - 1)
+		}
+
+		p.r.FootnoteRef(out, link, noteId)
+
+	case linkDeferredFootnote:
+		p.r.FootnoteRef(out, link, noteId)
+
+	default:
+		return 0
 	}
 
 	return i
