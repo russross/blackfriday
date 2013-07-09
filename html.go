@@ -322,6 +322,24 @@ func (options *Html) TableCell(out *bytes.Buffer, text []byte, align int) {
 	out.WriteString("</td>")
 }
 
+func (options *Html) Footnotes(out *bytes.Buffer, text func() bool) {
+	out.WriteString("<div class=\"footnotes\">\n")
+	options.HRule(out)
+	options.List(out, text, LIST_TYPE_ORDERED)
+	out.WriteString("</div>\n")
+}
+
+func (options *Html) FootnoteItem(out *bytes.Buffer, name, text []byte, flags int) {
+	if flags&LIST_ITEM_CONTAINS_BLOCK != 0 || flags&LIST_ITEM_BEGINNING_OF_LIST != 0 {
+		doubleSpace(out)
+	}
+	out.WriteString(`<li id="fn:`)
+	out.Write(slugify(name))
+	out.WriteString(`">`)
+	out.Write(text)
+	out.WriteString("</li>\n")
+}
+
 func (options *Html) List(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
 	doubleSpace(out)
@@ -499,6 +517,17 @@ func (options *Html) StrikeThrough(out *bytes.Buffer, text []byte) {
 	out.WriteString("<del>")
 	out.Write(text)
 	out.WriteString("</del>")
+}
+
+func (options *Html) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
+	slug := slugify(ref)
+	out.WriteString(`<sup class="footnote-ref" id="fnref:`)
+	out.Write(slug)
+	out.WriteString(`"><a rel="footnote" href="#fn:`)
+	out.Write(slug)
+	out.WriteString(`">`)
+	out.WriteString(strconv.Itoa(id))
+	out.WriteString(`</a></sup>`)
 }
 
 func (options *Html) Entity(out *bytes.Buffer, entity []byte) {

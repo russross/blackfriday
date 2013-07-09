@@ -35,11 +35,13 @@ func doTestsInline(t *testing.T, tests []string) {
 func doTestsInlineParam(t *testing.T, tests []string, extensions, htmlFlags int) {
 	// catch and report panics
 	var candidate string
-	defer func() {
-		if err := recover(); err != nil {
-			t.Errorf("\npanic while processing [%#v]\n", candidate)
-		}
-	}()
+	/*
+		defer func() {
+			if err := recover(); err != nil {
+				t.Errorf("\npanic while processing [%#v] (%v)\n", candidate, err)
+			}
+		}()
+	*/
 
 	for i := 0; i+1 < len(tests); i += 2 {
 		input := tests[i]
@@ -500,4 +502,143 @@ func TestAutoLink(t *testing.T) {
 			"http://new.com?q=&gt;&amp;etc</a></p>\n",
 	}
 	doTestsInline(t, tests)
+}
+
+func TestFootnotes(t *testing.T) {
+	tests := []string{
+		"testing footnotes.[^a]\n\n[^a]: This is the note\n",
+		`<p>testing footnotes.<sup class="footnote-ref" id="fnref:a"><a rel="footnote" href="#fn:a">1</a></sup></p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:a">This is the note
+</li>
+</ol>
+</div>
+`,
+
+		`testing long[^b] notes.
+
+[^b]: Paragraph 1
+
+	Paragraph 2
+	
+	` + "```\n\tsome code\n\t```" + `
+	
+	Paragraph 3
+
+No longer in the footnote
+`,
+		`<p>testing long<sup class="footnote-ref" id="fnref:b"><a rel="footnote" href="#fn:b">1</a></sup> notes.</p>
+
+<p>No longer in the footnote</p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:b"><p>Paragraph 1</p>
+
+<p>Paragraph 2</p>
+
+<p><code>
+some code
+</code></p>
+
+<p>Paragraph 3</p>
+</li>
+</ol>
+</div>
+`,
+
+		`testing[^c] multiple[^d] notes.
+
+[^c]: this is [note] c
+
+
+omg
+
+[^d]: this is note d
+
+what happens here
+
+[note]: /link/c
+
+`,
+		`<p>testing<sup class="footnote-ref" id="fnref:c"><a rel="footnote" href="#fn:c">1</a></sup> multiple<sup class="footnote-ref" id="fnref:d"><a rel="footnote" href="#fn:d">2</a></sup> notes.</p>
+
+<p>omg</p>
+
+<p>what happens here</p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:c">this is <a href="/link/c">note</a> c
+</li>
+<li id="fn:d">this is note d
+</li>
+</ol>
+</div>
+`,
+
+		"testing inline^[this is the note] notes.\n",
+		`<p>testing inline<sup class="footnote-ref" id="fnref:this-is-the-note"><a rel="footnote" href="#fn:this-is-the-note">1</a></sup> notes.</p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:this-is-the-note">this is the note</li>
+</ol>
+</div>
+`,
+
+		"testing multiple[^1] types^[inline note] of notes[^2]\n\n[^2]: the second deferred note\n[^1]: the first deferred note\n\n\twhich happens to be a block\n",
+		`<p>testing multiple<sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup> types<sup class="footnote-ref" id="fnref:inline-note"><a rel="footnote" href="#fn:inline-note">2</a></sup> of notes<sup class="footnote-ref" id="fnref:2"><a rel="footnote" href="#fn:2">3</a></sup></p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:1"><p>the first deferred note</p>
+
+<p>which happens to be a block</p>
+</li>
+<li id="fn:inline-note">inline note</li>
+<li id="fn:2">the second deferred note
+</li>
+</ol>
+</div>
+`,
+
+		`This is a footnote[^1]^[and this is an inline footnote]
+
+[^1]: the footnote text.
+
+    may be multiple paragraphs.
+`,
+		`<p>This is a footnote<sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup><sup class="footnote-ref" id="fnref:and-this-is-an-i"><a rel="footnote" href="#fn:and-this-is-an-i">2</a></sup></p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:1"><p>the footnote text.</p>
+
+<p>may be multiple paragraphs.</p>
+</li>
+<li id="fn:and-this-is-an-i">and this is an inline footnote</li>
+</ol>
+</div>
+`,
+
+		"empty footnote[^]\n\n[^]: fn text",
+		"<p>empty footnote<sup class=\"footnote-ref\" id=\"fnref:\"><a rel=\"footnote\" href=\"#fn:\">1</a></sup></p>\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:\">fn text\n</li>\n</ol>\n</div>\n",
+	}
+
+	doTestsInlineParam(t, tests, EXTENSION_FOOTNOTES, 0)
 }
