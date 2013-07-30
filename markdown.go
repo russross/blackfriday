@@ -28,16 +28,17 @@ const VERSION = "1.1"
 // These are the supported markdown parsing extensions.
 // OR these values together to select multiple extensions.
 const (
-	EXTENSION_NO_INTRA_EMPHASIS = 1 << iota // ignore emphasis markers inside words
-	EXTENSION_TABLES                        // render tables
-	EXTENSION_FENCED_CODE                   // render fenced code blocks
-	EXTENSION_AUTOLINK                      // detect embedded URLs that are not explicitly marked
-	EXTENSION_STRIKETHROUGH                 // strikethrough text using ~~test~~
-	EXTENSION_LAX_HTML_BLOCKS               // loosen up HTML block parsing rules
-	EXTENSION_SPACE_HEADERS                 // be strict about prefix header rules
-	EXTENSION_HARD_LINE_BREAK               // translate newlines into line breaks
-	EXTENSION_TAB_SIZE_EIGHT                // expand tabs to eight spaces instead of four
-	EXTENSION_FOOTNOTES                     // Pandoc-style footnotes
+	EXTENSION_NO_INTRA_EMPHASIS          = 1 << iota // ignore emphasis markers inside words
+	EXTENSION_TABLES                                 // render tables
+	EXTENSION_FENCED_CODE                            // render fenced code blocks
+	EXTENSION_AUTOLINK                               // detect embedded URLs that are not explicitly marked
+	EXTENSION_STRIKETHROUGH                          // strikethrough text using ~~test~~
+	EXTENSION_LAX_HTML_BLOCKS                        // loosen up HTML block parsing rules
+	EXTENSION_SPACE_HEADERS                          // be strict about prefix header rules
+	EXTENSION_HARD_LINE_BREAK                        // translate newlines into line breaks
+	EXTENSION_TAB_SIZE_EIGHT                         // expand tabs to eight spaces instead of four
+	EXTENSION_FOOTNOTES                              // Pandoc-style footnotes
+	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK             // No need to insert an empty line to start a (code, quote, order list, unorder list)block
 )
 
 // These are the possible flag values for the link renderer.

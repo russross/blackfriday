@@ -692,3 +692,281 @@ func TestTable(t *testing.T) {
 	}
 	doTestsBlock(t, tests, EXTENSION_TABLES)
 }
+
+func TestUnorderedListWith_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
+	var tests = []string{
+		"* Hello\n",
+		"<ul>\n<li>Hello</li>\n</ul>\n",
+
+		"* Yin\n* Yang\n",
+		"<ul>\n<li>Yin</li>\n<li>Yang</li>\n</ul>\n",
+
+		"* Ting\n* Bong\n* Goo\n",
+		"<ul>\n<li>Ting</li>\n<li>Bong</li>\n<li>Goo</li>\n</ul>\n",
+
+		"* Yin\n\n* Yang\n",
+		"<ul>\n<li><p>Yin</p></li>\n\n<li><p>Yang</p></li>\n</ul>\n",
+
+		"* Ting\n\n* Bong\n* Goo\n",
+		"<ul>\n<li><p>Ting</p></li>\n\n<li><p>Bong</p></li>\n\n<li><p>Goo</p></li>\n</ul>\n",
+
+		"+ Hello\n",
+		"<ul>\n<li>Hello</li>\n</ul>\n",
+
+		"+ Yin\n+ Yang\n",
+		"<ul>\n<li>Yin</li>\n<li>Yang</li>\n</ul>\n",
+
+		"+ Ting\n+ Bong\n+ Goo\n",
+		"<ul>\n<li>Ting</li>\n<li>Bong</li>\n<li>Goo</li>\n</ul>\n",
+
+		"+ Yin\n\n+ Yang\n",
+		"<ul>\n<li><p>Yin</p></li>\n\n<li><p>Yang</p></li>\n</ul>\n",
+
+		"+ Ting\n\n+ Bong\n+ Goo\n",
+		"<ul>\n<li><p>Ting</p></li>\n\n<li><p>Bong</p></li>\n\n<li><p>Goo</p></li>\n</ul>\n",
+
+		"- Hello\n",
+		"<ul>\n<li>Hello</li>\n</ul>\n",
+
+		"- Yin\n- Yang\n",
+		"<ul>\n<li>Yin</li>\n<li>Yang</li>\n</ul>\n",
+
+		"- Ting\n- Bong\n- Goo\n",
+		"<ul>\n<li>Ting</li>\n<li>Bong</li>\n<li>Goo</li>\n</ul>\n",
+
+		"- Yin\n\n- Yang\n",
+		"<ul>\n<li><p>Yin</p></li>\n\n<li><p>Yang</p></li>\n</ul>\n",
+
+		"- Ting\n\n- Bong\n- Goo\n",
+		"<ul>\n<li><p>Ting</p></li>\n\n<li><p>Bong</p></li>\n\n<li><p>Goo</p></li>\n</ul>\n",
+
+		"*Hello\n",
+		"<p>*Hello</p>\n",
+
+		"*   Hello \n",
+		"<ul>\n<li>Hello</li>\n</ul>\n",
+
+		"*   Hello \n    Next line \n",
+		"<ul>\n<li>Hello\nNext line</li>\n</ul>\n",
+
+		"Paragraph\n* No linebreak\n",
+		"<p>Paragraph</p>\n\n<ul>\n<li>No linebreak</li>\n</ul>\n",
+
+		"Paragraph\n\n* Linebreak\n",
+		"<p>Paragraph</p>\n\n<ul>\n<li>Linebreak</li>\n</ul>\n",
+
+		"*   List\n    * Nested list\n",
+		"<ul>\n<li>List\n\n<ul>\n<li>Nested list</li>\n</ul></li>\n</ul>\n",
+
+		"*   List\n\n    * Nested list\n",
+		"<ul>\n<li><p>List</p>\n\n<ul>\n<li>Nested list</li>\n</ul></li>\n</ul>\n",
+
+		"*   List\n    Second line\n\n    + Nested\n",
+		"<ul>\n<li><p>List\nSecond line</p>\n\n<ul>\n<li>Nested</li>\n</ul></li>\n</ul>\n",
+
+		"*   List\n    + Nested\n\n    Continued\n",
+		"<ul>\n<li><p>List</p>\n\n<ul>\n<li>Nested</li>\n</ul>\n\n<p>Continued</p></li>\n</ul>\n",
+
+		"*   List\n   * shallow indent\n",
+		"<ul>\n<li>List\n\n<ul>\n<li>shallow indent</li>\n</ul></li>\n</ul>\n",
+
+		"* List\n" +
+			" * shallow indent\n" +
+			"  * part of second list\n" +
+			"   * still second\n" +
+			"    * almost there\n" +
+			"     * third level\n",
+		"<ul>\n" +
+			"<li>List\n\n" +
+			"<ul>\n" +
+			"<li>shallow indent</li>\n" +
+			"<li>part of second list</li>\n" +
+			"<li>still second</li>\n" +
+			"<li>almost there\n\n" +
+			"<ul>\n" +
+			"<li>third level</li>\n" +
+			"</ul></li>\n" +
+			"</ul></li>\n" +
+			"</ul>\n",
+
+		"* List\n        extra indent, same paragraph\n",
+		"<ul>\n<li>List\n    extra indent, same paragraph</li>\n</ul>\n",
+
+		"* List\n\n        code block\n",
+		"<ul>\n<li><p>List</p>\n\n<pre><code>code block\n</code></pre></li>\n</ul>\n",
+
+		"* List\n\n          code block with spaces\n",
+		"<ul>\n<li><p>List</p>\n\n<pre><code>  code block with spaces\n</code></pre></li>\n</ul>\n",
+
+		"* List\n\n    * sublist\n\n    normal text\n\n    * another sublist\n",
+		"<ul>\n<li><p>List</p>\n\n<ul>\n<li>sublist</li>\n</ul>\n\n<p>normal text</p>\n\n<ul>\n<li>another sublist</li>\n</ul></li>\n</ul>\n",
+	}
+	doTestsBlock(t, tests, EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK)
+}
+
+func TestOrderedList_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
+	var tests = []string{
+		"1. Hello\n",
+		"<ol>\n<li>Hello</li>\n</ol>\n",
+
+		"1. Yin\n2. Yang\n",
+		"<ol>\n<li>Yin</li>\n<li>Yang</li>\n</ol>\n",
+
+		"1. Ting\n2. Bong\n3. Goo\n",
+		"<ol>\n<li>Ting</li>\n<li>Bong</li>\n<li>Goo</li>\n</ol>\n",
+
+		"1. Yin\n\n2. Yang\n",
+		"<ol>\n<li><p>Yin</p></li>\n\n<li><p>Yang</p></li>\n</ol>\n",
+
+		"1. Ting\n\n2. Bong\n3. Goo\n",
+		"<ol>\n<li><p>Ting</p></li>\n\n<li><p>Bong</p></li>\n\n<li><p>Goo</p></li>\n</ol>\n",
+
+		"1 Hello\n",
+		"<p>1 Hello</p>\n",
+
+		"1.Hello\n",
+		"<p>1.Hello</p>\n",
+
+		"1.  Hello \n",
+		"<ol>\n<li>Hello</li>\n</ol>\n",
+
+		"1.  Hello \n    Next line \n",
+		"<ol>\n<li>Hello\nNext line</li>\n</ol>\n",
+
+		"Paragraph\n1. No linebreak\n",
+		"<p>Paragraph</p>\n\n<ol>\n<li>No linebreak</li>\n</ol>\n",
+
+		"Paragraph\n\n1. Linebreak\n",
+		"<p>Paragraph</p>\n\n<ol>\n<li>Linebreak</li>\n</ol>\n",
+
+		"1.  List\n    1. Nested list\n",
+		"<ol>\n<li>List\n\n<ol>\n<li>Nested list</li>\n</ol></li>\n</ol>\n",
+
+		"1.  List\n\n    1. Nested list\n",
+		"<ol>\n<li><p>List</p>\n\n<ol>\n<li>Nested list</li>\n</ol></li>\n</ol>\n",
+
+		"1.  List\n    Second line\n\n    1. Nested\n",
+		"<ol>\n<li><p>List\nSecond line</p>\n\n<ol>\n<li>Nested</li>\n</ol></li>\n</ol>\n",
+
+		"1.  List\n    1. Nested\n\n    Continued\n",
+		"<ol>\n<li><p>List</p>\n\n<ol>\n<li>Nested</li>\n</ol>\n\n<p>Continued</p></li>\n</ol>\n",
+
+		"1.  List\n   1. shallow indent\n",
+		"<ol>\n<li>List\n\n<ol>\n<li>shallow indent</li>\n</ol></li>\n</ol>\n",
+
+		"1. List\n" +
+			" 1. shallow indent\n" +
+			"  2. part of second list\n" +
+			"   3. still second\n" +
+			"    4. almost there\n" +
+			"     1. third level\n",
+		"<ol>\n" +
+			"<li>List\n\n" +
+			"<ol>\n" +
+			"<li>shallow indent</li>\n" +
+			"<li>part of second list</li>\n" +
+			"<li>still second</li>\n" +
+			"<li>almost there\n\n" +
+			"<ol>\n" +
+			"<li>third level</li>\n" +
+			"</ol></li>\n" +
+			"</ol></li>\n" +
+			"</ol>\n",
+
+		"1. List\n        extra indent, same paragraph\n",
+		"<ol>\n<li>List\n    extra indent, same paragraph</li>\n</ol>\n",
+
+		"1. List\n\n        code block\n",
+		"<ol>\n<li><p>List</p>\n\n<pre><code>code block\n</code></pre></li>\n</ol>\n",
+
+		"1. List\n\n          code block with spaces\n",
+		"<ol>\n<li><p>List</p>\n\n<pre><code>  code block with spaces\n</code></pre></li>\n</ol>\n",
+
+		"1. List\n    * Mixted list\n",
+		"<ol>\n<li>List\n\n<ul>\n<li>Mixted list</li>\n</ul></li>\n</ol>\n",
+
+		"1. List\n * Mixed list\n",
+		"<ol>\n<li>List\n\n<ul>\n<li>Mixed list</li>\n</ul></li>\n</ol>\n",
+
+		"* Start with unordered\n 1. Ordered\n",
+		"<ul>\n<li>Start with unordered\n\n<ol>\n<li>Ordered</li>\n</ol></li>\n</ul>\n",
+
+		"* Start with unordered\n    1. Ordered\n",
+		"<ul>\n<li>Start with unordered\n\n<ol>\n<li>Ordered</li>\n</ol></li>\n</ul>\n",
+
+		"1. numbers\n1. are ignored\n",
+		"<ol>\n<li>numbers</li>\n<li>are ignored</li>\n</ol>\n",
+	}
+	doTestsBlock(t, tests, EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK)
+}
+
+func TestFencedCodeBlock_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
+	var tests = []string{
+		"``` go\nfunc foo() bool {\n\treturn true;\n}\n```\n",
+		"<pre><code class=\"go\">func foo() bool {\n    return true;\n}\n</code></pre>\n",
+
+		"``` c\n/* special & char < > \" escaping */\n```\n",
+		"<pre><code class=\"c\">/* special &amp; char &lt; &gt; &quot; escaping */\n</code></pre>\n",
+
+		"``` c\nno *inline* processing ~~of text~~\n```\n",
+		"<pre><code class=\"c\">no *inline* processing ~~of text~~\n</code></pre>\n",
+
+		"```\nNo language\n```\n",
+		"<pre><code>No language\n</code></pre>\n",
+
+		"``` {ocaml}\nlanguage in braces\n```\n",
+		"<pre><code class=\"ocaml\">language in braces\n</code></pre>\n",
+
+		"```    {ocaml}      \nwith extra whitespace\n```\n",
+		"<pre><code class=\"ocaml\">with extra whitespace\n</code></pre>\n",
+
+		"```{   ocaml   }\nwith extra whitespace\n```\n",
+		"<pre><code class=\"ocaml\">with extra whitespace\n</code></pre>\n",
+
+		"~ ~~ java\nWith whitespace\n~~~\n",
+		"<p>~ ~~ java\nWith whitespace\n~~~</p>\n",
+
+		"~~\nonly two\n~~\n",
+		"<p>~~\nonly two\n~~</p>\n",
+
+		"```` python\nextra\n````\n",
+		"<pre><code class=\"python\">extra\n</code></pre>\n",
+
+		"~~~ perl\nthree to start, four to end\n~~~~\n",
+		"<p>~~~ perl\nthree to start, four to end\n~~~~</p>\n",
+
+		"~~~~ perl\nfour to start, three to end\n~~~\n",
+		"<p>~~~~ perl\nfour to start, three to end\n~~~</p>\n",
+
+		"~~~ bash\ntildes\n~~~\n",
+		"<pre><code class=\"bash\">tildes\n</code></pre>\n",
+
+		"``` lisp\nno ending\n",
+		"<p>``` lisp\nno ending</p>\n",
+
+		"~~~ lisp\nend with language\n~~~ lisp\n",
+		"<p>~~~ lisp\nend with language\n~~~ lisp</p>\n",
+
+		"```\nmismatched begin and end\n~~~\n",
+		"<p>```\nmismatched begin and end\n~~~</p>\n",
+
+		"~~~\nmismatched begin and end\n```\n",
+		"<p>~~~\nmismatched begin and end\n```</p>\n",
+
+		"   ``` oz\nleading spaces\n```\n",
+		"<pre><code class=\"oz\">leading spaces\n</code></pre>\n",
+
+		"  ``` oz\nleading spaces\n ```\n",
+		"<pre><code class=\"oz\">leading spaces\n</code></pre>\n",
+
+		" ``` oz\nleading spaces\n  ```\n",
+		"<pre><code class=\"oz\">leading spaces\n</code></pre>\n",
+
+		"``` oz\nleading spaces\n   ```\n",
+		"<pre><code class=\"oz\">leading spaces\n</code></pre>\n",
+
+		"    ``` oz\nleading spaces\n    ```\n",
+		"<pre><code>``` oz\n</code></pre>\n\n<p>leading spaces</p>\n\n<pre><code>```\n</code></pre>\n",
+	}
+	doTestsBlock(t, tests, EXTENSION_FENCED_CODE|EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK)
+}

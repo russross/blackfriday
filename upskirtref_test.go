@@ -19,12 +19,12 @@ import (
 	"testing"
 )
 
-func runMarkdownReference(input string) string {
+func runMarkdownReference(input string, flag int) string {
 	renderer := HtmlRenderer(0, "", "")
-	return string(Markdown([]byte(input), renderer, 0))
+	return string(Markdown([]byte(input), renderer, flag))
 }
 
-func doTestsReference(t *testing.T, files []string) {
+func doTestsReference(t *testing.T, files []string, flag int) {
 	// catch and report panics
 	var candidate string
 	defer func() {
@@ -50,7 +50,7 @@ func doTestsReference(t *testing.T, files []string) {
 		}
 		expected := string(expectedBytes)
 
-		actual := string(runMarkdownReference(input))
+		actual := string(runMarkdownReference(input, flag))
 		if actual != expected {
 			t.Errorf("\n    [%#v]\nExpected[%#v]\nActual  [%#v]",
 				basename+".text", expected, actual)
@@ -62,7 +62,7 @@ func doTestsReference(t *testing.T, files []string) {
 			start := 0
 			for end := start + 1; end <= len(input); end++ {
 				candidate = input[start:end]
-				_ = runMarkdownReference(candidate)
+				_ = runMarkdownReference(candidate, flag)
 			}
 		}
 	}
@@ -93,5 +93,33 @@ func TestReference(t *testing.T) {
 		"Tabs",
 		"Tidyness",
 	}
-	doTestsReference(t, files)
+	doTestsReference(t, files, 0)
+}
+
+func TestReference_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
+	files := []string{
+		"Amps and angle encoding",
+		"Auto links",
+		"Backslash escapes",
+		"Blockquotes with code blocks",
+		"Code Blocks",
+		"Code Spans",
+		"Hard-wrapped paragraphs with list-like lines no empty line before block",
+		"Horizontal rules",
+		"Inline HTML (Advanced)",
+		"Inline HTML (Simple)",
+		"Inline HTML comments",
+		"Links, inline style",
+		"Links, reference style",
+		"Links, shortcut references",
+		"Literal quotes in titles",
+		"Markdown Documentation - Basics",
+		"Markdown Documentation - Syntax",
+		"Nested blockquotes",
+		"Ordered and unordered lists",
+		"Strong and em together",
+		"Tabs",
+		"Tidyness",
+	}
+	doTestsReference(t, files, EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK)
 }
