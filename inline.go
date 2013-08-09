@@ -620,7 +620,7 @@ func autoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 	// scan backward for a word boundary
 	rewind := 0
-	for offset-rewind > 0 && rewind <= 7 && !isspace(data[offset-rewind-1]) && !isspace(data[offset-rewind-1]) {
+	for offset-rewind > 0 && rewind <= 7 && isletter(data[offset-rewind-1]) {
 		rewind++
 	}
 	if rewind > 6 { // longest supported protocol is "mailto" which has 6 letters

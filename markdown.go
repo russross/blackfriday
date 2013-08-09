@@ -28,16 +28,17 @@ const VERSION = "1.1"
 // These are the supported markdown parsing extensions.
 // OR these values together to select multiple extensions.
 const (
-	EXTENSION_NO_INTRA_EMPHASIS = 1 << iota // ignore emphasis markers inside words
-	EXTENSION_TABLES                        // render tables
-	EXTENSION_FENCED_CODE                   // render fenced code blocks
-	EXTENSION_AUTOLINK                      // detect embedded URLs that are not explicitly marked
-	EXTENSION_STRIKETHROUGH                 // strikethrough text using ~~test~~
-	EXTENSION_LAX_HTML_BLOCKS               // loosen up HTML block parsing rules
-	EXTENSION_SPACE_HEADERS                 // be strict about prefix header rules
-	EXTENSION_HARD_LINE_BREAK               // translate newlines into line breaks
-	EXTENSION_TAB_SIZE_EIGHT                // expand tabs to eight spaces instead of four
-	EXTENSION_FOOTNOTES                     // Pandoc-style footnotes
+	EXTENSION_NO_INTRA_EMPHASIS          = 1 << iota // ignore emphasis markers inside words
+	EXTENSION_TABLES                                 // render tables
+	EXTENSION_FENCED_CODE                            // render fenced code blocks
+	EXTENSION_AUTOLINK                               // detect embedded URLs that are not explicitly marked
+	EXTENSION_STRIKETHROUGH                          // strikethrough text using ~~test~~
+	EXTENSION_LAX_HTML_BLOCKS                        // loosen up HTML block parsing rules
+	EXTENSION_SPACE_HEADERS                          // be strict about prefix header rules
+	EXTENSION_HARD_LINE_BREAK                        // translate newlines into line breaks
+	EXTENSION_TAB_SIZE_EIGHT                         // expand tabs to eight spaces instead of four
+	EXTENSION_FOOTNOTES                              // Pandoc-style footnotes
+	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK             // No need to insert an empty line to start a (code, quote, order list, unorder list)block
 )
 
 // These are the possible flag values for the link renderer.
@@ -684,10 +685,15 @@ func isspace(c byte) bool {
 	return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v'
 }
 
+// Test if a character is letter.
+func isletter(c byte) bool {
+	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+}
+
 // Test if a character is a letter or a digit.
 // TODO: check when this is looking for ASCII alnum and when it should use unicode
 func isalnum(c byte) bool {
-	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+	return (c >= '0' && c <= '9') || isletter(c)
 }
 
 // Replace tab characters with spaces, aligning to the next TAB_SIZE column.
