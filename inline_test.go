@@ -462,6 +462,45 @@ func TestTags(t *testing.T) {
 
 func TestAutoLink(t *testing.T) {
 	var tests = []string{
+		"http://foo.com/\n",
+		"<p><a href=\"http://foo.com/\">http://foo.com/</a></p>\n",
+
+		"1 http://foo.com/\n",
+		"<p>1 <a href=\"http://foo.com/\">http://foo.com/</a></p>\n",
+
+		"1http://foo.com/\n",
+		"<p>1<a href=\"http://foo.com/\">http://foo.com/</a></p>\n",
+
+		"1.http://foo.com/\n",
+		"<p>1.<a href=\"http://foo.com/\">http://foo.com/</a></p>\n",
+
+		"1. http://foo.com/\n",
+		"<ol>\n<li><a href=\"http://foo.com/\">http://foo.com/</a></li>\n</ol>\n",
+
+		"-http://foo.com/\n",
+		"<p>-<a href=\"http://foo.com/\">http://foo.com/</a></p>\n",
+
+		"- http://foo.com/\n",
+		"<ul>\n<li><a href=\"http://foo.com/\">http://foo.com/</a></li>\n</ul>\n",
+
+		"_http://foo.com/\n",
+		"<p>_<a href=\"http://foo.com/\">http://foo.com/</a></p>\n",
+
+		"令狐http://foo.com/\n",
+		"<p>令狐<a href=\"http://foo.com/\">http://foo.com/</a></p>\n",
+
+		"令狐 http://foo.com/\n",
+		"<p>令狐 <a href=\"http://foo.com/\">http://foo.com/</a></p>\n",
+
+		"ahttp://foo.com/\n",
+		"<p>ahttp://foo.com/</p>\n",
+
+		">http://foo.com/\n",
+		"<blockquote>\n<p><a href=\"http://foo.com/\">http://foo.com/</a></p>\n</blockquote>\n",
+
+		"> http://foo.com/\n",
+		"<blockquote>\n<p><a href=\"http://foo.com/\">http://foo.com/</a></p>\n</blockquote>\n",
+
 		"go to <http://foo.com/>\n",
 		"<p>go to <a href=\"http://foo.com/\">http://foo.com/</a></p>\n",
 
