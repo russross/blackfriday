@@ -385,6 +385,9 @@ func TestUnorderedList(t *testing.T) {
 		"* List\n        extra indent, same paragraph\n",
 		"<ul>\n<li>List\n    extra indent, same paragraph</li>\n</ul>\n",
 
+		"* List\n\n    >indent quote\n",
+		"<ul>\n<li><p>List</p>\n\n<blockquote>\n<p>indent quote</p>\n</blockquote></li>\n</ul>\n",
+
 		"* List\n\n        code block\n",
 		"<ul>\n<li><p>List</p>\n\n<pre><code>code block\n</code></pre></li>\n</ul>\n",
 
@@ -494,6 +497,27 @@ func TestUnorderedList(t *testing.T) {
 		"<ul>\n<li><p>List</p>\n\n<ul>\n<li>sublist</li>\n</ul>\n\n<p>normal text</p>\n\n<ul>\n<li>another sublist</li>\n</ul></li>\n</ul>\n",
 	}...)
 	doTestsBlock(t, tests3, EXTENSION_NO_SPACE_LISTS|EXTENSION_AUTOLINK)
+
+	var tests4 = append(tests, []string{
+		"* List\n\n 1 space indent paragraph\n",
+		"<ul>\n<li><p>List</p>\n\n<p>1 space indent paragraph</p></li>\n</ul>\n",
+
+		"* List\n\n  2 spaces indent paragraph\n",
+		"<ul>\n<li><p>List</p>\n\n<p>2 spaces indent paragraph</p></li>\n</ul>\n",
+
+		"* List\n\n   3 spaces indent paragraph\n",
+		"<ul>\n<li><p>List</p>\n\n<p>3 spaces indent paragraph</p></li>\n</ul>\n",
+
+		"* List\n\n >1 space indent quote\n",
+		"<ul>\n<li><p>List</p>\n\n<blockquote>\n<p>1 space indent quote</p>\n</blockquote></li>\n</ul>\n",
+
+		"* List\n\n  >2 spaces indent quote\n",
+		"<ul>\n<li><p>List</p>\n\n<blockquote>\n<p>2 spaces indent quote</p>\n</blockquote></li>\n</ul>\n",
+
+		"* List\n\n   >3 spaces indent quote\n",
+		"<ul>\n<li><p>List</p>\n\n<blockquote>\n<p>3 spaces indent quote</p>\n</blockquote></li>\n</ul>\n",
+	}...)
+	doTestsBlock(t, tests4, EXTENSION_ONE_SPACE_INDENT)
 }
 
 func TestOrderedList(t *testing.T) {
@@ -688,6 +712,27 @@ func TestOrderedList(t *testing.T) {
 		"<p>1.</p>\n",
 	}...)
 	doTestsBlock(t, tests3, EXTENSION_NO_SPACE_LISTS)
+
+	var tests4 = append(tests, []string{
+		"1. List\n\n 1 space indent paragraph\n",
+		"<ol>\n<li><p>List</p>\n\n<p>1 space indent paragraph</p></li>\n</ol>\n",
+
+		"1. List\n\n  2 spaces indent paragraph\n",
+		"<ol>\n<li><p>List</p>\n\n<p>2 spaces indent paragraph</p></li>\n</ol>\n",
+
+		"1. List\n\n   3 spaces indent paragraph\n",
+		"<ol>\n<li><p>List</p>\n\n<p>3 spaces indent paragraph</p></li>\n</ol>\n",
+
+		"1. List\n\n >1 space indent quote\n",
+		"<ol>\n<li><p>List</p>\n\n<blockquote>\n<p>1 space indent quote</p>\n</blockquote></li>\n</ol>\n",
+
+		"1. List\n\n  >2 spaces indent quote\n",
+		"<ol>\n<li><p>List</p>\n\n<blockquote>\n<p>2 spaces indent quote</p>\n</blockquote></li>\n</ol>\n",
+
+		"1. List\n\n   >3 spaces indent quote\n",
+		"<ol>\n<li><p>List</p>\n\n<blockquote>\n<p>3 spaces indent quote</p>\n</blockquote></li>\n</ol>\n",
+	}...)
+	doTestsBlock(t, tests4, EXTENSION_ONE_SPACE_INDENT)
 }
 
 func TestPreformattedHtml(t *testing.T) {
