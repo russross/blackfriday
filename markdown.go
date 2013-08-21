@@ -40,6 +40,7 @@ const (
 	EXTENSION_FOOTNOTES                              // Pandoc-style footnotes
 	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK             // no need to insert an empty line to start a (code, quote, order list, unorder list)block
 	EXTENSION_NO_SPACE_LISTS                         // no need to put a space to start a list
+	EXTENSION_ONE_SPACE_INDENT                       // allow indent for list item when there is 1 or spaces
 )
 
 // These are the possible flag values for the link renderer.
@@ -116,6 +117,9 @@ var blockTags = map[string]bool{
 	"progress":   true,
 	"figcaption": true,
 }
+
+// The default indent is 4 spaces
+var ListIndentSpacesCount = 4
 
 // Renderer is the rendering interface.
 // This is mostly of interest if you are implementing a new rendering format.
@@ -257,6 +261,10 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	// no point in parsing if we can't render
 	if renderer == nil {
 		return nil
+	}
+
+	if extensions&EXTENSION_ONE_SPACE_INDENT != 0 {
+		ListIndentSpacesCount = 1
 	}
 
 	// fill in the render structure
