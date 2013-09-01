@@ -92,7 +92,7 @@ All features of upskirt are supported, including:
 *   **Fast processing**. It is fast enough to render on-demand in
     most web applications without having to cache the output.
 
-*   **Thread safety**. You can run multiple parsers is different
+*   **Thread safety**. You can run multiple parsers in different
     goroutines without ill effect. There is no dependence on global
     shared state.
 
