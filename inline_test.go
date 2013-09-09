@@ -390,6 +390,9 @@ func TestInlineLink(t *testing.T) {
 		"[link](  with whitespace   )\n",
 		"<p><a href=\"with whitespace\">link</a></p>\n",
 
+		"[![image](someimage)](with image)\n",
+		"<p><a href=\"with image\"><img src=\"someimage\" alt=\"image\" />\n</a></p>\n",
+
 		"[link](url \"one quote)\n",
 		"<p><a href=\"url &quot;one quote\">link</a></p>\n",
 
