@@ -929,33 +929,10 @@ func (p *parser) uliPrefix(data []byte) int {
 		i++
 	}
 
-	// need a *, +, or -
-	if data[i] != '*' && data[i] != '+' && data[i] != '-' {
+	// need a *, +, or - followed by a space
+	if (data[i] != '*' && data[i] != '+' && data[i] != '-') ||
+		data[i+1] != ' ' {
 		return 0
-	}
-	if data[i+1] != ' ' {
-		// need a *, +, or - followed by a space
-		if p.flags&EXTENSION_NO_SPACE_LISTS == 0 {
-			return 0
-		}
-
-		//not list
-		if data[i+1] == '\n' {
-			return 0
-		}
-
-		//avoid emphase
-		if data[i] == '*' {
-			j := i + 1
-			for data[j] != '\n' {
-				if data[j] == '*' {
-					return 0
-				}
-				j++
-			}
-		}
-
-		return i + 1
 	}
 	return i + 2
 }
@@ -975,34 +952,10 @@ func (p *parser) oliPrefix(data []byte) int {
 		i++
 	}
 
-	// we need >= 1 digits followed by a dot
-	if start == i || data[i] != '.' {
+	// we need >= 1 digits followed by a dot and a space
+	if start == i || data[i] != '.' || data[i+1] != ' ' {
 		return 0
 	}
-
-	if data[i+1] != ' ' {
-		//need >= 1 digits followed by a dot and a space
-		if p.flags&EXTENSION_NO_SPACE_LISTS == 0 {
-			return 0
-		}
-
-		//no list
-		if data[i+1] == '\n' {
-			return 0
-		}
-
-		//float number should not acount as list
-		j := i + 1
-		for data[j] >= '0' && data[j] <= '9' {
-			j++
-		}
-		if j > i+1 {
-			return 0
-		}
-
-		return i + 1
-	}
-
 	return i + 2
 }
 
