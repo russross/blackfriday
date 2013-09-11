@@ -410,6 +410,9 @@ func TestInlineLink(t *testing.T) {
 
 		"[link](/url/&query)\n",
 		"<p><a href=\"/url/&amp;query\">link</a></p>\n",
+
+		"[[t]](/t)\n",
+		"<p><a href=\"/t\">[t]</a></p>\n",
 	}
 	doTestsInline(t, tests)
 }

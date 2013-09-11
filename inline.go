@@ -181,7 +181,7 @@ const (
 // '[': parse a link or an image or a footnote
 func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	// no links allowed inside regular links, footnote, and deferred footnotes
-	if p.insideLink && (data[offset-1] == '[' || data[offset+1] == '^') {
+	if p.insideLink && (offset > 0 && data[offset-1] == '[' || len(data)-1 > offset && data[offset+1] == '^') {
 		return 0
 	}
 
