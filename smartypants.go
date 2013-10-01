@@ -250,6 +250,7 @@ func smartBacktick(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, 
 		}
 	}
 
+	out.WriteByte(text[0])
 	return 0
 }
 
