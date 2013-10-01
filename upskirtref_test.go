@@ -76,7 +76,6 @@ func TestReference(t *testing.T) {
 		"Blockquotes with code blocks",
 		"Code Blocks",
 		"Code Spans",
-		"Hard-wrapped paragraphs with list-like lines",
 		"Horizontal rules",
 		"Inline HTML (Advanced)",
 		"Inline HTML (Simple)",
@@ -93,33 +92,14 @@ func TestReference(t *testing.T) {
 		"Tabs",
 		"Tidyness",
 	}
-	doTestsReference(t, files, 0)
-}
 
-func TestReference_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
-	files := []string{
-		"Amps and angle encoding",
-		"Auto links",
-		"Backslash escapes",
-		"Blockquotes with code blocks",
-		"Code Blocks",
-		"Code Spans",
+	var files1 = append(files, []string{
+		"Hard-wrapped paragraphs with list-like lines",
+	}...)
+	doTestsReference(t, files1, 0)
+
+	var files2 = append(files, []string{
 		"Hard-wrapped paragraphs with list-like lines no empty line before block",
-		"Horizontal rules",
-		"Inline HTML (Advanced)",
-		"Inline HTML (Simple)",
-		"Inline HTML comments",
-		"Links, inline style",
-		"Links, reference style",
-		"Links, shortcut references",
-		"Literal quotes in titles",
-		"Markdown Documentation - Basics",
-		"Markdown Documentation - Syntax",
-		"Nested blockquotes",
-		"Ordered and unordered lists",
-		"Strong and em together",
-		"Tabs",
-		"Tidyness",
-	}
-	doTestsReference(t, files, EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK)
+	}...)
+	doTestsReference(t, files2, EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK)
 }
