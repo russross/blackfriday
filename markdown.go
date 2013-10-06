@@ -58,6 +58,7 @@ const (
 	LIST_ITEM_CONTAINS_BLOCK
 	LIST_ITEM_BEGINNING_OF_LIST
 	LIST_ITEM_END_OF_LIST
+	LIST_ITEM_PLAIN
 )
 
 // These are the possible flag values for the table cell renderer.
