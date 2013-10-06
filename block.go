@@ -962,6 +962,9 @@ func (p *parser) oliPrefix(data []byte) int {
 // parse ordered or unordered list block
 func (p *parser) list(out *bytes.Buffer, data []byte, flags int) int {
 	i := 0
+	if data[i] == '-' {
+		flags |= LIST_ITEM_PLAIN
+	}
 	flags |= LIST_ITEM_BEGINNING_OF_LIST
 	work := func() bool {
 		for i < len(data) {
