@@ -305,6 +305,23 @@ func (options *Html) TableRow(out *bytes.Buffer, text []byte) {
 	out.WriteString("\n</tr>\n")
 }
 
+func (options *Html) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
+	doubleSpace(out)
+	switch align {
+	case TABLE_ALIGNMENT_LEFT:
+		out.WriteString("<th align=\"left\">")
+	case TABLE_ALIGNMENT_RIGHT:
+		out.WriteString("<th align=\"right\">")
+	case TABLE_ALIGNMENT_CENTER:
+		out.WriteString("<th align=\"center\">")
+	default:
+		out.WriteString("<th>")
+	}
+
+	out.Write(text)
+	out.WriteString("</th>")
+}
+
 func (options *Html) TableCell(out *bytes.Buffer, text []byte, align int) {
 	doubleSpace(out)
 	switch align {

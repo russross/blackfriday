@@ -151,6 +151,13 @@ func (options *Latex) TableRow(out *bytes.Buffer, text []byte) {
 	out.Write(text)
 }
 
+func (options *Latex) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
+	if out.Len() > 0 {
+		out.WriteString(" & ")
+	}
+	out.Write(text)
+}
+
 func (options *Latex) TableCell(out *bytes.Buffer, text []byte, align int) {
 	if out.Len() > 0 {
 		out.WriteString(" & ")
