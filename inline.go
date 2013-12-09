@@ -718,7 +718,7 @@ func autoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	return linkEnd - rewind
 }
 
-var validUris = [][]byte{[]byte("http://"), []byte("https://"), []byte("ftp://"), []byte("mailto://")}
+var validUris = [][]byte{[]byte("http://"), []byte("https://"), []byte("ftp://"), []byte("mailto://"), []byte("/")}
 
 func isSafeLink(link []byte) bool {
 	for _, prefix := range validUris {
