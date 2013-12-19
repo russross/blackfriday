@@ -32,6 +32,10 @@ func doTestsInline(t *testing.T, tests []string) {
 	doTestsInlineParam(t, tests, 0, 0)
 }
 
+func doSafeTestsInline(t *testing.T, tests []string) {
+	doTestsInlineParam(t, tests, 0, HTML_SAFELINK)
+}
+
 func doTestsInlineParam(t *testing.T, tests []string, extensions, htmlFlags int) {
 	// catch and report panics
 	var candidate string
@@ -415,6 +419,30 @@ func TestInlineLink(t *testing.T) {
 		"<p><a href=\"/t\">[t]</a></p>\n",
 	}
 	doTestsInline(t, tests)
+}
+
+func TestSafeInlineLink(t *testing.T) {
+	var tests = []string{
+		"[foo](/bar/)\n",
+		"<p><a href=\"/bar/\">foo</a></p>\n",
+
+		"[foo](http://bar/)\n",
+		"<p><a href=\"http://bar/\">foo</a></p>\n",
+
+		"[foo](https://bar/)\n",
+		"<p><a href=\"https://bar/\">foo</a></p>\n",
+
+		"[foo](ftp://bar/)\n",
+		"<p><a href=\"ftp://bar/\">foo</a></p>\n",
+
+		"[foo](mailto://bar/)\n",
+		"<p><a href=\"mailto://bar/\">foo</a></p>\n",
+
+		// Not considered safe
+		"[foo](baz://bar/)\n",
+		"<p><tt>foo</tt></p>\n",
+	}
+	doSafeTestsInline(t, tests)
 }
 
 func TestReferenceLink(t *testing.T) {
