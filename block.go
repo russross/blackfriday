@@ -654,7 +654,7 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 
 		// include the newline in data sent to tableRow
 		i++
-		p.tableRow(&body, data[rowStart:i], columns)
+		p.tableRow(&body, data[rowStart:i], columns, false)
 	}
 
 	p.r.Table(out, header.Bytes(), body.Bytes(), columns)
@@ -771,12 +771,12 @@ func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns 
 		return
 	}
 
-	p.tableRow(out, header, columns)
+	p.tableRow(out, header, columns, true)
 	size = i + 1
 	return
 }
 
-func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int) {
+func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header bool) {
 	i, col := 0, 0
 	var rowWork bytes.Buffer
 
@@ -806,12 +806,21 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int) {
 
 		var cellWork bytes.Buffer
 		p.inline(&cellWork, data[cellStart:cellEnd])
-		p.r.TableCell(&rowWork, cellWork.Bytes(), columns[col])
+
+		if header {
+			p.r.TableHeaderCell(&rowWork, cellWork.Bytes(), columns[col])
+		} else {
+			p.r.TableCell(&rowWork, cellWork.Bytes(), columns[col])
+		}
 	}
 
 	// pad it out with empty columns to get the right number
 	for ; col < len(columns); col++ {
-		p.r.TableCell(&rowWork, nil, columns[col])
+		if header {
+			p.r.TableHeaderCell(&rowWork, nil, columns[col])
+		} else {
+			p.r.TableCell(&rowWork, nil, columns[col])
+		}
 	}
 
 	// silently ignore rows with too many cells
