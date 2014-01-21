@@ -90,16 +90,117 @@ func TestRawHtmlTag(t *testing.T) {
 		"<p>alert()</p>\n",
 
 		"<script>alert()</script>\n",
-		"<p>alert()</p>\n",
+		"alert()\n",
 
 		"<script src='foo'></script>\n",
-		"<p></p>\n",
+		"\n",
+
+		"<script src='a>b'></script>\n",
+		"\n",
 
 		"zz <script src='foo'></script>\n",
 		"<p>zz </p>\n",
 
 		"zz <script src=foo></script>\n",
 		"<p>zz </p>\n",
+
+		`<script><script src="http://example.com/exploit.js"></SCRIPT></script>`,
+		"\n",
+
+		`'';!--"<XSS>=&{()}`,
+		"<p>'';!--&quot;=&amp;{()}</p>\n",
+
+		"<SCRIPT SRC=http://ha.ckers.org/xss.js></SCRIPT>",
+		"<p></p>\n",
+
+		"<SCRIPT \nSRC=http://ha.ckers.org/xss.js></SCRIPT>",
+		"<p></p>\n",
+
+		`<IMG SRC="javascript:alert('XSS');">`,
+		"<p></p>\n",
+
+		"<IMG SRC=javascript:alert('XSS')>",
+		"<p></p>\n",
+
+		"<IMG SRC=JaVaScRiPt:alert('XSS')>",
+		"<p></p>\n",
+
+		"<IMG SRC=`javascript:alert(\"RSnake says, 'XSS'\")`>",
+		"<p></p>\n",
+
+		`<a onmouseover="alert(document.cookie)">xss link</a>`,
+		"<p>xss link</a></p>\n",
+
+		"<a onmouseover=alert(document.cookie)>xss link</a>",
+		"<p>xss link</a></p>\n",
+
+		// XXX: this doesn't pass yet
+		//`<IMG """><SCRIPT>alert("XSS")</SCRIPT>">`,
+		//"<p></p>\n",
+
+		"<IMG SRC=javascript:alert(String.fromCharCode(88,83,83))>",
+		"<p></p>\n",
+
+		`<IMG SRC=# onmouseover="alert('xxs')">`,
+		"<p></p>\n",
+
+		`<IMG SRC= onmouseover="alert('xxs')">`,
+		"<p></p>\n",
+
+		`<IMG onmouseover="alert('xxs')">`,
+		"<p></p>\n",
+
+		"<IMG SRC=&#106;&#97;&#118;&#97;&#115;&#99;&#114;&#105;&#112;&#116;&#58;&#97;&#108;&#101;&#114;&#116;&#40;&#39;&#88;&#83;&#83;&#39;&#41;>",
+		"<p></p>\n",
+
+		"<IMG SRC=&#0000106&#0000097&#0000118&#0000097&#0000115&#0000099&#0000114&#0000105&#0000112&#0000116&#0000058&#0000097&#0000108&#0000101&#0000114&#0000116&#0000040&#0000039&#0000088&#0000083&#0000083&#0000039&#0000041>",
+		"<p></p>\n",
+
+		"<IMG SRC=&#x6A&#x61&#x76&#x61&#x73&#x63&#x72&#x69&#x70&#x74&#x3A&#x61&#x6C&#x65&#x72&#x74&#x28&#x27&#x58&#x53&#x53&#x27&#x29>",
+		"<p></p>\n",
+
+		`<IMG SRC="javascriptascript:alert('XSS');">`,
+		"<p></p>\n",
+
+		`<IMG SRC="jav&#x09;ascript:alert('XSS');">`,
+		"<p></p>\n",
+
+		`<IMG SRC="jav&#x0A;ascript:alert('XSS');">`,
+		"<p></p>\n",
+
+		`<IMG SRC="jav&#x0D;ascript:alert('XSS');">`,
+		"<p></p>\n",
+
+		`<IMG SRC=" &#14;  javascript:alert('XSS');">`,
+		"<p></p>\n",
+
+		`<SCRIPT/XSS SRC="http://ha.ckers.org/xss.js"></SCRIPT>`,
+		"<p></p>\n",
+
+		// XXX: this doesn't pass yet
+		//"<BODY onload!#$%&()*~+-_.,:;?@[/|\\]^`=alert(\"XSS\")>",
+		//"\n",
+
+		`<SCRIPT/SRC="http://ha.ckers.org/xss.js"></SCRIPT>`,
+		"<p></p>\n",
+
+		// XXX: this doesn't pass yet
+		//`<<SCRIPT>alert("XSS");//<</SCRIPT>`,
+		//"",
+
+		"<SCRIPT SRC=http://ha.ckers.org/xss.js?< B >",
+		"<p></p>\n",
+
+		"<SCRIPT SRC=//ha.ckers.org/.j>",
+		"<p></p>\n",
+
+		// XXX: this doesn't pass yet
+		//`<IMG SRC="javascript:alert('XSS')"`,
+		//"",
+
+		// XXX: this doesn't pass yet
+		//"<iframe src=http://ha.ckers.org/scriptlet.html <",
+		//"",
 	}
 	doTestsInlineParam(t, tests, 0, HTML_SKIP_STYLE|HTML_SKIP_SCRIPT)
 }

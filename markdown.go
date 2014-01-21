@@ -165,6 +165,8 @@ type Renderer interface {
 	// Header and footer
 	DocumentHeader(out *bytes.Buffer)
 	DocumentFooter(out *bytes.Buffer)
+
+	GetFlags() int
 }
 
 // Callback functions for inline parsing. One such function is defined
@@ -290,6 +292,10 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 
 	first := firstPass(p, input)
 	second := secondPass(p, first)
+
+	if renderer.GetFlags()&HTML_SKIP_SCRIPT != 0 {
+		second = sanitizeHtml(second)
+	}
 
 	return second
 }

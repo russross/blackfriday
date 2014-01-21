@@ -18,6 +18,7 @@ package blackfriday
 import (
 	"bytes"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -38,6 +39,41 @@ const (
 	HTML_USE_SMARTYPANTS                      // enable smart punctuation substitutions
 	HTML_SMARTYPANTS_FRACTIONS                // enable smart fractions (with HTML_USE_SMARTYPANTS)
 	HTML_SMARTYPANTS_LATEX_DASHES             // enable LaTeX-style dashes (with HTML_USE_SMARTYPANTS)
+)
+
+var (
+	tags  = []string{
+		"b",
+		"blockquote",
+		"code",
+		"del",
+		"dd",
+		"dl",
+		"dt",
+		"em",
+		"h1",
+		"h2",
+		"h3",
+		"h4",
+		"h5",
+		"h6",
+		"i",
+		"kbd",
+		"li",
+		"ol",
+		"p",
+		"pre",
+		"s",
+		"sup",
+		"sub",
+		"strong",
+		"strike",
+		"ul",
+	}
+	urlRe = `((https?|ftp):\/\/|\/)[-A-Za-z0-9+&@#\/%?=~_|!:,.;\(\)]+`
+	tagWhitelist = regexp.MustCompile(`^(<\/?(` + strings.Join(tags, "|") + `)>|<(br|hr)\s?\/?>)$`)
+	anchorClean = regexp.MustCompile(`^(<a\shref="` + urlRe + `"(\stitle="[^"<>]+")?\s?>|<\/a>)$`)
+	imgClean = regexp.MustCompile(`^(<img\ssrc="` + urlRe + `"(\swidth="\d{1,3}")?(\sheight="\d{1,3}")?(\salt="[^"<>]*")?(\stitle="[^"<>]*")?\s?\/?>)$`)
 )
 
 // Html is a type that implements the Renderer interface for HTML output.
@@ -137,6 +173,10 @@ func attrEscape(out *bytes.Buffer, src []byte) {
 	}
 }
 
+func (options *Html) GetFlags() int {
+	return options.flags
+}
+
 func (options *Html) Header(out *bytes.Buffer, text func() bool, level int) {
 	marker := out.Len()
 	doubleSpace(out)
@@ -168,30 +208,8 @@ func (options *Html) BlockHtml(out *bytes.Buffer, text []byte) {
 	}
 
 	doubleSpace(out)
-	if options.flags&HTML_SKIP_SCRIPT != 0 {
-		out.Write(stripTag(string(text), "script", "p"))
-	} else {
-		out.Write(text)
-	}
+	out.Write(text)
 	out.WriteByte('\n')
-}
-
-func stripTag(text, tag, newTag string) []byte {
-	closeNewTag := fmt.Sprintf("</%s>", newTag)
-	i := 0
-	for i < len(text) && text[i] != '<' {
-		i++
-	}
-	if i == len(text) {
-		return []byte(text)
-	}
-	found, end := findHtmlTagPos([]byte(text[i:]), tag)
-	closeTag := fmt.Sprintf("</%s>", tag)
-	noOpen := text
-	if found {
-		noOpen = text[0:i+1] + newTag + text[end:]
-	}
-	return []byte(strings.Replace(noOpen, closeTag, closeNewTag, -1))
 }
 
 func (options *Html) HRule(out *bytes.Buffer) {
@@ -779,6 +797,46 @@ func findHtmlTagPos(tag []byte, tagname string) (bool, int) {
 	}
 
 	return false, -1
+}
+
+func sanitizeHtml(html []byte) []byte {
+	var result []byte
+	for string(html) != "" {
+		skip, tag, rest := findHtmlTag(html)
+		html = rest
+		result = append(result, skip...)
+		result = append(result, sanitizeTag(tag)...)
+	}
+	return append(result, []byte("\n")...)
+}
+
+func sanitizeTag(tag []byte) []byte {
+	if tagWhitelist.Match(tag) || anchorClean.Match(tag) || imgClean.Match(tag) {
+		return tag
+	} else {
+		return []byte("")
+	}
+}
+
+func skipUntilChar(text []byte, start int, char byte) int {
+	i := start
+	for i < len(text) && text[i] != char {
+		i++
+	}
+	return i
+}
+
+func findHtmlTag(html []byte) (skip, tag, rest []byte) {
+	start := skipUntilChar(html, 0, '<')
+	rightAngle := skipUntilCharIgnoreQuotes(html, start, '>')
+	if rightAngle > start {
+		skip = html[0:start]
+		tag = html[start : rightAngle+1]
+		rest = html[rightAngle+1:]
+		return
+	}
+
+	return []byte(""), []byte(""), []byte("")
 }
 
 func skipSpace(tag []byte, i int) int {

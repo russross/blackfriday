@@ -34,6 +34,10 @@ func LatexRenderer(flags int) Renderer {
 	return &Latex{}
 }
 
+func (options *Latex) GetFlags() int {
+	return 0
+}
+
 // render code chunks using verbatim, or listings if we have a language
 func (options *Latex) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 	if lang == "" {
