@@ -722,6 +722,29 @@ func isHtmlTag(tag []byte, tagname string) bool {
 	return found
 }
 
+// Look for a character, but ignore it when it's in any kind of quotes, it
+// might be JavaScript
+func skipUntilCharIgnoreQuotes(html []byte, start int, char byte) int {
+	inSingleQuote := false
+	inDoubleQuote := false
+	inGraveQuote := false
+	i := start
+	for i < len(html) {
+		switch {
+		case html[i] == char && !inSingleQuote && !inDoubleQuote && !inGraveQuote:
+			return i
+		case html[i] == '\'':
+			inSingleQuote = !inSingleQuote
+		case html[i] == '"':
+			inDoubleQuote = !inDoubleQuote
+		case html[i] == '`':
+			inGraveQuote = !inGraveQuote
+		}
+		i++
+	}
+	return start
+}
+
 func findHtmlTagPos(tag []byte, tagname string) (bool, int) {
 	i := 0
 	if i < len(tag) && tag[0] != '<' {
@@ -750,23 +773,9 @@ func findHtmlTagPos(tag []byte, tagname string) (bool, int) {
 		return false, -1
 	}
 
-	// Now look for closing '>', but ignore it when it's in any kind of quotes,
-	// it might be JavaScript
-	inSingleQuote := false
-	inDoubleQuote := false
-	inGraveQuote := false
-	for i < len(tag) {
-		switch {
-		case tag[i] == '>' && !inSingleQuote && !inDoubleQuote && !inGraveQuote:
-			return true, i
-		case tag[i] == '\'':
-			inSingleQuote = !inSingleQuote
-		case tag[i] == '"':
-			inDoubleQuote = !inDoubleQuote
-		case tag[i] == '`':
-			inGraveQuote = !inGraveQuote
-		}
-		i++
+	rightAngle := skipUntilCharIgnoreQuotes(tag, i, '>')
+	if rightAngle > i {
+		return true, rightAngle
 	}
 
 	return false, -1
