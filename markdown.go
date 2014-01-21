@@ -233,7 +233,7 @@ func MarkdownCommon(input []byte) []byte {
 	htmlFlags |= HTML_USE_SMARTYPANTS
 	htmlFlags |= HTML_SMARTYPANTS_FRACTIONS
 	htmlFlags |= HTML_SMARTYPANTS_LATEX_DASHES
-	htmlFlags |= HTML_SKIP_SCRIPT
+	htmlFlags |= HTML_SANITIZE_OUTPUT
 	renderer := HtmlRenderer(htmlFlags, "", "")
 
 	// set up the parser
@@ -293,7 +293,7 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	first := firstPass(p, input)
 	second := secondPass(p, first)
 
-	if renderer.GetFlags()&HTML_SKIP_SCRIPT != 0 {
+	if renderer.GetFlags()&HTML_SANITIZE_OUTPUT != 0 {
 		second = sanitizeHtml(second)
 	}
 

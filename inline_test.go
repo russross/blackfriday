@@ -202,7 +202,7 @@ func TestRawHtmlTag(t *testing.T) {
 		//"<iframe src=http://ha.ckers.org/scriptlet.html <",
 		//"",
 	}
-	doTestsInlineParam(t, tests, 0, HTML_SKIP_STYLE|HTML_SKIP_SCRIPT)
+	doTestsInlineParam(t, tests, 0, HTML_SKIP_STYLE|HTML_SANITIZE_OUTPUT)
 }
 
 func TestEmphasis(t *testing.T) {
