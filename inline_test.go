@@ -674,6 +674,21 @@ func TestAutoLink(t *testing.T) {
 		"even a > can be escaped <http://new.com?q=\\>&etc>\n",
 		"<p>even a &gt; can be escaped <a href=\"http://new.com?q=&gt;&amp;etc\">" +
 			"http://new.com?q=&gt;&amp;etc</a></p>\n",
+
+		"<a href=\"http://fancy.com\">http://fancy.com</a>\n",
+		"<p><a href=\"http://fancy.com\">http://fancy.com</a></p>\n",
+
+		"<a href=\"http://fancy.com\">This is a link</a>\n",
+		"<p><a href=\"http://fancy.com\">This is a link</a></p>\n",
+
+		"<a href=\"http://www.fancy.com/A_B.pdf\">http://www.fancy.com/A_B.pdf</a>\n",
+		"<p><a href=\"http://www.fancy.com/A_B.pdf\">http://www.fancy.com/A_B.pdf</a></p>\n",
+
+		"(<a href=\"http://www.fancy.com/A_B\">http://www.fancy.com/A_B</a> (\n",
+		"<p>(<a href=\"http://www.fancy.com/A_B\">http://www.fancy.com/A_B</a> (</p>\n",
+
+		"(<a href=\"http://www.fancy.com/A_B\">http://www.fancy.com/A_B</a> (part two: <a href=\"http://www.fancy.com/A_B\">http://www.fancy.com/A_B</a>)).\n",
+		"<p>(<a href=\"http://www.fancy.com/A_B\">http://www.fancy.com/A_B</a> (part two: <a href=\"http://www.fancy.com/A_B\">http://www.fancy.com/A_B</a>)).</p>\n",
 	}
 	doTestsInline(t, tests)
 }

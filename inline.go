@@ -15,7 +15,12 @@ package blackfriday
 
 import (
 	"bytes"
+	"regexp"
 	"strconv"
+)
+
+var (
+	anchorRe = regexp.MustCompile(`^(<a\shref="` + urlRe + `"(\stitle="[^"<>]+")?\s?>` + urlRe + `<\/a>)`)
 )
 
 // Functions to parse text within a block
@@ -616,6 +621,20 @@ func autoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	// quick check to rule out most false hits on ':'
 	if p.insideLink || len(data) < offset+3 || data[offset+1] != '/' || data[offset+2] != '/' {
 		return 0
+	}
+
+	// Now a more expensive check to see if we're not inside an anchor element
+	anchorStart := offset
+	offsetFromAnchor := 0
+	for anchorStart > 0 && data[anchorStart] != '<' {
+		anchorStart--
+		offsetFromAnchor++
+	}
+
+	anchorStr := anchorRe.Find(data[anchorStart:])
+	if anchorStr != nil {
+		out.Write(anchorStr[offsetFromAnchor:])
+		return len(anchorStr) - offsetFromAnchor
 	}
 
 	// scan backward for a word boundary
