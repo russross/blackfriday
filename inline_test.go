@@ -689,6 +689,9 @@ func TestAutoLink(t *testing.T) {
 
 		"(<a href=\"http://www.fancy.com/A_B\">http://www.fancy.com/A_B</a> (part two: <a href=\"http://www.fancy.com/A_B\">http://www.fancy.com/A_B</a>)).\n",
 		"<p>(<a href=\"http://www.fancy.com/A_B\">http://www.fancy.com/A_B</a> (part two: <a href=\"http://www.fancy.com/A_B\">http://www.fancy.com/A_B</a>)).</p>\n",
+
+		"http://www.foo.com<br />\n",
+		"<p><a href=\"http://www.foo.com\">http://www.foo.com</a><br /></p>\n",
 	}
 	doTestsInline(t, tests)
 }

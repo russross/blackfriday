@@ -654,7 +654,7 @@ func autoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	}
 
 	linkEnd := 0
-	for linkEnd < len(data) && !isspace(data[linkEnd]) {
+	for linkEnd < len(data) && !isEndOfLink(data[linkEnd]) {
 		linkEnd++
 	}
 
@@ -735,6 +735,10 @@ func autoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	}
 
 	return linkEnd - rewind
+}
+
+func isEndOfLink(char byte) bool {
+	return isspace(char) || char == '<'
 }
 
 var validUris = [][]byte{[]byte("http://"), []byte("https://"), []byte("ftp://"), []byte("mailto://"), []byte("/")}
