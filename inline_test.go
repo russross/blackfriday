@@ -692,6 +692,12 @@ func TestAutoLink(t *testing.T) {
 
 		"http://www.foo.com<br />\n",
 		"<p><a href=\"http://www.foo.com\">http://www.foo.com</a><br /></p>\n",
+
+		"http://foo.com/viewtopic.php?f=18&amp;t=297",
+		"<p><a href=\"http://foo.com/viewtopic.php?f=18&amp;t=297\">http://foo.com/viewtopic.php?f=18&amp;t=297</a></p>\n",
+
+		"http://foo.com/viewtopic.php?param=&quot;18&quot;zz",
+		"<p><a href=\"http://foo.com/viewtopic.php?param=&quot;18&quot;zz\">http://foo.com/viewtopic.php?param=&quot;18&quot;zz</a></p>\n",
 	}
 	doTestsInline(t, tests)
 }

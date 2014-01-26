@@ -74,6 +74,8 @@ var (
 	tagWhitelist = regexp.MustCompile(`^(<\/?(` + strings.Join(tags, "|") + `)>|<(br|hr)\s?\/?>)$`)
 	anchorClean  = regexp.MustCompile(`^(<a\shref="` + urlRe + `"(\stitle="[^"<>]+")?\s?>|<\/a>)$`)
 	imgClean     = regexp.MustCompile(`^(<img\ssrc="` + urlRe + `"(\swidth="\d{1,3}")?(\sheight="\d{1,3}")?(\salt="[^"<>]*")?(\stitle="[^"<>]*")?\s?\/?>)$`)
+	// TODO: improve this regexp to catch all possible entities:
+	htmlEntity = regexp.MustCompile(`&[a-z]{2,5};`)
 )
 
 // Html is a type that implements the Renderer interface for HTML output.
@@ -162,6 +164,16 @@ func attrEscape(out *bytes.Buffer, src []byte) {
 	if org < len(src) {
 		out.Write(src[org:])
 	}
+}
+
+func entityEscapeWithSkip(out *bytes.Buffer, src []byte, skipRanges [][]int) {
+	end := 0
+	for _, rang := range skipRanges {
+		attrEscape(out, src[end:rang[0]])
+		out.Write(src[rang[0]:rang[1]])
+		end = rang[1]
+	}
+	attrEscape(out, src[end:])
 }
 
 func (options *Html) GetFlags() int {
@@ -408,10 +420,11 @@ func (options *Html) Paragraph(out *bytes.Buffer, text func() bool) {
 }
 
 func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
+	skipRanges := htmlEntity.FindAllIndex(link, -1)
 	if options.flags&HTML_SAFELINK != 0 && !isSafeLink(link) && kind != LINK_TYPE_EMAIL {
 		// mark it but don't link it if it is not a safe link: no smartypants
 		out.WriteString("<tt>")
-		attrEscape(out, link)
+		entityEscapeWithSkip(out, link, skipRanges)
 		out.WriteString("</tt>")
 		return
 	}
@@ -420,7 +433,7 @@ func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	if kind == LINK_TYPE_EMAIL {
 		out.WriteString("mailto:")
 	}
-	attrEscape(out, link)
+	entityEscapeWithSkip(out, link, skipRanges)
 	out.WriteString("\">")
 
 	// Pretty print: if we get an email address as
@@ -432,7 +445,7 @@ func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	case bytes.HasPrefix(link, []byte("mailto:")):
 		attrEscape(out, link[len("mailto:"):])
 	default:
-		attrEscape(out, link)
+		entityEscapeWithSkip(out, link, skipRanges)
 	}
 
 	out.WriteString("</a>")
