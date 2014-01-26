@@ -127,45 +127,36 @@ func HtmlRenderer(flags int, title string, css string) Renderer {
 	}
 }
 
+// Using if statements is a bit faster than a switch statement. As the compiler
+// improves, this should be unnecessary this is only worthwhile because
+// attrEscape is the single largest CPU user in normal use.
+// Also tried using map, but that gave a ~3x slowdown.
+func escapeSingleChar(char byte) (string, bool) {
+	if char == '"' {
+		return "&quot;", true
+	}
+	if char == '&' {
+		return "&amp;", true
+	}
+	if char == '<' {
+		return "&lt;", true
+	}
+	if char == '>' {
+		return "&gt;", true
+	}
+	return "", false
+}
+
 func attrEscape(out *bytes.Buffer, src []byte) {
 	org := 0
 	for i, ch := range src {
-		// using if statements is a bit faster than a switch statement.
-		// as the compiler improves, this should be unnecessary
-		// this is only worthwhile because attrEscape is the single
-		// largest CPU user in normal use
-		if ch == '"' {
+		if entity, ok := escapeSingleChar(ch); ok {
 			if i > org {
 				// copy all the normal characters since the last escape
 				out.Write(src[org:i])
 			}
 			org = i + 1
-			out.WriteString("&quot;")
-			continue
-		}
-		if ch == '&' {
-			if i > org {
-				out.Write(src[org:i])
-			}
-			org = i + 1
-			out.WriteString("&amp;")
-			continue
-		}
-		if ch == '<' {
-			if i > org {
-				out.Write(src[org:i])
-			}
-			org = i + 1
-			out.WriteString("&lt;")
-			continue
-		}
-		if ch == '>' {
-			if i > org {
-				out.Write(src[org:i])
-			}
-			org = i + 1
-			out.WriteString("&gt;")
-			continue
+			out.WriteString(entity)
 		}
 	}
 	if org < len(src) {
