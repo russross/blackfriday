@@ -617,6 +617,14 @@ func entity(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	return end
 }
 
+func linkEndsWithEntity(data []byte, linkEnd int) bool {
+	entityRanges := htmlEntity.FindAllIndex(data[:linkEnd], -1)
+	if entityRanges != nil && entityRanges[len(entityRanges)-1][1] == linkEnd {
+		return true
+	}
+	return false
+}
+
 func autoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	// quick check to rule out most false hits on ':'
 	if p.insideLink || len(data) < offset+3 || data[offset+1] != '/' || data[offset+2] != '/' {
@@ -659,7 +667,12 @@ func autoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	}
 
 	// Skip punctuation at the end of the link
-	if (data[linkEnd-1] == '.' || data[linkEnd-1] == ',' || data[linkEnd-1] == ';') && data[linkEnd-2] != '\\' {
+	if (data[linkEnd-1] == '.' || data[linkEnd-1] == ',') && data[linkEnd-2] != '\\' {
+		linkEnd--
+	}
+
+	// But don't skip semicolon if it's a part of escaped entity:
+	if data[linkEnd-1] == ';' && data[linkEnd-2] != '\\' && !linkEndsWithEntity(data, linkEnd) {
 		linkEnd--
 	}
 
