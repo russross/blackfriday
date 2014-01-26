@@ -42,7 +42,7 @@ const (
 )
 
 var (
-	tags  = []string{
+	tags = []string{
 		"b",
 		"blockquote",
 		"code",
@@ -70,10 +70,10 @@ var (
 		"strike",
 		"ul",
 	}
-	urlRe = `((https?|ftp):\/\/|\/)[-A-Za-z0-9+&@#\/%?=~_|!:,.;\(\)]+`
+	urlRe        = `((https?|ftp):\/\/|\/)[-A-Za-z0-9+&@#\/%?=~_|!:,.;\(\)]+`
 	tagWhitelist = regexp.MustCompile(`^(<\/?(` + strings.Join(tags, "|") + `)>|<(br|hr)\s?\/?>)$`)
-	anchorClean = regexp.MustCompile(`^(<a\shref="` + urlRe + `"(\stitle="[^"<>]+")?\s?>|<\/a>)$`)
-	imgClean = regexp.MustCompile(`^(<img\ssrc="` + urlRe + `"(\swidth="\d{1,3}")?(\sheight="\d{1,3}")?(\salt="[^"<>]*")?(\stitle="[^"<>]*")?\s?\/?>)$`)
+	anchorClean  = regexp.MustCompile(`^(<a\shref="` + urlRe + `"(\stitle="[^"<>]+")?\s?>|<\/a>)$`)
+	imgClean     = regexp.MustCompile(`^(<img\ssrc="` + urlRe + `"(\swidth="\d{1,3}")?(\sheight="\d{1,3}")?(\salt="[^"<>]*")?(\stitle="[^"<>]*")?\s?\/?>)$`)
 )
 
 // Html is a type that implements the Renderer interface for HTML output.
