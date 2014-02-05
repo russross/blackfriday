@@ -1078,7 +1078,7 @@ gatherlines:
 		case p.isPrefixHeader(chunk):
 			// if the header is not indented, it is not nested in the list
 			// and thus ends the list
-			if containsBlankLine && indent < 4 {
+			if containsBlankLine && indent < ListIndentSpacesCount {
 				*flags |= LIST_ITEM_END_OF_LIST
 				break gatherlines
 			}
@@ -1087,7 +1087,7 @@ gatherlines:
 		// anything following an empty line is only part
 		// of this item if it is indented 4 spaces
 		// (regardless of the indentation of the beginning of the item)
-		case containsBlankLine && indent < 4:
+		case containsBlankLine && indent < ListIndentSpacesCount:
 			*flags |= LIST_ITEM_END_OF_LIST
 			break gatherlines
 
