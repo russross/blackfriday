@@ -30,6 +30,7 @@ const (
 	HTML_SKIP_LINKS                           // skip all links
 	HTML_SKIP_SCRIPT                          // skip embedded <script> elements
 	HTML_SAFELINK                             // only link to trusted protocols
+	HTML_NOFOLLOW_LINKS                       // only link with rel="nofollow"
 	HTML_TOC                                  // generate a table of contents
 	HTML_OMIT_CONTENTS                        // skip the main contents (for a standalone table of contents)
 	HTML_COMPLETE_PAGE                        // generate a complete HTML page
@@ -498,6 +499,9 @@ func (options *Html) Link(out *bytes.Buffer, link []byte, title []byte, content 
 	if len(title) > 0 {
 		out.WriteString("\" title=\"")
 		attrEscape(out, title)
+	}
+	if options.flags&HTML_NOFOLLOW_LINKS != 0 {
+		out.WriteString("\" rel=\"nofollow")
 	}
 	out.WriteString("\">")
 	out.Write(content)
