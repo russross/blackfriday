@@ -415,7 +415,7 @@ func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	}
 	attrEscape(out, link)
 
-	if options.flags&HTML_NOFOLLOW_LINKS != 0 {
+	if options.flags&HTML_NOFOLLOW_LINKS != 0 && !isRelativeLink(link) {
 		out.WriteString("\" rel=\"nofollow")
 	}
 	// blank target only add to external link
@@ -510,7 +510,7 @@ func (options *Html) Link(out *bytes.Buffer, link []byte, title []byte, content 
 		out.WriteString("\" title=\"")
 		attrEscape(out, title)
 	}
-	if options.flags&HTML_NOFOLLOW_LINKS != 0 {
+	if options.flags&HTML_NOFOLLOW_LINKS != 0 && !isRelativeLink(link) {
 		out.WriteString("\" rel=\"nofollow")
 	}
 	// blank target only add to external link
