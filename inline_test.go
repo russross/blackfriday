@@ -429,6 +429,18 @@ func TestNofollowLink(t *testing.T) {
 	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_NOFOLLOW_LINKS)
 }
 
+func TestHrefTargetBlank(t *testing.T) {
+	var tests = []string{
+        // internal link
+		"[foo](/bar/)\n",
+		"<p><a href=\"/bar/\">foo</a></p>\n",
+
+		"[foo](http://example.com)\n",
+		"<p><a href=\"http://example.com\" target=\"_blank\">foo</a></p>\n",
+	}
+	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_HREF_TARGET_BLANK)
+}
+
 func TestSafeInlineLink(t *testing.T) {
 	var tests = []string{
 		"[foo](/bar/)\n",
@@ -605,9 +617,9 @@ func TestFootnotes(t *testing.T) {
 [^b]: Paragraph 1
 
 	Paragraph 2
-	
+
 	` + "```\n\tsome code\n\t```" + `
-	
+
 	Paragraph 3
 
 No longer in the footnote
