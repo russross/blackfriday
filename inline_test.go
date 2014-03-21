@@ -424,7 +424,10 @@ func TestInlineLink(t *testing.T) {
 func TestNofollowLink(t *testing.T) {
 	var tests = []string{
 		"[foo](/bar/)\n",
-		"<p><a href=\"/bar/\" rel=\"nofollow\">foo</a></p>\n",
+		"<p><a href=\"/bar/\">foo</a></p>\n",
+
+		"[foo](http://bar.com/foo/)\n",
+		"<p><a href=\"http://bar.com/foo/\" rel=\"nofollow\">foo</a></p>\n",
 	}
 	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_NOFOLLOW_LINKS)
 }
