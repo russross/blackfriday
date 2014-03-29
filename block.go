@@ -31,8 +31,23 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 	}
 	p.nesting++
 
+	lastLen := 0
+	sameLenCount := 0
+
 	// parse out one block-level construct at a time
 	for len(data) > 0 {
+		curLen := len(data)
+		if curLen == lastLen {
+			sameLenCount += 1
+			if sameLenCount >= 3 {
+				// infinity loop detection
+				return
+			}
+		} else {
+			sameLenCount = 0
+		}
+		lastLen = curLen
+
 		// prefixed header:
 		//
 		// # Header 1
