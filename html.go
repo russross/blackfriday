@@ -18,6 +18,7 @@ package blackfriday
 import (
 	"bytes"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -28,7 +29,7 @@ const (
 	HTML_SKIP_STYLE                           // skip embedded <style> elements
 	HTML_SKIP_IMAGES                          // skip embedded images
 	HTML_SKIP_LINKS                           // skip all links
-	HTML_SKIP_SCRIPT                          // skip embedded <script> elements
+	HTML_SANITIZE_OUTPUT                      // strip output of everything that's not known to be safe
 	HTML_SAFELINK                             // only link to trusted protocols
 	HTML_NOFOLLOW_LINKS                       // only link with rel="nofollow"
 	HTML_TOC                                  // generate a table of contents
@@ -39,6 +40,41 @@ const (
 	HTML_USE_SMARTYPANTS                      // enable smart punctuation substitutions
 	HTML_SMARTYPANTS_FRACTIONS                // enable smart fractions (with HTML_USE_SMARTYPANTS)
 	HTML_SMARTYPANTS_LATEX_DASHES             // enable LaTeX-style dashes (with HTML_USE_SMARTYPANTS)
+)
+
+var (
+	tags  = []string{
+		"b",
+		"blockquote",
+		"code",
+		"del",
+		"dd",
+		"dl",
+		"dt",
+		"em",
+		"h1",
+		"h2",
+		"h3",
+		"h4",
+		"h5",
+		"h6",
+		"i",
+		"kbd",
+		"li",
+		"ol",
+		"p",
+		"pre",
+		"s",
+		"sup",
+		"sub",
+		"strong",
+		"strike",
+		"ul",
+	}
+	urlRe = `((https?|ftp):\/\/|\/)[-A-Za-z0-9+&@#\/%?=~_|!:,.;\(\)]+`
+	tagWhitelist = regexp.MustCompile(`^(<\/?(` + strings.Join(tags, "|") + `)>|<(br|hr)\s?\/?>)$`)
+	anchorClean = regexp.MustCompile(`^(<a\shref="` + urlRe + `"(\stitle="[^"<>]+")?\s?>|<\/a>)$`)
+	imgClean = regexp.MustCompile(`^(<img\ssrc="` + urlRe + `"(\swidth="\d{1,3}")?(\sheight="\d{1,3}")?(\salt="[^"<>]*")?(\stitle="[^"<>]*")?\s?\/?>)$`)
 )
 
 // Html is a type that implements the Renderer interface for HTML output.
@@ -138,6 +174,10 @@ func attrEscape(out *bytes.Buffer, src []byte) {
 	}
 }
 
+func (options *Html) GetFlags() int {
+	return options.flags
+}
+
 func (options *Html) Header(out *bytes.Buffer, text func() bool, level int) {
 	marker := out.Len()
 	doubleSpace(out)
@@ -169,30 +209,8 @@ func (options *Html) BlockHtml(out *bytes.Buffer, text []byte) {
 	}
 
 	doubleSpace(out)
-	if options.flags&HTML_SKIP_SCRIPT != 0 {
-		out.Write(stripTag(string(text), "script", "p"))
-	} else {
-		out.Write(text)
-	}
+	out.Write(text)
 	out.WriteByte('\n')
-}
-
-func stripTag(text, tag, newTag string) []byte {
-	closeNewTag := fmt.Sprintf("</%s>", newTag)
-	i := 0
-	for i < len(text) && text[i] != '<' {
-		i++
-	}
-	if i == len(text) {
-		return []byte(text)
-	}
-	found, end := findHtmlTagPos([]byte(text[i:]), tag)
-	closeTag := fmt.Sprintf("</%s>", tag)
-	noOpen := text
-	if found {
-		noOpen = text[0:i+1] + newTag + text[end:]
-	}
-	return []byte(strings.Replace(noOpen, closeTag, closeNewTag, -1))
 }
 
 func (options *Html) HRule(out *bytes.Buffer) {
@@ -522,9 +540,6 @@ func (options *Html) RawHtmlTag(out *bytes.Buffer, text []byte) {
 	if options.flags&HTML_SKIP_IMAGES != 0 && isHtmlTag(text, "img") {
 		return
 	}
-	if options.flags&HTML_SKIP_SCRIPT != 0 && isHtmlTag(text, "script") {
-		return
-	}
 	out.Write(text)
 }
 
@@ -726,6 +741,29 @@ func isHtmlTag(tag []byte, tagname string) bool {
 	return found
 }
 
+// Look for a character, but ignore it when it's in any kind of quotes, it
+// might be JavaScript
+func skipUntilCharIgnoreQuotes(html []byte, start int, char byte) int {
+	inSingleQuote := false
+	inDoubleQuote := false
+	inGraveQuote := false
+	i := start
+	for i < len(html) {
+		switch {
+		case html[i] == char && !inSingleQuote && !inDoubleQuote && !inGraveQuote:
+			return i
+		case html[i] == '\'':
+			inSingleQuote = !inSingleQuote
+		case html[i] == '"':
+			inDoubleQuote = !inDoubleQuote
+		case html[i] == '`':
+			inGraveQuote = !inGraveQuote
+		}
+		i++
+	}
+	return start
+}
+
 func findHtmlTagPos(tag []byte, tagname string) (bool, int) {
 	i := 0
 	if i < len(tag) && tag[0] != '<' {
@@ -754,26 +792,52 @@ func findHtmlTagPos(tag []byte, tagname string) (bool, int) {
 		return false, -1
 	}
 
-	// Now look for closing '>', but ignore it when it's in any kind of quotes,
-	// it might be JavaScript
-	inSingleQuote := false
-	inDoubleQuote := false
-	inGraveQuote := false
-	for i < len(tag) {
-		switch {
-		case tag[i] == '>' && !inSingleQuote && !inDoubleQuote && !inGraveQuote:
-			return true, i
-		case tag[i] == '\'':
-			inSingleQuote = !inSingleQuote
-		case tag[i] == '"':
-			inDoubleQuote = !inDoubleQuote
-		case tag[i] == '`':
-			inGraveQuote = !inGraveQuote
-		}
-		i++
+	rightAngle := skipUntilCharIgnoreQuotes(tag, i, '>')
+	if rightAngle > i {
+		return true, rightAngle
 	}
 
 	return false, -1
+}
+
+func sanitizeHtml(html []byte) []byte {
+	var result []byte
+	for string(html) != "" {
+		skip, tag, rest := findHtmlTag(html)
+		html = rest
+		result = append(result, skip...)
+		result = append(result, sanitizeTag(tag)...)
+	}
+	return append(result, []byte("\n")...)
+}
+
+func sanitizeTag(tag []byte) []byte {
+	if tagWhitelist.Match(tag) || anchorClean.Match(tag) || imgClean.Match(tag) {
+		return tag
+	} else {
+		return []byte("")
+	}
+}
+
+func skipUntilChar(text []byte, start int, char byte) int {
+	i := start
+	for i < len(text) && text[i] != char {
+		i++
+	}
+	return i
+}
+
+func findHtmlTag(html []byte) (skip, tag, rest []byte) {
+	start := skipUntilChar(html, 0, '<')
+	rightAngle := skipUntilCharIgnoreQuotes(html, start, '>')
+	if rightAngle > start {
+		skip = html[0:start]
+		tag = html[start : rightAngle+1]
+		rest = html[rightAngle+1:]
+		return
+	}
+
+	return []byte(""), []byte(""), []byte("")
 }
 
 func skipSpace(tag []byte, i int) int {

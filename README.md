@@ -89,6 +89,11 @@ All features of upskirt are supported, including:
     known inputs that make it crash.  If you find one, please let me
     know and send me the input that does it.
 
+    NOTE: "safety" in this context means *runtime safety only*. It is
+    not bullet proof against JavaScript injections, though we're working
+    on it (https://github.com/russross/blackfriday/issues/11 tracks the
+    progress).
+
 *   **Fast processing**. It is fast enough to render on-demand in
     most web applications without having to cache the output.
 
