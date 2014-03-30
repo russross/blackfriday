@@ -14,9 +14,7 @@
 package blackfriday
 
 import (
-	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"testing"
 )
@@ -52,13 +50,13 @@ func doTestsReference(t *testing.T, files []string, flag int) {
 		}
 		expected := string(expectedBytes)
 
-		fmt.Fprintf(os.Stderr, "processing %s ...", filename)
+		// fmt.Fprintf(os.Stderr, "processing %s ...", filename)
 		actual := string(runMarkdownReference(input, flag))
 		if actual != expected {
 			t.Errorf("\n    [%#v]\nExpected[%#v]\nActual  [%#v]",
 				basename+".text", expected, actual)
 		}
-		fmt.Fprintf(os.Stderr, " ok\n")
+		// fmt.Fprintf(os.Stderr, " ok\n")
 
 		// now test every prefix of every input to check for
 		// bounds checking
@@ -66,7 +64,7 @@ func doTestsReference(t *testing.T, files []string, flag int) {
 			start, max := 0, len(input)
 			for end := start + 1; end <= max; end++ {
 				candidate = input[start:end]
-				fmt.Fprintf(os.Stderr, "  %s %d:%d/%d\n", filename, start, end, max)
+				// fmt.Fprintf(os.Stderr, "  %s %d:%d/%d\n", filename, start, end, max)
 				_ = runMarkdownReference(candidate, flag)
 			}
 		}
