@@ -43,7 +43,7 @@ const (
 )
 
 var (
-	tags  = []string{
+	tags = []string{
 		"b",
 		"blockquote",
 		"code",
@@ -71,10 +71,12 @@ var (
 		"strike",
 		"ul",
 	}
-	urlRe = `((https?|ftp):\/\/|\/)[-A-Za-z0-9+&@#\/%?=~_|!:,.;\(\)]+`
+	urlRe        = `((https?|ftp):\/\/|\/)[-A-Za-z0-9+&@#\/%?=~_|!:,.;\(\)]+`
 	tagWhitelist = regexp.MustCompile(`^(<\/?(` + strings.Join(tags, "|") + `)>|<(br|hr)\s?\/?>)$`)
-	anchorClean = regexp.MustCompile(`^(<a\shref="` + urlRe + `"(\stitle="[^"<>]+")?\s?>|<\/a>)$`)
-	imgClean = regexp.MustCompile(`^(<img\ssrc="` + urlRe + `"(\swidth="\d{1,3}")?(\sheight="\d{1,3}")?(\salt="[^"<>]*")?(\stitle="[^"<>]*")?\s?\/?>)$`)
+	anchorClean  = regexp.MustCompile(`^(<a\shref="` + urlRe + `"(\stitle="[^"<>]+")?\s?>|<\/a>)$`)
+	imgClean     = regexp.MustCompile(`^(<img\ssrc="` + urlRe + `"(\swidth="\d{1,3}")?(\sheight="\d{1,3}")?(\salt="[^"<>]*")?(\stitle="[^"<>]*")?\s?\/?>)$`)
+	// TODO: improve this regexp to catch all possible entities:
+	htmlEntity = regexp.MustCompile(`&[a-z]{2,5};`)
 )
 
 // Html is a type that implements the Renderer interface for HTML output.
@@ -128,50 +130,51 @@ func HtmlRenderer(flags int, title string, css string) Renderer {
 	}
 }
 
+// Using if statements is a bit faster than a switch statement. As the compiler
+// improves, this should be unnecessary this is only worthwhile because
+// attrEscape is the single largest CPU user in normal use.
+// Also tried using map, but that gave a ~3x slowdown.
+func escapeSingleChar(char byte) (string, bool) {
+	if char == '"' {
+		return "&quot;", true
+	}
+	if char == '&' {
+		return "&amp;", true
+	}
+	if char == '<' {
+		return "&lt;", true
+	}
+	if char == '>' {
+		return "&gt;", true
+	}
+	return "", false
+}
+
 func attrEscape(out *bytes.Buffer, src []byte) {
 	org := 0
 	for i, ch := range src {
-		// using if statements is a bit faster than a switch statement.
-		// as the compiler improves, this should be unnecessary
-		// this is only worthwhile because attrEscape is the single
-		// largest CPU user in normal use
-		if ch == '"' {
+		if entity, ok := escapeSingleChar(ch); ok {
 			if i > org {
 				// copy all the normal characters since the last escape
 				out.Write(src[org:i])
 			}
 			org = i + 1
-			out.WriteString("&quot;")
-			continue
-		}
-		if ch == '&' {
-			if i > org {
-				out.Write(src[org:i])
-			}
-			org = i + 1
-			out.WriteString("&amp;")
-			continue
-		}
-		if ch == '<' {
-			if i > org {
-				out.Write(src[org:i])
-			}
-			org = i + 1
-			out.WriteString("&lt;")
-			continue
-		}
-		if ch == '>' {
-			if i > org {
-				out.Write(src[org:i])
-			}
-			org = i + 1
-			out.WriteString("&gt;")
-			continue
+			out.WriteString(entity)
 		}
 	}
 	if org < len(src) {
 		out.Write(src[org:])
 	}
+}
+
+func entityEscapeWithSkip(out *bytes.Buffer, src []byte, skipRanges [][]int) {
+	end := 0
+	for _, rang := range skipRanges {
+		attrEscape(out, src[end:rang[0]])
+		out.Write(src[rang[0]:rang[1]])
+		end = rang[1]
+	}
+	attrEscape(out, src[end:])
 }
 
 func (options *Html) GetFlags() int {
@@ -418,10 +421,11 @@ func (options *Html) Paragraph(out *bytes.Buffer, text func() bool) {
 }
 
 func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
+	skipRanges := htmlEntity.FindAllIndex(link, -1)
 	if options.flags&HTML_SAFELINK != 0 && !isSafeLink(link) && kind != LINK_TYPE_EMAIL {
 		// mark it but don't link it if it is not a safe link: no smartypants
 		out.WriteString("<tt>")
-		attrEscape(out, link)
+		entityEscapeWithSkip(out, link, skipRanges)
 		out.WriteString("</tt>")
 		return
 	}
@@ -430,7 +434,7 @@ func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	if kind == LINK_TYPE_EMAIL {
 		out.WriteString("mailto:")
 	}
-	attrEscape(out, link)
+	entityEscapeWithSkip(out, link, skipRanges)
 	out.WriteString("\">")
 
 	// Pretty print: if we get an email address as
@@ -442,7 +446,7 @@ func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	case bytes.HasPrefix(link, []byte("mailto:")):
 		attrEscape(out, link[len("mailto:"):])
 	default:
-		attrEscape(out, link)
+		entityEscapeWithSkip(out, link, skipRanges)
 	}
 
 	out.WriteString("</a>")

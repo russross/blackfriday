@@ -15,7 +15,12 @@ package blackfriday
 
 import (
 	"bytes"
+	"regexp"
 	"strconv"
+)
+
+var (
+	anchorRe = regexp.MustCompile(`^(<a\shref="` + urlRe + `"(\stitle="[^"<>]+")?\s?>` + urlRe + `<\/a>)`)
 )
 
 // Functions to parse text within a block
@@ -612,10 +617,32 @@ func entity(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	return end
 }
 
+func linkEndsWithEntity(data []byte, linkEnd int) bool {
+	entityRanges := htmlEntity.FindAllIndex(data[:linkEnd], -1)
+	if entityRanges != nil && entityRanges[len(entityRanges)-1][1] == linkEnd {
+		return true
+	}
+	return false
+}
+
 func autoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	// quick check to rule out most false hits on ':'
 	if p.insideLink || len(data) < offset+3 || data[offset+1] != '/' || data[offset+2] != '/' {
 		return 0
+	}
+
+	// Now a more expensive check to see if we're not inside an anchor element
+	anchorStart := offset
+	offsetFromAnchor := 0
+	for anchorStart > 0 && data[anchorStart] != '<' {
+		anchorStart--
+		offsetFromAnchor++
+	}
+
+	anchorStr := anchorRe.Find(data[anchorStart:])
+	if anchorStr != nil {
+		out.Write(anchorStr[offsetFromAnchor:])
+		return len(anchorStr) - offsetFromAnchor
 	}
 
 	// scan backward for a word boundary
@@ -635,12 +662,17 @@ func autoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	}
 
 	linkEnd := 0
-	for linkEnd < len(data) && !isspace(data[linkEnd]) {
+	for linkEnd < len(data) && !isEndOfLink(data[linkEnd]) {
 		linkEnd++
 	}
 
 	// Skip punctuation at the end of the link
-	if (data[linkEnd-1] == '.' || data[linkEnd-1] == ',' || data[linkEnd-1] == ';') && data[linkEnd-2] != '\\' {
+	if (data[linkEnd-1] == '.' || data[linkEnd-1] == ',') && data[linkEnd-2] != '\\' {
+		linkEnd--
+	}
+
+	// But don't skip semicolon if it's a part of escaped entity:
+	if data[linkEnd-1] == ';' && data[linkEnd-2] != '\\' && !linkEndsWithEntity(data, linkEnd) {
 		linkEnd--
 	}
 
@@ -716,6 +748,10 @@ func autoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	}
 
 	return linkEnd - rewind
+}
+
+func isEndOfLink(char byte) bool {
+	return isspace(char) || char == '<'
 }
 
 var validUris = [][]byte{[]byte("http://"), []byte("https://"), []byte("ftp://"), []byte("mailto://"), []byte("/")}
