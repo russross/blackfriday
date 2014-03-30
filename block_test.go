@@ -31,7 +31,7 @@ func doTestsBlock(t *testing.T, tests []string, extensions int) {
 	var candidate string
 	defer func() {
 		if err := recover(); err != nil {
-			t.Errorf("\npanic while processing [%#v]\n", candidate)
+			t.Errorf("\npanic while processing [%#v]: %s\n", candidate, err)
 		}
 	}()
 
