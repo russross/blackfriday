@@ -101,7 +101,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// }
 		// ```
 		if p.flags&EXTENSION_FENCED_CODE != 0 {
-			if i := p.fencedCode(out, data); i > 0 {
+			if i := p.fencedCode(out, data, true); i > 0 {
 				data = data[i:]
 				continue
 			}
@@ -599,7 +599,7 @@ func (p *parser) isFencedCode(data []byte, syntax **string, oldmarker string) (s
 	return
 }
 
-func (p *parser) fencedCode(out *bytes.Buffer, data []byte) int {
+func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 	var lang *string
 	beg, marker := p.isFencedCode(data, &lang, "")
 	if beg == 0 || beg >= len(data) {
@@ -631,7 +631,9 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte) int {
 		}
 
 		// verbatim copy to the working buffer
-		work.Write(data[beg:end])
+		if doRender {
+			work.Write(data[beg:end])
+		}
 		beg = end
 	}
 
@@ -640,7 +642,9 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte) int {
 		syntax = *lang
 	}
 
-	p.r.BlockCode(out, work.Bytes(), syntax)
+	if doRender {
+		p.r.BlockCode(out, work.Bytes(), syntax)
+	}
 
 	return beg
 }
