@@ -818,9 +818,8 @@ func sanitizeHtml(html []byte) []byte {
 func sanitizeTag(tag []byte) []byte {
 	if tagWhitelist.Match(tag) || anchorClean.Match(tag) || imgClean.Match(tag) {
 		return tag
-	} else {
-		return []byte("")
 	}
+	return []byte("")
 }
 
 func skipUntilChar(text []byte, start int, char byte) int {
