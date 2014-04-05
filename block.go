@@ -196,6 +196,7 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 		if j < end && k < end {
 			id = string(data[j+2:k])
 			end = j
+			skip = k + 1
 		}
 	}
 	for end > 0 && data[end-1] == '#' {
