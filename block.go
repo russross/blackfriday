@@ -186,6 +186,18 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 	for end = i; data[end] != '\n'; end++ {
 	}
 	skip := end
+	id := ""
+	if p.flags&EXTENSION_HEADER_IDS != 0 {
+		j, k := 0, 0
+		for j = i; j < end - 1 && data[j] != '{' && data[j+1] != '#'; j++ {
+		}
+		for k = j + 1; k < end && data[k] != '}'; k++ {
+		}
+		if j < end && k < end {
+			id = string(data[j+2:k])
+			end = j
+		}
+	}
 	for end > 0 && data[end-1] == '#' {
 		end--
 	}
@@ -197,7 +209,7 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 			p.inline(out, data[i:end])
 			return true
 		}
-		p.r.Header(out, work, level)
+		p.r.Header(out, work, level, id)
 	}
 	return skip
 }
@@ -1214,7 +1226,7 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 						return true
 					}
 				}(out, p, data[prev:eol])
-				p.r.Header(out, work, level)
+				p.r.Header(out, work, level, "")
 
 				// find the end of the underline
 				for data[i] != '\n' {
