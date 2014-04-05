@@ -227,6 +227,8 @@ func MarkdownBasic(input []byte) []byte {
 // * Strikethrough support
 //
 // * Strict header parsing
+//
+// * Custom Header IDs
 func MarkdownCommon(input []byte) []byte {
 	// set up the HTML renderer
 	htmlFlags := 0
@@ -245,6 +247,7 @@ func MarkdownCommon(input []byte) []byte {
 	extensions |= EXTENSION_AUTOLINK
 	extensions |= EXTENSION_STRIKETHROUGH
 	extensions |= EXTENSION_SPACE_HEADERS
+	extensions |= EXTENSION_HEADER_IDS
 
 	return Markdown(input, renderer, extensions)
 }
