@@ -189,14 +189,19 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 	id := ""
 	if p.flags&EXTENSION_HEADER_IDS != 0 {
 		j, k := 0, 0
-		for j = i; j < end - 1 && data[j] != '{' && data[j+1] != '#'; j++ {
+		// find start/end of header id
+		for j = i; j < end - 1 && (data[j] != '{' || data[j+1] != '#'); j++ {
 		}
 		for k = j + 1; k < end && data[k] != '}'; k++ {
 		}
+		// extract header id iff found
 		if j < end && k < end {
 			id = string(data[j+2:k])
 			end = j
 			skip = k + 1
+			for end > 0 && data[end-1] == ' ' {
+				end--
+			}
 		}
 	}
 	for end > 0 && data[end-1] == '#' {
