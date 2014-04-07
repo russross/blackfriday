@@ -15,6 +15,7 @@ package blackfriday
 
 import (
 	"bytes"
+	"strings"
 )
 
 // Parse block-level data.
@@ -194,6 +195,22 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 	}
 	if end > i {
 		work := func() bool {
+			if level < 3 {
+				if html, ok := p.r.(*Html); ok {
+					if html.flags&HTML_TOC == 0 && html.flags&HTML_HEADER_IDS != 0 {
+						str := string(data[i:end])
+						str = strings.Replace(str, " ", "-", -1)
+						str = strings.Replace(str, "&", "", -1)
+						str = strings.ToLower(str)
+
+						out.WriteString(`<a style="display: block;" name="`)
+						attrEscape(out, []byte(str))
+						out.WriteString(`" href="#`)
+						attrEscape(out, []byte(str))
+						out.WriteString(`"></a>`)
+					}
+				}
+			}
 			p.inline(out, data[i:end])
 			return true
 		}
