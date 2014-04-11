@@ -181,11 +181,13 @@ func (options *Html) GetFlags() int {
 	return options.flags
 }
 
-func (options *Html) Header(out *bytes.Buffer, text func() bool, level int) {
+func (options *Html) Header(out *bytes.Buffer, text func() bool, level int, id string) {
 	marker := out.Len()
 	doubleSpace(out)
 
-	if options.flags&HTML_TOC != 0 {
+	if id != "" {
+		out.WriteString(fmt.Sprintf("<h%d id=\"%s\">", level, id))
+	} else if options.flags&HTML_TOC != 0 {
 		// headerCount is incremented in htmlTocHeader
 		out.WriteString(fmt.Sprintf("<h%d id=\"toc_%d\">", level, options.headerCount))
 	} else {

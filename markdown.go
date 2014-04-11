@@ -39,6 +39,7 @@ const (
 	EXTENSION_TAB_SIZE_EIGHT                         // expand tabs to eight spaces instead of four
 	EXTENSION_FOOTNOTES                              // Pandoc-style footnotes
 	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK             // No need to insert an empty line to start a (code, quote, order list, unorder list)block
+	EXTENSION_HEADER_IDS                             // specify header IDs  with {#id}
 )
 
 // These are the possible flag values for the link renderer.
@@ -133,7 +134,7 @@ type Renderer interface {
 	BlockCode(out *bytes.Buffer, text []byte, lang string)
 	BlockQuote(out *bytes.Buffer, text []byte)
 	BlockHtml(out *bytes.Buffer, text []byte)
-	Header(out *bytes.Buffer, text func() bool, level int)
+	Header(out *bytes.Buffer, text func() bool, level int, id string)
 	HRule(out *bytes.Buffer)
 	List(out *bytes.Buffer, text func() bool, flags int)
 	ListItem(out *bytes.Buffer, text []byte, flags int)
@@ -226,6 +227,8 @@ func MarkdownBasic(input []byte) []byte {
 // * Strikethrough support
 //
 // * Strict header parsing
+//
+// * Custom Header IDs
 func MarkdownCommon(input []byte) []byte {
 	// set up the HTML renderer
 	htmlFlags := 0
@@ -244,6 +247,7 @@ func MarkdownCommon(input []byte) []byte {
 	extensions |= EXTENSION_AUTOLINK
 	extensions |= EXTENSION_STRIKETHROUGH
 	extensions |= EXTENSION_SPACE_HEADERS
+	extensions |= EXTENSION_HEADER_IDS
 
 	return Markdown(input, renderer, extensions)
 }

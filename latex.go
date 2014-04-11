@@ -68,7 +68,7 @@ func (options *Latex) BlockHtml(out *bytes.Buffer, text []byte) {
 	out.WriteString("\n\\end{verbatim}\n")
 }
 
-func (options *Latex) Header(out *bytes.Buffer, text func() bool, level int) {
+func (options *Latex) Header(out *bytes.Buffer, text func() bool, level int, id string) {
 	marker := out.Len()
 
 	switch level {
