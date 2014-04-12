@@ -711,6 +711,12 @@ func TestFencedCodeBlock(t *testing.T) {
 
 		"`",
 		"<p>`</p>\n",
+
+		"Bla bla\n\n``` oz\ncode blocks breakup paragraphs\n```\n\nBla Bla\n\n``` oz\nmultiple code blocks work okay\n```\n\nBla Bla\n",
+		"<p>Bla bla</p>\n\n<pre><code class=\"oz\">code blocks breakup paragraphs\n</code></pre>\n\n<p>Bla Bla</p>\n\n<pre><code class=\"oz\">multiple code blocks work okay\n</code></pre>\n\n<p>Bla Bla</p>\n",
+
+		"Some text before a fenced code block\n``` oz\ncode blocks breakup paragraphs\n```\nSome text in between\n``` oz\nmultiple code blocks work okay\n```\nAnd some text after a fenced code block",
+		"<p>Some text before a fenced code block</p>\n\n<pre><code class=\"oz\">code blocks breakup paragraphs\n</code></pre>\n\n<p>Some text in between</p>\n\n<pre><code class=\"oz\">multiple code blocks work okay\n</code></pre>\n\n<p>And some text after a fenced code block</p>\n",
 	}
 	doTestsBlock(t, tests, EXTENSION_FENCED_CODE)
 }
