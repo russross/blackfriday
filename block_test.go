@@ -638,7 +638,7 @@ func TestPreformattedHtmlLax(t *testing.T) {
 func TestFencedCodeBlock(t *testing.T) {
 	var tests = []string{
 		"``` go\nfunc foo() bool {\n\treturn true;\n}\n```\n",
-		"<pre><code class=\"go\">func foo() bool {\n    return true;\n}\n</code></pre>\n",
+		"<pre><code class=\"go\">func foo() bool {\n\treturn true;\n}\n</code></pre>\n",
 
 		"``` c\n/* special & char < > \" escaping */\n```\n",
 		"<pre><code class=\"c\">/* special &amp; char &lt; &gt; &quot; escaping */\n</code></pre>\n",
@@ -978,7 +978,7 @@ func TestOrderedList_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
 func TestFencedCodeBlock_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
 	var tests = []string{
 		"``` go\nfunc foo() bool {\n\treturn true;\n}\n```\n",
-		"<pre><code class=\"go\">func foo() bool {\n    return true;\n}\n</code></pre>\n",
+		"<pre><code class=\"go\">func foo() bool {\n\treturn true;\n}\n</code></pre>\n",
 
 		"``` c\n/* special & char < > \" escaping */\n```\n",
 		"<pre><code class=\"c\">/* special &amp; char &lt; &gt; &quot; escaping */\n</code></pre>\n",
