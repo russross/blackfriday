@@ -330,9 +330,11 @@ func firstPass(p *parser, input []byte) []byte {
 
 			if p.flags&EXTENSION_FENCED_CODE != 0 {
 				// when last line was none blank and a fenced code block comes after
-				if !lastLineWasBlank && beg >= lastFencedCodeBlockEnd {
+				if beg >= lastFencedCodeBlockEnd {
 					if i := p.fencedCode(&out, append(input[beg:], '\n'), false); i > 0 {
-						out.WriteByte('\n') // need to inject additional linebreak
+						if !lastLineWasBlank {
+							out.WriteByte('\n') // need to inject additional linebreak
+						}
 						lastFencedCodeBlockEnd = beg + i
 					}
 				}
