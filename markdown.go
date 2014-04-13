@@ -343,7 +343,11 @@ func firstPass(p *parser, input []byte) []byte {
 
 			// add the line body if present
 			if end > beg {
-				expandTabs(&out, input[beg:end], tabSize)
+				if end < lastFencedCodeBlockEnd { // Do not expand tabs while inside fenced code blocks.
+					out.Write(input[beg:end])
+				} else {
+					expandTabs(&out, input[beg:end], tabSize)
+				}
 			}
 			out.WriteByte('\n')
 
