@@ -69,7 +69,14 @@ var (
 		"sub",
 		"strong",
 		"strike",
-		"ul",
+		"ul",		
+		"table",
+		"tr",
+		"td",
+		"th",
+		"thead",
+		"tbody",
+		
 	}
 	urlRe        = `((https?|ftp):\/\/|\/)[-A-Za-z0-9+&@#\/%?=~_|!:,.;\(\)]+`
 	tagWhitelist = regexp.MustCompile(`^(<\/?(` + strings.Join(tags, "|") + `)>|<(br|hr)\s?\/?>)$`)
