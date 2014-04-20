@@ -69,10 +69,24 @@ var (
 		"sub",
 		"strong",
 		"strike",
-		"ul",
+		"ul",		
+		"table",
+		"tr",
+		"td",
+		"th",
+		"thead",
+		"tbody",
+		
 	}
+	
+	alignments = []string{
+		"left",
+		"right",
+		"center",
+	}
+
 	urlRe        = `((https?|ftp):\/\/|\/)[-A-Za-z0-9+&@#\/%?=~_|!:,.;\(\)]+`
-	tagWhitelist = regexp.MustCompile(`^(<\/?(` + strings.Join(tags, "|") + `)>|<(br|hr)\s?\/?>)$`)
+	tagWhitelist = regexp.MustCompile(`^(<\/?(` + strings.Join(tags, "|") + `)(\salign="(` + strings.Join(alignments, "|") + `)")?>|<(br|hr)\s?\/?>)$`)
 	anchorClean  = regexp.MustCompile(`^(<a\shref="` + urlRe + `"(\stitle="[^"<>]+")?\s?>|<\/a>)$`)
 	imgClean     = regexp.MustCompile(`^(<img\ssrc="` + urlRe + `"(\swidth="\d{1,3}")?(\sheight="\d{1,3}")?(\salt="[^"<>]*")?(\stitle="[^"<>]*")?\s?\/?>)$`)
 	// TODO: improve this regexp to catch all possible entities:
