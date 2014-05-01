@@ -524,10 +524,28 @@ func TestInlineLink(t *testing.T) {
 
 func TestNofollowLink(t *testing.T) {
 	var tests = []string{
-		"[foo](http://bar.baz/)\n",
-		"<p><a href=\"http://bar.baz/\" rel=\"nofollow\">foo</a></p>\n",
+		"[foo](http://bar.com/foo/)\n",
+		"<p><a href=\"http://bar.com/foo/\" rel=\"nofollow\">foo</a></p>\n",
 	}
 	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_NOFOLLOW_LINKS|HTML_SANITIZE_OUTPUT)
+	// HTML_SANITIZE_OUTPUT won't allow relative links, so test that separately:
+	tests = []string{
+		"[foo](/bar/)\n",
+		"<p><a href=\"/bar/\">foo</a></p>\n",
+	}
+	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_NOFOLLOW_LINKS)
+}
+
+func TestHrefTargetBlank(t *testing.T) {
+	var tests = []string{
+        // internal link
+		"[foo](/bar/)\n",
+		"<p><a href=\"/bar/\">foo</a></p>\n",
+
+		"[foo](http://example.com)\n",
+		"<p><a href=\"http://example.com\" target=\"_blank\">foo</a></p>\n",
+	}
+	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_HREF_TARGET_BLANK)
 }
 
 func TestSafeInlineLink(t *testing.T) {
@@ -733,9 +751,9 @@ func TestFootnotes(t *testing.T) {
 [^b]: Paragraph 1
 
 	Paragraph 2
-	
+
 	` + "```\n\tsome code\n\t```" + `
-	
+
 	Paragraph 3
 
 No longer in the footnote
