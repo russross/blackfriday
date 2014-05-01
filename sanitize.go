@@ -64,7 +64,7 @@ func sanitizeHtmlSafe(input []byte) []byte {
 		case html.TextToken:
 			// Text is written escaped.
 			wr.WriteString(tokenizer.Token().String())
-		case html.StartTagToken:
+		case html.SelfClosingTagToken, html.StartTagToken:
 			// HTML tags are escaped unless whitelisted.
 			tag, hasAttributes := tokenizer.TagName()
 			tagName := string(tag)
@@ -105,7 +105,14 @@ func sanitizeHtmlSafe(input []byte) []byte {
 			} else {
 				wr.WriteString(html.EscapeString(string(tokenizer.Raw())))
 			}
+		case html.CommentToken:
+			// Comments are not really expected, but harmless.
+			wr.Write(tokenizer.Raw())
+		case html.DoctypeToken:
+			// Escape DOCTYPES, entities etc can be dangerous
+			wr.WriteString(html.EscapeString(string(tokenizer.Raw())))
 		default:
+			tokenizer.Token()
 			panic(fmt.Errorf("Unexpected token type %v", t))
 		}
 	}
