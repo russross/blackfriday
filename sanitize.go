@@ -19,12 +19,22 @@ var (
 
 func init() {
 	whitelistTags = toSet([]string{
-		"a", "b", "blockquote", "br", "caption", "cite", "code", "col",
-		"colgroup", "dd", "div", "dl", "dt", "em",
+		// Headings
 		"h1", "h2", "h3", "h4", "h5", "h6",
-		"i", "img", "li", "ol", "p", "pre", "q", "small", "strike", "strong",
-		"sub", "sup", "table", "tbody", "td", "tfoot", "th", "thead", "tr", "u",
-		"ul"})
+		// Block elements
+		"p", "pre", "blockquote", "hr", "div", "header", "article", "aside", "footer",
+		"section", "main", "mark", "figure", "figcaption",
+		// Inline elements
+		"a", "br", "cite", "code", "img",
+		// Lists
+		"ol", "ul", "li",
+		// Tables
+		"table", "tbody", "td", "tfoot", "th", "thead", "tr", "colgroup", "col", "caption",
+		// Formatting
+		"u", "i", "em", "small", "strike", "b", "strong", "sub", "sup", "q",
+		// Definition lists
+		"dd", "dl", "dt",
+	})
 	whitelistAttrs = map[string]map[string]bool{
 		"a":   toSet([]string{"href", "title", "rel"}),
 		"img": toSet([]string{"src", "alt", "title"}),
