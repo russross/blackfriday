@@ -32,6 +32,7 @@ const (
 	HTML_SANITIZE_OUTPUT                      // strip output of everything that's not known to be safe
 	HTML_SAFELINK                             // only link to trusted protocols
 	HTML_NOFOLLOW_LINKS                       // only link with rel="nofollow"
+	HTML_HREF_TARGET_BLANK                    // add a blank target
 	HTML_TOC                                  // generate a table of contents
 	HTML_OMIT_CONTENTS                        // skip the main contents (for a standalone table of contents)
 	HTML_COMPLETE_PAGE                        // generate a complete HTML page
@@ -411,6 +412,15 @@ func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 		out.WriteString("mailto:")
 	}
 	entityEscapeWithSkip(out, link, skipRanges)
+
+	if options.flags&HTML_NOFOLLOW_LINKS != 0 && !isRelativeLink(link) {
+		out.WriteString("\" rel=\"nofollow")
+	}
+	// blank target only add to external link
+	if options.flags&HTML_HREF_TARGET_BLANK != 0 && !isRelativeLink(link) {
+		out.WriteString("\" target=\"_blank")
+	}
+
 	out.WriteString("\">")
 
 	// Pretty print: if we get an email address as
@@ -498,9 +508,14 @@ func (options *Html) Link(out *bytes.Buffer, link []byte, title []byte, content 
 		out.WriteString("\" title=\"")
 		attrEscape(out, title)
 	}
-	if options.flags&HTML_NOFOLLOW_LINKS != 0 {
+	if options.flags&HTML_NOFOLLOW_LINKS != 0 && !isRelativeLink(link) {
 		out.WriteString("\" rel=\"nofollow")
 	}
+	// blank target only add to external link
+	if options.flags&HTML_HREF_TARGET_BLANK != 0 && !isRelativeLink(link) {
+		out.WriteString("\" target=\"_blank")
+	}
+
 	out.WriteString("\">")
 	out.Write(content)
 	out.WriteString("</a>")
@@ -799,4 +814,24 @@ func doubleSpace(out *bytes.Buffer) {
 	if out.Len() > 0 {
 		out.WriteByte('\n')
 	}
+}
+
+func isRelativeLink(link []byte) (yes bool) {
+	yes = false
+
+	// a tag begin with '#'
+	if link[0] == '#' {
+		yes = true
+	}
+
+	// link begin with '/' but not '//', the second maybe a protocol relative link
+	if len(link) >= 2 && link[0] == '/' && link[1] != '/' {
+		yes = true
+	}
+
+	// only the root '/'
+	if len(link) == 1 && link[0] == '/' {
+		yes = true
+	}
+	return
 }
