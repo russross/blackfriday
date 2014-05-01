@@ -43,52 +43,12 @@ const (
 )
 
 var (
-	tags = []string{
-		"b",
-		"blockquote",
-		"code",
-		"del",
-		"dd",
-		"dl",
-		"dt",
-		"em",
-		"h1",
-		"h2",
-		"h3",
-		"h4",
-		"h5",
-		"h6",
-		"i",
-		"kbd",
-		"li",
-		"ol",
-		"p",
-		"pre",
-		"s",
-		"sup",
-		"sub",
-		"strong",
-		"strike",
-		"ul",		
-		"table",
-		"tr",
-		"td",
-		"th",
-		"thead",
-		"tbody",
-		
-	}
-	
 	alignments = []string{
 		"left",
 		"right",
 		"center",
 	}
 
-	urlRe        = `((https?|ftp):\/\/|\/)[-A-Za-z0-9+&@#\/%?=~_|!:,.;\(\)]+`
-	tagWhitelist = regexp.MustCompile(`^(<\/?(` + strings.Join(tags, "|") + `)(\salign="(` + strings.Join(alignments, "|") + `)")?>|<(br|hr)\s?\/?>)$`)
-	anchorClean  = regexp.MustCompile(`^(<a\shref="` + urlRe + `"(\stitle="[^"<>]+")?\s?>|<\/a>)$`)
-	imgClean     = regexp.MustCompile(`^(<img\ssrc="` + urlRe + `"(\swidth="\d{1,3}")?(\sheight="\d{1,3}")?(\salt="[^"<>]*")?(\stitle="[^"<>]*")?\s?\/?>)$`)
 	// TODO: improve this regexp to catch all possible entities:
 	htmlEntity = regexp.MustCompile(`&[a-z]{2,5};`)
 )
@@ -820,43 +780,12 @@ func findHtmlTagPos(tag []byte, tagname string) (bool, int) {
 	return false, -1
 }
 
-func sanitizeHtml(html []byte) []byte {
-	var result []byte
-	for string(html) != "" {
-		skip, tag, rest := findHtmlTag(html)
-		html = rest
-		result = append(result, skip...)
-		result = append(result, sanitizeTag(tag)...)
-	}
-	return append(result, []byte("\n")...)
-}
-
-func sanitizeTag(tag []byte) []byte {
-	if tagWhitelist.Match(tag) || anchorClean.Match(tag) || imgClean.Match(tag) {
-		return tag
-	}
-	return []byte("")
-}
-
 func skipUntilChar(text []byte, start int, char byte) int {
 	i := start
 	for i < len(text) && text[i] != char {
 		i++
 	}
 	return i
-}
-
-func findHtmlTag(html []byte) (skip, tag, rest []byte) {
-	start := skipUntilChar(html, 0, '<')
-	rightAngle := skipUntilCharIgnoreQuotes(html, start, '>')
-	if rightAngle > start {
-		skip = html[0:start]
-		tag = html[start : rightAngle+1]
-		rest = html[rightAngle+1:]
-		return
-	}
-
-	return []byte(""), []byte(""), []byte("")
 }
 
 func skipSpace(tag []byte, i int) int {

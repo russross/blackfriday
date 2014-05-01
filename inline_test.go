@@ -72,135 +72,135 @@ func doTestsInlineParam(t *testing.T, tests []string, extensions, htmlFlags int)
 func TestRawHtmlTag(t *testing.T) {
 	tests := []string{
 		"zz <style>p {}</style>\n",
-		"<p>zz p {}</p>\n",
+		"<p>zz &lt;style&gt;p {}&lt;/style&gt;</p>\n",
 
 		"zz <STYLE>p {}</STYLE>\n",
-		"<p>zz p {}</p>\n",
+		"<p>zz &lt;style&gt;p {}&lt;/style&gt;</p>\n",
 
 		"<SCRIPT>alert()</SCRIPT>\n",
-		"<p>alert()</p>\n",
+		"<p>&lt;script&gt;alert()&lt;/script&gt;</p>\n",
 
 		"zz <SCRIPT>alert()</SCRIPT>\n",
-		"<p>zz alert()</p>\n",
+		"<p>zz &lt;script&gt;alert()&lt;/script&gt;</p>\n",
 
 		"zz <script>alert()</script>\n",
-		"<p>zz alert()</p>\n",
+		"<p>zz &lt;script&gt;alert()&lt;/script&gt;</p>\n",
 
 		" <script>alert()</script>\n",
-		"<p>alert()</p>\n",
+		"<p>&lt;script&gt;alert()&lt;/script&gt;</p>\n",
 
 		"<script>alert()</script>\n",
-		"alert()\n",
+		"&lt;script&gt;alert()&lt;/script&gt;\n",
 
 		"<script src='foo'></script>\n",
-		"\n",
+		"&lt;script src=&#39;foo&#39;&gt;&lt;/script&gt;\n",
 
 		"<script src='a>b'></script>\n",
-		"\n",
+		"&lt;script src=&#39;a&gt;b&#39;&gt;&lt;/script&gt;\n",
 
 		"zz <script src='foo'></script>\n",
-		"<p>zz </p>\n",
+		"<p>zz &lt;script src=&#39;foo&#39;&gt;&lt;/script&gt;</p>\n",
 
 		"zz <script src=foo></script>\n",
-		"<p>zz </p>\n",
+		"<p>zz &lt;script src=foo&gt;&lt;/script&gt;</p>\n",
 
 		`<script><script src="http://example.com/exploit.js"></SCRIPT></script>`,
-		"\n",
+		"&lt;script&gt;&lt;script src=&#34;http://example.com/exploit.js&#34;&gt;&lt;/script&gt;&lt;/script&gt;\n",
 
 		`'';!--"<XSS>=&{()}`,
-		"<p>'';!--&quot;=&amp;{()}</p>\n",
+		"<p>&#39;&#39;;!--&#34;&lt;xss&gt;=&amp;{()}</p>\n",
 
 		"<SCRIPT SRC=http://ha.ckers.org/xss.js></SCRIPT>",
-		"<p></p>\n",
+		"<p>&lt;script SRC=http://ha.ckers.org/xss.js&gt;&lt;/script&gt;</p>\n",
 
 		"<SCRIPT \nSRC=http://ha.ckers.org/xss.js></SCRIPT>",
-		"<p></p>\n",
+		"<p>&lt;script \nSRC=http://ha.ckers.org/xss.js&gt;&lt;/script&gt;</p>\n",
 
 		`<IMG SRC="javascript:alert('XSS');">`,
-		"<p></p>\n",
+		"<p><img></p>\n",
 
 		"<IMG SRC=javascript:alert('XSS')>",
-		"<p></p>\n",
+		"<p><img></p>\n",
 
 		"<IMG SRC=JaVaScRiPt:alert('XSS')>",
-		"<p></p>\n",
+		"<p><img></p>\n",
 
 		"<IMG SRC=`javascript:alert(\"RSnake says, 'XSS'\")`>",
-		"<p></p>\n",
+		"<p><img></p>\n",
 
 		`<a onmouseover="alert(document.cookie)">xss link</a>`,
-		"<p>xss link</a></p>\n",
+		"<p><a>xss link</a></p>\n",
 
 		"<a onmouseover=alert(document.cookie)>xss link</a>",
-		"<p>xss link</a></p>\n",
+		"<p><a>xss link</a></p>\n",
 
-		// XXX: this doesn't pass yet
-		//`<IMG """><SCRIPT>alert("XSS")</SCRIPT>">`,
-		//"<p></p>\n",
+		`<IMG """><SCRIPT>alert("XSS")</SCRIPT>">`,
+		"<p><img>&lt;script&gt;alert(&amp;quot;XSS&amp;quot;)&lt;/script&gt;&#34;&gt;</p>\n",
 
 		"<IMG SRC=javascript:alert(String.fromCharCode(88,83,83))>",
-		"<p></p>\n",
+		"<p><img></p>\n",
 
 		`<IMG SRC=# onmouseover="alert('xxs')">`,
-		"<p></p>\n",
+		"<p><img></p>\n",
 
 		`<IMG SRC= onmouseover="alert('xxs')">`,
-		"<p></p>\n",
+		"<p><img></p>\n",
 
 		`<IMG onmouseover="alert('xxs')">`,
-		"<p></p>\n",
+		"<p><img></p>\n",
 
 		"<IMG SRC=&#106;&#97;&#118;&#97;&#115;&#99;&#114;&#105;&#112;&#116;&#58;&#97;&#108;&#101;&#114;&#116;&#40;&#39;&#88;&#83;&#83;&#39;&#41;>",
-		"<p></p>\n",
+		"<p><img></p>\n",
 
 		"<IMG SRC=&#0000106&#0000097&#0000118&#0000097&#0000115&#0000099&#0000114&#0000105&#0000112&#0000116&#0000058&#0000097&#0000108&#0000101&#0000114&#0000116&#0000040&#0000039&#0000088&#0000083&#0000083&#0000039&#0000041>",
-		"<p></p>\n",
+		"<p><img></p>\n",
 
 		"<IMG SRC=&#x6A&#x61&#x76&#x61&#x73&#x63&#x72&#x69&#x70&#x74&#x3A&#x61&#x6C&#x65&#x72&#x74&#x28&#x27&#x58&#x53&#x53&#x27&#x29>",
-		"<p></p>\n",
+		"<p><img></p>\n",
 
 		`<IMG SRC="javascriptascript:alert('XSS');">`,
-		"<p></p>\n",
+		"<p><img></p>\n",
 
 		`<IMG SRC="jav&#x09;ascript:alert('XSS');">`,
-		"<p></p>\n",
+		"<p><img></p>\n",
 
 		`<IMG SRC="jav&#x0A;ascript:alert('XSS');">`,
-		"<p></p>\n",
+		"<p><img></p>\n",
 
 		`<IMG SRC="jav&#x0D;ascript:alert('XSS');">`,
-		"<p></p>\n",
+		"<p><img></p>\n",
 
 		`<IMG SRC=" &#14;  javascript:alert('XSS');">`,
-		"<p></p>\n",
+		"<p><img></p>\n",
 
 		`<SCRIPT/XSS SRC="http://ha.ckers.org/xss.js"></SCRIPT>`,
-		"<p></p>\n",
+		"<p>&lt;script/XSS SRC=&#34;http://ha.ckers.org/xss.js&#34;&gt;&lt;/script&gt;</p>\n",
 
-		// XXX: this doesn't pass yet
-		//"<BODY onload!#$%&()*~+-_.,:;?@[/|\\]^`=alert(\"XSS\")>",
-		//"\n",
+		"<BODY onload!#$%&()*~+-_.,:;?@[/|\\]^`=alert(\"XSS\")>",
+		"<p>&lt;body onload!#$%&amp;()*~+-_.,:;?@[/|\\]^`=alert(&#34;XSS&#34;)&gt;</p>\n",
 
 		`<SCRIPT/SRC="http://ha.ckers.org/xss.js"></SCRIPT>`,
-		"<p></p>\n",
+		"<p>&lt;script/SRC=&#34;http://ha.ckers.org/xss.js&#34;&gt;&lt;/script&gt;</p>\n",
 
-		// XXX: this doesn't pass yet
-		//`<<SCRIPT>alert("XSS");//<</SCRIPT>`,
-		//"",
+		// HTML5 interprets the <script> tag contents as raw test, thus the end
+		// result has double-escaped &amp;quot;
+		`<<SCRIPT>alert("XSS");//<</SCRIPT>`,
+		"<p>&lt;&lt;script&gt;alert(&amp;quot;XSS&amp;quot;);//&amp;lt;&lt;/script&gt;</p>\n",
 
+		// HTML5 parses the </p> within an unclosed <script> tag as text.
+		// Same for the following tests.
 		"<SCRIPT SRC=http://ha.ckers.org/xss.js?< B >",
-		"<p></p>\n",
+		"<p>&lt;script SRC=http://ha.ckers.org/xss.js?&lt; B &gt;&lt;/p&gt;\n",
 
 		"<SCRIPT SRC=//ha.ckers.org/.j>",
-		"<p></p>\n",
+		"<p>&lt;script SRC=//ha.ckers.org/.j&gt;&lt;/p&gt;\n",
 
-		// XXX: this doesn't pass yet
-		//`<IMG SRC="javascript:alert('XSS')"`,
-		//"",
+		`<IMG SRC="javascript:alert('XSS')"`,
+		"<p>&lt;IMG SRC=&#34;javascript:alert(&#39;XSS&#39;)&#34;</p>\n",
 
-		// XXX: this doesn't pass yet
-		//"<iframe src=http://ha.ckers.org/scriptlet.html <",
-		//"",
+		"<iframe src=http://ha.ckers.org/scriptlet.html <",
+		// The hyperlink gets linkified, the <iframe> gets escaped
+		"<p>&lt;iframe src=<a href=\"http://ha.ckers.org/scriptlet.html\">http://ha.ckers.org/scriptlet.html</a> &lt;</p>\n",
 	}
 	doTestsInlineParam(t, tests, 0, HTML_SKIP_STYLE|HTML_SANITIZE_OUTPUT)
 }

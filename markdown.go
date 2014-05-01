@@ -298,7 +298,7 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	second := secondPass(p, first)
 
 	if renderer.GetFlags()&HTML_SANITIZE_OUTPUT != 0 {
-		second = sanitizeHtml(second)
+		second = sanitizeHtmlSafe(second)
 	}
 
 	return second
