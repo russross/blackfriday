@@ -201,6 +201,16 @@ func TestRawHtmlTag(t *testing.T) {
 		"<iframe src=http://ha.ckers.org/scriptlet.html <",
 		// The hyperlink gets linkified, the <iframe> gets escaped
 		"<p>&lt;iframe src=<a href=\"http://ha.ckers.org/scriptlet.html\">http://ha.ckers.org/scriptlet.html</a> &lt;</p>\n",
+
+		// Additonal token types: SelfClosing, Comment, DocType.
+		"<br/>",
+		"<p><br></p>\n",
+
+		"<!-- Comment -->",
+		"<!-- Comment -->\n",
+
+		"<!DOCTYPE test>",
+		"<p>&lt;!DOCTYPE test&gt;</p>\n",
 	}
 	doTestsInlineParam(t, tests, 0, HTML_SKIP_STYLE|HTML_SANITIZE_OUTPUT)
 }
