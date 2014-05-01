@@ -26,7 +26,7 @@ func init() {
 		"sub", "sup", "table", "tbody", "td", "tfoot", "th", "thead", "tr", "u",
 		"ul"})
 	whitelistAttrs = map[string]map[string]bool{
-		"a":   toSet([]string{"href", "title"}),
+		"a":   toSet([]string{"href", "title", "rel"}),
 		"img": toSet([]string{"src", "alt", "title"}),
 	}
 	protocolAttrs = map[string]map[string]bool{
