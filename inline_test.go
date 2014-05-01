@@ -211,6 +211,9 @@ func TestRawHtmlTag(t *testing.T) {
 
 		"<!DOCTYPE test>",
 		"<p>&lt;!DOCTYPE test&gt;</p>\n",
+
+		"<hr>",
+		"<hr>\n",
 	}
 	doTestsInlineParam(t, tests, 0, HTML_SKIP_STYLE|HTML_SANITIZE_OUTPUT)
 }
@@ -548,7 +551,7 @@ func TestNofollowLink(t *testing.T) {
 
 func TestHrefTargetBlank(t *testing.T) {
 	var tests = []string{
-        // internal link
+		// internal link
 		"[foo](/bar/)\n",
 		"<p><a href=\"/bar/\">foo</a></p>\n",
 
