@@ -135,7 +135,7 @@ func TestRawHtmlTag(t *testing.T) {
 		"<p><a>xss link</a></p>\n",
 
 		`<IMG """><SCRIPT>alert("XSS")</SCRIPT>">`,
-		"<p><img>&lt;script&gt;alert(&amp;quot;XSS&amp;quot;)&lt;/script&gt;&#34;&gt;</p>\n",
+		"<p><img>&lt;script&gt;alert(&#34;XSS&#34;)&lt;/script&gt;&#34;&gt;</p>\n",
 
 		"<IMG SRC=javascript:alert(String.fromCharCode(88,83,83))>",
 		"<p><img></p>\n",
@@ -182,18 +182,14 @@ func TestRawHtmlTag(t *testing.T) {
 		`<SCRIPT/SRC="http://ha.ckers.org/xss.js"></SCRIPT>`,
 		"<p>&lt;script/SRC=&#34;http://ha.ckers.org/xss.js&#34;&gt;&lt;/script&gt;</p>\n",
 
-		// HTML5 interprets the <script> tag contents as raw test, thus the end
-		// result has double-escaped &amp;quot;
 		`<<SCRIPT>alert("XSS");//<</SCRIPT>`,
-		"<p>&lt;&lt;script&gt;alert(&amp;quot;XSS&amp;quot;);//&amp;lt;&lt;/script&gt;</p>\n",
+		"<p>&lt;&lt;script&gt;alert(&#34;XSS&#34;);//&lt;&lt;/script&gt;</p>\n",
 
-		// HTML5 parses the </p> within an unclosed <script> tag as text.
-		// Same for the following tests.
 		"<SCRIPT SRC=http://ha.ckers.org/xss.js?< B >",
-		"<p>&lt;script SRC=http://ha.ckers.org/xss.js?&lt; B &gt;&lt;/p&gt;\n",
+		"<p>&lt;script SRC=http://ha.ckers.org/xss.js?&lt; B &gt;</p>\n",
 
 		"<SCRIPT SRC=//ha.ckers.org/.j>",
-		"<p>&lt;script SRC=//ha.ckers.org/.j&gt;&lt;/p&gt;\n",
+		"<p>&lt;script SRC=//ha.ckers.org/.j&gt;</p>\n",
 
 		`<IMG SRC="javascript:alert('XSS')"`,
 		"<p>&lt;IMG SRC=&#34;javascript:alert(&#39;XSS&#39;)&#34;</p>\n",
@@ -220,11 +216,23 @@ func TestRawHtmlTag(t *testing.T) {
 
 func TestQuoteEscaping(t *testing.T) {
 	tests := []string{
+		// Make sure quotes are transported correctly (different entities or
+		// unicode, but correct semantics)
 		"<p>Here are some &quot;quotes&quot;.</p>\n",
 		"<p>Here are some &#34;quotes&#34;.</p>\n",
 
 		"<p>Here are some &ldquo;quotes&rdquo;.</p>\n",
 		"<p>Here are some \u201Cquotes\u201D.</p>\n",
+
+		// Within a <script> tag, content gets parsed by the raw text parsing rules.
+		// This test makes sure we correctly disable those parsing rules and do not
+		// escape e.g. the closing </p>.
+		`Here are <script> some "quotes".`,
+		"<p>Here are &lt;script&gt; some &#34;quotes&#34;.</p>\n",
+
+		// Same test for an unknown element that does not switch into raw mode.
+		`Here are <eviltag> some "quotes".`,
+		"<p>Here are &lt;eviltag&gt; some &#34;quotes&#34;.</p>\n",
 	}
 	doTestsInlineParam(t, tests, 0, HTML_SKIP_STYLE|HTML_SANITIZE_OUTPUT)
 }

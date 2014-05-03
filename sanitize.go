@@ -107,6 +107,10 @@ func sanitizeHtmlSafe(input []byte) []byte {
 			} else {
 				wr.WriteString(html.EscapeString(string(tokenizer.Raw())))
 			}
+			// Make sure that tags like <script> that switch the parser into raw mode
+			// do not destroy the parse mode for following HTML text (the point is to
+			// escape them anyway). For that, switch off raw mode in the tokenizer.
+			tokenizer.NextIsNotRawText()
 		case html.EndTagToken:
 			// Whitelisted tokens can be written in raw.
 			tag, _ := tokenizer.TagName()
