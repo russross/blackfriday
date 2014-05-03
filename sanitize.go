@@ -103,7 +103,11 @@ func sanitizeHtmlSafe(input []byte) []byte {
 						wr.WriteByte('"')
 					}
 				}
-				wr.WriteString(">")
+				if t == html.SelfClosingTagToken {
+					wr.WriteString("/>")
+				} else {
+					wr.WriteString(">")
+				}
 			} else {
 				wr.WriteString(html.EscapeString(string(tokenizer.Raw())))
 			}
