@@ -555,7 +555,7 @@ func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 }
 
 // '\\' backslash escape
-var escapeChars = []byte("\\`*_{}[]()#+-.!:|&<>")
+var escapeChars = []byte("\\`*_{}[]()#+-.!:|&<>~")
 
 func escape(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
