@@ -218,6 +218,17 @@ func TestRawHtmlTag(t *testing.T) {
 	doTestsInlineParam(t, tests, 0, HTML_SKIP_STYLE|HTML_SANITIZE_OUTPUT)
 }
 
+func TestQuoteEscaping(t *testing.T) {
+	tests := []string{
+		"<p>Here are some &quot;quotes&quot;.</p>\n",
+		"<p>Here are some &#34;quotes&#34;.</p>\n",
+
+		"<p>Here are some &ldquo;quotes&rdquo;.</p>\n",
+		"<p>Here are some \u201Cquotes\u201D.</p>\n",
+	}
+	doTestsInlineParam(t, tests, 0, HTML_SKIP_STYLE|HTML_SANITIZE_OUTPUT)
+}
+
 func TestEmphasis(t *testing.T) {
 	var tests = []string{
 		"nothing inline\n",
