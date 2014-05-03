@@ -204,16 +204,13 @@ func TestRawHtmlTag(t *testing.T) {
 
 		// Additonal token types: SelfClosing, Comment, DocType.
 		"<br/>",
-		"<p><br></p>\n",
+		"<p><br/></p>\n",
 
 		"<!-- Comment -->",
 		"<!-- Comment -->\n",
 
 		"<!DOCTYPE test>",
 		"<p>&lt;!DOCTYPE test&gt;</p>\n",
-
-		"<hr>",
-		"<hr>\n",
 	}
 	doTestsInlineParam(t, tests, 0, HTML_SKIP_STYLE|HTML_SANITIZE_OUTPUT)
 }
@@ -225,6 +222,21 @@ func TestQuoteEscaping(t *testing.T) {
 
 		"<p>Here are some &ldquo;quotes&rdquo;.</p>\n",
 		"<p>Here are some \u201Cquotes\u201D.</p>\n",
+	}
+	doTestsInlineParam(t, tests, 0, HTML_SKIP_STYLE|HTML_SANITIZE_OUTPUT)
+}
+
+func TestSanitizeSelfClosingTag(t *testing.T) {
+	tests := []string{
+		"<hr>\n",
+		"<hr>\n",
+
+		"<hr/>\n",
+		"<hr/>\n",
+
+		// Make sure that evil attributes are stripped for self closing tags.
+		"<hr onclick=\"evil()\"/>\n",
+		"<hr/>\n",
 	}
 	doTestsInlineParam(t, tests, 0, HTML_SKIP_STYLE|HTML_SANITIZE_OUTPUT)
 }
