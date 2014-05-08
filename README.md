@@ -34,6 +34,9 @@ project:
 and when you build that project with `go build`, blackfriday will be
 downloaded and installed automatically.
 
+Usage
+-----
+
 For basic usage, it is as simple as getting your input into a byte
 slice and calling:
 
