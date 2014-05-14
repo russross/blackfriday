@@ -177,16 +177,24 @@ implements the following extensions:
     <sup>4</sup>&frasl;<sub>5</sub>.
 
 
-LaTeX Output
-------------
+Non-HTML output
+---------------
 
-A rudimentary LaTeX rendering backend is also included. To see an
-example of its usage, see `main.go`:
+Blackfriday is structured to allow alternative rendering engines. Here
+are a few of note:
 
-It renders some basic documents, but is only experimental at this
-point. In particular, it does not do any inline escaping, so input
-that happens to look like LaTeX code will be passed through without
-modification.
+*   [markdownfmt](https://github.com/shurcooL/markdownfmt): like gofmt,
+    but for markdown.
+
+*   LaTeX output: renders output as LaTeX. This is currently part of the
+    main Blackfriday repository, but may be split into its own project
+    in the future. If you are interested in owning and maintaining the
+    LaTeX output component, please be in touch.
+
+    It renders some basic documents, but is only experimental at this
+    point. In particular, it does not do any inline escaping, so input
+    that happens to look like LaTeX code will be passed through without
+    modification.
 
 
 Todo
