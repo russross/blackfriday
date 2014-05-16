@@ -80,7 +80,7 @@ func TestSanitizeRawHtmlTag(t *testing.T) {
 		"<p><img></p>\n",
 
 		`<IMG SRC=# onmouseover="alert('xxs')">`,
-		"<p><img></p>\n",
+		"<p><img src=\"#\"></p>\n",
 
 		`<IMG SRC= onmouseover="alert('xxs')">`,
 		"<p><img></p>\n",
@@ -192,6 +192,8 @@ func TestSanitizeInlineLink(t *testing.T) {
 	tests := []string{
 		"[link](javascript:evil)",
 		"<p><a>link</a></p>\n",
+                "[link](/abc)",
+                "<p><a href=\"/abc\">link</a></p>\n",
 	}
 	doTestsSanitize(t, tests)
 }

@@ -92,7 +92,7 @@ func sanitizeHtmlSafe(input []byte) []byte {
 						// protocol checking, do so and strip it if it's not known to be safe.
 						tagProtocolAttrs, ok := protocolAttrs[tagName]
 						if ok && tagProtocolAttrs[attrName] {
-							if !protocolAllowed(val) {
+							if !isRelativeLink(val) && !protocolAllowed(val) {
 								continue
 							}
 						}
