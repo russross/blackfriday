@@ -23,7 +23,7 @@ func runMarkdownInline(input string, extensions, htmlFlags int) string {
 
 	htmlFlags |= HTML_USE_XHTML
 
-	renderer := HtmlRenderer(htmlFlags, "", "")
+	renderer := HtmlRenderer(htmlFlags, "", "", "")
 
 	return string(Markdown([]byte(input), renderer, extensions))
 }

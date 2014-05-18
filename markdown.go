@@ -202,7 +202,7 @@ type parser struct {
 func MarkdownBasic(input []byte) []byte {
 	// set up the HTML renderer
 	htmlFlags := HTML_USE_XHTML
-	renderer := HtmlRenderer(htmlFlags, "", "")
+	renderer := HtmlRenderer(htmlFlags, "", "", "")
 
 	// set up the parser
 	extensions := 0
@@ -237,7 +237,7 @@ func MarkdownCommon(input []byte) []byte {
 	htmlFlags |= HTML_SMARTYPANTS_FRACTIONS
 	htmlFlags |= HTML_SMARTYPANTS_LATEX_DASHES
 	htmlFlags |= HTML_SANITIZE_OUTPUT
-	renderer := HtmlRenderer(htmlFlags, "", "")
+	renderer := HtmlRenderer(htmlFlags, "", "", "")
 
 	// set up the parser
 	extensions := 0
@@ -332,7 +332,7 @@ func firstPass(p *parser, input []byte) []byte {
 				// when last line was none blank and a fenced code block comes after
 				if beg >= lastFencedCodeBlockEnd {
 					// tmp var so we don't modify beyond bounds of `input`
-					var tmp = make([]byte, len(input[beg:]), len(input[beg:]) + 1)
+					var tmp = make([]byte, len(input[beg:]), len(input[beg:])+1)
 					copy(tmp, input[beg:])
 					if i := p.fencedCode(&out, append(tmp, '\n'), false); i > 0 {
 						if !lastLineWasBlank {

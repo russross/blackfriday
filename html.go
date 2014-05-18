@@ -41,6 +41,7 @@ const (
 	HTML_USE_SMARTYPANTS                      // enable smart punctuation substitutions
 	HTML_SMARTYPANTS_FRACTIONS                // enable smart fractions (with HTML_USE_SMARTYPANTS)
 	HTML_SMARTYPANTS_LATEX_DASHES             // enable LaTeX-style dashes (with HTML_USE_SMARTYPANTS)
+	HTML_ABSOLUTE_LINKS                       // convert all links to absolute links
 )
 
 var (
@@ -58,10 +59,11 @@ var (
 //
 // Do not create this directly, instead use the HtmlRenderer function.
 type Html struct {
-	flags    int    // HTML_* options
-	closeTag string // how to end singleton tags: either " />\n" or ">\n"
-	title    string // document title
-	css      string // optional css file url (used with HTML_COMPLETE_PAGE)
+	flags          int    // HTML_* options
+	closeTag       string // how to end singleton tags: either " />\n" or ">\n"
+	title          string // document title
+	css            string // optional css file url (used with HTML_COMPLETE_PAGE)
+	absolutePrefix string
 
 	// table of contents data
 	tocMarker    int
@@ -84,7 +86,7 @@ const (
 // title is the title of the document, and css is a URL for the document's
 // stylesheet.
 // title and css are only used when HTML_COMPLETE_PAGE is selected.
-func HtmlRenderer(flags int, title string, css string) Renderer {
+func HtmlRenderer(flags int, title string, css string, absolutePrefix string) Renderer {
 	// configure the rendering engine
 	closeTag := htmlClose
 	if flags&HTML_USE_XHTML != 0 {
@@ -92,10 +94,11 @@ func HtmlRenderer(flags int, title string, css string) Renderer {
 	}
 
 	return &Html{
-		flags:    flags,
-		closeTag: closeTag,
-		title:    title,
-		css:      css,
+		flags:          flags,
+		closeTag:       closeTag,
+		title:          title,
+		css:            css,
+		absolutePrefix: absolutePrefix,
 
 		headerCount:  0,
 		currentLevel: 0,
@@ -410,7 +413,10 @@ func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	out.WriteString("<a href=\"")
 	if kind == LINK_TYPE_EMAIL {
 		out.WriteString("mailto:")
+	} else {
+		options.maybeWriteAbsolutePrefix(out, link)
 	}
+
 	entityEscapeWithSkip(out, link, skipRanges)
 
 	if options.flags&HTML_NOFOLLOW_LINKS != 0 && !isRelativeLink(link) {
@@ -459,12 +465,22 @@ func (options *Html) Emphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("</em>")
 }
 
+func (options *Html) maybeWriteAbsolutePrefix(out *bytes.Buffer, link []byte) {
+	if options.flags&HTML_ABSOLUTE_LINKS != 0 && isRelativeLink(link) {
+		out.WriteString(options.absolutePrefix)
+		if link[0] != '/' {
+			out.WriteByte('/')
+		}
+	}
+}
+
 func (options *Html) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
 	if options.flags&HTML_SKIP_IMAGES != 0 {
 		return
 	}
 
 	out.WriteString("<img src=\"")
+	options.maybeWriteAbsolutePrefix(out, link)
 	attrEscape(out, link)
 	out.WriteString("\" alt=\"")
 	if len(alt) > 0 {
@@ -503,6 +519,7 @@ func (options *Html) Link(out *bytes.Buffer, link []byte, title []byte, content 
 	}
 
 	out.WriteString("<a href=\"")
+	options.maybeWriteAbsolutePrefix(out, link)
 	attrEscape(out, link)
 	if len(title) > 0 {
 		out.WriteString("\" title=\"")
