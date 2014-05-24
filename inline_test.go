@@ -595,10 +595,9 @@ func TestAutoLink(t *testing.T) {
 	doTestsInline(t, tests)
 }
 
-func TestFootnotes(t *testing.T) {
-	tests := []string{
-		"testing footnotes.[^a]\n\n[^a]: This is the note\n",
-		`<p>testing footnotes.<sup class="footnote-ref" id="fnref:a"><a rel="footnote" href="#fn:a">1</a></sup></p>
+var footenoteTests = []string{
+	"testing footnotes.[^a]\n\n[^a]: This is the note\n",
+	`<p>testing footnotes.<sup class="footnote-ref" id="fnref:a"><a rel="footnote" href="#fn:a">1</a></sup></p>
 <div class="footnotes">
 
 <hr />
@@ -610,7 +609,7 @@ func TestFootnotes(t *testing.T) {
 </div>
 `,
 
-		`testing long[^b] notes.
+	`testing long[^b] notes.
 
 [^b]: Paragraph 1
 
@@ -622,7 +621,7 @@ func TestFootnotes(t *testing.T) {
 
 No longer in the footnote
 `,
-		`<p>testing long<sup class="footnote-ref" id="fnref:b"><a rel="footnote" href="#fn:b">1</a></sup> notes.</p>
+	`<p>testing long<sup class="footnote-ref" id="fnref:b"><a rel="footnote" href="#fn:b">1</a></sup> notes.</p>
 
 <p>No longer in the footnote</p>
 <div class="footnotes">
@@ -644,7 +643,7 @@ some code
 </div>
 `,
 
-		`testing[^c] multiple[^d] notes.
+	`testing[^c] multiple[^d] notes.
 
 [^c]: this is [note] c
 
@@ -658,7 +657,7 @@ what happens here
 [note]: /link/c
 
 `,
-		`<p>testing<sup class="footnote-ref" id="fnref:c"><a rel="footnote" href="#fn:c">1</a></sup> multiple<sup class="footnote-ref" id="fnref:d"><a rel="footnote" href="#fn:d">2</a></sup> notes.</p>
+	`<p>testing<sup class="footnote-ref" id="fnref:c"><a rel="footnote" href="#fn:c">1</a></sup> multiple<sup class="footnote-ref" id="fnref:d"><a rel="footnote" href="#fn:d">2</a></sup> notes.</p>
 
 <p>omg</p>
 
@@ -676,8 +675,8 @@ what happens here
 </div>
 `,
 
-		"testing inline^[this is the note] notes.\n",
-		`<p>testing inline<sup class="footnote-ref" id="fnref:this-is-the-note"><a rel="footnote" href="#fn:this-is-the-note">1</a></sup> notes.</p>
+	"testing inline^[this is the note] notes.\n",
+	`<p>testing inline<sup class="footnote-ref" id="fnref:this-is-the-note"><a rel="footnote" href="#fn:this-is-the-note">1</a></sup> notes.</p>
 <div class="footnotes">
 
 <hr />
@@ -688,8 +687,8 @@ what happens here
 </div>
 `,
 
-		"testing multiple[^1] types^[inline note] of notes[^2]\n\n[^2]: the second deferred note\n[^1]: the first deferred note\n\n\twhich happens to be a block\n",
-		`<p>testing multiple<sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup> types<sup class="footnote-ref" id="fnref:inline-note"><a rel="footnote" href="#fn:inline-note">2</a></sup> of notes<sup class="footnote-ref" id="fnref:2"><a rel="footnote" href="#fn:2">3</a></sup></p>
+	"testing multiple[^1] types^[inline note] of notes[^2]\n\n[^2]: the second deferred note\n[^1]: the first deferred note\n\n\twhich happens to be a block\n",
+	`<p>testing multiple<sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup> types<sup class="footnote-ref" id="fnref:inline-note"><a rel="footnote" href="#fn:inline-note">2</a></sup> of notes<sup class="footnote-ref" id="fnref:2"><a rel="footnote" href="#fn:2">3</a></sup></p>
 <div class="footnotes">
 
 <hr />
@@ -706,13 +705,13 @@ what happens here
 </div>
 `,
 
-		`This is a footnote[^1]^[and this is an inline footnote]
+	`This is a footnote[^1]^[and this is an inline footnote]
 
 [^1]: the footnote text.
 
     may be multiple paragraphs.
 `,
-		`<p>This is a footnote<sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup><sup class="footnote-ref" id="fnref:and-this-is-an-i"><a rel="footnote" href="#fn:and-this-is-an-i">2</a></sup></p>
+	`<p>This is a footnote<sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup><sup class="footnote-ref" id="fnref:and-this-is-an-i"><a rel="footnote" href="#fn:and-this-is-an-i">2</a></sup></p>
 <div class="footnotes">
 
 <hr />
@@ -727,9 +726,21 @@ what happens here
 </div>
 `,
 
-		"empty footnote[^]\n\n[^]: fn text",
-		"<p>empty footnote<sup class=\"footnote-ref\" id=\"fnref:\"><a rel=\"footnote\" href=\"#fn:\">1</a></sup></p>\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:\">fn text\n</li>\n</ol>\n</div>\n",
+	"empty footnote[^]\n\n[^]: fn text",
+	"<p>empty footnote<sup class=\"footnote-ref\" id=\"fnref:\"><a rel=\"footnote\" href=\"#fn:\">1</a></sup></p>\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:\">fn text\n</li>\n</ol>\n</div>\n",
+}
+
+func TestFootnotes(t *testing.T) {
+	doTestsInlineParam(t, footenoteTests, EXTENSION_FOOTNOTES, 0)
+}
+
+func TestFootnotesWithParameters(t *testing.T) {
+	tests := make([]string, len(footnoteTests))
+
+	prefix := "testPrefix"
+	for i, test := range footnoteTests {
+
 	}
 
-	doTestsInlineParam(t, tests, EXTENSION_FOOTNOTES, 0)
+	doTestsInlineParam(t, tests, EXTENSION_FOOTNOTES, HTML_FOOTNOTE_RETURN_LINKS)
 }

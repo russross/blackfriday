@@ -376,20 +376,18 @@ func (options *Html) FootnoteItem(out *bytes.Buffer, name, text []byte, flags in
 	}
 	slug := slugify(name)
 	out.WriteString(`<li id="`)
-	out.WriteString(options.parameters.FootnoteAnchorPrefix)
 	out.WriteString(`fn:`)
+	out.WriteString(options.parameters.FootnoteAnchorPrefix)
 	out.Write(slug)
 	out.WriteString(`">`)
 	out.Write(text)
 	if options.flags&HTML_FOOTNOTE_RETURN_LINKS != 0 {
 		out.WriteString(` <a class="footnote-return" href="#`)
-		out.WriteString(options.parameters.FootnoteAnchorPrefix)
 		out.WriteString(`fnref:`)
+		out.WriteString(options.parameters.FootnoteAnchorPrefix)
 		out.Write(slug)
 		out.WriteString(`">`)
-
 		out.WriteString(options.parameters.FootnoteReturnLinkContents)
-
 		out.WriteString(`</a>`)
 	}
 	out.WriteString("</li>\n")
@@ -606,12 +604,12 @@ func (options *Html) StrikeThrough(out *bytes.Buffer, text []byte) {
 func (options *Html) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
 	slug := slugify(ref)
 	out.WriteString(`<sup class="footnote-ref" id="`)
-	out.WriteString(options.parameters.FootnoteAnchorPrefix)
 	out.WriteString(`fnref:`)
+	out.WriteString(options.parameters.FootnoteAnchorPrefix)
 	out.Write(slug)
 	out.WriteString(`"><a rel="footnote" href="#`)
-	out.WriteString(options.parameters.FootnoteAnchorPrefix)
 	out.WriteString(`fn:`)
+	out.WriteString(options.parameters.FootnoteAnchorPrefix)
 	out.Write(slug)
 	out.WriteString(`">`)
 	out.WriteString(strconv.Itoa(id))
