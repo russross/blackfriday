@@ -41,7 +41,7 @@ const (
 	HTML_USE_SMARTYPANTS                      // enable smart punctuation substitutions
 	HTML_SMARTYPANTS_FRACTIONS                // enable smart fractions (with HTML_USE_SMARTYPANTS)
 	HTML_SMARTYPANTS_LATEX_DASHES             // enable LaTeX-style dashes (with HTML_USE_SMARTYPANTS)
-	HTML_ABSOLUTE_LINKS                       // convert all links to absolute links
+	HTML_ABSOLUTE_LINKS                       // convert all links to absolute links, using AbsolutePrefix
 )
 
 var (
@@ -55,15 +55,21 @@ var (
 	htmlEntity = regexp.MustCompile(`&[a-z]{2,5};`)
 )
 
+type HtmlRendererParameters struct {
+	AbsolutePrefix string
+	FootnotePrefix string
+}
+
 // Html is a type that implements the Renderer interface for HTML output.
 //
 // Do not create this directly, instead use the HtmlRenderer function.
 type Html struct {
-	flags          int    // HTML_* options
-	closeTag       string // how to end singleton tags: either " />\n" or ">\n"
-	title          string // document title
-	css            string // optional css file url (used with HTML_COMPLETE_PAGE)
-	absolutePrefix string
+	flags    int    // HTML_* options
+	closeTag string // how to end singleton tags: either " />\n" or ">\n"
+	title    string // document title
+	css      string // optional css file url (used with HTML_COMPLETE_PAGE)
+
+	parameters HtmlRendererParameters
 
 	// table of contents data
 	tocMarker    int
@@ -86,7 +92,12 @@ const (
 // title is the title of the document, and css is a URL for the document's
 // stylesheet.
 // title and css are only used when HTML_COMPLETE_PAGE is selected.
-func HtmlRenderer(flags int, title string, css string, absolutePrefix string) Renderer {
+func HtmlRenderer(flags int, title string, css string) Renderer {
+	return HtmlRendererWithParameters(flags, title, css, HtmlRendererParameters{})
+}
+
+func HtmlRendererWithParameters(flags int, title string,
+	css string, renderParameters HtmlRendererParameters) Renderer {
 	// configure the rendering engine
 	closeTag := htmlClose
 	if flags&HTML_USE_XHTML != 0 {
@@ -94,11 +105,11 @@ func HtmlRenderer(flags int, title string, css string, absolutePrefix string) Re
 	}
 
 	return &Html{
-		flags:          flags,
-		closeTag:       closeTag,
-		title:          title,
-		css:            css,
-		absolutePrefix: absolutePrefix,
+		flags:      flags,
+		closeTag:   closeTag,
+		title:      title,
+		css:        css,
+		parameters: renderParameters,
 
 		headerCount:  0,
 		currentLevel: 0,
@@ -352,7 +363,9 @@ func (options *Html) FootnoteItem(out *bytes.Buffer, name, text []byte, flags in
 	if flags&LIST_ITEM_CONTAINS_BLOCK != 0 || flags&LIST_ITEM_BEGINNING_OF_LIST != 0 {
 		doubleSpace(out)
 	}
-	out.WriteString(`<li id="fn:`)
+	out.WriteString(`<li id="`)
+	out.WriteString(options.parameters.FootnotePrefix)
+	out.WriteString(`fn:`)
 	out.Write(slugify(name))
 	out.WriteString(`">`)
 	out.Write(text)
@@ -467,7 +480,7 @@ func (options *Html) Emphasis(out *bytes.Buffer, text []byte) {
 
 func (options *Html) maybeWriteAbsolutePrefix(out *bytes.Buffer, link []byte) {
 	if options.flags&HTML_ABSOLUTE_LINKS != 0 && isRelativeLink(link) {
-		out.WriteString(options.absolutePrefix)
+		out.WriteString(options.parameters.AbsolutePrefix)
 		if link[0] != '/' {
 			out.WriteByte('/')
 		}
@@ -569,9 +582,13 @@ func (options *Html) StrikeThrough(out *bytes.Buffer, text []byte) {
 
 func (options *Html) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
 	slug := slugify(ref)
-	out.WriteString(`<sup class="footnote-ref" id="fnref:`)
+	out.WriteString(`<sup class="footnote-ref" id="`)
+	out.WriteString(options.parameters.FootnotePrefix)
+	out.WriteString(`fnref:`)
 	out.Write(slug)
-	out.WriteString(`"><a rel="footnote" href="#fn:`)
+	out.WriteString(`"><a rel="footnote" href="#`)
+	out.WriteString(options.parameters.FootnotePrefix)
+	out.WriteString(`fn:`)
 	out.Write(slug)
 	out.WriteString(`">`)
 	out.WriteString(strconv.Itoa(id))
