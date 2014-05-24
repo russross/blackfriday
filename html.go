@@ -42,6 +42,7 @@ const (
 	HTML_SMARTYPANTS_FRACTIONS                // enable smart fractions (with HTML_USE_SMARTYPANTS)
 	HTML_SMARTYPANTS_LATEX_DASHES             // enable LaTeX-style dashes (with HTML_USE_SMARTYPANTS)
 	HTML_ABSOLUTE_LINKS                       // convert all links to absolute links, using AbsolutePrefix
+	HTML_FOOTNOTE_RETURN_LINKS                // generate a link at the end of a footnote to return to the source
 )
 
 var (
@@ -56,8 +57,14 @@ var (
 )
 
 type HtmlRendererParameters struct {
+	// Prepend this text to each URL, if the HTML_ABSOLUTE_LINKS option is enabled.
 	AbsolutePrefix string
-	FootnotePrefix string
+	// Add this text to ecah footnote anchor, to ensure uniqueness.
+	FootnoteAnchorPrefix string
+	// Show this text inside the <a> tag for a footnote return link, if the
+	// HTML_FOOTNOTE_RETURN_LINKS flag is enabled. If blank, the string
+	// <sup>[return]</sup> is used.
+	FootnoteReturnLinkContents string
 }
 
 // Html is a type that implements the Renderer interface for HTML output.
@@ -102,6 +109,10 @@ func HtmlRendererWithParameters(flags int, title string,
 	closeTag := htmlClose
 	if flags&HTML_USE_XHTML != 0 {
 		closeTag = xhtmlClose
+	}
+
+	if renderParameters.FootnoteReturnLinkContents == "" {
+		renderParameters.FootnoteReturnLinkContents = `<sup>[return]</sup>`
 	}
 
 	return &Html{
@@ -363,12 +374,24 @@ func (options *Html) FootnoteItem(out *bytes.Buffer, name, text []byte, flags in
 	if flags&LIST_ITEM_CONTAINS_BLOCK != 0 || flags&LIST_ITEM_BEGINNING_OF_LIST != 0 {
 		doubleSpace(out)
 	}
+	slug := slugify(name)
 	out.WriteString(`<li id="`)
-	out.WriteString(options.parameters.FootnotePrefix)
+	out.WriteString(options.parameters.FootnoteAnchorPrefix)
 	out.WriteString(`fn:`)
-	out.Write(slugify(name))
+	out.Write(slug)
 	out.WriteString(`">`)
 	out.Write(text)
+	if options.flags&HTML_FOOTNOTE_RETURN_LINKS != 0 {
+		out.WriteString(` <a class="footnote-return" href="#`)
+		out.WriteString(options.parameters.FootnoteAnchorPrefix)
+		out.WriteString(`fnref:`)
+		out.Write(slug)
+		out.WriteString(`">`)
+
+		out.WriteString(options.parameters.FootnoteReturnLinkContents)
+
+		out.WriteString(`</a>`)
+	}
 	out.WriteString("</li>\n")
 }
 
@@ -583,11 +606,11 @@ func (options *Html) StrikeThrough(out *bytes.Buffer, text []byte) {
 func (options *Html) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
 	slug := slugify(ref)
 	out.WriteString(`<sup class="footnote-ref" id="`)
-	out.WriteString(options.parameters.FootnotePrefix)
+	out.WriteString(options.parameters.FootnoteAnchorPrefix)
 	out.WriteString(`fnref:`)
 	out.Write(slug)
 	out.WriteString(`"><a rel="footnote" href="#`)
-	out.WriteString(options.parameters.FootnotePrefix)
+	out.WriteString(options.parameters.FootnoteAnchorPrefix)
 	out.WriteString(`fn:`)
 	out.Write(slug)
 	out.WriteString(`">`)
