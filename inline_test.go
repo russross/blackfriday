@@ -35,8 +35,24 @@ func doTestsInline(t *testing.T, tests []string) {
 	doTestsInlineParam(t, tests, 0, 0, HtmlRendererParameters{})
 }
 
+func doLinkTestsInline(t *testing.T, tests []string) {
+	doTestsInline(t, tests)
+
+	prefix := "http://localhost"
+	params := HtmlRendererParameters{AbsolutePrefix: prefix}
+	transformTests := transformLinks(tests, prefix)
+	doTestsInlineParam(t, transformTests, 0, HTML_ABSOLUTE_LINKS, params)
+}
+
 func doSafeTestsInline(t *testing.T, tests []string) {
 	doTestsInlineParam(t, tests, 0, HTML_SAFELINK, HtmlRendererParameters{})
+
+	// All the links in this test should not have the prefix appended, so
+	// just rerun it with different parameters and the same expectations.
+	prefix := "http://localhost"
+	params := HtmlRendererParameters{AbsolutePrefix: prefix}
+	transformTests := transformLinks(tests, prefix)
+	doTestsInlineParam(t, transformTests, 0, HTML_SAFELINK|HTML_ABSOLUTE_LINKS, params)
 }
 
 func doTestsInlineParam(t *testing.T, tests []string, extensions, htmlFlags int,
@@ -71,6 +87,20 @@ func doTestsInlineParam(t *testing.T, tests []string, extensions, htmlFlags int,
 			}
 		}
 	}
+}
+
+func transformLinks(tests []string, prefix string) []string {
+	newTests := make([]string, len(tests))
+	anchorRe := regexp.MustCompile(`<a href="/(.*?)"`)
+	imgRe := regexp.MustCompile(`<img src="/(.*?)"`)
+	for i, test := range tests {
+		if i%2 == 1 {
+			test = anchorRe.ReplaceAllString(test, `<a href="`+prefix+`/$1"`)
+			test = imgRe.ReplaceAllString(test, `<img src="`+prefix+`/$1"`)
+		}
+		newTests[i] = test
+	}
+	return newTests
 }
 
 func TestEmphasis(t *testing.T) {
@@ -387,7 +417,8 @@ func TestInlineLink(t *testing.T) {
 		"[[t]](/t)\n",
 		"<p><a href=\"/t\">[t]</a></p>\n",
 	}
-	doTestsInline(t, tests)
+	doLinkTestsInline(t, tests)
+
 }
 
 func TestNofollowLink(t *testing.T) {
@@ -470,7 +501,7 @@ func TestReferenceLink(t *testing.T) {
 		"[ref]\n   [ref]: /url/ \"title\"\n",
 		"<p><a href=\"/url/\" title=\"title\">ref</a></p>\n",
 	}
-	doTestsInline(t, tests)
+	doLinkTestsInline(t, tests)
 }
 
 func TestTags(t *testing.T) {
@@ -597,7 +628,7 @@ func TestAutoLink(t *testing.T) {
 		"http://foo.com/viewtopic.php?param=&quot;18&quot;",
 		"<p><a href=\"http://foo.com/viewtopic.php?param=&quot;18&quot;\">http://foo.com/viewtopic.php?param=&quot;18&quot;</a></p>\n",
 	}
-	doTestsInline(t, tests)
+	doLinkTestsInline(t, tests)
 }
 
 var footnoteTests = []string{
