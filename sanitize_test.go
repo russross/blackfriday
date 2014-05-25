@@ -5,7 +5,7 @@ import (
 )
 
 func doTestsSanitize(t *testing.T, tests []string) {
-	doTestsInlineParam(t, tests, 0, HTML_SKIP_STYLE|HTML_SANITIZE_OUTPUT)
+	doTestsInlineParam(t, tests, 0, HTML_SKIP_STYLE|HTML_SANITIZE_OUTPUT, HtmlRendererParameters{})
 }
 
 func TestSanitizeRawHtmlTag(t *testing.T) {
@@ -192,8 +192,8 @@ func TestSanitizeInlineLink(t *testing.T) {
 	tests := []string{
 		"[link](javascript:evil)",
 		"<p><a>link</a></p>\n",
-                "[link](/abc)",
-                "<p><a href=\"/abc\">link</a></p>\n",
+		"[link](/abc)",
+		"<p><a href=\"/abc\">link</a></p>\n",
 	}
 	doTestsSanitize(t, tests)
 }

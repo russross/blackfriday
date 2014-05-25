@@ -14,29 +14,33 @@
 package blackfriday
 
 import (
+	"regexp"
 	"testing"
+
+	"strings"
 )
 
-func runMarkdownInline(input string, extensions, htmlFlags int) string {
+func runMarkdownInline(input string, extensions, htmlFlags int, params HtmlRendererParameters) string {
 	extensions |= EXTENSION_AUTOLINK
 	extensions |= EXTENSION_STRIKETHROUGH
 
 	htmlFlags |= HTML_USE_XHTML
 
-	renderer := HtmlRenderer(htmlFlags, "", "")
+	renderer := HtmlRendererWithParameters(htmlFlags, "", "", params)
 
 	return string(Markdown([]byte(input), renderer, extensions))
 }
 
 func doTestsInline(t *testing.T, tests []string) {
-	doTestsInlineParam(t, tests, 0, 0)
+	doTestsInlineParam(t, tests, 0, 0, HtmlRendererParameters{})
 }
 
 func doSafeTestsInline(t *testing.T, tests []string) {
-	doTestsInlineParam(t, tests, 0, HTML_SAFELINK)
+	doTestsInlineParam(t, tests, 0, HTML_SAFELINK, HtmlRendererParameters{})
 }
 
-func doTestsInlineParam(t *testing.T, tests []string, extensions, htmlFlags int) {
+func doTestsInlineParam(t *testing.T, tests []string, extensions, htmlFlags int,
+	params HtmlRendererParameters) {
 	// catch and report panics
 	var candidate string
 	/*
@@ -51,7 +55,7 @@ func doTestsInlineParam(t *testing.T, tests []string, extensions, htmlFlags int)
 		input := tests[i]
 		candidate = input
 		expected := tests[i+1]
-		actual := runMarkdownInline(candidate, extensions, htmlFlags)
+		actual := runMarkdownInline(candidate, extensions, htmlFlags, params)
 		if actual != expected {
 			t.Errorf("\nInput   [%#v]\nExpected[%#v]\nActual  [%#v]",
 				candidate, expected, actual)
@@ -62,7 +66,7 @@ func doTestsInlineParam(t *testing.T, tests []string, extensions, htmlFlags int)
 			for start := 0; start < len(input); start++ {
 				for end := start + 1; end <= len(input); end++ {
 					candidate = input[start:end]
-					_ = runMarkdownInline(candidate, extensions, htmlFlags)
+					_ = runMarkdownInline(candidate, extensions, htmlFlags, params)
 				}
 			}
 		}
@@ -391,13 +395,14 @@ func TestNofollowLink(t *testing.T) {
 		"[foo](http://bar.com/foo/)\n",
 		"<p><a href=\"http://bar.com/foo/\" rel=\"nofollow\">foo</a></p>\n",
 	}
-	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_NOFOLLOW_LINKS|HTML_SANITIZE_OUTPUT)
+	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_NOFOLLOW_LINKS|HTML_SANITIZE_OUTPUT,
+		HtmlRendererParameters{})
 	// HTML_SANITIZE_OUTPUT won't allow relative links, so test that separately:
 	tests = []string{
 		"[foo](/bar/)\n",
 		"<p><a href=\"/bar/\">foo</a></p>\n",
 	}
-	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_NOFOLLOW_LINKS)
+	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_NOFOLLOW_LINKS, HtmlRendererParameters{})
 }
 
 func TestHrefTargetBlank(t *testing.T) {
@@ -409,7 +414,7 @@ func TestHrefTargetBlank(t *testing.T) {
 		"[foo](http://example.com)\n",
 		"<p><a href=\"http://example.com\" target=\"_blank\">foo</a></p>\n",
 	}
-	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_HREF_TARGET_BLANK)
+	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_HREF_TARGET_BLANK, HtmlRendererParameters{})
 }
 
 func TestSafeInlineLink(t *testing.T) {
@@ -595,7 +600,7 @@ func TestAutoLink(t *testing.T) {
 	doTestsInline(t, tests)
 }
 
-var footenoteTests = []string{
+var footnoteTests = []string{
 	"testing footnotes.[^a]\n\n[^a]: This is the note\n",
 	`<p>testing footnotes.<sup class="footnote-ref" id="fnref:a"><a rel="footnote" href="#fn:a">1</a></sup></p>
 <div class="footnotes">
@@ -731,16 +736,30 @@ what happens here
 }
 
 func TestFootnotes(t *testing.T) {
-	doTestsInlineParam(t, footenoteTests, EXTENSION_FOOTNOTES, 0)
+	doTestsInlineParam(t, footnoteTests, EXTENSION_FOOTNOTES, 0, HtmlRendererParameters{})
 }
 
 func TestFootnotesWithParameters(t *testing.T) {
 	tests := make([]string, len(footnoteTests))
 
 	prefix := "testPrefix"
-	for i, test := range footnoteTests {
+	returnText := "ret"
+	re := regexp.MustCompile(`(?ms)<li id="fn:(\S+?)">(.*?)</li>`)
 
+	// Transform the test expectations to match the parameters we're using.
+	for i, test := range footnoteTests {
+		if i%2 == 1 {
+			test = strings.Replace(test, "fn:", "fn:"+prefix, -1)
+			test = strings.Replace(test, "fnref:", "fnref:"+prefix, -1)
+			test = re.ReplaceAllString(test, `<li id="fn:$1">$2 <a class="footnote-return" href="#fnref:$1">ret</a></li>`)
+		}
+		tests[i] = test
 	}
 
-	doTestsInlineParam(t, tests, EXTENSION_FOOTNOTES, HTML_FOOTNOTE_RETURN_LINKS)
+	params := HtmlRendererParameters{
+		FootnoteAnchorPrefix:       prefix,
+		FootnoteReturnLinkContents: returnText,
+	}
+
+	doTestsInlineParam(t, tests, EXTENSION_FOOTNOTES, HTML_FOOTNOTE_RETURN_LINKS, params)
 }
