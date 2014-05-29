@@ -41,7 +41,6 @@ const (
 	HTML_USE_SMARTYPANTS                      // enable smart punctuation substitutions
 	HTML_SMARTYPANTS_FRACTIONS                // enable smart fractions (with HTML_USE_SMARTYPANTS)
 	HTML_SMARTYPANTS_LATEX_DASHES             // enable LaTeX-style dashes (with HTML_USE_SMARTYPANTS)
-	HTML_ABSOLUTE_LINKS                       // convert all links to absolute links, using AbsolutePrefix
 	HTML_FOOTNOTE_RETURN_LINKS                // generate a link at the end of a footnote to return to the source
 )
 
@@ -57,7 +56,7 @@ var (
 )
 
 type HtmlRendererParameters struct {
-	// Prepend this text to each URL, if the HTML_ABSOLUTE_LINKS option is enabled.
+	// Prepend this text to each relative URL.
 	AbsolutePrefix string
 	// Add this text to each footnote anchor, to ensure uniqueness.
 	FootnoteAnchorPrefix string
@@ -500,7 +499,7 @@ func (options *Html) Emphasis(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Html) maybeWriteAbsolutePrefix(out *bytes.Buffer, link []byte) {
-	if options.flags&HTML_ABSOLUTE_LINKS != 0 && isRelativeLink(link) {
+	if options.parameters.AbsolutePrefix != "" && isRelativeLink(link) {
 		out.WriteString(options.parameters.AbsolutePrefix)
 		if link[0] != '/' {
 			out.WriteByte('/')

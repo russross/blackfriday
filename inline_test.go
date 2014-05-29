@@ -41,7 +41,7 @@ func doLinkTestsInline(t *testing.T, tests []string) {
 	prefix := "http://localhost"
 	params := HtmlRendererParameters{AbsolutePrefix: prefix}
 	transformTests := transformLinks(tests, prefix)
-	doTestsInlineParam(t, transformTests, 0, HTML_ABSOLUTE_LINKS, params)
+	doTestsInlineParam(t, transformTests, 0, 0, params)
 }
 
 func doSafeTestsInline(t *testing.T, tests []string) {
@@ -52,7 +52,7 @@ func doSafeTestsInline(t *testing.T, tests []string) {
 	prefix := "http://localhost"
 	params := HtmlRendererParameters{AbsolutePrefix: prefix}
 	transformTests := transformLinks(tests, prefix)
-	doTestsInlineParam(t, transformTests, 0, HTML_SAFELINK|HTML_ABSOLUTE_LINKS, params)
+	doTestsInlineParam(t, transformTests, 0, HTML_SAFELINK, params)
 }
 
 func doTestsInlineParam(t *testing.T, tests []string, extensions, htmlFlags int,
