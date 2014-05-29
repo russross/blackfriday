@@ -59,7 +59,7 @@ var (
 type HtmlRendererParameters struct {
 	// Prepend this text to each URL, if the HTML_ABSOLUTE_LINKS option is enabled.
 	AbsolutePrefix string
-	// Add this text to ecah footnote anchor, to ensure uniqueness.
+	// Add this text to each footnote anchor, to ensure uniqueness.
 	FootnoteAnchorPrefix string
 	// Show this text inside the <a> tag for a footnote return link, if the
 	// HTML_FOOTNOTE_RETURN_LINKS flag is enabled. If blank, the string
