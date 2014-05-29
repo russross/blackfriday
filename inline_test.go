@@ -14,29 +14,49 @@
 package blackfriday
 
 import (
+	"regexp"
 	"testing"
+
+	"strings"
 )
 
-func runMarkdownInline(input string, extensions, htmlFlags int) string {
+func runMarkdownInline(input string, extensions, htmlFlags int, params HtmlRendererParameters) string {
 	extensions |= EXTENSION_AUTOLINK
 	extensions |= EXTENSION_STRIKETHROUGH
 
 	htmlFlags |= HTML_USE_XHTML
 
-	renderer := HtmlRenderer(htmlFlags, "", "")
+	renderer := HtmlRendererWithParameters(htmlFlags, "", "", params)
 
 	return string(Markdown([]byte(input), renderer, extensions))
 }
 
 func doTestsInline(t *testing.T, tests []string) {
-	doTestsInlineParam(t, tests, 0, 0)
+	doTestsInlineParam(t, tests, 0, 0, HtmlRendererParameters{})
+}
+
+func doLinkTestsInline(t *testing.T, tests []string) {
+	doTestsInline(t, tests)
+
+	prefix := "http://localhost"
+	params := HtmlRendererParameters{AbsolutePrefix: prefix}
+	transformTests := transformLinks(tests, prefix)
+	doTestsInlineParam(t, transformTests, 0, HTML_ABSOLUTE_LINKS, params)
 }
 
 func doSafeTestsInline(t *testing.T, tests []string) {
-	doTestsInlineParam(t, tests, 0, HTML_SAFELINK)
+	doTestsInlineParam(t, tests, 0, HTML_SAFELINK, HtmlRendererParameters{})
+
+	// All the links in this test should not have the prefix appended, so
+	// just rerun it with different parameters and the same expectations.
+	prefix := "http://localhost"
+	params := HtmlRendererParameters{AbsolutePrefix: prefix}
+	transformTests := transformLinks(tests, prefix)
+	doTestsInlineParam(t, transformTests, 0, HTML_SAFELINK|HTML_ABSOLUTE_LINKS, params)
 }
 
-func doTestsInlineParam(t *testing.T, tests []string, extensions, htmlFlags int) {
+func doTestsInlineParam(t *testing.T, tests []string, extensions, htmlFlags int,
+	params HtmlRendererParameters) {
 	// catch and report panics
 	var candidate string
 	/*
@@ -51,7 +71,7 @@ func doTestsInlineParam(t *testing.T, tests []string, extensions, htmlFlags int)
 		input := tests[i]
 		candidate = input
 		expected := tests[i+1]
-		actual := runMarkdownInline(candidate, extensions, htmlFlags)
+		actual := runMarkdownInline(candidate, extensions, htmlFlags, params)
 		if actual != expected {
 			t.Errorf("\nInput   [%#v]\nExpected[%#v]\nActual  [%#v]",
 				candidate, expected, actual)
@@ -62,11 +82,25 @@ func doTestsInlineParam(t *testing.T, tests []string, extensions, htmlFlags int)
 			for start := 0; start < len(input); start++ {
 				for end := start + 1; end <= len(input); end++ {
 					candidate = input[start:end]
-					_ = runMarkdownInline(candidate, extensions, htmlFlags)
+					_ = runMarkdownInline(candidate, extensions, htmlFlags, params)
 				}
 			}
 		}
 	}
+}
+
+func transformLinks(tests []string, prefix string) []string {
+	newTests := make([]string, len(tests))
+	anchorRe := regexp.MustCompile(`<a href="/(.*?)"`)
+	imgRe := regexp.MustCompile(`<img src="/(.*?)"`)
+	for i, test := range tests {
+		if i%2 == 1 {
+			test = anchorRe.ReplaceAllString(test, `<a href="`+prefix+`/$1"`)
+			test = imgRe.ReplaceAllString(test, `<img src="`+prefix+`/$1"`)
+		}
+		newTests[i] = test
+	}
+	return newTests
 }
 
 func TestEmphasis(t *testing.T) {
@@ -383,7 +417,8 @@ func TestInlineLink(t *testing.T) {
 		"[[t]](/t)\n",
 		"<p><a href=\"/t\">[t]</a></p>\n",
 	}
-	doTestsInline(t, tests)
+	doLinkTestsInline(t, tests)
+
 }
 
 func TestNofollowLink(t *testing.T) {
@@ -391,13 +426,14 @@ func TestNofollowLink(t *testing.T) {
 		"[foo](http://bar.com/foo/)\n",
 		"<p><a href=\"http://bar.com/foo/\" rel=\"nofollow\">foo</a></p>\n",
 	}
-	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_NOFOLLOW_LINKS|HTML_SANITIZE_OUTPUT)
+	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_NOFOLLOW_LINKS|HTML_SANITIZE_OUTPUT,
+		HtmlRendererParameters{})
 	// HTML_SANITIZE_OUTPUT won't allow relative links, so test that separately:
 	tests = []string{
 		"[foo](/bar/)\n",
 		"<p><a href=\"/bar/\">foo</a></p>\n",
 	}
-	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_NOFOLLOW_LINKS)
+	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_NOFOLLOW_LINKS, HtmlRendererParameters{})
 }
 
 func TestHrefTargetBlank(t *testing.T) {
@@ -409,7 +445,7 @@ func TestHrefTargetBlank(t *testing.T) {
 		"[foo](http://example.com)\n",
 		"<p><a href=\"http://example.com\" target=\"_blank\">foo</a></p>\n",
 	}
-	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_HREF_TARGET_BLANK)
+	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_HREF_TARGET_BLANK, HtmlRendererParameters{})
 }
 
 func TestSafeInlineLink(t *testing.T) {
@@ -465,7 +501,7 @@ func TestReferenceLink(t *testing.T) {
 		"[ref]\n   [ref]: /url/ \"title\"\n",
 		"<p><a href=\"/url/\" title=\"title\">ref</a></p>\n",
 	}
-	doTestsInline(t, tests)
+	doLinkTestsInline(t, tests)
 }
 
 func TestTags(t *testing.T) {
@@ -592,13 +628,12 @@ func TestAutoLink(t *testing.T) {
 		"http://foo.com/viewtopic.php?param=&quot;18&quot;",
 		"<p><a href=\"http://foo.com/viewtopic.php?param=&quot;18&quot;\">http://foo.com/viewtopic.php?param=&quot;18&quot;</a></p>\n",
 	}
-	doTestsInline(t, tests)
+	doLinkTestsInline(t, tests)
 }
 
-func TestFootnotes(t *testing.T) {
-	tests := []string{
-		"testing footnotes.[^a]\n\n[^a]: This is the note\n",
-		`<p>testing footnotes.<sup class="footnote-ref" id="fnref:a"><a rel="footnote" href="#fn:a">1</a></sup></p>
+var footnoteTests = []string{
+	"testing footnotes.[^a]\n\n[^a]: This is the note\n",
+	`<p>testing footnotes.<sup class="footnote-ref" id="fnref:a"><a rel="footnote" href="#fn:a">1</a></sup></p>
 <div class="footnotes">
 
 <hr />
@@ -610,7 +645,7 @@ func TestFootnotes(t *testing.T) {
 </div>
 `,
 
-		`testing long[^b] notes.
+	`testing long[^b] notes.
 
 [^b]: Paragraph 1
 
@@ -622,7 +657,7 @@ func TestFootnotes(t *testing.T) {
 
 No longer in the footnote
 `,
-		`<p>testing long<sup class="footnote-ref" id="fnref:b"><a rel="footnote" href="#fn:b">1</a></sup> notes.</p>
+	`<p>testing long<sup class="footnote-ref" id="fnref:b"><a rel="footnote" href="#fn:b">1</a></sup> notes.</p>
 
 <p>No longer in the footnote</p>
 <div class="footnotes">
@@ -644,7 +679,7 @@ some code
 </div>
 `,
 
-		`testing[^c] multiple[^d] notes.
+	`testing[^c] multiple[^d] notes.
 
 [^c]: this is [note] c
 
@@ -658,7 +693,7 @@ what happens here
 [note]: /link/c
 
 `,
-		`<p>testing<sup class="footnote-ref" id="fnref:c"><a rel="footnote" href="#fn:c">1</a></sup> multiple<sup class="footnote-ref" id="fnref:d"><a rel="footnote" href="#fn:d">2</a></sup> notes.</p>
+	`<p>testing<sup class="footnote-ref" id="fnref:c"><a rel="footnote" href="#fn:c">1</a></sup> multiple<sup class="footnote-ref" id="fnref:d"><a rel="footnote" href="#fn:d">2</a></sup> notes.</p>
 
 <p>omg</p>
 
@@ -676,8 +711,8 @@ what happens here
 </div>
 `,
 
-		"testing inline^[this is the note] notes.\n",
-		`<p>testing inline<sup class="footnote-ref" id="fnref:this-is-the-note"><a rel="footnote" href="#fn:this-is-the-note">1</a></sup> notes.</p>
+	"testing inline^[this is the note] notes.\n",
+	`<p>testing inline<sup class="footnote-ref" id="fnref:this-is-the-note"><a rel="footnote" href="#fn:this-is-the-note">1</a></sup> notes.</p>
 <div class="footnotes">
 
 <hr />
@@ -688,8 +723,8 @@ what happens here
 </div>
 `,
 
-		"testing multiple[^1] types^[inline note] of notes[^2]\n\n[^2]: the second deferred note\n[^1]: the first deferred note\n\n\twhich happens to be a block\n",
-		`<p>testing multiple<sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup> types<sup class="footnote-ref" id="fnref:inline-note"><a rel="footnote" href="#fn:inline-note">2</a></sup> of notes<sup class="footnote-ref" id="fnref:2"><a rel="footnote" href="#fn:2">3</a></sup></p>
+	"testing multiple[^1] types^[inline note] of notes[^2]\n\n[^2]: the second deferred note\n[^1]: the first deferred note\n\n\twhich happens to be a block\n",
+	`<p>testing multiple<sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup> types<sup class="footnote-ref" id="fnref:inline-note"><a rel="footnote" href="#fn:inline-note">2</a></sup> of notes<sup class="footnote-ref" id="fnref:2"><a rel="footnote" href="#fn:2">3</a></sup></p>
 <div class="footnotes">
 
 <hr />
@@ -706,13 +741,13 @@ what happens here
 </div>
 `,
 
-		`This is a footnote[^1]^[and this is an inline footnote]
+	`This is a footnote[^1]^[and this is an inline footnote]
 
 [^1]: the footnote text.
 
     may be multiple paragraphs.
 `,
-		`<p>This is a footnote<sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup><sup class="footnote-ref" id="fnref:and-this-is-an-i"><a rel="footnote" href="#fn:and-this-is-an-i">2</a></sup></p>
+	`<p>This is a footnote<sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup><sup class="footnote-ref" id="fnref:and-this-is-an-i"><a rel="footnote" href="#fn:and-this-is-an-i">2</a></sup></p>
 <div class="footnotes">
 
 <hr />
@@ -727,9 +762,35 @@ what happens here
 </div>
 `,
 
-		"empty footnote[^]\n\n[^]: fn text",
-		"<p>empty footnote<sup class=\"footnote-ref\" id=\"fnref:\"><a rel=\"footnote\" href=\"#fn:\">1</a></sup></p>\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:\">fn text\n</li>\n</ol>\n</div>\n",
+	"empty footnote[^]\n\n[^]: fn text",
+	"<p>empty footnote<sup class=\"footnote-ref\" id=\"fnref:\"><a rel=\"footnote\" href=\"#fn:\">1</a></sup></p>\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:\">fn text\n</li>\n</ol>\n</div>\n",
+}
+
+func TestFootnotes(t *testing.T) {
+	doTestsInlineParam(t, footnoteTests, EXTENSION_FOOTNOTES, 0, HtmlRendererParameters{})
+}
+
+func TestFootnotesWithParameters(t *testing.T) {
+	tests := make([]string, len(footnoteTests))
+
+	prefix := "testPrefix"
+	returnText := "ret"
+	re := regexp.MustCompile(`(?ms)<li id="fn:(\S+?)">(.*?)</li>`)
+
+	// Transform the test expectations to match the parameters we're using.
+	for i, test := range footnoteTests {
+		if i%2 == 1 {
+			test = strings.Replace(test, "fn:", "fn:"+prefix, -1)
+			test = strings.Replace(test, "fnref:", "fnref:"+prefix, -1)
+			test = re.ReplaceAllString(test, `<li id="fn:$1">$2 <a class="footnote-return" href="#fnref:$1">ret</a></li>`)
+		}
+		tests[i] = test
 	}
 
-	doTestsInlineParam(t, tests, EXTENSION_FOOTNOTES, 0)
+	params := HtmlRendererParameters{
+		FootnoteAnchorPrefix:       prefix,
+		FootnoteReturnLinkContents: returnText,
+	}
+
+	doTestsInlineParam(t, tests, EXTENSION_FOOTNOTES, HTML_FOOTNOTE_RETURN_LINKS, params)
 }

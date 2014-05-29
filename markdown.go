@@ -332,7 +332,7 @@ func firstPass(p *parser, input []byte) []byte {
 				// when last line was none blank and a fenced code block comes after
 				if beg >= lastFencedCodeBlockEnd {
 					// tmp var so we don't modify beyond bounds of `input`
-					var tmp = make([]byte, len(input[beg:]), len(input[beg:]) + 1)
+					var tmp = make([]byte, len(input[beg:]), len(input[beg:])+1)
 					copy(tmp, input[beg:])
 					if i := p.fencedCode(&out, append(tmp, '\n'), false); i > 0 {
 						if !lastLineWasBlank {

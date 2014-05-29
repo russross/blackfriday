@@ -41,6 +41,8 @@ const (
 	HTML_USE_SMARTYPANTS                      // enable smart punctuation substitutions
 	HTML_SMARTYPANTS_FRACTIONS                // enable smart fractions (with HTML_USE_SMARTYPANTS)
 	HTML_SMARTYPANTS_LATEX_DASHES             // enable LaTeX-style dashes (with HTML_USE_SMARTYPANTS)
+	HTML_ABSOLUTE_LINKS                       // convert all links to absolute links, using AbsolutePrefix
+	HTML_FOOTNOTE_RETURN_LINKS                // generate a link at the end of a footnote to return to the source
 )
 
 var (
@@ -54,6 +56,17 @@ var (
 	htmlEntity = regexp.MustCompile(`&[a-z]{2,5};`)
 )
 
+type HtmlRendererParameters struct {
+	// Prepend this text to each URL, if the HTML_ABSOLUTE_LINKS option is enabled.
+	AbsolutePrefix string
+	// Add this text to each footnote anchor, to ensure uniqueness.
+	FootnoteAnchorPrefix string
+	// Show this text inside the <a> tag for a footnote return link, if the
+	// HTML_FOOTNOTE_RETURN_LINKS flag is enabled. If blank, the string
+	// <sup>[return]</sup> is used.
+	FootnoteReturnLinkContents string
+}
+
 // Html is a type that implements the Renderer interface for HTML output.
 //
 // Do not create this directly, instead use the HtmlRenderer function.
@@ -62,6 +75,8 @@ type Html struct {
 	closeTag string // how to end singleton tags: either " />\n" or ">\n"
 	title    string // document title
 	css      string // optional css file url (used with HTML_COMPLETE_PAGE)
+
+	parameters HtmlRendererParameters
 
 	// table of contents data
 	tocMarker    int
@@ -85,17 +100,27 @@ const (
 // stylesheet.
 // title and css are only used when HTML_COMPLETE_PAGE is selected.
 func HtmlRenderer(flags int, title string, css string) Renderer {
+	return HtmlRendererWithParameters(flags, title, css, HtmlRendererParameters{})
+}
+
+func HtmlRendererWithParameters(flags int, title string,
+	css string, renderParameters HtmlRendererParameters) Renderer {
 	// configure the rendering engine
 	closeTag := htmlClose
 	if flags&HTML_USE_XHTML != 0 {
 		closeTag = xhtmlClose
 	}
 
+	if renderParameters.FootnoteReturnLinkContents == "" {
+		renderParameters.FootnoteReturnLinkContents = `<sup>[return]</sup>`
+	}
+
 	return &Html{
-		flags:    flags,
-		closeTag: closeTag,
-		title:    title,
-		css:      css,
+		flags:      flags,
+		closeTag:   closeTag,
+		title:      title,
+		css:        css,
+		parameters: renderParameters,
 
 		headerCount:  0,
 		currentLevel: 0,
@@ -349,10 +374,22 @@ func (options *Html) FootnoteItem(out *bytes.Buffer, name, text []byte, flags in
 	if flags&LIST_ITEM_CONTAINS_BLOCK != 0 || flags&LIST_ITEM_BEGINNING_OF_LIST != 0 {
 		doubleSpace(out)
 	}
-	out.WriteString(`<li id="fn:`)
-	out.Write(slugify(name))
+	slug := slugify(name)
+	out.WriteString(`<li id="`)
+	out.WriteString(`fn:`)
+	out.WriteString(options.parameters.FootnoteAnchorPrefix)
+	out.Write(slug)
 	out.WriteString(`">`)
 	out.Write(text)
+	if options.flags&HTML_FOOTNOTE_RETURN_LINKS != 0 {
+		out.WriteString(` <a class="footnote-return" href="#`)
+		out.WriteString(`fnref:`)
+		out.WriteString(options.parameters.FootnoteAnchorPrefix)
+		out.Write(slug)
+		out.WriteString(`">`)
+		out.WriteString(options.parameters.FootnoteReturnLinkContents)
+		out.WriteString(`</a>`)
+	}
 	out.WriteString("</li>\n")
 }
 
@@ -410,7 +447,10 @@ func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	out.WriteString("<a href=\"")
 	if kind == LINK_TYPE_EMAIL {
 		out.WriteString("mailto:")
+	} else {
+		options.maybeWriteAbsolutePrefix(out, link)
 	}
+
 	entityEscapeWithSkip(out, link, skipRanges)
 
 	if options.flags&HTML_NOFOLLOW_LINKS != 0 && !isRelativeLink(link) {
@@ -459,12 +499,22 @@ func (options *Html) Emphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("</em>")
 }
 
+func (options *Html) maybeWriteAbsolutePrefix(out *bytes.Buffer, link []byte) {
+	if options.flags&HTML_ABSOLUTE_LINKS != 0 && isRelativeLink(link) {
+		out.WriteString(options.parameters.AbsolutePrefix)
+		if link[0] != '/' {
+			out.WriteByte('/')
+		}
+	}
+}
+
 func (options *Html) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
 	if options.flags&HTML_SKIP_IMAGES != 0 {
 		return
 	}
 
 	out.WriteString("<img src=\"")
+	options.maybeWriteAbsolutePrefix(out, link)
 	attrEscape(out, link)
 	out.WriteString("\" alt=\"")
 	if len(alt) > 0 {
@@ -503,6 +553,7 @@ func (options *Html) Link(out *bytes.Buffer, link []byte, title []byte, content 
 	}
 
 	out.WriteString("<a href=\"")
+	options.maybeWriteAbsolutePrefix(out, link)
 	attrEscape(out, link)
 	if len(title) > 0 {
 		out.WriteString("\" title=\"")
@@ -552,9 +603,13 @@ func (options *Html) StrikeThrough(out *bytes.Buffer, text []byte) {
 
 func (options *Html) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
 	slug := slugify(ref)
-	out.WriteString(`<sup class="footnote-ref" id="fnref:`)
+	out.WriteString(`<sup class="footnote-ref" id="`)
+	out.WriteString(`fnref:`)
+	out.WriteString(options.parameters.FootnoteAnchorPrefix)
 	out.Write(slug)
-	out.WriteString(`"><a rel="footnote" href="#fn:`)
+	out.WriteString(`"><a rel="footnote" href="#`)
+	out.WriteString(`fn:`)
+	out.WriteString(options.parameters.FootnoteAnchorPrefix)
 	out.Write(slug)
 	out.WriteString(`">`)
 	out.WriteString(strconv.Itoa(id))
