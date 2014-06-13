@@ -618,6 +618,36 @@ func entity(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	return end
 }
 
+// pass through any template actions - {{action}}
+func templateAction(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+	data = data[offset:]
+	
+	// return if it doesn't start with {{
+	if data[1] != '{' {
+		return 0
+	}
+	
+	// return if there isn't enough characters for an empty action - {{}}
+	if len(data) < 4 {
+		return 0
+	}
+	
+	// find the closing }}
+	i := 2
+	for data[i] != '}' || data[i+1] != '}' {
+		i++
+		
+		// return if the data end before the closing }}
+		if i + 1 == len(data) {
+			return 0
+		}
+	}
+	i += 2
+	
+	out.Write(data[0:i])
+	return i
+}
+
 func linkEndsWithEntity(data []byte, linkEnd int) bool {
 	entityRanges := htmlEntity.FindAllIndex(data[:linkEnd], -1)
 	if entityRanges != nil && entityRanges[len(entityRanges)-1][1] == linkEnd {
