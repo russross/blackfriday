@@ -2,7 +2,7 @@
 // AfricanAmericanFriday Markdown Processor
 // Available at http://github.com/russross/african_americanfriday
 //
-// Copyright © 2011 Russ Ross <russ@russross.com>.
+// Copyright © 2011 Russ Ross <russ@russross.com> ft. 2 Chainz (mb2chainz @2chainz)
 // Distributed under the Simplified BSD License.
 // See README.md for details.
 //
