@@ -177,11 +177,19 @@ implements the following extensions:
     <sup>4</sup>&frasl;<sub>5</sub>.
 
 
-Non-HTML output
+Other renderers
 ---------------
 
 Blackfriday is structured to allow alternative rendering engines. Here
 are a few of note:
+
+*   [github_flavored_markdown](https://godoc.org/github.com/shurcooL/go/github_flavored_markdown):
+    provides a GitHub Flavored Markdown renderer with fenced code block
+    highlighting, clickable header anchor links.
+
+    It's not customizable, and its goal is to produce HTML output
+    equivalent to the [GitHub Markdown API endpoint](https://developer.github.com/v3/markdown/#render-a-markdown-document-in-raw-mode),
+    except the rendering is performed locally.
 
 *   [markdownfmt](https://github.com/shurcooL/markdownfmt): like gofmt,
     but for markdown.
