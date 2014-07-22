@@ -40,6 +40,7 @@ const (
 	EXTENSION_FOOTNOTES                              // Pandoc-style footnotes
 	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK             // No need to insert an empty line to start a (code, quote, order list, unorder list)block
 	EXTENSION_HEADER_IDS                             // specify header IDs  with {#id}
+	EXTENSION_PASSTHROUGH_TEMPLATE_ACTION            // pass through any template actions specified with {{action}}
 )
 
 // These are the possible flag values for the link renderer.
@@ -285,6 +286,10 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	p.inlineCallback['<'] = leftAngle
 	p.inlineCallback['\\'] = escape
 	p.inlineCallback['&'] = entity
+	if extensions&EXTENSION_PASSTHROUGH_TEMPLATE_ACTION != 0 {
+		p.inlineCallback['{'] = templateAction
+	}
+	
 
 	if extensions&EXTENSION_AUTOLINK != 0 {
 		p.inlineCallback[':'] = autoLink
