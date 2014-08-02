@@ -13,9 +13,7 @@
 
 package blackfriday
 
-import (
-	"bytes"
-)
+import "bytes"
 
 // Parse block-level data.
 // Note: this function and many that it calls assume that
@@ -53,6 +51,20 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			if i := p.html(out, data, true); i > 0 {
 				data = data[i:]
 				continue
+			}
+		}
+
+		// title block
+		//
+		// % stuff
+		// % more stuff
+		// % even more stuff
+		if p.flags&EXTENSION_TITLEBLOCK != 0 {
+			if data[0] == '%' {
+				if i := p.titleBlock(out, data, true); i > 0 {
+					data = data[i:]
+					continue
+				}
 			}
 		}
 
@@ -190,13 +202,13 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 	if p.flags&EXTENSION_HEADER_IDS != 0 {
 		j, k := 0, 0
 		// find start/end of header id
-		for j = i; j < end - 1 && (data[j] != '{' || data[j+1] != '#'); j++ {
+		for j = i; j < end-1 && (data[j] != '{' || data[j+1] != '#'); j++ {
 		}
 		for k = j + 1; k < end && data[k] != '}'; k++ {
 		}
 		// extract header id iff found
 		if j < end && k < end {
-			id = string(data[j+2:k])
+			id = string(data[j+2 : k])
 			end = j
 			skip = k + 1
 			for end > 0 && data[end-1] == ' ' {
@@ -254,6 +266,25 @@ func (p *parser) isUnderlinedHeader(data []byte) int {
 	}
 
 	return 0
+}
+
+func (p *parser) titleBlock(out *bytes.Buffer, data []byte, doRender bool) int {
+	if data[0] != '%' {
+		return 0
+	}
+	splitData := bytes.Split(data, []byte("\n"))
+	var i int
+	for idx, b := range splitData {
+		if !bytes.HasPrefix(b, []byte("%")) {
+			i = idx // - 1
+			break
+		}
+	}
+
+	data = bytes.Join(splitData[0:i], []byte("\n"))
+	p.r.TitleBlock(out, data)
+
+	return len(data)
 }
 
 func (p *parser) html(out *bytes.Buffer, data []byte, doRender bool) int {

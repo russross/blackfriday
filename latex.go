@@ -55,6 +55,10 @@ func (options *Latex) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 	}
 }
 
+func (options *Latex) TitleBlock(out *bytes.Buffer, text []byte) {
+
+}
+
 func (options *Latex) BlockQuote(out *bytes.Buffer, text []byte) {
 	out.WriteString("\n\\begin{quotation}\n")
 	out.Write(text)

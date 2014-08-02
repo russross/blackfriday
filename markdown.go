@@ -40,6 +40,7 @@ const (
 	EXTENSION_FOOTNOTES                              // Pandoc-style footnotes
 	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK             // No need to insert an empty line to start a (code, quote, order list, unorder list)block
 	EXTENSION_HEADER_IDS                             // specify header IDs  with {#id}
+	EXTENSION_TITLEBLOCK                             // Titleblock ala pandoc
 )
 
 // These are the possible flag values for the link renderer.
@@ -145,6 +146,7 @@ type Renderer interface {
 	TableCell(out *bytes.Buffer, text []byte, flags int)
 	Footnotes(out *bytes.Buffer, text func() bool)
 	FootnoteItem(out *bytes.Buffer, name, text []byte, flags int)
+	TitleBlock(out *bytes.Buffer, text []byte)
 
 	// Span-level callbacks
 	AutoLink(out *bytes.Buffer, link []byte, kind int)
