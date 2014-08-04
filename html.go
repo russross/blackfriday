@@ -180,6 +180,14 @@ func (options *Html) GetFlags() int {
 	return options.flags
 }
 
+func (options *Html) TitleBlock(out *bytes.Buffer, text []byte) {
+	text = bytes.TrimPrefix(text, []byte("% "))
+	text = bytes.Replace(text, []byte("\n% "), []byte("\n"), -1)
+	out.WriteString("<h1 class=\"title\">")
+	out.Write(text)
+	out.WriteString("\n</h1>")
+}
+
 func (options *Html) Header(out *bytes.Buffer, text func() bool, level int, id string) {
 	marker := out.Len()
 	doubleSpace(out)
