@@ -26,13 +26,12 @@ With Go 1 and git installed:
     go get github.com/russross/blackfriday
 
 will download, compile, and install the package into your `$GOPATH`
-directory hierarchy. Alternatively, you can import it into a
-project:
+directory hierarchy. Alternatively, you can achieve the same if you
+import it into a project:
 
     import "github.com/russross/blackfriday"
 
-and when you build that project with `go build`, blackfriday will be
-downloaded and installed automatically.
+and `go get` without parameters.
 
 Usage
 -----
