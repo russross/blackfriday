@@ -139,11 +139,11 @@ implements the following extensions:
     and supply a language (to make syntax highlighting simple). Just
     mark it like this:
 
-        ``` go
-        func getTrue() bool {
-            return true
-        }
-        ```
+    ``` go
+    func getTrue() bool {
+        return true
+    }
+    ```
 
     You can use 3 or more backticks to mark the beginning of the
     block, and the same number to mark the end of the block.
