@@ -36,7 +36,6 @@ const (
 	HTML_TOC                                  // generate a table of contents
 	HTML_OMIT_CONTENTS                        // skip the main contents (for a standalone table of contents)
 	HTML_COMPLETE_PAGE                        // generate a complete HTML page
-	HTML_GITHUB_BLOCKCODE                     // use github fenced code rendering rules
 	HTML_USE_XHTML                            // generate XHTML output instead of HTML
 	HTML_USE_SMARTYPANTS                      // enable smart punctuation substitutions
 	HTML_SMARTYPANTS_FRACTIONS                // enable smart fractions (with HTML_USE_SMARTYPANTS)
@@ -232,14 +231,6 @@ func (options *Html) HRule(out *bytes.Buffer) {
 }
 
 func (options *Html) BlockCode(out *bytes.Buffer, text []byte, lang string) {
-	if options.flags&HTML_GITHUB_BLOCKCODE != 0 {
-		options.BlockCodeGithub(out, text, lang)
-	} else {
-		options.BlockCodeNormal(out, text, lang)
-	}
-}
-
-func (options *Html) BlockCodeNormal(out *bytes.Buffer, text []byte, lang string) {
 	doubleSpace(out)
 
 	// parse out the language names/classes
@@ -252,7 +243,7 @@ func (options *Html) BlockCodeNormal(out *bytes.Buffer, text []byte, lang string
 			continue
 		}
 		if count == 0 {
-			out.WriteString("<pre><code class=\"")
+			out.WriteString("<pre><code class=\"language-")
 		} else {
 			out.WriteByte(' ')
 		}
@@ -264,49 +255,6 @@ func (options *Html) BlockCodeNormal(out *bytes.Buffer, text []byte, lang string
 		out.WriteString("<pre><code>")
 	} else {
 		out.WriteString("\">")
-	}
-
-	attrEscape(out, text)
-	out.WriteString("</code></pre>\n")
-}
-
-// GitHub style code block:
-//
-//              <pre lang="LANG"><code>
-//              ...
-//              </code></pre>
-//
-// Unlike other parsers, we store the language identifier in the <pre>,
-// and don't let the user generate custom classes.
-//
-// The language identifier in the <pre> block gets postprocessed and all
-// the code inside gets syntax highlighted with Pygments. This is much safer
-// than letting the user specify a CSS class for highlighting.
-//
-// Note that we only generate HTML for the first specifier.
-// E.g.
-//              ~~~~ {.python .numbered}        =>      <pre lang="python"><code>
-func (options *Html) BlockCodeGithub(out *bytes.Buffer, text []byte, lang string) {
-	doubleSpace(out)
-
-	// parse out the language name
-	count := 0
-	for _, elt := range strings.Fields(lang) {
-		if elt[0] == '.' {
-			elt = elt[1:]
-		}
-		if len(elt) == 0 {
-			continue
-		}
-		out.WriteString("<pre lang=\"")
-		attrEscape(out, []byte(elt))
-		out.WriteString("\"><code>")
-		count++
-		break
-	}
-
-	if count == 0 {
-		out.WriteString("<pre><code>")
 	}
 
 	attrEscape(out, text)
