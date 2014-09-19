@@ -425,15 +425,12 @@ func TestNofollowLink(t *testing.T) {
 	var tests = []string{
 		"[foo](http://bar.com/foo/)\n",
 		"<p><a href=\"http://bar.com/foo/\" rel=\"nofollow\">foo</a></p>\n",
-	}
-	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_NOFOLLOW_LINKS|HTML_SANITIZE_OUTPUT,
-		HtmlRendererParameters{})
-	// HTML_SANITIZE_OUTPUT won't allow relative links, so test that separately:
-	tests = []string{
+
 		"[foo](/bar/)\n",
 		"<p><a href=\"/bar/\">foo</a></p>\n",
 	}
-	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_NOFOLLOW_LINKS, HtmlRendererParameters{})
+	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_NOFOLLOW_LINKS,
+		HtmlRendererParameters{})
 }
 
 func TestHrefTargetBlank(t *testing.T) {

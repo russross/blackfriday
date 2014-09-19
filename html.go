@@ -29,7 +29,6 @@ const (
 	HTML_SKIP_STYLE                           // skip embedded <style> elements
 	HTML_SKIP_IMAGES                          // skip embedded images
 	HTML_SKIP_LINKS                           // skip all links
-	HTML_SANITIZE_OUTPUT                      // strip output of everything that's not known to be safe
 	HTML_SAFELINK                             // only link to trusted protocols
 	HTML_NOFOLLOW_LINKS                       // only link with rel="nofollow"
 	HTML_HREF_TARGET_BLANK                    // add a blank target
