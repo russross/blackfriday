@@ -48,6 +48,28 @@ feature set, use this instead:
 
     output := blackfriday.MarkdownCommon(input)
 
+### Sanitize untrusted content
+
+Blackfriday itself does nothing to protect against malicious content. If you are
+dealing with user-supplied markdown, we recommend running blackfriday's output
+through HTML sanitizer such as
+[Bluemonday](https://github.com/microcosm-cc/bluemonday).
+
+Here's an example of simple usage of blackfriday together with bluemonday:
+
+``` go
+import (
+    "github.com/microcosm-cc/bluemonday"
+    "github.com/russross/blackfriday"
+)
+
+// ...
+unsafe := blackfriday.MarkdownCommon(input)
+html := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
+```
+
+### Custom options
+
 If you want to customize the set of options, first get a renderer
 (currently either the HTML or LaTeX output engines), then use it to
 call the more general `Markdown` function. For examples, see the
@@ -93,10 +115,9 @@ All features of upskirt are supported, including:
     known inputs that make it crash.  If you find one, please let me
     know and send me the input that does it.
 
-    NOTE: "safety" in this context means *runtime safety only*. It is
-    not bullet proof against JavaScript injections, though we're working
-    on it (https://github.com/russross/blackfriday/issues/11 tracks the
-    progress).
+    NOTE: "safety" in this context means *runtime safety only*. In order to
+    protect yourself agains JavaScript injection in untrusted content, see
+    [this example](https://github.com/russross/blackfriday#sanitize-untrusted-content).
 
 *   **Fast processing**. It is fast enough to render on-demand in
     most web applications without having to cache the output.
