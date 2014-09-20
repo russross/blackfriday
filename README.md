@@ -65,7 +65,7 @@ import (
 
 // ...
 unsafe := blackfriday.MarkdownCommon(input)
-html := bluemonday.UGCPolicy().Sanitize(string(unsafe))
+html := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
 ```
 
 ### Custom options
