@@ -42,6 +42,7 @@ func doLinkTestsInline(t *testing.T, tests []string) {
 	params := HtmlRendererParameters{AbsolutePrefix: prefix}
 	transformTests := transformLinks(tests, prefix)
 	doTestsInlineParam(t, transformTests, 0, 0, params)
+	doTestsInlineParam(t, transformTests, 0, commonHtmlFlags(), params)
 }
 
 func doSafeTestsInline(t *testing.T, tests []string) {
@@ -353,6 +354,12 @@ func TestInlineLink(t *testing.T) {
 
 		"![foo with a title](/bar/ title with no quotes)\n",
 		"<p><img src=\"/bar/ title with no quotes\" alt=\"foo with a title\" />\n</p>\n",
+
+		"![](img.jpg)\n",
+		"<p><img src=\"img.jpg\" alt=\"\" />\n</p>\n",
+
+		"[link](url)\n",
+		"<p><a href=\"url\">link</a></p>\n",
 
 		"![foo]()\n",
 		"<p>![foo]()</p>\n",
