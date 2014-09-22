@@ -41,6 +41,21 @@ const (
 	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK             // No need to insert an empty line to start a (code, quote, order list, unorder list)block
 	EXTENSION_HEADER_IDS                             // specify header IDs  with {#id}
 	EXTENSION_TITLEBLOCK                             // Titleblock ala pandoc
+
+	commonHtmlFlags = 0 |
+		HTML_USE_XHTML |
+		HTML_USE_SMARTYPANTS |
+		HTML_SMARTYPANTS_FRACTIONS |
+		HTML_SMARTYPANTS_LATEX_DASHES
+
+	commonExtensions = 0 |
+		EXTENSION_NO_INTRA_EMPHASIS |
+		EXTENSION_TABLES |
+		EXTENSION_FENCED_CODE |
+		EXTENSION_AUTOLINK |
+		EXTENSION_STRIKETHROUGH |
+		EXTENSION_SPACE_HEADERS |
+		EXTENSION_HEADER_IDS
 )
 
 // These are the possible flag values for the link renderer.
@@ -233,24 +248,8 @@ func MarkdownBasic(input []byte) []byte {
 // * Custom Header IDs
 func MarkdownCommon(input []byte) []byte {
 	// set up the HTML renderer
-	htmlFlags := 0
-	htmlFlags |= HTML_USE_XHTML
-	htmlFlags |= HTML_USE_SMARTYPANTS
-	htmlFlags |= HTML_SMARTYPANTS_FRACTIONS
-	htmlFlags |= HTML_SMARTYPANTS_LATEX_DASHES
-	renderer := HtmlRenderer(htmlFlags, "", "")
-
-	// set up the parser
-	extensions := 0
-	extensions |= EXTENSION_NO_INTRA_EMPHASIS
-	extensions |= EXTENSION_TABLES
-	extensions |= EXTENSION_FENCED_CODE
-	extensions |= EXTENSION_AUTOLINK
-	extensions |= EXTENSION_STRIKETHROUGH
-	extensions |= EXTENSION_SPACE_HEADERS
-	extensions |= EXTENSION_HEADER_IDS
-
-	return Markdown(input, renderer, extensions)
+	renderer := HtmlRenderer(commonHtmlFlags, "", "")
+	return Markdown(input, renderer, commonExtensions)
 }
 
 // Markdown is the main rendering function.
