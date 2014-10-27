@@ -207,7 +207,7 @@ func (options *Html) Header(out *bytes.Buffer, text func() bool, level int, id s
 
 	// are we building a table of contents?
 	if options.flags&HTML_TOC != 0 {
-		options.TocHeader(out.Bytes()[tocMarker:], level)
+		options.TocHeaderWithAnchor(out.Bytes()[tocMarker:], level, id)
 	}
 
 	out.WriteString(fmt.Sprintf("</h%d>\n", level))
@@ -693,7 +693,7 @@ func (options *Html) DocumentFooter(out *bytes.Buffer) {
 
 }
 
-func (options *Html) TocHeader(text []byte, level int) {
+func (options *Html) TocHeaderWithAnchor(text []byte, level int, anchor string) {
 	for level > options.currentLevel {
 		switch {
 		case bytes.HasSuffix(options.toc.Bytes(), []byte("</li>\n")):
@@ -719,14 +719,23 @@ func (options *Html) TocHeader(text []byte, level int) {
 		options.currentLevel--
 	}
 
-	options.toc.WriteString("<li><a href=\"#toc_")
-	options.toc.WriteString(strconv.Itoa(options.headerCount))
+	options.toc.WriteString("<li><a href=\"#")
+	if anchor != "" {
+		options.toc.WriteString(anchor)
+	} else {
+		options.toc.WriteString("toc_")
+		options.toc.WriteString(strconv.Itoa(options.headerCount))
+	}
 	options.toc.WriteString("\">")
 	options.headerCount++
 
 	options.toc.Write(text)
 
 	options.toc.WriteString("</a></li>\n")
+}
+
+func (options *Html) TocHeader(text []byte, level int) {
+	options.TocHeaderWithAnchor(text, level, "")
 }
 
 func (options *Html) TocFinalize() {
