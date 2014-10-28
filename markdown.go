@@ -41,6 +41,7 @@ const (
 	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK             // No need to insert an empty line to start a (code, quote, order list, unorder list)block
 	EXTENSION_HEADER_IDS                             // specify header IDs  with {#id}
 	EXTENSION_TITLEBLOCK                             // Titleblock ala pandoc
+	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML |
