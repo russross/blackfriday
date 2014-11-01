@@ -15,7 +15,7 @@ package blackfriday
 
 import (
 	"bytes"
-	"unicode"
+	"github.com/shurcooL/go/github_flavored_markdown/sanitized_anchor_name"
 )
 
 // Parse block-level data.
@@ -227,7 +227,7 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 	}
 	if end > i {
 		if id == "" && p.flags&EXTENSION_AUTO_HEADER_IDS != 0 {
-			id = createSanitizedAnchorName(string(data[i:end]))
+			id = sanitized_anchor_name.Create(string(data[i:end]))
 		}
 		work := func() bool {
 			p.inline(out, data[i:end])
@@ -1276,7 +1276,7 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 
 				id := ""
 				if p.flags&EXTENSION_AUTO_HEADER_IDS != 0 {
-					id = createSanitizedAnchorName(string(data[prev:eol]))
+					id = sanitized_anchor_name.Create(string(data[prev:eol]))
 				}
 
 				p.r.Header(out, work, level, id)
@@ -1324,17 +1324,4 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 
 	p.renderParagraph(out, data[:i])
 	return i
-}
-
-func createSanitizedAnchorName(text string) string {
-	var anchorName []rune
-	for _, r := range []rune(text) {
-		switch {
-		case r == ' ':
-			anchorName = append(anchorName, '-')
-		case unicode.IsLetter(r) || unicode.IsNumber(r):
-			anchorName = append(anchorName, unicode.ToLower(r))
-		}
-	}
-	return string(anchorName)
 }

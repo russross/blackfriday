@@ -81,6 +81,9 @@ type Html struct {
 	currentLevel int
 	toc          *bytes.Buffer
 
+	// Track header IDs to prevent ID collision in a single generation.
+	headerIDs map[string]int
+
 	smartypants *smartypantsRenderer
 }
 
@@ -122,6 +125,8 @@ func HtmlRendererWithParameters(flags int, title string,
 		headerCount:  0,
 		currentLevel: 0,
 		toc:          new(bytes.Buffer),
+
+		headerIDs: make(map[string]int),
 
 		smartypants: smartypants(flags),
 	}
@@ -190,11 +195,12 @@ func (options *Html) Header(out *bytes.Buffer, text func() bool, level int, id s
 	marker := out.Len()
 	doubleSpace(out)
 
+	if id == "" && options.flags&HTML_TOC != 0 {
+		id = fmt.Sprintf("toc_%d", options.headerCount)
+	}
+
 	if id != "" {
-		out.WriteString(fmt.Sprintf("<h%d id=\"%s\">", level, id))
-	} else if options.flags&HTML_TOC != 0 {
-		// headerCount is incremented in htmlTocHeader
-		out.WriteString(fmt.Sprintf("<h%d id=\"toc_%d\">", level, options.headerCount))
+		out.WriteString(fmt.Sprintf("<h%d id=\"%s\">", level, options.ensureUniqueHeaderID(id)))
 	} else {
 		out.WriteString(fmt.Sprintf("<h%d>", level))
 	}
@@ -852,4 +858,23 @@ func isRelativeLink(link []byte) (yes bool) {
 		yes = true
 	}
 	return
+}
+
+func (options *Html) ensureUniqueHeaderID(id string) string {
+	for count, found := options.headerIDs[id]; found; count, found = options.headerIDs[id] {
+		tmp := fmt.Sprintf("%s-%d", id, count+1)
+
+		if _, tmpFound := options.headerIDs[tmp]; !tmpFound {
+			options.headerIDs[id] = count + 1
+			id = tmp
+		} else {
+			id = id + "-1"
+		}
+	}
+
+	if _, found := options.headerIDs[id]; !found {
+		options.headerIDs[id] = 0
+	}
+
+	return id
 }
