@@ -487,11 +487,12 @@ func (p *parser) htmlFindTag(data []byte) (string, int, bool, bool) {
 		return "", 0, false, false
 	}
 
-	for data[i] != '>' {
+	// look up end of tag
+	for i < len(data) && data[i] != '>' {
 		i++
 	}
 
-	// dirty way of finding out if inside is markdown or not
+	// dirty way of finding out if tag has markdown="1" attribute
 	// TODO: do this in a clean way, with real HTML tag parsing
 	parse_inside := bytes.Contains(data[:i], []byte("markdown=\"1\""))
 
