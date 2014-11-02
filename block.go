@@ -300,7 +300,7 @@ func (p *parser) html(out *bytes.Buffer, data []byte, doRender bool) int {
 	if data[0] != '<' {
 		return 0
 	}
-	curtag, tagfound := p.htmlFindTag(data[1:])
+	curtag, taglen, tagfound, parse_inside := p.htmlFindTag(data[1:])
 
 	// handle special cases
 	if !tagfound {
@@ -352,6 +352,7 @@ func (p *parser) html(out *bytes.Buffer, data []byte, doRender bool) int {
 
 	// if not found, try a second pass looking for indented match
 	// but not if tag is "ins" or "del" (following original Markdown.pl)
+	endtag_begin := 0
 	if !found && curtag != "ins" && curtag != "del" {
 		i = 1
 		for i < len(data) {
@@ -367,6 +368,8 @@ func (p *parser) html(out *bytes.Buffer, data []byte, doRender bool) int {
 			j = p.htmlFindEnd(curtag, data[i-1:])
 
 			if j > 0 {
+				endtag_begin = i
+
 				i += j - 1
 				found = true
 				break
@@ -385,7 +388,20 @@ func (p *parser) html(out *bytes.Buffer, data []byte, doRender bool) int {
 		for end > 0 && data[end-1] == '\n' {
 			end--
 		}
-		p.r.BlockHtml(out, data[:end])
+
+		if parse_inside {
+			// parse inside as markdown content
+			inside := data[taglen+2:endtag_begin-1]
+			var cooked bytes.Buffer
+			p.block(&cooked, inside)
+
+			// TODO: should the output be generated differently?
+			p.r.BlockHtml(out, data[0:taglen+2])
+			p.r.Entity(out, cooked.Bytes())
+			p.r.BlockHtml(out, data[endtag_begin-1:end])
+		} else {
+			p.r.BlockHtml(out, data[:end])
+		}
 	}
 
 	return i
@@ -461,16 +477,25 @@ func (p *parser) htmlHr(out *bytes.Buffer, data []byte, doRender bool) int {
 	return 0
 }
 
-func (p *parser) htmlFindTag(data []byte) (string, bool) {
+func (p *parser) htmlFindTag(data []byte) (string, int, bool, bool) {
 	i := 0
 	for isalnum(data[i]) {
 		i++
 	}
 	key := string(data[:i])
-	if blockTags[key] {
-		return key, true
+	if !blockTags[key] {
+		return "", 0, false, false
 	}
-	return "", false
+
+	for data[i] != '>' {
+		i++
+	}
+
+	// dirty way of finding out if inside is markdown or not
+	// TODO: do this in a clean way, with real HTML tag parsing
+	parse_inside := bytes.Contains(data[:i], []byte("markdown=\"1\""))
+
+	return key, i, true, parse_inside
 }
 
 func (p *parser) htmlFindEnd(tag string, data []byte) int {
