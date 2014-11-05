@@ -798,3 +798,27 @@ func TestFootnotesWithParameters(t *testing.T) {
 
 	doTestsInlineParam(t, tests, EXTENSION_FOOTNOTES, HTML_FOOTNOTE_RETURN_LINKS, params)
 }
+
+func TestSmartDoubleQuotes(t *testing.T) {
+	var tests = []string{
+		"this should be normal \"quoted\" text.\n",
+		"<p>this should be normal &ldquo;quoted&rdquo; text.</p>\n",
+		"this \" single double\n",
+		"<p>this &ldquo; single double</p>\n",
+		"two pair of \"some\" quoted \"text\".\n",
+		"<p>two pair of &ldquo;some&rdquo; quoted &ldquo;text&rdquo;.</p>\n"}
+
+	doTestsInlineParam(t, tests, 0, HTML_USE_SMARTYPANTS, HtmlRendererParameters{})
+}
+
+func TestSmartAngledDoubleQuotes(t *testing.T) {
+	var tests = []string{
+		"this should be angled \"quoted\" text.\n",
+		"<p>this should be angled &laquo;quoted&raquo; text.</p>\n",
+		"this \" single double\n",
+		"<p>this &laquo; single double</p>\n",
+		"two pair of \"some\" quoted \"text\".\n",
+		"<p>two pair of &laquo;some&raquo; quoted &laquo;text&raquo;.</p>\n"}
+
+	doTestsInlineParam(t, tests, 0, HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_ANGLED_QUOTES, HtmlRendererParameters{})
+}
