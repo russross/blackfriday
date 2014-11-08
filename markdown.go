@@ -740,26 +740,26 @@ func isalnum(c byte) bool {
 	return (c >= '0' && c <= '9') || isletter(c)
 }
 
-// Replace {{{file.md}}} with the contents of the file.
+// Replace {{file.md}} with the contents of the file.
 func expandIncludes(out *bytes.Buffer, line []byte, p *parser, depth int) []byte {
 	l := len(line)
-	for i := 0; i < l-3; i++ {
-		if line[i] == '{' && line[i+1] == '{' && line[i+2] == '{' {
+	for i := 0; i < l-2; i++ {
+		if line[i] == '{' && line[i+1] == '{' {
 			// find the end delimiter
 			end, j := 0, 0
-			for end = i; end < l && j < 3; end++ {
+			for end = i; end < l && j < 2; end++ {
 				if line[end] == '}' {
 					j++
 				} else {
 					j = 0
 				}
 			}
-			if j < 3 && end >= l {
-				i += 2
+			if j < 2 && end >= l {
+				i += 1
 				continue
 			}
 
-			name := string(line[i+3 : end-3])
+			name := string(line[i+2 : end-2])
 			// need to remove this text, so we want see it further along
 			line = append(line[:i], line[end:]...)
 			input, err := ioutil.ReadFile(name)
