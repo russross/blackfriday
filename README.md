@@ -197,6 +197,9 @@ implements the following extensions:
     cases like most smartypant processors). For example, `4/5`
     becomes `<sup>4</sup>&frasl;<sub>5</sub>`, which renders as
     <sup>4</sup>&frasl;<sub>5</sub>.
+    
+*   **Includes**, support including files with `{{{filename}}}` syntax.
+    Includes with ``{{{`filename`}}}}`` are included raw, i.e. outputted as-is.
 
 
 Other renderers

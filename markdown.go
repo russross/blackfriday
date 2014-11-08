@@ -20,10 +20,12 @@ package blackfriday
 
 import (
 	"bytes"
+	"io/ioutil"
+	"log"
 	"unicode/utf8"
 )
 
-const VERSION = "1.1"
+const VERSION = "2.0"
 
 // These are the supported markdown parsing extensions.
 // OR these values together to select multiple extensions.
@@ -42,6 +44,7 @@ const (
 	EXTENSION_HEADER_IDS                             // specify header IDs  with {#id}
 	EXTENSION_TITLEBLOCK                             // Titleblock ala pandoc
 	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text
+	EXTENSION_INCLUDES                               // Include file with {{{ syntax
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML |
@@ -56,7 +59,8 @@ const (
 		EXTENSION_AUTOLINK |
 		EXTENSION_STRIKETHROUGH |
 		EXTENSION_SPACE_HEADERS |
-		EXTENSION_HEADER_IDS
+		EXTENSION_HEADER_IDS |
+		EXTENSION_INCLUDES // New new new
 )
 
 // These are the possible flag values for the link renderer.
@@ -295,7 +299,7 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 		p.notes = make([]*reference, 0)
 	}
 
-	first := firstPass(p, input)
+	first := firstPass(p, input, 0)
 	second := secondPass(p, first)
 	return second
 }
@@ -306,7 +310,11 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 // - normalize newlines
 // - copy everything else
 // - add missing newlines before fenced code blocks
-func firstPass(p *parser, input []byte) []byte {
+func firstPass(p *parser, input []byte, depth int) []byte {
+	if depth > 8 {
+		log.Fatalf("nested includes depth > 8")
+		return []byte{'\n'}
+	}
 	var out bytes.Buffer
 	tabSize := TAB_SIZE_DEFAULT
 	if p.flags&EXTENSION_TAB_SIZE_EIGHT != 0 {
@@ -345,7 +353,13 @@ func firstPass(p *parser, input []byte) []byte {
 				if end < lastFencedCodeBlockEnd { // Do not expand tabs while inside fenced code blocks.
 					out.Write(input[beg:end])
 				} else {
-					expandTabs(&out, input[beg:end], tabSize)
+					if p.flags&EXTENSION_INCLUDES != 0 {
+						line := expandIncludes(&out, input[beg:end], p, depth)
+						expandTabs(&out, line, tabSize)
+					} else {
+						expandTabs(&out, input[beg:end], tabSize)
+
+					}
 				}
 			}
 			out.WriteByte('\n')
@@ -726,7 +740,44 @@ func isalnum(c byte) bool {
 	return (c >= '0' && c <= '9') || isletter(c)
 }
 
-// Replace tab characters with spaces, aligning to the next TAB_SIZE column.
+// Replace {{{file.md}}} with the contents of the file.
+func expandIncludes(out *bytes.Buffer, line []byte, p *parser, depth int) []byte {
+	l := len(line)
+	for i := 0; i < l-3; i++ {
+		if line[i] == '{' && line[i+1] == '{' && line[i+2] == '{' {
+			// find the end delimiter
+			end, j := 0, 0
+			for end = i; end < l && j < 3; end++ {
+				if line[end] == '}' {
+					j++
+				} else {
+					j = 0
+				}
+			}
+			if j < 3 && end >= l {
+				i += 2
+				continue
+			}
+
+			name := string(line[i+3 : end-3])
+			// need to remove this text, so we want see it further along
+			line = append(line[:i], line[end:]...)
+			input, err := ioutil.ReadFile(name)
+			if err != nil {
+				log.Fatalf("failed: `%s': %s", name, err)
+			} else {
+				// parse contents and inject
+				first := firstPass(p, input, depth+1)
+				second := secondPass(p, first)
+				out.Write(second)
+			}
+			l = len(line)
+		}
+	}
+	return line
+}
+
+// replace tab characters with spaces, aligning to the next tab_size column.
 // always ends output with a newline
 func expandTabs(out *bytes.Buffer, line []byte, tabSize int) {
 	// first, check for common cases: no tabs, or only tabs at beginning of line
