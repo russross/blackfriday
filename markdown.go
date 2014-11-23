@@ -202,6 +202,8 @@ type inlineParser func(p *parser, out *bytes.Buffer, data []byte, offset int) in
 type parser struct {
 	r              Renderer
 	refs           map[string]*reference
+	normRefs       map[string]*reference // normative citations
+	informRefs     map[string]*reference // informartive citations
 	inlineCallback [256]inlineParser
 	flags          int
 	nesting        int
@@ -540,6 +542,7 @@ func isReference(p *parser, data []byte, tabSize int) int {
 	}
 
 	// a valid ref has been found
+	println("CITATION")
 
 	ref := &reference{
 		noteId:   noteId,
@@ -560,6 +563,7 @@ func isReference(p *parser, data []byte, tabSize int) int {
 	id := string(bytes.ToLower(data[idOffset:idEnd]))
 
 	p.refs[id] = ref
+	println("ID=", id)
 
 	return lineEnd
 }
@@ -624,6 +628,72 @@ func scanLinkRef(p *parser, data []byte, i int) (linkOffset, linkEnd, titleOffse
 			i--
 		}
 		if i > titleOffset && (data[i] == '\'' || data[i] == '"' || data[i] == ')') {
+			lineEnd = titleEnd
+			titleEnd = i
+		}
+	}
+
+	return
+}
+
+func scanCitationRef(p *parser, data []byte, i int) (linkOffset, linkEnd, titleOffset, titleEnd, lineEnd int) {
+	// citation: text in blockquotes with optional informative/normative modifier
+	linkOffset = i
+	for i < len(data) && data[i] != ' ' && data[i] != '\t' && data[i] != '\n' && data[i] != '\r' {
+		i++
+	}
+	linkEnd = i
+	if data[linkOffset] == '<' && data[linkEnd-1] == '>' {
+		linkOffset++
+		linkEnd--
+	}
+
+	// optional spacer: (space | tab)* (newline | '\'' | '"' | '[' )
+	for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
+		i++
+	}
+	if i < len(data) && data[i] != '\n' && data[i] != '\r' && data[i] != '\'' && data[i] != '"' && data[i] != '[' {
+		return
+	}
+
+	println("CITATION")
+	// compute end-of-line
+	if i >= len(data) || data[i] == '\r' || data[i] == '\n' {
+		lineEnd = i
+	}
+	if i+1 < len(data) && data[i] == '\r' && data[i+1] == '\n' {
+		lineEnd++
+	}
+
+	// optional (space|tab)* spacer after a newline
+	if lineEnd > 0 {
+		i = lineEnd + 1
+		for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
+			i++
+		}
+	}
+
+	// optional title: any non-newline sequence enclosed in '"() alone on its line
+	if i+1 < len(data) && (data[i] == '\'' || data[i] == '"' || data[i] == '[') {
+		i++
+		titleOffset = i
+
+		// look for EOL
+		for i < len(data) && data[i] != '\n' && data[i] != '\r' {
+			i++
+		}
+		if i+1 < len(data) && data[i] == '\n' && data[i+1] == '\r' {
+			titleEnd = i + 1
+		} else {
+			titleEnd = i
+		}
+
+		// step back
+		i--
+		for i > titleOffset && (data[i] == ' ' || data[i] == '\t') {
+			i--
+		}
+		if i > titleOffset && (data[i] == '\'' || data[i] == '"' || data[i] == ']') {
 			lineEnd = titleEnd
 			titleEnd = i
 		}

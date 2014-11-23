@@ -197,10 +197,15 @@ implements the following extensions:
     cases like most smartypant processors). For example, `4/5`
     becomes `<sup>4</sup>&frasl;<sub>5</sub>`, which renders as
     <sup>4</sup>&frasl;<sub>5</sub>.
-    
+
 *   **Includes**, support including files with `{{filename}}` syntax.
 
-*   **Indices**, using ```(((primary, secondary, tertiary))``` syntax.
+*   **Indices**, using `(((item, subitem))` syntax.
+
+*   **Citations**, using the reference syntax `[p. 23][#RFC2535]`, the citation
+    can either be informative (default) or normative, this can be indicated (once)
+    by using the `i` or `n` modifer: `[p. 23][n#RFC2535]`. The sections containing 
+    the references are outputted automatically. (Not in the appendix).
 
 Other renderers
 ---------------
@@ -248,19 +253,19 @@ Blackfriday is distributed under the Simplified BSD License:
 
 > Copyright © 2011 Russ Ross
 > All rights reserved.
-> 
+>
 > Redistribution and use in source and binary forms, with or without
 > modification, are permitted provided that the following conditions
 > are met:
-> 
+>
 > 1.  Redistributions of source code must retain the above copyright
 >     notice, this list of conditions and the following disclaimer.
-> 
+>
 > 2.  Redistributions in binary form must reproduce the above
 >     copyright notice, this list of conditions and the following
 >     disclaimer in the documentation and/or other materials provided with
 >     the distribution.
-> 
+>
 > THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 > "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 > LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
