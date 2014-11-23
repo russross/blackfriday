@@ -192,6 +192,45 @@ func (options *Xml) Index(out *bytes.Buffer, primary, secondary []byte) {
 	out.WriteString(" subitem=\"" + string(secondary) + "\"" + "/>")
 }
 
+func (options *Xml) Citation(out *bytes.Buffer, link, title []byte) {
+	out.WriteString("<xref target=\"" + string(link) + "\"/>")
+}
+
+func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation, first bool) {
+	if !first {
+		return
+	}
+	// count the references
+	refi, refn := 0, 0
+	for _, c := range citations {
+		if c.typ == 'i' {
+			refi++
+		}
+		if c.typ == 'n' {
+			refn++
+		}
+	}
+	if refi+refn > 0 {
+		println("References")
+		if refi > 0 {
+			println("Informative References")
+			for k, c := range citations {
+				if c.typ == 'i' {
+					println(k)
+				}
+			}
+		}
+		if refn > 0 {
+			println("Normative References")
+			for k, c := range citations {
+				if c.typ == 'n' {
+					println(k)
+				}
+			}
+		}
+	}
+}
+
 func (options *Xml) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	out.WriteString("\\href{")
 	if kind == LINK_TYPE_EMAIL {

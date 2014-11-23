@@ -184,6 +184,10 @@ func (options *Latex) FootnoteItem(out *bytes.Buffer, name, text []byte, flags i
 
 func (options *Latex) Index(out *bytes.Buffer, primary, secondaryi []byte) {}
 
+func (options *Latex) Citation(out *bytes.Buffer, link, title []byte) { }
+
+func (options *Latex) References(out *bytes.Buffer, citations map[string]*citation, first bool) { }
+
 func (options *Latex) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	out.WriteString("\\href{")
 	if kind == LINK_TYPE_EMAIL {

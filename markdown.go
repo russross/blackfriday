@@ -46,6 +46,7 @@ const (
 	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text
 	EXTENSION_INCLUDE                                // Include file with {{ syntax
 	EXTENSION_INDEX                                  // Support index with ((( syntax
+	EXTENSION_CITATION				 // Support citations via the link syntax
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML |
@@ -181,6 +182,8 @@ type Renderer interface {
 	StrikeThrough(out *bytes.Buffer, text []byte)
 	FootnoteRef(out *bytes.Buffer, ref []byte, id int)
 	Index(out *bytes.Buffer, primary, secondary []byte)
+	Citation(out *bytes.Buffer, link, title []byte)
+	References(out *bytes.Buffer, citations map[string]*citation, start bool)
 
 	// Low-level callbacks
 	Entity(out *bytes.Buffer, entity []byte)
@@ -202,8 +205,7 @@ type inlineParser func(p *parser, out *bytes.Buffer, data []byte, offset int) in
 type parser struct {
 	r              Renderer
 	refs           map[string]*reference
-	normRefs       map[string]*reference // normative citations
-	informRefs     map[string]*reference // informartive citations
+	citations      map[string]*citation
 	inlineCallback [256]inlineParser
 	flags          int
 	nesting        int
@@ -300,6 +302,10 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 
 	if extensions&EXTENSION_FOOTNOTES != 0 {
 		p.notes = make([]*reference, 0)
+	}
+
+	if extensions&EXTENSION_CITATION != 0 {
+		p.citations = make(map[string]*citation)
 	}
 
 	if extensions&EXTENSION_INDEX != 0 {
@@ -415,7 +421,7 @@ func secondPass(p *parser, input []byte, depth int) []byte {
 			return true
 		})
 	}
-
+	p.r.References(&output, p.citations, depth == 0)
 	p.r.DocumentFooter(&output, depth == 0)
 
 	if p.nesting != 0 {
@@ -460,6 +466,13 @@ type reference struct {
 	title    []byte
 	noteId   int // 0 if not a footnote ref
 	hasBlock bool
+}
+
+// Citations are parsed and stored in this struct.
+type citation struct {
+	link     []byte
+	title    []byte
+	typ	 rune // 'i' for informal, 'n' normative (default = 'i')
 }
 
 // Check whether or not data starts with a reference link.
@@ -542,8 +555,6 @@ func isReference(p *parser, data []byte, tabSize int) int {
 	}
 
 	// a valid ref has been found
-	println("CITATION")
-
 	ref := &reference{
 		noteId:   noteId,
 		hasBlock: hasBlock,
@@ -563,7 +574,6 @@ func isReference(p *parser, data []byte, tabSize int) int {
 	id := string(bytes.ToLower(data[idOffset:idEnd]))
 
 	p.refs[id] = ref
-	println("ID=", id)
 
 	return lineEnd
 }
@@ -628,72 +638,6 @@ func scanLinkRef(p *parser, data []byte, i int) (linkOffset, linkEnd, titleOffse
 			i--
 		}
 		if i > titleOffset && (data[i] == '\'' || data[i] == '"' || data[i] == ')') {
-			lineEnd = titleEnd
-			titleEnd = i
-		}
-	}
-
-	return
-}
-
-func scanCitationRef(p *parser, data []byte, i int) (linkOffset, linkEnd, titleOffset, titleEnd, lineEnd int) {
-	// citation: text in blockquotes with optional informative/normative modifier
-	linkOffset = i
-	for i < len(data) && data[i] != ' ' && data[i] != '\t' && data[i] != '\n' && data[i] != '\r' {
-		i++
-	}
-	linkEnd = i
-	if data[linkOffset] == '<' && data[linkEnd-1] == '>' {
-		linkOffset++
-		linkEnd--
-	}
-
-	// optional spacer: (space | tab)* (newline | '\'' | '"' | '[' )
-	for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
-		i++
-	}
-	if i < len(data) && data[i] != '\n' && data[i] != '\r' && data[i] != '\'' && data[i] != '"' && data[i] != '[' {
-		return
-	}
-
-	println("CITATION")
-	// compute end-of-line
-	if i >= len(data) || data[i] == '\r' || data[i] == '\n' {
-		lineEnd = i
-	}
-	if i+1 < len(data) && data[i] == '\r' && data[i+1] == '\n' {
-		lineEnd++
-	}
-
-	// optional (space|tab)* spacer after a newline
-	if lineEnd > 0 {
-		i = lineEnd + 1
-		for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
-			i++
-		}
-	}
-
-	// optional title: any non-newline sequence enclosed in '"() alone on its line
-	if i+1 < len(data) && (data[i] == '\'' || data[i] == '"' || data[i] == '[') {
-		i++
-		titleOffset = i
-
-		// look for EOL
-		for i < len(data) && data[i] != '\n' && data[i] != '\r' {
-			i++
-		}
-		if i+1 < len(data) && data[i] == '\n' && data[i+1] == '\r' {
-			titleEnd = i + 1
-		} else {
-			titleEnd = i
-		}
-
-		// step back
-		i--
-		for i > titleOffset && (data[i] == ' ' || data[i] == '\t') {
-			i--
-		}
-		if i > titleOffset && (data[i] == '\'' || data[i] == '"' || data[i] == ']') {
 			lineEnd = titleEnd
 			titleEnd = i
 		}
