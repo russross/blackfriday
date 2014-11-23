@@ -885,6 +885,59 @@ func isMailtoAutoLink(data []byte) int {
 	return 0
 }
 
+func index(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+	data = data[offset:]
+	c := data[0]
+	ret := 0
+	if len(data) > 3 && data[1] != c && data[2] != c {
+		// no three (((
+		return 0
+	}
+	// find closing delimeter, count commas while at it
+	// if more than 1 is found, it is a proper index.
+	i, end := 0, 0
+	comma := 0
+	for end = 3; end < len(data) && i < 3; end++ {
+		if data[end] == ')' {
+			i++
+		} else {
+			i = 0
+		}
+		if data[end] == ',' {
+			if comma != 0 {
+				// already seen comma
+				return 0
+			}
+			comma = end
+		}
+	}
+	if comma == 0 || comma == 3 { // no commas or (((,
+		return 0
+	}
+	if i < 3 && end >= len(data) {
+		return 0
+	}
+	ret = end
+	// comma may be surrounded by whitespace, strip it
+	primary := comma - 1
+	for i := comma - 1; i >= 0; i-- {
+		if data[i] != ' ' {
+			break
+		}
+		primary = i
+	}
+	secondary := comma + 1
+	for i := comma + 1; i < end; i++ {
+		if data[i] != ' ' {
+			secondary = i
+			break
+		}
+	}
+
+	p.r.Index(out, data[3:primary], data[secondary:end-3])
+	return ret
+}
+
 // look for the next emph char, skipping other constructs
 func helperFindEmphChar(data []byte, c byte) int {
 	i := 1

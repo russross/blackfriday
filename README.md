@@ -199,8 +199,8 @@ implements the following extensions:
     <sup>4</sup>&frasl;<sub>5</sub>.
     
 *   **Includes**, support including files with `{{filename}}` syntax.
-    Includes with ``{{`filename`}}`` are included raw, i.e. outputted as-is.
 
+*   **Indices**, using ```(((primary, secondary, tertiary))``` syntax.
 
 Other renderers
 ---------------

@@ -182,6 +182,8 @@ func (options *Latex) FootnoteItem(out *bytes.Buffer, name, text []byte, flags i
 
 }
 
+func (options *Latex) Index(out *bytes.Buffer, primary, secondaryi []byte) {}
+
 func (options *Latex) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	out.WriteString("\\href{")
 	if kind == LINK_TYPE_EMAIL {
@@ -298,7 +300,10 @@ func (options *Latex) NormalText(out *bytes.Buffer, text []byte) {
 }
 
 // header and footer
-func (options *Latex) DocumentHeader(out *bytes.Buffer) {
+func (options *Latex) DocumentHeader(out *bytes.Buffer, first bool) {
+	if !first {
+		return
+	}
 	out.WriteString("\\documentclass{article}\n")
 	out.WriteString("\n")
 	out.WriteString("\\usepackage{graphicx}\n")
@@ -327,6 +332,9 @@ func (options *Latex) DocumentHeader(out *bytes.Buffer) {
 	out.WriteString("\\begin{document}\n")
 }
 
-func (options *Latex) DocumentFooter(out *bytes.Buffer) {
+func (options *Latex) DocumentFooter(out *bytes.Buffer, first bool) {
+	if !first {
+		return
+	}
 	out.WriteString("\n\\end{document}\n")
 }

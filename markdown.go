@@ -44,7 +44,8 @@ const (
 	EXTENSION_HEADER_IDS                             // specify header IDs  with {#id}
 	EXTENSION_TITLEBLOCK                             // Titleblock ala pandoc
 	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text
-	EXTENSION_INCLUDES                               // Include file with {{{ syntax
+	EXTENSION_INCLUDE                                // Include file with {{ syntax
+	EXTENSION_INDEX                                  // Support index with ((( syntax
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML |
@@ -59,8 +60,7 @@ const (
 		EXTENSION_AUTOLINK |
 		EXTENSION_STRIKETHROUGH |
 		EXTENSION_SPACE_HEADERS |
-		EXTENSION_HEADER_IDS |
-		EXTENSION_INCLUDES // New new new
+		EXTENSION_HEADER_IDS
 )
 
 // These are the possible flag values for the link renderer.
@@ -149,7 +149,7 @@ var blockTags = map[string]bool{
 // If the callback returns false, the rendering function should reset the
 // output buffer as though it had never been called.
 //
-// Currently Html and Latex implementations are provided
+// Currently Html, Latex and XML2RFCv3 implementations are provided.
 type Renderer interface {
 	// block-level callbacks
 	BlockCode(out *bytes.Buffer, text []byte, lang string)
@@ -180,14 +180,15 @@ type Renderer interface {
 	TripleEmphasis(out *bytes.Buffer, text []byte)
 	StrikeThrough(out *bytes.Buffer, text []byte)
 	FootnoteRef(out *bytes.Buffer, ref []byte, id int)
+	Index(out *bytes.Buffer, primary, secondary []byte)
 
 	// Low-level callbacks
 	Entity(out *bytes.Buffer, entity []byte)
 	NormalText(out *bytes.Buffer, text []byte)
 
 	// Header and footer
-	DocumentHeader(out *bytes.Buffer)
-	DocumentFooter(out *bytes.Buffer)
+	DocumentHeader(out *bytes.Buffer, start bool)
+	DocumentFooter(out *bytes.Buffer, start bool)
 
 	GetFlags() int
 }
@@ -299,8 +300,12 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 		p.notes = make([]*reference, 0)
 	}
 
+	if extensions&EXTENSION_INDEX != 0 {
+		p.inlineCallback['('] = index
+	}
+
 	first := firstPass(p, input, 0)
-	second := secondPass(p, first)
+	second := secondPass(p, first, 0)
 	return second
 }
 
@@ -353,7 +358,7 @@ func firstPass(p *parser, input []byte, depth int) []byte {
 				if end < lastFencedCodeBlockEnd { // Do not expand tabs while inside fenced code blocks.
 					out.Write(input[beg:end])
 				} else {
-					if p.flags&EXTENSION_INCLUDES != 0 {
+					if p.flags&EXTENSION_INCLUDE != 0 {
 						line := expandIncludes(&out, input[beg:end], p, depth)
 						expandTabs(&out, line, tabSize)
 					} else {
@@ -384,10 +389,10 @@ func firstPass(p *parser, input []byte, depth int) []byte {
 }
 
 // second pass: actual rendering
-func secondPass(p *parser, input []byte) []byte {
+func secondPass(p *parser, input []byte, depth int) []byte {
 	var output bytes.Buffer
 
-	p.r.DocumentHeader(&output)
+	p.r.DocumentHeader(&output, depth == 0)
 	p.block(&output, input)
 
 	if p.flags&EXTENSION_FOOTNOTES != 0 && len(p.notes) > 0 {
@@ -409,7 +414,7 @@ func secondPass(p *parser, input []byte) []byte {
 		})
 	}
 
-	p.r.DocumentFooter(&output)
+	p.r.DocumentFooter(&output, depth == 0)
 
 	if p.nesting != 0 {
 		panic("Nesting level did not end at zero")
@@ -768,7 +773,7 @@ func expandIncludes(out *bytes.Buffer, line []byte, p *parser, depth int) []byte
 			} else {
 				// parse contents and inject
 				first := firstPass(p, input, depth+1)
-				second := secondPass(p, first)
+				second := secondPass(p, first, depth+1)
 				out.Write(second)
 			}
 			l = len(line)

@@ -570,6 +570,10 @@ func (options *Html) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
 	out.WriteString(`</a></sup>`)
 }
 
+func (options *Html) Index(out *bytes.Buffer, primary, secondary []byte) {
+
+}
+
 func (options *Html) Entity(out *bytes.Buffer, entity []byte) {
 	out.Write(entity)
 }
@@ -611,7 +615,10 @@ func (options *Html) Smartypants(out *bytes.Buffer, text []byte) {
 	}
 }
 
-func (options *Html) DocumentHeader(out *bytes.Buffer) {
+func (options *Html) DocumentHeader(out *bytes.Buffer, first bool) {
+	if !first {
+		return
+	}
 	if options.flags&HTML_COMPLETE_PAGE == 0 {
 		return
 	}
@@ -651,7 +658,10 @@ func (options *Html) DocumentHeader(out *bytes.Buffer) {
 	options.tocMarker = out.Len()
 }
 
-func (options *Html) DocumentFooter(out *bytes.Buffer) {
+func (options *Html) DocumentFooter(out *bytes.Buffer, first bool) {
+	if !first {
+		return
+	}
 	// finalize and insert the table of contents
 	if options.flags&HTML_TOC != 0 {
 		options.TocFinalize()
