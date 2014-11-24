@@ -62,6 +62,11 @@ type HtmlRendererParameters struct {
 	// HTML_FOOTNOTE_RETURN_LINKS flag is enabled. If blank, the string
 	// <sup>[return]</sup> is used.
 	FootnoteReturnLinkContents string
+	// If set, add this text to the front of each Header ID, to ensure
+	// uniqueness.
+	HeaderIDPrefix string
+	// If set, add this text to the back of each Header ID, to ensure uniqueness.
+	HeaderIDSuffix string
 }
 
 // Html is a type that implements the Renderer interface for HTML output.
@@ -200,7 +205,17 @@ func (options *Html) Header(out *bytes.Buffer, text func() bool, level int, id s
 	}
 
 	if id != "" {
-		out.WriteString(fmt.Sprintf("<h%d id=\"%s\">", level, options.ensureUniqueHeaderID(id)))
+		id = options.ensureUniqueHeaderID(id)
+
+		if options.parameters.HeaderIDPrefix != "" {
+			id = options.parameters.HeaderIDPrefix + id
+		}
+
+		if options.parameters.HeaderIDSuffix != "" {
+			id = id + options.parameters.HeaderIDSuffix
+		}
+
+		out.WriteString(fmt.Sprintf("<h%d id=\"%s\">", level, id))
 	} else {
 		out.WriteString(fmt.Sprintf("<h%d>", level))
 	}

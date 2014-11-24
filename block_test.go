@@ -17,16 +17,35 @@ import (
 	"testing"
 )
 
+func runMarkdownBlockWithRenderer(input string, extensions int, renderer Renderer) string {
+	return string(Markdown([]byte(input), renderer, extensions))
+}
+
 func runMarkdownBlock(input string, extensions int) string {
 	htmlFlags := 0
 	htmlFlags |= HTML_USE_XHTML
 
 	renderer := HtmlRenderer(htmlFlags, "", "")
 
-	return string(Markdown([]byte(input), renderer, extensions))
+	return runMarkdownBlockWithRenderer(input, extensions, renderer)
+}
+
+func runnerWithRendererParameters(parameters HtmlRendererParameters) func(string, int) string {
+	return func(input string, extensions int) string {
+		htmlFlags := 0
+		htmlFlags |= HTML_USE_XHTML
+
+		renderer := HtmlRendererWithParameters(htmlFlags, "", "", parameters)
+
+		return runMarkdownBlockWithRenderer(input, extensions, renderer)
+	}
 }
 
 func doTestsBlock(t *testing.T, tests []string, extensions int) {
+	doTestsBlockWithRunner(t, tests, extensions, runMarkdownBlock)
+}
+
+func doTestsBlockWithRunner(t *testing.T, tests []string, extensions int, runner func(string, int) string) {
 	// catch and report panics
 	var candidate string
 	defer func() {
@@ -39,7 +58,7 @@ func doTestsBlock(t *testing.T, tests []string, extensions int) {
 		input := tests[i]
 		candidate = input
 		expected := tests[i+1]
-		actual := runMarkdownBlock(candidate, extensions)
+		actual := runner(candidate, extensions)
 		if actual != expected {
 			t.Errorf("\nInput   [%#v]\nExpected[%#v]\nActual  [%#v]",
 				candidate, expected, actual)
@@ -237,6 +256,54 @@ func TestPrefixHeaderIdExtension(t *testing.T) {
 	doTestsBlock(t, tests, EXTENSION_HEADER_IDS)
 }
 
+func TestPrefixHeaderIdExtensionWithPrefixAndSuffix(t *testing.T) {
+	var tests = []string{
+		"# header 1 {#someid}\n",
+		"<h1 id=\"PRE:someid:POST\">header 1</h1>\n",
+
+		"## header 2 {#someid}\n",
+		"<h2 id=\"PRE:someid:POST\">header 2</h2>\n",
+
+		"### header 3 {#someid}\n",
+		"<h3 id=\"PRE:someid:POST\">header 3</h3>\n",
+
+		"#### header 4 {#someid}\n",
+		"<h4 id=\"PRE:someid:POST\">header 4</h4>\n",
+
+		"##### header 5 {#someid}\n",
+		"<h5 id=\"PRE:someid:POST\">header 5</h5>\n",
+
+		"###### header 6 {#someid}\n",
+		"<h6 id=\"PRE:someid:POST\">header 6</h6>\n",
+
+		"####### header 7 {#someid}\n",
+		"<h6 id=\"PRE:someid:POST\"># header 7</h6>\n",
+
+		"# header 1 # {#someid}\n",
+		"<h1 id=\"PRE:someid:POST\">header 1</h1>\n",
+
+		"## header 2 ## {#someid}\n",
+		"<h2 id=\"PRE:someid:POST\">header 2</h2>\n",
+
+		"* List\n# Header {#someid}\n* List\n",
+		"<ul>\n<li><p>List</p>\n\n<h1 id=\"PRE:someid:POST\">Header</h1></li>\n\n<li><p>List</p></li>\n</ul>\n",
+
+		"* List\n#Header {#someid}\n* List\n",
+		"<ul>\n<li><p>List</p>\n\n<h1 id=\"PRE:someid:POST\">Header</h1></li>\n\n<li><p>List</p></li>\n</ul>\n",
+
+		"*   List\n    * Nested list\n    # Nested header {#someid}\n",
+		"<ul>\n<li><p>List</p>\n\n<ul>\n<li><p>Nested list</p>\n\n" +
+			"<h1 id=\"PRE:someid:POST\">Nested header</h1></li>\n</ul></li>\n</ul>\n",
+	}
+
+	parameters := HtmlRendererParameters{
+		HeaderIDPrefix: "PRE:",
+		HeaderIDSuffix: ":POST",
+	}
+
+	doTestsBlockWithRunner(t, tests, EXTENSION_HEADER_IDS, runnerWithRendererParameters(parameters))
+}
+
 func TestPrefixAutoHeaderIdExtension(t *testing.T) {
 	var tests = []string{
 		"# Header 1\n",
@@ -286,6 +353,63 @@ func TestPrefixAutoHeaderIdExtension(t *testing.T) {
 		"<h1 id=\"header\">Header</h1>\n\n<h1 id=\"header-1\">Header 1</h1>\n\n<h1 id=\"header-1-1\">Header</h1>\n\n<h1 id=\"header-1-2\">Header</h1>\n",
 	}
 	doTestsBlock(t, tests, EXTENSION_AUTO_HEADER_IDS)
+}
+
+func TestPrefixAutoHeaderIdExtensionWithPrefixAndSuffix(t *testing.T) {
+	var tests = []string{
+		"# Header 1\n",
+		"<h1 id=\"PRE:header-1:POST\">Header 1</h1>\n",
+
+		"# Header 1   \n",
+		"<h1 id=\"PRE:header-1:POST\">Header 1</h1>\n",
+
+		"## Header 2\n",
+		"<h2 id=\"PRE:header-2:POST\">Header 2</h2>\n",
+
+		"### Header 3\n",
+		"<h3 id=\"PRE:header-3:POST\">Header 3</h3>\n",
+
+		"#### Header 4\n",
+		"<h4 id=\"PRE:header-4:POST\">Header 4</h4>\n",
+
+		"##### Header 5\n",
+		"<h5 id=\"PRE:header-5:POST\">Header 5</h5>\n",
+
+		"###### Header 6\n",
+		"<h6 id=\"PRE:header-6:POST\">Header 6</h6>\n",
+
+		"####### Header 7\n",
+		"<h6 id=\"PRE:-header-7:POST\"># Header 7</h6>\n",
+
+		"Hello\n# Header 1\nGoodbye\n",
+		"<p>Hello</p>\n\n<h1 id=\"PRE:header-1:POST\">Header 1</h1>\n\n<p>Goodbye</p>\n",
+
+		"* List\n# Header\n* List\n",
+		"<ul>\n<li><p>List</p>\n\n<h1 id=\"PRE:header:POST\">Header</h1></li>\n\n<li><p>List</p></li>\n</ul>\n",
+
+		"* List\n#Header\n* List\n",
+		"<ul>\n<li><p>List</p>\n\n<h1 id=\"PRE:header:POST\">Header</h1></li>\n\n<li><p>List</p></li>\n</ul>\n",
+
+		"*   List\n    * Nested list\n    # Nested header\n",
+		"<ul>\n<li><p>List</p>\n\n<ul>\n<li><p>Nested list</p>\n\n" +
+			"<h1 id=\"PRE:nested-header:POST\">Nested header</h1></li>\n</ul></li>\n</ul>\n",
+
+		"# Header\n\n# Header\n",
+		"<h1 id=\"PRE:header:POST\">Header</h1>\n\n<h1 id=\"PRE:header-1:POST\">Header</h1>\n",
+
+		"# Header 1\n\n# Header 1",
+		"<h1 id=\"PRE:header-1:POST\">Header 1</h1>\n\n<h1 id=\"PRE:header-1-1:POST\">Header 1</h1>\n",
+
+		"# Header\n\n# Header 1\n\n# Header\n\n# Header",
+		"<h1 id=\"PRE:header:POST\">Header</h1>\n\n<h1 id=\"PRE:header-1:POST\">Header 1</h1>\n\n<h1 id=\"PRE:header-1-1:POST\">Header</h1>\n\n<h1 id=\"PRE:header-1-2:POST\">Header</h1>\n",
+	}
+
+	parameters := HtmlRendererParameters{
+		HeaderIDPrefix: "PRE:",
+		HeaderIDSuffix: ":POST",
+	}
+
+	doTestsBlockWithRunner(t, tests, EXTENSION_AUTO_HEADER_IDS, runnerWithRendererParameters(parameters))
 }
 
 func TestPrefixMultipleHeaderExtensions(t *testing.T) {
