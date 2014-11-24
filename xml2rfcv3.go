@@ -113,7 +113,7 @@ func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id st
 }
 
 func (options *Xml) HRule(out *bytes.Buffer) {
-	out.WriteString("\n\\HRule\n")
+	// not used
 }
 
 func (options *Xml) List(out *bytes.Buffer, text func() bool, flags int) {
@@ -190,13 +190,12 @@ func (options *Xml) TableCell(out *bytes.Buffer, text []byte, align int) {
 	out.Write(text)
 }
 
-// TODO: this
 func (options *Xml) Footnotes(out *bytes.Buffer, text func() bool) {
-
+	// not used
 }
 
 func (options *Xml) FootnoteItem(out *bytes.Buffer, name, text []byte, flags int) {
-
+a	// not used
 }
 
 func (options *Xml) Index(out *bytes.Buffer, primary, secondary []byte) {
@@ -293,7 +292,7 @@ func (options *Xml) Image(out *bytes.Buffer, link []byte, title []byte, alt []by
 }
 
 func (options *Xml) LineBreak(out *bytes.Buffer) {
-	out.WriteString("<vspace/>\n")
+	out.WriteString("\n<vspace/>\n")
 }
 
 func (options *Xml) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
@@ -314,18 +313,14 @@ func (options *Xml) TripleEmphasis(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Xml) StrikeThrough(out *bytes.Buffer, text []byte) {
-	out.WriteString("\\sout{")
 	out.Write(text)
-	out.WriteString("}")
 }
 
-// TODO: this
 func (options *Xml) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
-
+	// not used
 }
 
 func (options *Xml) Entity(out *bytes.Buffer, entity []byte) {
-	// TODO: convert this into a unicode character or something
 	out.Write(entity)
 }
 
