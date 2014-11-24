@@ -418,7 +418,14 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 				}
 			}
 			if fileB != 0 {
-				file = id[fileB+1:]
+				n := 1
+				// forward again for whitespace
+				for i := n; i < len(id); i++ {
+					if id[i] == ' ' {
+						n++
+					}
+				}
+				file = id[fileB+n:]
 				if len(file) < 4 {
 					// seems unlikely
 					file = []byte{}
