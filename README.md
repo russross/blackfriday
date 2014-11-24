@@ -200,7 +200,7 @@ implements the following extensions:
 
 *   **Includes**, support including files with `{{filename}}` syntax.
 
-*   **Indices**, using `(((item, subitem))` syntax.
+*   **Indices**, using `(((item, subitem)))` syntax.
 
 *   **Citations**, using the reference syntax `[p. 23][#RFC2535]`, the citation
     can either be informative (default) or normative, this can be indicated (once)
