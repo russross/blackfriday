@@ -123,6 +123,15 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			continue
 		}
 
+		// Abstract quote:
+		//
+		// AB> This is an abstract
+		// AB> I found on the web
+		if p.abstractPrefix(data) > 0 {
+			data = data[p.abstract(out, data):]
+			continue
+		}
+
 		// block quote:
 		//
 		// > A big quote I found somewhere
@@ -885,6 +894,54 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 	// silently ignore rows with too many cells
 
 	p.r.TableRow(out, rowWork.Bytes())
+}
+
+// returns abstractquote prefix length
+func (p *parser) abstractPrefix(data []byte) int {
+	i := 0
+	for i < 3 && data[i] == ' ' {
+		i++
+	}
+	if data[i] == 'A' && data[i+1] == 'B' && data[i+2] == '>'{
+		if data[i+3] == ' ' {
+			return i + 4
+		}
+		return i + 3
+	}
+	return 0
+}
+
+// parse an abstract fragment
+func (p *parser) abstract(out *bytes.Buffer, data []byte) int {
+	var raw bytes.Buffer
+	beg, end := 0, 0
+	for beg < len(data) {
+		end = beg
+		for data[end] != '\n' {
+			end++
+		}
+		end++
+
+		if pre := p.abstractPrefix(data[beg:]); pre > 0 {
+			// skip the prefix
+			beg += pre
+		} else if p.isEmpty(data[beg:]) > 0 &&
+			(end >= len(data) ||
+				(p.abstractPrefix(data[end:]) == 0 && p.isEmpty(data[end:]) == 0)) {
+			// abstract ends with at least one blank line
+			// followed by something without a abstract prefix
+			break
+		}
+
+		// this line is part of the abstract
+		raw.Write(data[beg:end])
+		beg = end
+	}
+
+	var cooked bytes.Buffer
+	p.block(&cooked, raw.Bytes())
+	p.r.Abstract(out, cooked.Bytes())
+	return end
 }
 
 // returns blockquote prefix length

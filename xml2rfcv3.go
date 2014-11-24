@@ -72,6 +72,12 @@ func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte) {
 	out.WriteString("\n</blockquote>\n")
 }
 
+func (options *Xml) Abstract(out *bytes.Buffer, text []byte) {
+	out.WriteString("\n<abstract>\n")
+	out.Write(text)
+	out.WriteString("\n</abstract>\n")
+}
+
 func (options *Xml) BlockHtml(out *bytes.Buffer, text []byte) {
 	// a pretty lame thing to do...
 	out.WriteString("\n\\begin{verbatim}\n")

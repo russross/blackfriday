@@ -184,6 +184,7 @@ type Renderer interface {
 	Index(out *bytes.Buffer, primary, secondary []byte)
 	Citation(out *bytes.Buffer, link, title []byte)
 	References(out *bytes.Buffer, citations map[string]*citation, start bool)
+	Abstract(out *bytes.Buffer, text []byte)
 
 	// Low-level callbacks
 	Entity(out *bytes.Buffer, entity []byte)
