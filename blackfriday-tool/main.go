@@ -118,6 +118,8 @@ func main() {
 	extensions |= blackfriday.EXTENSION_AUTOLINK
 	extensions |= blackfriday.EXTENSION_STRIKETHROUGH
 	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
+	extensions |= blackfriday.EXTENSION_INDEX
+	extensions |= blackfriday.EXTENSION_CITATION
 
 	var renderer blackfriday.Renderer
 	if xml {

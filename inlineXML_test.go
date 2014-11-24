@@ -60,6 +60,18 @@ func TestIndexXML(t *testing.T) {
 	var tests = []string{
 		"(((Tiger, Cats)))\n",
 		"<t>\n<iref item=\"Tiger\" subitem=\"Cats\"/>\n</t>\n",
+
+		"(((Tiger, Cats))\n",
+		"<t>\n(((Tiger, Cats))\n</t>\n",
+	}
+	doTestsInlineXML(t, tests)
+}
+
+func TestCitationXML(t *testing.T) {
+	var tests = []string{
+		"(((Tiger, Cats)))\n",
+		"<t>\n<iref item=\"Tiger\" subitem=\"Cats\"/>\n</t>\n",
+
 	}
 	doTestsInlineXML(t, tests)
 }

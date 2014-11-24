@@ -203,9 +203,10 @@ implements the following extensions:
 *   **Indices**, using `(((item, subitem)))` syntax.
 
 *   **Citations**, using the reference syntax `[p. 23][#RFC2535]`, the citation
-    can either be informative (default) or normative, this can be indicated (once)
-    by using the `i` or `n` modifer: `[p. 23][n#RFC2535]`. The sections containing 
-    the references are outputted automatically. (Not in the appendix).
+    can either be informative (default) or normative, this can be indicated by using 
+    the `i` or `n` modifer: `[p. 23][n#RFC2535]`. The sections containing 
+    the references are outputted automatically, before the end of the document or
+    when the back matter starts.
 
 Other renderers
 ---------------

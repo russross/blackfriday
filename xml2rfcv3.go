@@ -216,23 +216,25 @@ func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation
 			refn++
 		}
 	}
+	// output <xi:include href="<references file>.xml"/>
 	if refi+refn > 0 {
-		println("References")
 		if refi > 0 {
-			println("Informative References")
+			out.WriteString("<references title=\"Informative References\">\n")
 			for k, c := range citations {
 				if c.typ == 'i' {
-					println(k)
+					out.WriteString("\t<xi:include href=\"bib/reference." + k + ".xml\"/>\n")
 				}
 			}
+			out.WriteString("</references>\n") 
 		}
 		if refn > 0 {
-			println("Normative References")
+			out.WriteString("<references title=\"Normative References\">\n")
 			for k, c := range citations {
 				if c.typ == 'n' {
-					println(k)
+					out.WriteString("\t<xi:include href=\"bib/reference." + k + ".xml\"/>\n")
 				}
 			}
+			out.WriteString("</references>\n") 
 		}
 	}
 }
