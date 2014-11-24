@@ -275,8 +275,25 @@ func TestPrefixAutoHeaderIdExtension(t *testing.T) {
 		"*   List\n    * Nested list\n    # Nested header\n",
 		"<ul>\n<li><p>List</p>\n\n<ul>\n<li><p>Nested list</p>\n\n" +
 			"<h1 id=\"nested-header\">Nested header</h1></li>\n</ul></li>\n</ul>\n",
+
+		"# Header\n\n# Header\n",
+		"<h1 id=\"header\">Header</h1>\n\n<h1 id=\"header-1\">Header</h1>\n",
+
+		"# Header 1\n\n# Header 1",
+		"<h1 id=\"header-1\">Header 1</h1>\n\n<h1 id=\"header-1-1\">Header 1</h1>\n",
+
+		"# Header\n\n# Header 1\n\n# Header\n\n# Header",
+		"<h1 id=\"header\">Header</h1>\n\n<h1 id=\"header-1\">Header 1</h1>\n\n<h1 id=\"header-1-1\">Header</h1>\n\n<h1 id=\"header-1-2\">Header</h1>\n",
 	}
 	doTestsBlock(t, tests, EXTENSION_AUTO_HEADER_IDS)
+}
+
+func TestPrefixMultipleHeaderExtensions(t *testing.T) {
+	var tests = []string{
+		"# Header\n\n# Header {#header}\n\n# Header 1",
+		"<h1 id=\"header\">Header</h1>\n\n<h1 id=\"header-1\">Header</h1>\n\n<h1 id=\"header-1-1\">Header 1</h1>\n",
+	}
+	doTestsBlock(t, tests, EXTENSION_AUTO_HEADER_IDS|EXTENSION_HEADER_IDS)
 }
 
 func TestUnderlineHeaders(t *testing.T) {
@@ -369,6 +386,12 @@ func TestUnderlineHeadersAutoIDs(t *testing.T) {
 
 		"Double underline\n=====\n=====\n",
 		"<h1 id=\"double-underline\">Double underline</h1>\n\n<p>=====</p>\n",
+
+		"Header\n======\n\nHeader\n======\n",
+		"<h1 id=\"header\">Header</h1>\n\n<h1 id=\"header-1\">Header</h1>\n",
+
+		"Header 1\n========\n\nHeader 1\n========\n",
+		"<h1 id=\"header-1\">Header 1</h1>\n\n<h1 id=\"header-1-1\">Header 1</h1>\n",
 	}
 	doTestsBlock(t, tests, EXTENSION_AUTO_HEADER_IDS)
 }
