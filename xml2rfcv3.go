@@ -244,7 +244,7 @@ func (options *Xml) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 
 func (options *Xml) CodeSpan(out *bytes.Buffer, text []byte) {
 	out.WriteString("<tt>")
-	escapeSpecialChars(out, text)
+	out.Write(text)
 	out.WriteString("</tt>")
 }
 
@@ -313,7 +313,7 @@ func (options *Xml) Entity(out *bytes.Buffer, entity []byte) {
 }
 
 func (options *Xml) NormalText(out *bytes.Buffer, text []byte) {
-	escapeSpecialChars(out, text)
+	out.Write(text)
 }
 
 // header and footer
