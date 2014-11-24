@@ -392,24 +392,45 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
                                 return 0
                         }
                         // if the key does not start with #, i# or n# we ignore it
-                        if len(key) < 2 {
+                        if len(id) < 2 {
                                 return 0
                         }
                         typ := 'i'
                         switch {
-                        case key[0] == 'i' && key[1] == '#':
-                                key = key[2:]
-                        case key[0] == 'n' && key[1] == '#':
-                                key = key[2:]
+                        case id[0] == 'i' && id[1] == '#':
+                                id = id[2:]
+                        case id[0] == 'n' && id[1] == '#':
+                                id = id[2:]
                                 typ = 'n'
-                        case key[0] == '#':
-                                key = key[1:]
+                        case id[0] == '#':
+                                id = id[1:]
                         default:
                                 return 0
                         }
+			// We may have an optional filename in the link we well, this should be the
+			// last part of id. Search back in last part pf the Id
+			fileB := 0
+			file := []byte{}
+			for i := len(id)-1; i >= 0 ; i-- {
+				if id[i] == ',' {
+					fileB = i
+					break
+				}
+			}
+			if fileB != 0 {
+				file = id[fileB+1:]
+				if len(file) < 4 {
+					// seems unlikely
+					file = []byte{}
+				}
+				id = id[:fileB]
+			}
+			println("ID", string(id))
+			println("FILE", string(file))
+
                         title = data[1:txtE]
-                        p.citations[key] = &citation{link: []byte(key), title: title, typ: typ}
-                        p.r.Citation(out, []byte(key), title)
+			p.citations[string(id)] = &citation{link: id, title: title, typ: typ, filename: file}
+                        p.r.Citation(out, id, title)
                         return linkE + 1
                 }
 

@@ -472,6 +472,7 @@ type reference struct {
 type citation struct {
 	link     []byte
 	title    []byte
+	filename []byte
 	typ	 rune // 'i' for informal, 'n' normative (default = 'i')
 }
 

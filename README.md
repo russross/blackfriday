@@ -207,6 +207,10 @@ implements the following extensions:
     the `i` or `n` modifer: `[p. 23][n#RFC2535]`. The sections containing 
     the references are outputted automatically, before the end of the document or
     when the back matter starts.
+    To make the references work you can optionally include a filename:
+    `[p. 23][#RFC2335,bib/reference.RFC.2525.xml] this only needs to happen once.
+    If the reference is RFC<number> a default will be used (cmd line flag bib dir)
+    If the reference is ... I-D another default will be used.
 
 TODO
 

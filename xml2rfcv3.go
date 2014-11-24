@@ -216,25 +216,28 @@ func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation
 			refn++
 		}
 	}
-	// output <xi:include href="<references file>.xml"/>
+	// output <xi:include href="<references file>.xml"/>, we use file it its not empty, otherwise
+	// we construct one for RFCNNNN and I-D.something something.
 	if refi+refn > 0 {
 		if refi > 0 {
 			out.WriteString("<references title=\"Informative References\">\n")
 			for k, c := range citations {
 				if c.typ == 'i' {
-					out.WriteString("\t<xi:include href=\"bib/reference." + k + ".xml\"/>\n")
+					f := string(c.filename)
+					out.WriteString("\t<xi:include href=\"" + f + "\"/> <!-- " + k + " -->\n")
 				}
 			}
-			out.WriteString("</references>\n") 
+			out.WriteString("</references>\n")
 		}
 		if refn > 0 {
 			out.WriteString("<references title=\"Normative References\">\n")
 			for k, c := range citations {
 				if c.typ == 'n' {
-					out.WriteString("\t<xi:include href=\"bib/reference." + k + ".xml\"/>\n")
+					f := string(c.filename)
+					out.WriteString("\t<xi:include href=\"" + f + "\"/> <!-- " + k + " -->\n")
 				}
 			}
-			out.WriteString("</references>\n") 
+			out.WriteString("</references>\n")
 		}
 	}
 }
@@ -284,7 +287,7 @@ func (options *Xml) Image(out *bytes.Buffer, link []byte, title []byte, alt []by
 }
 
 func (options *Xml) LineBreak(out *bytes.Buffer) {
-	out.WriteString(" \\\\\n")
+	out.WriteString("<vspace/>\n")
 }
 
 func (options *Xml) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
