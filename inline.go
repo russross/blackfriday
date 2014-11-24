@@ -425,8 +425,6 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 				}
 				id = id[:fileB]
 			}
-			println("ID", string(id))
-			println("FILE", string(file))
 
                         title = data[1:txtE]
 			p.citations[string(id)] = &citation{link: id, title: title, typ: typ, filename: file}

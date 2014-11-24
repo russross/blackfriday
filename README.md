@@ -214,7 +214,7 @@ implements the following extensions:
 
 TODO
 
-*   **Titleblock** extension, so be able to put all meta data there
+*   Yaml title block - ala kramdown
 *   --- main, --- back and --- front support from Kramdown.
 
 
