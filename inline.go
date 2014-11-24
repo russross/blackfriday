@@ -956,7 +956,7 @@ func index(p *parser, out *bytes.Buffer, data []byte, offset int) int {
                 }
         }
 
-        p.r.Index(out, data[3:primary], data[secondary:end-3])
+        p.r.Index(out, data[3:primary+1], data[secondary:end-3])
         return ret
 }
 

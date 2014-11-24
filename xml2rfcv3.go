@@ -16,10 +16,16 @@ import (
 	"bytes"
 )
 
+// XML renderer configuration options.
+const (
+	XML_COMPLETE_DOC = 1 << iota // Generate a complete document
+)
+
 // Xml is a type that implements the Renderer interface for XML2RFV3 output.
 //
 // Do not create this directly, instead use the XmlRenderer function.
 type Xml struct {
+	flags int // XML_* options
 }
 
 // XmlRenderer creates and configures a Xml object, which
@@ -28,11 +34,11 @@ type Xml struct {
 // flags is a set of XML_* options ORed together (currently no such options
 // are defined).
 func XmlRenderer(flags int) Renderer {
-	return &Xml{}
+	return &Xml{flags: flags}
 }
 
 func (options *Xml) GetFlags() int {
-	return 0
+	return options.flags
 }
 
 func (options *Xml) GetState() int {
@@ -321,13 +327,16 @@ func (options *Xml) DocumentHeader(out *bytes.Buffer, first bool) {
 	if !first {
 		return
 	}
-	out.WriteString("\n<rfc>\n")
-	out.WriteString("\n")
+	if options.flags&XML_COMPLETE_DOC != 0 {
+		out.WriteString("\n<rfc>\n")
+	}
 }
 
 func (options *Xml) DocumentFooter(out *bytes.Buffer, first bool) {
 	if !first {
 		return
 	}
-	out.WriteString("\n</rfc>\n")
+	if options.flags&XML_COMPLETE_DOC != 0 {
+		out.WriteString("\n</rfc>\n")
+	}
 }

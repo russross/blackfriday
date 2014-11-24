@@ -797,18 +797,3 @@ func TestFootnotesWithParameters(t *testing.T) {
 
 	doTestsInlineParam(t, tests, EXTENSION_FOOTNOTES, HTML_FOOTNOTE_RETURN_LINKS, params)
 }
-
-func TestIndices(t *testing.T) {
-	var tests = []string{
-		"nothing inline\n",
-		"<p>nothing inline</p>\n",
-
-		"nothing inline\n",
-		"<p>nothing inline</p>\n",
-
-	}
-	doTestsInline(t, tests)
-
-	doTestsInlineParam(t, tests, EXTENSION_INDEX, 0, HtmlRendererParameters{})
-
-}
