@@ -208,6 +208,12 @@ implements the following extensions:
     the references are outputted automatically, before the end of the document or
     when the back matter starts.
 
+TODO
+
+*   **Titleblock** extension, so be able to put all meta data there
+*   --- main, --- back and --- front support from Kramdown.
+
+
 Other renderers
 ---------------
 

@@ -397,13 +397,13 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
                         }
                         typ := 'i'
                         switch {
-                        case key[0] == '#':
-                                key = key[1:]
-                        case key[0] == 'i', key[1] == '#':
+                        case key[0] == 'i' && key[1] == '#':
                                 key = key[2:]
-                        case key[0] == 'n', key[1] == '#':
+                        case key[0] == 'n' && key[1] == '#':
                                 key = key[2:]
                                 typ = 'n'
+                        case key[0] == '#':
+                                key = key[1:]
                         default:
                                 return 0
                         }
