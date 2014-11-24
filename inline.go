@@ -606,6 +606,26 @@ func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	return end
 }
 
+// '{' IAL or *matter
+func leftBrace(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+	if offset == 0 {
+		// {*matter} are only valid at the beginning of the line
+		switch s := string(data); true {
+		case s == "{frontmatter}":
+			println("FRONT")
+			return len(data)
+		case s == "{mainmatter}":
+			println("MAIN")
+			return len(data)
+		case s == "{backmatter}":
+			println("BACK")
+			return len(data)
+		}
+
+	}
+	return 0
+}
+
 // '\\' backslash escape
 var escapeChars = []byte("\\`*_{}[]()#+-.!:|&<>~")
 

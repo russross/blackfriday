@@ -195,7 +195,7 @@ func (options *Xml) Footnotes(out *bytes.Buffer, text func() bool) {
 }
 
 func (options *Xml) FootnoteItem(out *bytes.Buffer, name, text []byte, flags int) {
-a	// not used
+	// not used
 }
 
 func (options *Xml) Index(out *bytes.Buffer, primary, secondary []byte) {

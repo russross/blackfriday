@@ -47,8 +47,10 @@ const (
 	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text
 	EXTENSION_INCLUDE                                // Include file with {{ syntax
 	EXTENSION_INDEX                                  // Support index with ((( syntax
-	EXTENSION_CITATION				 // Support citations via the link syntax
-	EXTENSION_QUOTES				 // Allow AB> A> and N> to be parsed as abstract, asides and notes
+	EXTENSION_CITATION                               // Support citations via the link syntax
+	EXTENSION_QUOTES                                 // Allow AB> A> and N> to be parsed as abstract, asides and notes
+	EXTENSION_IAL                                    // detect kramdown's IAL syntax
+	EXTENSION_MATTER                                 // use {frontmatter} {mainmatter} {backmatter}
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML |
@@ -298,6 +300,7 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	p.inlineCallback['<'] = leftAngle
 	p.inlineCallback['\\'] = escape
 	p.inlineCallback['&'] = entity
+	p.inlineCallback['{'] = leftBrace
 
 	if extensions&EXTENSION_AUTOLINK != 0 {
 		p.inlineCallback[':'] = autoLink
@@ -476,7 +479,7 @@ type citation struct {
 	link     []byte
 	title    []byte
 	filename []byte
-	typ	 rune // 'i' for informal, 'n' normative (default = 'i')
+	typ      rune // 'i' for informal, 'n' normative (default = 'i')
 }
 
 // Check whether or not data starts with a reference link.
