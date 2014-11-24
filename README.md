@@ -241,16 +241,9 @@ are a few of note:
 *   [markdownfmt](https://github.com/shurcooL/markdownfmt): like gofmt,
     but for markdown.
 
-*   LaTeX output: renders output as LaTeX. This is currently part of the
+*   XML output: renders output as XML2RFCv2. This is currently part of the
     main Blackfriday repository, but may be split into its own project
-    in the future. If you are interested in owning and maintaining the
-    LaTeX output component, please be in touch.
-
-    It renders some basic documents, but is only experimental at this
-    point. In particular, it does not do any inline escaping, so input
-    that happens to look like LaTeX code will be passed through without
-    modification.
-
+    in the future.
 
 Todo
 ----

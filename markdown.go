@@ -43,10 +43,12 @@ const (
 	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK             // No need to insert an empty line to start a (code, quote, order list, unorder list)block
 	EXTENSION_HEADER_IDS                             // specify header IDs  with {#id}
 	EXTENSION_TITLEBLOCK                             // Titleblock ala pandoc
+	EXTENSION_TITLEBLOCK_TOML                        // Titleblock in TOML
 	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text
 	EXTENSION_INCLUDE                                // Include file with {{ syntax
 	EXTENSION_INDEX                                  // Support index with ((( syntax
 	EXTENSION_CITATION				 // Support citations via the link syntax
+	EXTENSION_QUOTES				 // Allow AB> A> and N> to be parsed as abstract, asides and notes
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML |
