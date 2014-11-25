@@ -902,7 +902,7 @@ func (p *parser) abstractPrefix(data []byte) int {
 	for i < 3 && data[i] == ' ' {
 		i++
 	}
-	if data[i] == 'A' && data[i+1] == 'B' && data[i+2] == '>'{
+	if data[i] == 'A' && data[i+1] == 'B' && data[i+2] == '>' {
 		if data[i+3] == ' ' {
 			return i + 4
 		}
@@ -1281,6 +1281,11 @@ func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 		end--
 	}
 
+	if isMatter(data) {
+		p.inline(out, data[beg:end])
+		return
+	}
+
 	work := func() bool {
 		p.inline(out, data[beg:end])
 		return true
@@ -1337,7 +1342,6 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 					id = createSanitizedAnchorName(string(data[prev:eol]))
 				}
 
-				println("HEADER", string(data[prev:eol]))
 				p.r.Header(out, work, level, id)
 
 				// find the end of the underline
@@ -1396,4 +1400,17 @@ func createSanitizedAnchorName(text string) string {
 		}
 	}
 	return string(anchorName)
+}
+
+func isMatter(text []byte) bool {
+	if string(text) == "{frontmatter}\n" {
+		return true
+	}
+	if string(text) == "{mainmatter}\n" {
+		return true
+	}
+	if string(text) == "{backmatter}\n" {
+		return true
+	}
+	return false
 }

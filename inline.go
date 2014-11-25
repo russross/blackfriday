@@ -612,17 +612,17 @@ func leftBrace(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		// {*matter} are only valid at the beginning of the line
 		switch s := string(data); true {
 		case s == "{frontmatter}":
-			println("FRONT")
-			return len(data)
+			p.r.DocumentMatter(out, DOC_FRONT_MATTER)
+			return len(data) + 1
 		case s == "{mainmatter}":
-			println("MAIN")
-			return len(data)
+			p.r.DocumentMatter(out, DOC_MAIN_MATTER)
+			return len(data) + 1
 		case s == "{backmatter}":
-			println("BACK")
-			return len(data)
+			p.r.DocumentMatter(out, DOC_BACK_MATTER)
+			return len(data) + 1
 		}
-
 	}
+	// IAL
 	return 0
 }
 

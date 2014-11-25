@@ -71,7 +71,6 @@ func TestCitationXML(t *testing.T) {
 	var tests = []string{
 		"(((Tiger, Cats)))\n",
 		"<t>\n<iref item=\"Tiger\" subitem=\"Cats\"/>\n</t>\n",
-
 	}
 	doTestsInlineXML(t, tests)
 }

@@ -17,16 +17,14 @@ import (
 )
 
 // XML renderer configuration options.
-const (
-	XML_COMPLETE_DOC = 1 << iota // Generate a complete document
-)
+const ()
 
 // Xml is a type that implements the Renderer interface for XML2RFV3 output.
 //
 // Do not create this directly, instead use the XmlRenderer function.
 type Xml struct {
 	flags        int // XML_* options
-	sectionLevel int // how many open section?
+	sectionLevel int // current section level
 	docLevel     int // frontmatter/mainmatter or backmatter
 }
 
@@ -90,32 +88,22 @@ func (options *Xml) BlockHtml(out *bytes.Buffer, text []byte) {
 func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id string) {
 	// set amount of open in options, so we know what to close after we finish
 	// parsing the doc.
-	marker := out.Len()
+	//marker := out.Len()
+	//out.Truncate(marker)
 
-	switch level {
-	case 1:
-		fallthrough
-	case 2:
-		fallthrough
-	case 3:
-		fallthrough
-	case 4:
-		fallthrough
-	case 5:
-		fallthrough
-	case 6:
-		// Don't know  if we need to close one
-		out.WriteString("\n</section>\n")
-		out.WriteString("\n<section>\n")
+	if level <= options.sectionLevel {
+		// close previous ones
+		for i := options.sectionLevel - level + 1; i > 0; i-- {
+			out.WriteString("</section>\n")
+		}
 	}
-	if !text() {
-		//		out.WriteString("<name>")
-		out.Truncate(marker)
-		//		out.WriteString("</name>")
-		return
-	} else {
-		println(text())
-	}
+	// new section
+	out.WriteString("\n<section anchor=\"" + id + "\">\n")
+	out.WriteString("<name>")
+	text() // check bool here
+	out.WriteString("</name>\n")
+	options.sectionLevel = level
+	return
 }
 
 func (options *Xml) HRule(out *bytes.Buffer) {
@@ -153,7 +141,7 @@ func (options *Xml) Paragraph(out *bytes.Buffer, text func() bool) {
 		out.Truncate(marker)
 		return
 	}
-	out.WriteString("\n</t>\n")
+	out.WriteString("</t>\n")
 }
 
 func (options *Xml) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int) {
@@ -339,20 +327,40 @@ func (options *Xml) DocumentHeader(out *bytes.Buffer, first bool) {
 	if !first {
 		return
 	}
-	if options.flags&XML_COMPLETE_DOC != 0 {
-		out.WriteString("\n<rfc>\n")
-	}
+	out.WriteString("<rfc>\n")
+	out.WriteString("<front>\n")
 }
 
 func (options *Xml) DocumentFooter(out *bytes.Buffer, first bool) {
 	if !first {
 		return
 	}
-	if options.flags&XML_COMPLETE_DOC != 0 {
-		out.WriteString("\n</rfc>\n")
+	// close any option section tags
+	for i := options.sectionLevel; i > 0; i-- {
+		out.WriteString("</section>\n")
 	}
+	switch options.docLevel {
+	case DOC_FRONT_MATTER:
+		out.WriteString("</front>\n")
+	case DOC_MAIN_MATTER:
+		out.WriteString("</middle>\n")
+	case DOC_BACK_MATTER:
+		out.WriteString("</back>\n")
+	}
+	out.WriteString("</rfc>\n")
 }
 
 func (options *Xml) DocumentMatter(out *bytes.Buffer, matter int) {
-	// set internal value
+	// we default to frontmatter already openened in the documentHeader
+	switch matter {
+	case DOC_FRONT_MATTER:
+		// already open
+	case DOC_MAIN_MATTER:
+		out.WriteString("</front>\n")
+		out.WriteString("<middle>\n")
+	case DOC_BACK_MATTER:
+		out.WriteString("</middle>\n")
+		out.WriteString("<back>\n")
+	}
+	options.docLevel = matter
 }

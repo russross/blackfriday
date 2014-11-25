@@ -577,11 +577,11 @@ func (options *Html) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
 	out.WriteString(`</a></sup>`)
 }
 
-func (options *Html) Index(out *bytes.Buffer, primary, secondary []byte) { }
+func (options *Html) Index(out *bytes.Buffer, primary, secondary []byte) {}
 
-func (options *Html) Citation(out *bytes.Buffer, link, title []byte) { }
+func (options *Html) Citation(out *bytes.Buffer, link, title []byte) {}
 
-func (options *Html) References(out *bytes.Buffer, citations map[string]*citation, first bool) { }
+func (options *Html) References(out *bytes.Buffer, citations map[string]*citation, first bool) {}
 
 func (options *Html) Entity(out *bytes.Buffer, entity []byte) {
 	out.Write(entity)

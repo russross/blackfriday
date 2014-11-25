@@ -179,6 +179,7 @@ type Renderer interface {
 	Footnotes(out *bytes.Buffer, text func() bool)
 	FootnoteItem(out *bytes.Buffer, name, text []byte, flags int)
 	TitleBlock(out *bytes.Buffer, text []byte)
+	Abstract(out *bytes.Buffer, text []byte)
 
 	// Span-level callbacks
 	AutoLink(out *bytes.Buffer, link []byte, kind int)
@@ -195,7 +196,6 @@ type Renderer interface {
 	Index(out *bytes.Buffer, primary, secondary []byte)
 	Citation(out *bytes.Buffer, link, title []byte)
 	References(out *bytes.Buffer, citations map[string]*citation, start bool)
-	Abstract(out *bytes.Buffer, text []byte)
 
 	// Low-level callbacks
 	Entity(out *bytes.Buffer, entity []byte)
