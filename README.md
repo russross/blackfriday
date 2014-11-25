@@ -219,7 +219,6 @@ implements the following extensions:
 *  **Abstracts**, any paragraph with `AB>` (TODO)
 
 *  **{frontmatter}/{mainmatter}/{backmatter}** Create useful divisions in your document.
-    (TODO)
 
 *  **IAL**, kramdown's Inline Attribute List syntax. (TODO)
 
