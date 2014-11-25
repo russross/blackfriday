@@ -113,6 +113,8 @@ func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id st
 		out.Truncate(marker)
 		//		out.WriteString("</name>")
 		return
+	} else {
+		println(text())
 	}
 }
 

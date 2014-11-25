@@ -1326,6 +1326,7 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 				// this ugly double closure avoids forcing variables onto the heap
 				work := func(o *bytes.Buffer, pp *parser, d []byte) func() bool {
 					return func() bool {
+						// this renders the name, but how to make attribute out of it
 						pp.inline(o, d)
 						return true
 					}
