@@ -214,9 +214,16 @@ implements the following extensions:
 
 *  **Asides**, any paragraph with `A>` at the beginning of all lines is an aside.
 
-*  **Notes**, any parapgraph with `N>`
+*  **Notes**, any parapgraph with `N>` (TODO)
 
-*  **Abstracts**, any paragraph with `AB>`
+*  **Abstracts**, any paragraph with `AB>` (TODO)
+
+*  **{frontmatter}/{mainmatter}/{backmatter}** Create useful divisions in your document.
+    (TODO)
+
+*  **IAL**, kramdown's Inline Attribute List syntax. (TODO)
+
+*  **Definitition lists**, (TODO)
 
 Other renderers
 ---------------
@@ -246,6 +253,7 @@ Todo
     rules (about what constitutes a letter, a punctuation symbol,
     etc.), so it may fail to detect word boundaries correctly in
     some instances. It is safe on all utf-8 input.
+*   Fix `<section>` output
 
 
 License
