@@ -25,7 +25,9 @@ const (
 //
 // Do not create this directly, instead use the XmlRenderer function.
 type Xml struct {
-	flags int // XML_* options
+	flags        int // XML_* options
+	sectionLevel int // how many open section?
+	docLevel     int // frontmatter/mainmatter or backmatter
 }
 
 // XmlRenderer creates and configures a Xml object, which
@@ -86,6 +88,8 @@ func (options *Xml) BlockHtml(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id string) {
+	// set amount of open in options, so we know what to close after we finish
+	// parsing the doc.
 	marker := out.Len()
 
 	switch level {
@@ -345,4 +349,8 @@ func (options *Xml) DocumentFooter(out *bytes.Buffer, first bool) {
 	if options.flags&XML_COMPLETE_DOC != 0 {
 		out.WriteString("\n</rfc>\n")
 	}
+}
+
+func (options *Xml) DocumentMatter(out *bytes.Buffer, matter int) {
+	// set internal value
 }

@@ -102,6 +102,13 @@ const (
 	TAB_SIZE_EIGHT   = 8
 )
 
+// Different divisions of the document
+const (
+	DOC_FRONT_MATTER = iota
+	DOC_MAIN_MATTER
+	DOC_BACK_MATTER
+)
+
 // These are the tags that are recognized as HTML block tags.
 // Any of these can be included in markdown text without special escaping.
 var blockTags = map[string]bool{
@@ -197,6 +204,9 @@ type Renderer interface {
 	// Header and footer
 	DocumentHeader(out *bytes.Buffer, start bool)
 	DocumentFooter(out *bytes.Buffer, start bool)
+
+	// Frontmatter, mainmatter or backmatter
+	DocumentMatter(out *bytes.Buffer, matter int)
 
 	GetFlags() int
 }

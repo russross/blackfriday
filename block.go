@@ -1336,6 +1336,7 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 					id = createSanitizedAnchorName(string(data[prev:eol]))
 				}
 
+				println("HEADER", string(data[prev:eol]))
 				p.r.Header(out, work, level, id)
 
 				// find the end of the underline
