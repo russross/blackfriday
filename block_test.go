@@ -328,7 +328,7 @@ func TestPrefixAutoHeaderIdExtension(t *testing.T) {
 		"<h6 id=\"header-6\">Header 6</h6>\n",
 
 		"####### Header 7\n",
-		"<h6 id=\"-header-7\"># Header 7</h6>\n",
+		"<h6 id=\"header-7\"># Header 7</h6>\n",
 
 		"Hello\n# Header 1\nGoodbye\n",
 		"<p>Hello</p>\n\n<h1 id=\"header-1\">Header 1</h1>\n\n<p>Goodbye</p>\n",
@@ -379,7 +379,7 @@ func TestPrefixAutoHeaderIdExtensionWithPrefixAndSuffix(t *testing.T) {
 		"<h6 id=\"PRE:header-6:POST\">Header 6</h6>\n",
 
 		"####### Header 7\n",
-		"<h6 id=\"PRE:-header-7:POST\"># Header 7</h6>\n",
+		"<h6 id=\"PRE:header-7:POST\"># Header 7</h6>\n",
 
 		"Hello\n# Header 1\nGoodbye\n",
 		"<p>Hello</p>\n\n<h1 id=\"PRE:header-1:POST\">Header 1</h1>\n\n<p>Goodbye</p>\n",
