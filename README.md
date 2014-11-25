@@ -218,12 +218,6 @@ implements the following extensions:
 
 *  **Abstracts**, any paragraph with `AB>`
 
-TODO
-
-*   Yaml title block - ala kramdown
-*   --- main, --- back and --- front support from Kramdown.
-
-
 Other renderers
 ---------------
 
