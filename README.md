@@ -241,9 +241,7 @@ are a few of note:
 *   [markdownfmt](https://github.com/shurcooL/markdownfmt): like gofmt,
     but for markdown.
 
-*   XML output: renders output as XML2RFCv2. This is currently part of the
-    main Blackfriday repository, but may be split into its own project
-    in the future.
+*   XML output: renders output as XML2RFCv2. 
 
 Todo
 ----
