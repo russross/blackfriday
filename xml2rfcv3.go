@@ -255,7 +255,7 @@ func (options *Xml) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 
 func (options *Xml) CodeSpan(out *bytes.Buffer, text []byte) {
 	out.WriteString("<tt>")
-	out.Write(text)
+	convertEntity(out, text)
 	out.WriteString("</tt>")
 }
 
@@ -364,4 +364,19 @@ func (options *Xml) DocumentMatter(out *bytes.Buffer, matter int) {
 		out.WriteString("<back>\n")
 	}
 	options.docLevel = matter
+}
+
+var entityConvert = map[byte]string{
+	'<': "&lt;",
+	'>': "&gt;",
+}
+
+func convertEntity(out *bytes.Buffer, text []byte) {
+	for i := 0; i < len(text); i++ {
+		if s, ok := entityConvert[text[i]]; ok {
+			out.WriteString(s)
+			continue
+		}
+		out.WriteByte(text[i])
+	}
 }
