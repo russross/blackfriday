@@ -67,13 +67,13 @@ func (options *Xml) TitleBlock(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte) {
-	out.WriteString("\n<blockquote>\n")
+	out.WriteString("<blockquote>\n")
 	out.Write(text)
 	out.WriteString("\n</blockquote>\n")
 }
 
 func (options *Xml) Abstract(out *bytes.Buffer, text []byte) {
-	out.WriteString("\n<abstract>\n")
+	out.WriteString("<abstract>\n")
 	out.Write(text)
 	out.WriteString("\n</abstract>\n")
 }
@@ -113,7 +113,7 @@ func (options *Xml) HRule(out *bytes.Buffer) {
 func (options *Xml) List(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
 	if flags&LIST_TYPE_ORDERED != 0 {
-		out.WriteString("\n<ol>\n")
+		out.WriteString("<ol>\n")
 	} else {
 		out.WriteString("\n</ol>\n")
 	}
@@ -122,26 +122,29 @@ func (options *Xml) List(out *bytes.Buffer, text func() bool, flags int) {
 		return
 	}
 	if flags&LIST_TYPE_ORDERED != 0 {
-		out.WriteString("\n</ol>\n")
+		out.WriteString("</ol>\n")
 	} else {
 		out.WriteString("\n</ol>\n")
 	}
 }
 
 func (options *Xml) ListItem(out *bytes.Buffer, text []byte, flags int) {
-	out.WriteString("\n<li> ")
+	out.WriteString("<li>\n")
 	out.Write(text)
-	out.WriteString("\n</li> ")
+	out.WriteString("\n</li>\n")
 }
 
-func (options *Xml) Paragraph(out *bytes.Buffer, text func() bool) {
+func (options *Xml) Paragraph(out *bytes.Buffer, text func(int) bool) {
 	marker := out.Len()
+	indent(out, options.indent)
 	out.WriteString("<t>\n")
+	options.indent += 2
 	if !text() {
 		out.Truncate(marker)
 		return
 	}
-	out.WriteString("</t>\n")
+	options.indent -= 2
+	out.WriteString("'\n</t>\n")
 }
 
 func (options *Xml) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int) {
