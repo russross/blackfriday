@@ -209,6 +209,10 @@ type Renderer interface {
 	DocumentMatter(out *bytes.Buffer, matter int)
 
 	GetFlags() int
+
+	AddIAL(*IAL)
+	GetIAL() []*IAL
+	ResetIAL()
 }
 
 // Callback functions for inline parsing. One such function is defined
