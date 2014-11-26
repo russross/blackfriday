@@ -224,6 +224,8 @@ implements the following extensions:
 
 *  **Definitition lists**, (TODO)
 
+*  **TOML TitleBlock**, add an extended title block prefixed with % in TOML (not yaml).
+
 Other renderers
 ---------------
 
