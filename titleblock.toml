@@ -1,0 +1,24 @@
+title = "TOML Example"
+abbrev = "ddds"
+docname = "dsjdjksds"
+date = "<dfsds>"
+category = "info"
+
+stand_alone: yes
+
+pi = [toc, sortrefs, symrefs]
+ipr: trust200902 
+area: General
+workgroup: XMPP Working Group 
+keyword: Internet-Draft
+
+[[author]]
+name = "Hammer"
+sku = 738594937
+
+[[author]]
+
+[[author]]
+name = "Nail"
+sku = 284758393
+color = "gray"
