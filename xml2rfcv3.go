@@ -91,6 +91,7 @@ func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id st
 	//marker := out.Len()
 	//out.Truncate(marker)
 
+	id = "a"
 	if level <= options.sectionLevel {
 		// close previous ones
 		for i := options.sectionLevel - level + 1; i > 0; i-- {
@@ -113,16 +114,16 @@ func (options *Xml) HRule(out *bytes.Buffer) {
 func (options *Xml) List(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
 	if flags&LIST_TYPE_ORDERED != 0 {
-		out.WriteString("<ol>\n")
+		out.WriteString("<ul>\n")
 	} else {
-		out.WriteString("\n</ol>\n")
+		out.WriteString("\n<ol>\n")
 	}
 	if !text() {
 		out.Truncate(marker)
 		return
 	}
 	if flags&LIST_TYPE_ORDERED != 0 {
-		out.WriteString("</ol>\n")
+		out.WriteString("</ul>\n")
 	} else {
 		out.WriteString("\n</ol>\n")
 	}
@@ -134,16 +135,13 @@ func (options *Xml) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	out.WriteString("\n</li>\n")
 }
 
-func (options *Xml) Paragraph(out *bytes.Buffer, text func(int) bool) {
+func (options *Xml) Paragraph(out *bytes.Buffer, text func() bool) {
 	marker := out.Len()
-	indent(out, options.indent)
 	out.WriteString("<t>\n")
-	options.indent += 2
 	if !text() {
 		out.Truncate(marker)
 		return
 	}
-	options.indent -= 2
 	out.WriteString("'\n</t>\n")
 }
 
