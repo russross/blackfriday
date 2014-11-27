@@ -14,7 +14,6 @@ package blackfriday
 
 import (
 	"bytes"
-	"fmt"
 )
 
 // XML renderer configuration options.
@@ -76,13 +75,13 @@ func (options *Xml) TitleBlock(out *bytes.Buffer, text []byte) {
 
 func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte) {
 	// use IAL here.
+	s := ""
 	if a := options.GetIAL(); a != nil {
-		println("FOUND IAL, doing", string(text))
 		for _, aa := range a {
-			fmt.Printf("%d %v\n", len(a), aa)
+			s += " " + aa.id
 		}
 	}
-	out.WriteString("<blockquote>\n")
+	out.WriteString("<blockquote" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</blockquote>\n")
 	options.ResetIAL()

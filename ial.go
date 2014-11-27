@@ -12,5 +12,8 @@ type IAL struct {
 
 // Parsing and thus detecting an IAL. Return a valid *IAL or nil.
 func NewIAL(data []byte) *IAL {
+	// TODO
+
+
 	return &IAL{id:string(data)}
 }

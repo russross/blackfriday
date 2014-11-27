@@ -625,7 +625,6 @@ func leftBrace(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	}
 	for i := 0; i < len(data); i++ {
 		if data[i] == '}' {
-			println("leftBrace", "closing brace seen, adding", string(data[1:i]))
 			p.ial = append(p.ial, NewIAL(data[1:i]))
 			return i+1
 		}
