@@ -10,14 +10,17 @@ Hallo, this is text
 
 Hallo, this is text
 
-> Hallo4
-> Hallo5
-{source="BLI BLI"}
-
-Hallo, this is text
-
 > Hallo6
 > Hallo7
-{evenmore="BLE BLE"}
+{evenmore="BLE BLE"
 
 This is no one `{source='BLEIP'}` on of them
+
+A definition list
+
+Apple
+:   Pomaceous fruit of plants of the genus Malus in 
+the family Rosaceae.
+
+Orange
+:   The fruit of an evergreen tree of the genus Citrus.
