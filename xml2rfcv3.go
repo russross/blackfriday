@@ -69,7 +69,7 @@ func (options *Xml) TitleBlock(out *bytes.Buffer, text []byte) {
 func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte) {
 	out.WriteString("<blockquote>\n")
 	out.Write(text)
-	out.WriteString("\n</blockquote>\n")
+	out.WriteString("</blockquote>\n")
 }
 
 func (options *Xml) Abstract(out *bytes.Buffer, text []byte) {
@@ -142,7 +142,7 @@ func (options *Xml) Paragraph(out *bytes.Buffer, text func() bool) {
 		out.Truncate(marker)
 		return
 	}
-	out.WriteString("'\n</t>\n")
+	out.WriteString("\n</t>\n")
 }
 
 func (options *Xml) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int) {
@@ -365,6 +365,12 @@ func (options *Xml) DocumentMatter(out *bytes.Buffer, matter int) {
 	}
 	options.docLevel = matter
 }
+
+func (options *Xml) AddIAL(*IAL)  {}
+
+func (options *Xml) GetIAL() []*IAL { return nil }
+
+func (options *Xml) ResetIAL()  {}
 
 var entityConvert = map[byte]string{
 	'<': "&lt;",

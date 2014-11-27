@@ -771,6 +771,12 @@ func (options *Html) TocFinalize() {
 	}
 }
 
+func (options *Html) AddIAL(*IAL)  {}
+
+func (options *Html) GetIAL() []*IAL { return nil }
+
+func (options *Html) ResetIAL()  {}
+
 func isHtmlTag(tag []byte, tagname string) bool {
 	found, _ := findHtmlTagPos(tag, tagname)
 	return found

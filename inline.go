@@ -606,7 +606,7 @@ func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	return end
 }
 
-// '{' IAL or *matter
+// '{' IAL or *matter, {{ is handled in the first pass
 func leftBrace(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	if offset == 0 {
 		// {*matter} are only valid at the beginning of the line
@@ -623,6 +623,12 @@ func leftBrace(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		}
 	}
 	// IAL
+	for i := 0; i < len(data); i++ {
+		if data[i] == '}' {
+			println("IAL", string(data[:i]))
+			return i
+		}
+	}
 	return 0
 }
 
