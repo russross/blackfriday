@@ -10,8 +10,7 @@ type IAL struct {
 	attr  map[string]string // key=value pairs
 }
 
-// parsing and thus detecting one
-
+// Parsing and thus detecting an IAL. Return a valid *IAL or nil.
 func NewIAL(data []byte) *IAL {
-	return nil
+	return &IAL{id:string(data)}
 }

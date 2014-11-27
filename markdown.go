@@ -210,9 +210,9 @@ type Renderer interface {
 
 	GetFlags() int
 
-	AddIAL(*IAL)
+	SetIAL([]*IAL)
 	GetIAL() []*IAL
-	ResetIAL()
+	ResetIAL() // Should be done autom. after GetIAL
 }
 
 // Callback functions for inline parsing. One such function is defined
@@ -235,6 +235,9 @@ type parser struct {
 	// presence. If a ref is also a footnote, it's stored both in refs and here
 	// in notes. Slice is nil if footnotes not enabled.
 	notes []*reference
+
+	// Placeholder for IALs that can be added to blocklevel elements.
+	ial []*IAL
 }
 
 //

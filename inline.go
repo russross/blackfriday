@@ -608,6 +608,7 @@ func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 // '{' IAL or *matter, {{ is handled in the first pass
 func leftBrace(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+	data = data[offset:]
 	if offset == 0 {
 		// {*matter} are only valid at the beginning of the line
 		switch s := string(data); true {
@@ -622,11 +623,11 @@ func leftBrace(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			return len(data) + 1
 		}
 	}
-	// IAL
 	for i := 0; i < len(data); i++ {
 		if data[i] == '}' {
-			println("IAL", string(data[:i]))
-			return i
+			println("leftBrace", "closing brace seen, adding", string(data[1:i]))
+			p.ial = append(p.ial, NewIAL(data[1:i]))
+			return i+1
 		}
 	}
 	return 0
@@ -778,24 +779,24 @@ func autoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		openDelim := 1
 
 		/* Try to close the final punctuation sign in this same line;
-		 * if we managed to close it outside of the URL, that means that it's
-		 * not part of the URL. If it closes inside the URL, that means it
-		 * is part of the URL.
-		 *
-		 * Examples:
-		 *
-		 *      foo http://www.pokemon.com/Pikachu_(Electric) bar
-		 *              => http://www.pokemon.com/Pikachu_(Electric)
-		 *
-		 *      foo (http://www.pokemon.com/Pikachu_(Electric)) bar
-		 *              => http://www.pokemon.com/Pikachu_(Electric)
-		 *
-		 *      foo http://www.pokemon.com/Pikachu_(Electric)) bar
-		 *              => http://www.pokemon.com/Pikachu_(Electric))
-		 *
-		 *      (foo http://www.pokemon.com/Pikachu_(Electric)) bar
-		 *              => foo http://www.pokemon.com/Pikachu_(Electric)
-		 */
+		* if we managed to close it outside of the URL, that means that it's
+		* not part of the URL. If it closes inside the URL, that means it
+		* is part of the URL.
+		*
+		* Examples:
+		*
+		*      foo http://www.pokemon.com/Pikachu_(Electric) bar
+		*              => http://www.pokemon.com/Pikachu_(Electric)
+		*
+		*      foo (http://www.pokemon.com/Pikachu_(Electric)) bar
+		*              => http://www.pokemon.com/Pikachu_(Electric)
+		*
+		*      foo http://www.pokemon.com/Pikachu_(Electric)) bar
+		*              => http://www.pokemon.com/Pikachu_(Electric))
+		*
+		*      (foo http://www.pokemon.com/Pikachu_(Electric)) bar
+		*              => foo http://www.pokemon.com/Pikachu_(Electric)
+		*/
 
 		for bufEnd >= 0 && origData[bufEnd] != '\n' && openDelim != 0 {
 			if origData[bufEnd] == data[linkEnd-1] {

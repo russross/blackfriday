@@ -14,6 +14,7 @@ package blackfriday
 
 import (
 	"bytes"
+	"fmt"
 )
 
 // XML renderer configuration options.
@@ -26,7 +27,14 @@ type Xml struct {
 	flags        int // XML_* options
 	sectionLevel int // current section level
 	docLevel     int // frontmatter/mainmatter or backmatter
+
+	// Store the IAL we see for this block element
+	ial []*IAL
 }
+
+func (options *Xml) SetIAL(i []*IAL) { options.ial = append(options.ial, i...) }
+func (options *Xml) GetIAL() []*IAL  { return options.ial }
+func (options *Xml) ResetIAL()       { options.ial = nil }
 
 // XmlRenderer creates and configures a Xml object, which
 // satisfies the Renderer interface.
@@ -67,9 +75,17 @@ func (options *Xml) TitleBlock(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte) {
+	// use IAL here.
+	if a := options.GetIAL(); a != nil {
+		println("FOUND IAL, doing", string(text))
+		for _, aa := range a {
+			fmt.Printf("%d %v\n", len(a), aa)
+		}
+	}
 	out.WriteString("<blockquote>\n")
 	out.Write(text)
 	out.WriteString("</blockquote>\n")
+	options.ResetIAL()
 }
 
 func (options *Xml) Abstract(out *bytes.Buffer, text []byte) {
@@ -365,12 +381,6 @@ func (options *Xml) DocumentMatter(out *bytes.Buffer, matter int) {
 	}
 	options.docLevel = matter
 }
-
-func (options *Xml) AddIAL(*IAL)  {}
-
-func (options *Xml) GetIAL() []*IAL { return nil }
-
-func (options *Xml) ResetIAL()  {}
 
 var entityConvert = map[byte]string{
 	'<': "&lt;",

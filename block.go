@@ -987,8 +987,11 @@ func (p *parser) quote(out *bytes.Buffer, data []byte) int {
 	}
 
 	var cooked bytes.Buffer
+	println("SETTTING IAL and calling BlockQuota, for ", raw.String())
 	p.block(&cooked, raw.Bytes())
+	p.r.SetIAL(p.ial)
 	p.r.BlockQuote(out, cooked.Bytes())
+	p.ial = nil
 	return end
 }
 
