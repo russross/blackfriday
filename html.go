@@ -39,6 +39,7 @@ const (
 	HTML_USE_SMARTYPANTS                      // enable smart punctuation substitutions
 	HTML_SMARTYPANTS_FRACTIONS                // enable smart fractions (with HTML_USE_SMARTYPANTS)
 	HTML_SMARTYPANTS_LATEX_DASHES             // enable LaTeX-style dashes (with HTML_USE_SMARTYPANTS)
+	HTML_SMARTYPANTS_ANGLED_QUOTES            // enable angled double quotes (with HTML_USE_SMARTYPANTS) for double quotes rendering
 	HTML_FOOTNOTE_RETURN_LINKS                // generate a link at the end of a footnote to return to the source
 )
 

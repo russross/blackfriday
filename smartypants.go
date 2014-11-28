@@ -205,13 +205,13 @@ func smartDashLatex(out *bytes.Buffer, smrt *smartypantsData, previousChar byte,
 	return 0
 }
 
-func smartAmp(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+func smartAmpVariant(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte, quote byte) int {
 	if bytes.HasPrefix(text, []byte("&quot;")) {
 		nextChar := byte(0)
 		if len(text) >= 7 {
 			nextChar = text[6]
 		}
-		if smartQuoteHelper(out, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
+		if smartQuoteHelper(out, previousChar, nextChar, quote, &smrt.inDoubleQuote) {
 			return 5
 		}
 	}
@@ -222,6 +222,14 @@ func smartAmp(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text 
 
 	out.WriteByte('&')
 	return 0
+}
+
+func smartAmp(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+	return smartAmpVariant(out, smrt, previousChar, text, 'd')
+}
+
+func smartAmpAngledQuote(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+	return smartAmpVariant(out, smrt, previousChar, text, 'a')
 }
 
 func smartPeriod(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
@@ -323,16 +331,24 @@ func smartNumber(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, te
 	return 0
 }
 
-func smartDoubleQuote(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+func smartDoubleQuoteVariant(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte, quote byte) int {
 	nextChar := byte(0)
 	if len(text) > 1 {
 		nextChar = text[1]
 	}
-	if !smartQuoteHelper(out, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
+	if !smartQuoteHelper(out, previousChar, nextChar, quote, &smrt.inDoubleQuote) {
 		out.WriteString("&quot;")
 	}
 
 	return 0
+}
+
+func smartDoubleQuote(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+	return smartDoubleQuoteVariant(out, smrt, previousChar, text, 'd')
+}
+
+func smartAngledDoubleQuote(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
+	return smartDoubleQuoteVariant(out, smrt, previousChar, text, 'a')
 }
 
 func smartLeftAngle(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
@@ -352,8 +368,13 @@ type smartypantsRenderer [256]smartCallback
 
 func smartypants(flags int) *smartypantsRenderer {
 	r := new(smartypantsRenderer)
-	r['"'] = smartDoubleQuote
-	r['&'] = smartAmp
+	if flags&HTML_SMARTYPANTS_ANGLED_QUOTES == 0 {
+		r['"'] = smartDoubleQuote
+		r['&'] = smartAmp
+	} else {
+		r['"'] = smartAngledDoubleQuote
+		r['&'] = smartAmpAngledQuote
+	}
 	r['\''] = smartSingleQuote
 	r['('] = smartParens
 	if flags&HTML_SMARTYPANTS_LATEX_DASHES == 0 {
