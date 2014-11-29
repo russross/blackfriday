@@ -202,15 +202,13 @@ implements the following extensions:
 
 *   **Indices**, using `(((item, subitem)))` syntax.
 
-*   **Citations**, using the reference syntax `[p. 23][#RFC2535]`, the citation
+*   **Citations**, using the citation syntax from pandoc `[@RFC2535 p. 23]`, the citation
     can either be informative (default) or normative, this can be indicated by using
-    the `i` or `n` modifer: `[][n#RFC2535]`. The sections containing
-    the references are outputted automatically, before the end of the document or
-    when the back matter starts.
+    the `i` or `n` modifer: `[@RFC2535(n)]`.
+
     To make the references work you can optionally include a filename:
-    `[][#RFC2335,bib/reference.RFC.2525.xml]` this only needs to happen once.
-    If the reference is `RFC<number>` a default will be used (cmd line flag bib dir)
-    If the reference is ... I-D another default will be used. (TODO)
+    `[#RFC233@(n:bib/reference.RFC.2525.xml)]. If you reference an RFC or ID
+    the filename will be contructed automatically.
 
 *  **Asides**, any paragraph with `A>` at the beginning of all lines is an aside.
 
@@ -221,12 +219,12 @@ implements the following extensions:
 *  **{frontmatter}/{mainmatter}/{backmatter}** Create useful divisions in your document.
     This is a special case of IAL
 
-*  **IAL**, kramdown's Inline Attribute List syntax. (TODO), but took the commonMark
-    proposal. without the : {#id .class key=value key="val ue"}. This clashes with autoid stuff?
+*  **IAL**, kramdown's Inline Attribute List syntax, but took the commonMark
+    proposal, thus without the colon `{#id .class key=value key="value"}`.
 
 *  **Definitition lists**, (TODO)
 
-*  **TOML TitleBlock**, add an extended title block prefixed with % in TOML. (TODO)
+*  **TOML TitleBlock**, add an extended title block prefixed with % in TOML.
 
 Other renderers
 ---------------
