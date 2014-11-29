@@ -202,11 +202,11 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	var t linkType
 	if offset > 0 && data[offset-1] == '!' {
 		t = linkImg
+	} else if offset > 0 && data[offset-1] == '@' {
+		t = linkCitation
 	} else if p.flags&EXTENSION_FOOTNOTES != 0 {
 		if offset > 0 && data[offset-1] == '^' {
 			t = linkInlineFootnote
-		} else if offset > 0 && data[offset-1] == '@' {
-			t = linkCitation
 		} else if len(data)-1 > offset && data[offset+1] == '^' {
 			t = linkDeferredFootnote
 		}
@@ -257,9 +257,10 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		i++
 	}
 
+	// TODO(miek): parse p. 23 parts here (title)
 	// [@RFC2534(n:bib/reference.xml) p. 23]
 	// [@REF(n|i:file) text]
-	if p.flags&EXTENSION_CITATION != 0 {
+	if (t == linkCitation || ((len(data) > offset+1) && data[offset+1] == '@')) && p.flags&EXTENSION_CITATION != 0 {
 		var (
 			parenB, parenE int
 			id, file       []byte
@@ -618,7 +619,6 @@ func leftBrace(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		}
 	}
 	if j := p.isIAL(data); j > 0 {
-		println("IAL", string(data))
 		return j
 	}
 	return 0

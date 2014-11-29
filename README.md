@@ -207,7 +207,7 @@ implements the following extensions:
     the `i` or `n` modifer: `[@RFC2535(n)]`.
 
     To make the references work you can optionally include a filename:
-    `[#RFC233@(n:bib/reference.RFC.2525.xml)]. If you reference an RFC or ID
+    `[@RFC233(n:bib/reference.RFC.2525.xml)]`. If you reference an RFC or ID
     the filename will be contructed automatically.
 
 *  **Asides**, any paragraph with `A>` at the beginning of all lines is an aside.
