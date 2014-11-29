@@ -260,7 +260,9 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	// TODO(miek): parse p. 23 parts here (title)
 	// [@RFC2534(n:bib/reference.xml) p. 23]
 	// [@REF(n|i:file) text]
-	if (t == linkCitation || ((len(data) > offset+1) && data[offset+1] == '@')) && p.flags&EXTENSION_CITATION != 0 {
+	println("CITATION")
+	println(len(data), offset, string(data))
+	if (t == linkCitation || data[1] == '@') && p.flags&EXTENSION_CITATION != 0 {
 		var (
 			parenB, parenE int
 			id, file       []byte
