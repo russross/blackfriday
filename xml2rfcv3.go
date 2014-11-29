@@ -145,19 +145,19 @@ func (options *Xml) List(out *bytes.Buffer, text func() bool, flags int) {
 }
 
 func (options *Xml) ListItem(out *bytes.Buffer, text []byte, flags int) {
-	out.WriteString("<li>\n")
+	out.WriteString("<li>")
 	out.Write(text)
-	out.WriteString("\n</li>\n")
+	out.WriteString("</li>\n")
 }
 
 func (options *Xml) Paragraph(out *bytes.Buffer, text func() bool) {
 	marker := out.Len()
-	out.WriteString("<t>\n")
+	out.WriteString("<t>")
 	if !text() {
 		out.Truncate(marker)
 		return
 	}
-	out.WriteString("\n</t>\n")
+	out.WriteString("</t>\n")
 }
 
 func (options *Xml) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int) {
@@ -240,6 +240,9 @@ func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation
 			for _, c := range citations {
 				if c.typ == 'i' {
 					f := string(c.filename)
+					if f == "" {
+						f = referenceFile(c.link)
+					}
 					out.WriteString("\t<xi:include href=\"" + f + "\"/>\n")
 				}
 			}
@@ -250,12 +253,31 @@ func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation
 			for _, c := range citations {
 				if c.typ == 'n' {
 					f := string(c.filename)
+					if f == "" {
+						f = referenceFile(c.link)
+					}
 					out.WriteString("\t<xi:include href=\"" + f + "\"/>\n")
 				}
 			}
 			out.WriteString("</references>\n")
 		}
 	}
+}
+
+// create reference file
+func referenceFile(id []byte) string {
+	if len(id) < 3 {
+		return ""
+	}
+	s := string(id[:3])
+	d := string(id[3:])
+	switch s {	
+	case "RFC":
+		return "reference.RFC." + d + ".xml"
+	case "I-D":
+		return "reference.I-D." + d + ".xml"
+	}
+	return ""
 }
 
 func (options *Xml) AutoLink(out *bytes.Buffer, link []byte, kind int) {

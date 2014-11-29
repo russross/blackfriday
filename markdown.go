@@ -503,7 +503,7 @@ type citation struct {
 	link     []byte
 	title    []byte
 	filename []byte
-	typ      rune // 'i' for informal, 'n' normative (default = 'i')
+	typ      byte // 'i' for informal, 'n' normative (default = 'i')
 }
 
 // Check whether or not data starts with a reference link.

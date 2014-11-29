@@ -257,10 +257,46 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		i++
 	}
 
-	// TODO(miek): citation here, better syntax
 	// [@RFC2534(n:bib/reference.xml) p. 23]
-	// [@REF(N|I:file) text]
-
+	// [@REF(n|i:file) text]
+	if p.flags&EXTENSION_CITATION != 0 {
+		var (
+			parenB, parenE int
+			id, file       []byte
+		)
+		typ := byte('i')
+		for j := offset; j < txtE; j++ {
+			if data[j] == '(' {
+				id = data[2:j]
+				parenB = j
+				continue
+			}
+			if data[j] == ')' {
+				parenE = j
+				break
+			}
+		}
+		if parenB > 0 && parenE > 0 {
+			id = data[2:parenB]
+			typ = data[parenB+1]
+			for j := parenB; j < parenE; j++ {
+				if data[j] == ':' { // left is typ, right is filename
+					typ = data[j-1]
+					file = data[j+1 : txtE-1]
+					break
+				}
+			}
+		}
+		if id == nil {
+			id = data[2:txtE]
+		}
+		// we might be liberal and check which item we got and update if we see new ones.
+		if _, ok := p.citations[string(id)]; !ok {
+			p.citations[string(id)] = &citation{link: id, title: title, typ: typ, filename: file}
+		}
+		p.r.Citation(out, id, title)
+		return txtE + 1
+	}
 
 	// inline style link
 	switch {
@@ -396,57 +432,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		key := string(bytes.ToLower(id))
 		lr, ok := p.refs[key]
 		if !ok {
-			if p.flags&EXTENSION_CITATION == 0 {
-				return 0
-			}
-			// if the key does not start with #, i# or n# we ignore it
-			if len(id) < 2 {
-				return 0
-			}
-			typ := 'i'
-			switch {
-			case id[0] == 'i' && id[1] == '#':
-				id = id[2:]
-			case id[0] == 'n' && id[1] == '#':
-				id = id[2:]
-				typ = 'n'
-			case id[0] == '#':
-				id = id[1:]
-			default:
-				return 0
-			}
-			// We may have an optional filename in the link we well, this should be the
-			// last part of id. Search back in last part pf the Id
-			fileB := 0
-			file := []byte{}
-			for i := len(id) - 1; i >= 0; i-- {
-				if id[i] == ',' {
-					fileB = i
-					break
-				}
-			}
-			if fileB != 0 {
-				n := 1
-				// forward again for whitespace
-				for i := n; i < len(id); i++ {
-					if id[i] == ' ' {
-						n++
-					}
-				}
-				file = id[fileB+n:]
-				if len(file) < 4 {
-					// seems unlikely
-					file = []byte{}
-				}
-				id = id[:fileB]
-			}
-
-			title = data[1:txtE]
-			if _, ok := p.citations[string(id)]; !ok {
-				p.citations[string(id)] = &citation{link: id, title: title, typ: typ, filename: file}
-			}
-			p.r.Citation(out, id, title)
-			return linkE + 1
+			return 0
 		}
 
 		// keep link and title from reference
@@ -801,7 +787,7 @@ func autoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		*
 		*      (foo http://www.pokemon.com/Pikachu_(Electric)) bar
 		*              => foo http://www.pokemon.com/Pikachu_(Electric)
-		*/
+		 */
 
 		for bufEnd >= 0 && origData[bufEnd] != '\n' && openDelim != 0 {
 			if origData[bufEnd] == data[linkEnd-1] {
