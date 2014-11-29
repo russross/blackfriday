@@ -43,7 +43,7 @@ const (
 	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK             // No need to insert an empty line to start a (code, quote, order list, unorder list)block
 	EXTENSION_HEADER_IDS                             // specify header IDs  with {#id}
 	EXTENSION_TITLEBLOCK                             // Titleblock ala pandoc
-	EXTENSION_TITLEBLOCK_TOML                        // Titleblock in TOML
+	EXTENSION_TOML_TITLEBLOCK                        // Titleblock in TOML
 	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text
 	EXTENSION_INCLUDE                                // Include file with {{ syntax
 	EXTENSION_INDEX                                  // Support index with ((( syntax
@@ -171,6 +171,8 @@ type Renderer interface {
 	HRule(out *bytes.Buffer)
 	List(out *bytes.Buffer, text func() bool, flags int)
 	ListItem(out *bytes.Buffer, text []byte, flags int)
+	DefList(out *bytes.Buffer, text func() bool, flags int)
+	DefListItem(out *bytes.Buffer, text []byte, flags int)
 	Paragraph(out *bytes.Buffer, text func() bool)
 	Table(out *bytes.Buffer, header []byte, body []byte, columnData []int)
 	TableRow(out *bytes.Buffer, text []byte)
@@ -179,7 +181,10 @@ type Renderer interface {
 	Footnotes(out *bytes.Buffer, text func() bool)
 	FootnoteItem(out *bytes.Buffer, name, text []byte, flags int)
 	TitleBlock(out *bytes.Buffer, text []byte)
+	TitleBlockTOML(out *bytes.Buffer, data title)
 	Abstract(out *bytes.Buffer, text []byte)
+	//Note
+	//Aside
 
 	// Span-level callbacks
 	AutoLink(out *bytes.Buffer, link []byte, kind int)
@@ -195,7 +200,6 @@ type Renderer interface {
 	FootnoteRef(out *bytes.Buffer, ref []byte, id int)
 	Index(out *bytes.Buffer, primary, secondary []byte)
 	Citation(out *bytes.Buffer, link, title []byte)
-	References(out *bytes.Buffer, citations map[string]*citation, start bool)
 
 	// Low-level callbacks
 	Entity(out *bytes.Buffer, entity []byte)
@@ -204,6 +208,7 @@ type Renderer interface {
 	// Header and footer
 	DocumentHeader(out *bytes.Buffer, start bool)
 	DocumentFooter(out *bytes.Buffer, start bool)
+	References(out *bytes.Buffer, citations map[string]*citation, start bool)
 
 	// Frontmatter, mainmatter or backmatter
 	DocumentMatter(out *bytes.Buffer, matter int)
@@ -229,6 +234,9 @@ type parser struct {
 	nesting        int
 	maxNesting     int
 	insideLink     bool
+
+	// Don't need to save, kill current titleblock
+	titleblock title
 
 	// Footnotes need to be ordered as well as available to quickly check for
 	// presence. If a ref is also a footnote, it's stored both in refs and here

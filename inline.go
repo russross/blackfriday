@@ -248,8 +248,6 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	if i >= len(data) {
 		return 0
 	}
-	// TODO(miek): citation here
-
 	txtE := i
 	i++
 
@@ -258,6 +256,11 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	for i < len(data) && isspace(data[i]) {
 		i++
 	}
+
+	// TODO(miek): citation here, better syntax
+	// [@RFC2534(n:bib/reference.xml) p. 23]
+	// [@REF(N|I:file) text]
+
 
 	// inline style link
 	switch {

@@ -186,6 +186,8 @@ func (options *Html) TitleBlock(out *bytes.Buffer, text []byte) {
 	out.WriteString("\n</h1>")
 }
 
+func (options *Html) TitleBlockTOML(out *bytes.Buffer, data title) {}
+
 func (options *Html) Header(out *bytes.Buffer, text func() bool, level int, id string) {
 	marker := out.Len()
 	doubleSpace(out)
@@ -353,6 +355,9 @@ func (options *Html) FootnoteItem(out *bytes.Buffer, name, text []byte, flags in
 	}
 	out.WriteString("</li>\n")
 }
+
+func (options *Html) DefList(out *bytes.Buffer, text func() bool, flags int) {}
+func (options *Html) DefListItem(out *bytes.Buffer, text []byte, flags int)  {}
 
 func (options *Html) List(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()

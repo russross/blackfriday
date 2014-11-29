@@ -12,9 +12,7 @@
 
 package blackfriday
 
-import (
-	"bytes"
-)
+import "bytes"
 
 // XML renderer configuration options.
 const ()
@@ -26,6 +24,7 @@ type Xml struct {
 	flags        int // XML_* options
 	sectionLevel int // current section level
 	docLevel     int // frontmatter/mainmatter or backmatter
+	indentLevel  int
 
 	// Store the IAL we see for this block element
 	ial []*IAL
@@ -68,9 +67,9 @@ func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 	}
 }
 
-func (options *Xml) TitleBlock(out *bytes.Buffer, text []byte) {
+func (options *Xml) TitleBlock(out *bytes.Buffer, text []byte) {}
 
-}
+func (options *Xml) TitleBlockTOML(out *bytes.Buffer, data title) {}
 
 func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte) {
 	// use IAL here.
@@ -123,6 +122,9 @@ func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id st
 func (options *Xml) HRule(out *bytes.Buffer) {
 	// not used
 }
+
+func (options *Xml) DefList(out *bytes.Buffer, text func() bool, flags int) {}
+func (options *Xml) DefListItem(out *bytes.Buffer, text []byte, flags int)  {}
 
 func (options *Xml) List(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
@@ -219,6 +221,7 @@ func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation
 	if !first {
 		return
 	}
+	// TODO need to output this in backmatter, if needed
 	// count the references
 	refi, refn := 0, 0
 	for _, c := range citations {
@@ -234,20 +237,20 @@ func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation
 	if refi+refn > 0 {
 		if refi > 0 {
 			out.WriteString("<references title=\"Informative References\">\n")
-			for k, c := range citations {
+			for _, c := range citations {
 				if c.typ == 'i' {
 					f := string(c.filename)
-					out.WriteString("\t<xi:include href=\"" + f + "\"/> <!-- " + k + " -->\n")
+					out.WriteString("\t<xi:include href=\"" + f + "\"/>\n")
 				}
 			}
 			out.WriteString("</references>\n")
 		}
 		if refn > 0 {
 			out.WriteString("<references title=\"Normative References\">\n")
-			for k, c := range citations {
+			for _, c := range citations {
 				if c.typ == 'n' {
 					f := string(c.filename)
-					out.WriteString("\t<xi:include href=\"" + f + "\"/> <!-- " + k + " -->\n")
+					out.WriteString("\t<xi:include href=\"" + f + "\"/>\n")
 				}
 			}
 			out.WriteString("</references>\n")

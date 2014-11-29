@@ -222,11 +222,11 @@ implements the following extensions:
     This is a special case of IAL
 
 *  **IAL**, kramdown's Inline Attribute List syntax. (TODO), but took the commonMark
-    proposal. without the : {#id .class key=value key="val ue"}. This clashes with autoid stuff
+    proposal. without the : {#id .class key=value key="val ue"}. This clashes with autoid stuff?
 
 *  **Definitition lists**, (TODO)
 
-*  **TOML TitleBlock**, add an extended title block prefixed with % in TOML (not yaml). (TODO)
+*  **TOML TitleBlock**, add an extended title block prefixed with % in TOML. (TODO)
 
 Other renderers
 ---------------
@@ -245,7 +245,7 @@ are a few of note:
 *   [markdownfmt](https://github.com/shurcooL/markdownfmt): like gofmt,
     but for markdown.
 
-*   XML output: renders output as XML2RFCv2. 
+*   XML output: renders output as XML2RFCv2.
 
 Todo
 ----

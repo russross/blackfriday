@@ -120,6 +120,7 @@ func main() {
 	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
 	extensions |= blackfriday.EXTENSION_INDEX
 	extensions |= blackfriday.EXTENSION_CITATION
+	extensions |= blackfriday.EXTENSION_TITLEBLOCK
 
 	var renderer blackfriday.Renderer
 	if xml {

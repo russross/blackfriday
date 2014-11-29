@@ -15,8 +15,19 @@ type IAL struct {
 func (p *parser) isIAL(data []byte) int {
 	for i := 0; i < len(data); i++ {
 		if data[i] == '}' {
-			p.ial = append(p.ial, &IAL{id:string(data[1:i])})
-			return i+1
+			// if this is mainmatter, frontmatter, or backmatter it
+			// isn't an IAL.
+			s := string(data[1:i])
+			switch s {
+			case "frontmatter":
+				fallthrough
+			case "mainmatter":
+				fallthrough
+			case "backnmatter":
+				return 0
+			}
+			p.ial = append(p.ial, &IAL{id: s})
+			return i + 1
 		}
 	}
 	return 0
