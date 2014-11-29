@@ -184,6 +184,7 @@ const (
 	linkImg
 	linkDeferredFootnote
 	linkInlineFootnote
+	linkCitation
 )
 
 // '[': parse a link or an image or a footnote
@@ -197,12 +198,15 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	// ![alt] == image
 	// ^[text] == inline footnote
 	// [^refId] == deferred footnote
+	// [@text] == citation
 	var t linkType
 	if offset > 0 && data[offset-1] == '!' {
 		t = linkImg
 	} else if p.flags&EXTENSION_FOOTNOTES != 0 {
 		if offset > 0 && data[offset-1] == '^' {
 			t = linkInlineFootnote
+		} else if offset > 0 && data[offset-1] == '@' {
+			t = linkCitation
 		} else if len(data)-1 > offset && data[offset+1] == '^' {
 			t = linkDeferredFootnote
 		}
@@ -244,6 +248,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	if i >= len(data) {
 		return 0
 	}
+	// TODO(miek): citation here
 
 	txtE := i
 	i++
@@ -624,6 +629,7 @@ func leftBrace(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		}
 	}
 	for i := 0; i < len(data); i++ {
+		// TODO(miek): see 298, block.go
 		if data[i] == '}' {
 			p.ial = append(p.ial, NewIAL(data[1:i]))
 			return i+1

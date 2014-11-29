@@ -34,6 +34,15 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 
 	// parse out one block-level construct at a time
 	for len(data) > 0 {
+		// IAL:
+		// {....}
+		if data[0] == '{' {
+			if j := p.isIAL(data); j > 0 {
+				data = data[j:]
+				continue
+			}
+		}
+
 		// prefixed header:
 		//
 		// # Header 1
@@ -61,7 +70,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		//
 		// % stuff
 		// % more stuff
-		// % even more stuff
+		// % even more stuff TOML_TITLEBLOCK
 		if p.flags&EXTENSION_TITLEBLOCK != 0 {
 			if data[0] == '%' {
 				if i := p.titleBlock(out, data, true); i > 0 {
@@ -280,6 +289,16 @@ func (p *parser) isUnderlinedHeader(data []byte) int {
 		}
 	}
 
+	return 0
+}
+
+// TODO(miek): make better, see ial.go
+func (p *parser) isIAL(data []byte) int {
+	for i := 0; i < len(data); i++ {
+		if data[i] == '}' {
+			return i+1
+		}
+	}
 	return 0
 }
 
@@ -1303,6 +1322,9 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 
 	// keep going until we find something to mark the end of the paragraph
 	for i < len(data) {
+		if data[i] == '{' {
+			println("IAL", string(data))
+		}
 		// mark the beginning of the current line
 		prev = line
 		current := data[i:]
