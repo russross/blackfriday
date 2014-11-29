@@ -632,6 +632,7 @@ func leftBrace(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		}
 	}
 	if j := p.isIAL(data); j > 0 {
+		println("IAL", string(data))
 		return j
 	}
 	return 0

@@ -23,7 +23,7 @@ func (p *parser) isIAL(data []byte) int {
 				fallthrough
 			case "mainmatter":
 				fallthrough
-			case "backnmatter":
+			case "backmatter":
 				return 0
 			}
 			p.ial = append(p.ial, &IAL{id: s})
