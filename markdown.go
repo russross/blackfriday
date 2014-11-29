@@ -211,8 +211,7 @@ type Renderer interface {
 	GetFlags() int
 
 	SetIAL([]*IAL)
-	GetIAL() []*IAL
-	ResetIAL() // Should be done autom. after GetIAL
+	GetAndResetIAL() []*IAL
 }
 
 // Callback functions for inline parsing. One such function is defined

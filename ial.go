@@ -11,9 +11,13 @@ type IAL struct {
 }
 
 // Parsing and thus detecting an IAL. Return a valid *IAL or nil.
-func NewIAL(data []byte) *IAL {
-	// TODO
-
-
-	return &IAL{id:string(data)}
+// we are on the openening brace
+func (p *parser) isIAL(data []byte) int {
+	for i := 0; i < len(data); i++ {
+		if data[i] == '}' {
+			p.ial = append(p.ial, &IAL{id:string(data[1:i])})
+			return i+1
+		}
+	}
+	return 0
 }

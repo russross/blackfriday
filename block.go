@@ -292,16 +292,6 @@ func (p *parser) isUnderlinedHeader(data []byte) int {
 	return 0
 }
 
-// TODO(miek): make better, see ial.go
-func (p *parser) isIAL(data []byte) int {
-	for i := 0; i < len(data); i++ {
-		if data[i] == '}' {
-			return i+1
-		}
-	}
-	return 0
-}
-
 func (p *parser) titleBlock(out *bytes.Buffer, data []byte, doRender bool) int {
 	if data[0] != '%' {
 		return 0
@@ -1322,9 +1312,6 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 
 	// keep going until we find something to mark the end of the paragraph
 	for i < len(data) {
-		if data[i] == '{' {
-			println("IAL", string(data))
-		}
 		// mark the beginning of the current line
 		prev = line
 		current := data[i:]

@@ -628,12 +628,8 @@ func leftBrace(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			return len(data) + 1
 		}
 	}
-	for i := 0; i < len(data); i++ {
-		// TODO(miek): see 298, block.go
-		if data[i] == '}' {
-			p.ial = append(p.ial, NewIAL(data[1:i]))
-			return i+1
-		}
+	if j := p.isIAL(data); j > 0 {
+		return j
 	}
 	return 0
 }

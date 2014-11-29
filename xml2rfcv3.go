@@ -31,9 +31,8 @@ type Xml struct {
 	ial []*IAL
 }
 
-func (options *Xml) SetIAL(i []*IAL) { options.ial = append(options.ial, i...) }
-func (options *Xml) GetIAL() []*IAL  { return options.ial }
-func (options *Xml) ResetIAL()       { options.ial = nil }
+func (options *Xml) SetIAL(i []*IAL)        { options.ial = append(options.ial, i...) }
+func (options *Xml) GetAndResetIAL() []*IAL { i := options.ial; options.ial = nil; return i }
 
 // XmlRenderer creates and configures a Xml object, which
 // satisfies the Renderer interface.
@@ -76,7 +75,7 @@ func (options *Xml) TitleBlock(out *bytes.Buffer, text []byte) {
 func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte) {
 	// use IAL here.
 	s := ""
-	if a := options.GetIAL(); a != nil {
+	if a := options.GetAndResetIAL(); a != nil {
 		for _, aa := range a {
 			s += " " + aa.id
 		}
@@ -84,7 +83,6 @@ func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte) {
 	out.WriteString("<blockquote" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</blockquote>\n")
-	options.ResetIAL()
 }
 
 func (options *Xml) Abstract(out *bytes.Buffer, text []byte) {
@@ -129,18 +127,18 @@ func (options *Xml) HRule(out *bytes.Buffer) {
 func (options *Xml) List(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
 	if flags&LIST_TYPE_ORDERED != 0 {
-		out.WriteString("<ul>\n")
+		out.WriteString("<ol>\n")
 	} else {
-		out.WriteString("\n<ol>\n")
+		out.WriteString("\n<ul>\n")
 	}
 	if !text() {
 		out.Truncate(marker)
 		return
 	}
 	if flags&LIST_TYPE_ORDERED != 0 {
-		out.WriteString("</ul>\n")
+		out.WriteString("</ol>\n")
 	} else {
-		out.WriteString("\n</ol>\n")
+		out.WriteString("\n</ul>\n")
 	}
 }
 
