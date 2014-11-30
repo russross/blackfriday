@@ -12,7 +12,11 @@
 
 package blackfriday
 
-import "bytes"
+import (
+	"bytes"
+	"strconv"
+	"time"
+)
 
 // XML renderer configuration options.
 const ()
@@ -74,6 +78,33 @@ func (options *Xml) TitleBlock(out *bytes.Buffer, text []byte) {}
 
 func (options *Xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	options.titleBlock = block
+	out.WriteString("<rfc xmlns:xi=\"http://www.w3.org/2001/XInclude\" ipr=\"" + 
+		options.titleBlock.Ipr + "\" category=\"" +
+		options.titleBlock.Category + "\" docName=\"" + options.titleBlock.DocName + "\">\n")
+	out.WriteString("<front>")
+
+	out.WriteString("<title abbrev=\"" + options.titleBlock.Abbrev + "\">")
+	out.WriteString(options.titleBlock.Title + "</title>\n\n")
+
+	year := ""
+	if options.titleBlock.Date.Year() > 0 {
+		year = " year=\"" + strconv.Itoa(options.titleBlock.Date.Year()) + "\""
+	}
+	month := ""
+	if options.titleBlock.Date.Month() > 0 {
+		month = " month=\"" + time.Month(options.titleBlock.Date.Month()).String() + "\""
+	}
+	out.WriteString("<date" + year + month + "/>\n\n")
+
+	out.WriteString("<area>" + options.titleBlock.Area + "</area>\n")
+	out.WriteString("<workgroup>" + options.titleBlock.Workgroup + "</workgroup>\n")
+	for _, k := range options.titleBlock.Keyword {
+		out.WriteString("<keyword>" + k + "</keyword>\n")
+	}
+	// Author information
+
+	out.WriteString("\n")
+
 }
 
 func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte) {
@@ -371,10 +402,7 @@ func (options *Xml) DocumentHeader(out *bytes.Buffer, first bool) {
 	if !first {
 		return
 	}
-	out.WriteString("<rfc>\n")
-	out.WriteString("<front>\n")
-	out.WriteString("<title abbrev=\" + options.titleBlock.Abbrev + \">")
-	out.WriteString(options.titleBlock.Title + "</title>\n")
+	out.WriteString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
 }
 
 func (options *Xml) DocumentFooter(out *bytes.Buffer, first bool) {

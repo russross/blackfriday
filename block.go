@@ -1415,13 +1415,13 @@ func createSanitizedAnchorName(text string) string {
 }
 
 func isMatter(text []byte) bool {
-	if string(text) == "{frontmatter}\n" {
+	if string(text) == "{FRONTMATTER}\n" {
 		return true
 	}
-	if string(text) == "{mainmatter}\n" {
+	if string(text) == "{MAINMATTER}\n" {
 		return true
 	}
-	if string(text) == "{backmatter}\n" {
+	if string(text) == "{BACKMATTER}\n" {
 		return true
 	}
 	return false

@@ -216,8 +216,7 @@ implements the following extensions:
 
 *  **Abstracts**, any paragraph with `AB>` (TODO)
 
-*  **{frontmatter}/{mainmatter}/{backmatter}** Create useful divisions in your document.
-    This is a special case of IAL
+*  **{FRONTMATTER}/{MAINMATTER}/{BACKMATTER}** Create useful divisions in your document.
 
 *  **IAL**, kramdown's Inline Attribute List syntax, but took the commonMark
     proposal, thus without the colon `{#id .class key=value key="value"}`.

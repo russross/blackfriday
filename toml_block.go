@@ -31,8 +31,13 @@ type addressPostal struct {
 
 // Better names
 type title struct {
-	Title     string
-	Abbrev    string
+	Title  string
+	Abbrev string
+
+	DocName  string
+	Ipr      string
+	Category string
+
 	Date      time.Time
 	Area      string
 	Workgroup string
