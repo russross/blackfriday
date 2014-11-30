@@ -254,6 +254,7 @@ Todo
     etc.), so it may fail to detect word boundaries correctly in
     some instances. It is safe on all utf-8 input.
 *   Fix `<section>` output
+*   Ordered list start number detection
 
 
 License

@@ -40,6 +40,20 @@ type Xml struct {
 func (options *Xml) SetIAL(i []*IAL)        { options.ial = append(options.ial, i...) }
 func (options *Xml) GetAndResetIAL() []*IAL { i := options.ial; options.ial = nil; return i }
 
+func (options *Xml) indent(out *bytes.Buffer) {
+	for i := 0; i < options.indentLevel; i++ {
+		out.WriteByte(' ')
+	}
+}
+
+func (options *Xml) indentPlus() { options.indentLevel = +2 }
+func (options *Xml) indentMin() {
+	options.indentLevel = -2
+	if options.indentLevel < 0 {
+		options.indentLevel = 0
+	}
+}
+
 // XmlRenderer creates and configures a Xml object, which
 // satisfies the Renderer interface.
 //
@@ -78,11 +92,10 @@ func (options *Xml) TitleBlock(out *bytes.Buffer, text []byte) {}
 
 func (options *Xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	options.titleBlock = block
-	out.WriteString("<rfc xmlns:xi=\"http://www.w3.org/2001/XInclude\" ipr=\"" + 
+	out.WriteString("<rfc xmlns:xi=\"http://www.w3.org/2001/XInclude\" ipr=\"" +
 		options.titleBlock.Ipr + "\" category=\"" +
 		options.titleBlock.Category + "\" docName=\"" + options.titleBlock.DocName + "\">\n")
 	out.WriteString("<front>")
-
 	out.WriteString("<title abbrev=\"" + options.titleBlock.Abbrev + "\">")
 	out.WriteString(options.titleBlock.Title + "</title>\n\n")
 
@@ -94,7 +107,11 @@ func (options *Xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	if options.titleBlock.Date.Month() > 0 {
 		month = " month=\"" + time.Month(options.titleBlock.Date.Month()).String() + "\""
 	}
-	out.WriteString("<date" + year + month + "/>\n\n")
+	day := ""
+	if options.titleBlock.Date.Day() > 0 {
+		day = " day=\"" + strconv.Itoa(options.titleBlock.Date.Day()) + "\""
+	}
+	out.WriteString("<date" + year + month + day + "/>\n\n")
 
 	out.WriteString("<area>" + options.titleBlock.Area + "</area>\n")
 	out.WriteString("<workgroup>" + options.titleBlock.Workgroup + "</workgroup>\n")
@@ -108,7 +125,6 @@ func (options *Xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 }
 
 func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte) {
-	// use IAL here.
 	s := ""
 	if a := options.GetAndResetIAL(); a != nil {
 		for _, aa := range a {
@@ -123,7 +139,7 @@ func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte) {
 func (options *Xml) Abstract(out *bytes.Buffer, text []byte) {
 	out.WriteString("<abstract>\n")
 	out.Write(text)
-	out.WriteString("\n</abstract>\n")
+	out.WriteString("</abstract>\n")
 }
 
 func (options *Xml) BlockHtml(out *bytes.Buffer, text []byte) {
@@ -257,7 +273,22 @@ func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation
 	if !first {
 		return
 	}
-	// TODO need to output this in backmatter, if needed
+	// close any option section tags
+	for i := options.sectionLevel; i > 0; i-- {
+		out.WriteString("</section>\n")
+		options.sectionLevel--
+	}
+	switch options.docLevel {
+	case DOC_FRONT_MATTER:
+		out.WriteString("</front>\n")
+		out.WriteString("<back>\n")
+	case DOC_MAIN_MATTER:
+		out.WriteString("</middle>\n")
+		out.WriteString("<back>\n")
+	case DOC_BACK_MATTER:
+		// nothing to do
+	}
+	options.docLevel = DOC_BACK_MATTER
 	// count the references
 	refi, refn := 0, 0
 	for _, c := range citations {
@@ -412,6 +443,7 @@ func (options *Xml) DocumentFooter(out *bytes.Buffer, first bool) {
 	// close any option section tags
 	for i := options.sectionLevel; i > 0; i-- {
 		out.WriteString("</section>\n")
+		options.sectionLevel--
 	}
 	switch options.docLevel {
 	case DOC_FRONT_MATTER:
