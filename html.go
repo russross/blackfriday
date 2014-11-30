@@ -25,22 +25,22 @@ import (
 
 // Html renderer configuration options.
 const (
-	HTML_SKIP_HTML                = 1 << iota // skip preformatted HTML blocks
-	HTML_SKIP_STYLE                           // skip embedded <style> elements
-	HTML_SKIP_IMAGES                          // skip embedded images
-	HTML_SKIP_LINKS                           // skip all links
-	HTML_SAFELINK                             // only link to trusted protocols
-	HTML_NOFOLLOW_LINKS                       // only link with rel="nofollow"
-	HTML_HREF_TARGET_BLANK                    // add a blank target
-	HTML_TOC                                  // generate a table of contents
-	HTML_OMIT_CONTENTS                        // skip the main contents (for a standalone table of contents)
-	HTML_COMPLETE_PAGE                        // generate a complete HTML page
-	HTML_USE_XHTML                            // generate XHTML output instead of HTML
-	HTML_USE_SMARTYPANTS                      // enable smart punctuation substitutions
-	HTML_SMARTYPANTS_FRACTIONS                // enable smart fractions (with HTML_USE_SMARTYPANTS)
-	HTML_SMARTYPANTS_LATEX_DASHES             // enable LaTeX-style dashes (with HTML_USE_SMARTYPANTS)
-	HTML_SMARTYPANTS_ANGLED_QUOTES            // enable angled double quotes (with HTML_USE_SMARTYPANTS) for double quotes rendering
-	HTML_FOOTNOTE_RETURN_LINKS                // generate a link at the end of a footnote to return to the source
+	HTML_SKIP_HTML                 = 1 << iota // skip preformatted HTML blocks
+	HTML_SKIP_STYLE                            // skip embedded <style> elements
+	HTML_SKIP_IMAGES                           // skip embedded images
+	HTML_SKIP_LINKS                            // skip all links
+	HTML_SAFELINK                              // only link to trusted protocols
+	HTML_NOFOLLOW_LINKS                        // only link with rel="nofollow"
+	HTML_HREF_TARGET_BLANK                     // add a blank target
+	HTML_TOC                                   // generate a table of contents
+	HTML_OMIT_CONTENTS                         // skip the main contents (for a standalone table of contents)
+	HTML_COMPLETE_PAGE                         // generate a complete HTML page
+	HTML_USE_XHTML                             // generate XHTML output instead of HTML
+	HTML_USE_SMARTYPANTS                       // enable smart punctuation substitutions
+	HTML_SMARTYPANTS_FRACTIONS                 // enable smart fractions (with HTML_USE_SMARTYPANTS)
+	HTML_SMARTYPANTS_LATEX_DASHES              // enable LaTeX-style dashes (with HTML_USE_SMARTYPANTS)
+	HTML_SMARTYPANTS_ANGLED_QUOTES             // enable angled double quotes (with HTML_USE_SMARTYPANTS) for double quotes rendering
+	HTML_FOOTNOTE_RETURN_LINKS                 // generate a link at the end of a footnote to return to the source
 )
 
 var (

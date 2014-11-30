@@ -15,6 +15,7 @@ package blackfriday
 
 import (
 	"bytes"
+
 	"github.com/shurcooL/go/github_flavored_markdown/sanitized_anchor_name"
 )
 
