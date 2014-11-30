@@ -163,6 +163,18 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			}
 		}
 
+		// a definition list:
+		//
+		// Item1
+		// :	Definition1
+		// Item2
+		// :	Definition2
+		if i := p.def(out, data); i > 0 {
+				data = data[i:]
+				continue
+		}
+
+
 		// an itemized/unordered list:
 		//
 		// * Item 1
@@ -182,7 +194,6 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			data = data[p.list(out, data, LIST_TYPE_ORDERED):]
 			continue
 		}
-
 		// anything else must look like a normal paragraph
 		// note: this finds underlined headers, too
 		data = data[p.paragraph(out, data):]
@@ -1276,6 +1287,14 @@ gatherlines:
 	p.r.ListItem(out, cookedBytes[:parsedEnd], *flags)
 
 	return line
+}
+
+func (p *parser) def(out *bytes.Buffer, data []byte) int {
+	println(string(data))
+	if data[0] == ':' {
+		println("DEF LIST?")
+	}
+	return 0
 }
 
 // render a single paragraph that has already been parsed out
