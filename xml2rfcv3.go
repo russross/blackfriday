@@ -28,7 +28,7 @@ type Xml struct {
 	flags        int // XML_* options
 	sectionLevel int // current section level
 	docLevel     int // frontmatter/mainmatter or backmatter
-	indentLevel  int
+	indent       int
 
 	// Store the IAL we see for this block element
 	ial []*IAL
@@ -39,20 +39,6 @@ type Xml struct {
 
 func (options *Xml) SetIAL(i []*IAL)        { options.ial = append(options.ial, i...) }
 func (options *Xml) GetAndResetIAL() []*IAL { i := options.ial; options.ial = nil; return i }
-
-func (options *Xml) indent(out *bytes.Buffer) {
-	for i := 0; i < options.indentLevel; i++ {
-		out.WriteByte(' ')
-	}
-}
-
-func (options *Xml) indentPlus() { options.indentLevel = +2 }
-func (options *Xml) indentMin() {
-	options.indentLevel = -2
-	if options.indentLevel < 0 {
-		options.indentLevel = 0
-	}
-}
 
 // XmlRenderer creates and configures a Xml object, which
 // satisfies the Renderer interface.
@@ -73,18 +59,17 @@ func (options *Xml) GetState() int {
 
 // render code chunks using verbatim, or listings if we have a language
 func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string) {
+	s := renderIAL(options.GetAndResetIAL())
 	if lang == "" {
-		out.WriteString("\n\\begin{verbatim}\n")
+		out.WriteString("\n<sourcecode" + s + ">\n")
 	} else {
-		out.WriteString("\n\\begin{lstlisting}[language=")
-		out.WriteString(lang)
-		out.WriteString("]\n")
+		out.WriteString("\n<sourcecode" + s + "type=\"" + lang + "\">\n")
 	}
 	out.Write(text)
 	if lang == "" {
-		out.WriteString("\n\\end{verbatim}\n")
+		out.WriteString("\n</sourcecode>\n")
 	} else {
-		out.WriteString("\n\\end{lstlisting}\n")
+		out.WriteString("\n</sourcecode>\n")
 	}
 }
 
@@ -125,12 +110,7 @@ func (options *Xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 }
 
 func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte) {
-	s := ""
-	if a := options.GetAndResetIAL(); a != nil {
-		for _, aa := range a {
-			s += " " + aa.id
-		}
-	}
+	s := renderIAL(options.GetAndResetIAL())
 	out.WriteString("<blockquote" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</blockquote>\n")

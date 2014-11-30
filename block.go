@@ -702,6 +702,8 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 	}
 
 	if doRender {
+		p.r.SetIAL(p.ial)
+		p.ial = nil
 		p.r.BlockCode(out, work.Bytes(), syntax)
 	}
 
@@ -1051,6 +1053,9 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 	}
 
 	work.WriteByte('\n')
+
+	p.r.SetIAL(p.ial)
+	p.ial = nil
 
 	p.r.BlockCode(out, work.Bytes(), "")
 

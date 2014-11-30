@@ -32,3 +32,16 @@ func (p *parser) isIAL(data []byte) int {
 	}
 	return 0
 }
+
+// renderIAL renders an IAL and returns a string that can be included in the tag:
+// class="ial.class" anchor="id" key="value"
+func renderIAL(i []*IAL) string {
+	if i == nil {
+		return ""
+	}
+	s := ""
+	for _, i1 := range i {
+		s += " " + i1.id
+	}
+	return s
+}
