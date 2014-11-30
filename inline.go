@@ -266,7 +266,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			id, file       []byte
 		)
 		typ := byte('i')
-		for j := offset; j < txtE; j++ {
+		for j := 0; j < txtE; j++ {
 			if data[j] == '(' {
 				id = data[2:j]
 				parenB = j
