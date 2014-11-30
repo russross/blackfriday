@@ -28,7 +28,6 @@ type Xml struct {
 	flags        int // XML_* options
 	sectionLevel int // current section level
 	docLevel     int // frontmatter/mainmatter or backmatter
-	indent       int
 
 	// Store the IAL we see for this block element
 	ial []*IAL
