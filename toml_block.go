@@ -8,7 +8,7 @@ import (
 )
 
 type author struct {
-	Initials     string 
+	Initials     string
 	Surname      string
 	Fullname     string
 	Organization string
@@ -29,6 +29,7 @@ type addressPostal struct {
 	Country string
 }
 
+// Better names
 type title struct {
 	Title     string
 	Abbrev    string
@@ -39,14 +40,13 @@ type title struct {
 	Author    []author
 }
 
-func (p *parser) titleBlockTOML(out *bytes.Buffer, data []byte, doRender bool) int {
+func (p *parser) titleBlockTOML(out *bytes.Buffer, data []byte) title {
 	data = bytes.TrimPrefix(data, []byte("% "))
 	data = bytes.Replace(data, []byte("\n% "), []byte("\n"), -1)
 	var block title
 	if _, err := toml.Decode(string(data), &block); err != nil {
 		println(err.Error())
-		return 0 // never an error when encoding markdown
+		return block // never an error when encoding markdown
 	}
-	p.titleblock = block // Not needed to save this value
-	return 0
+	return block
 }

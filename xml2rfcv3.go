@@ -28,6 +28,9 @@ type Xml struct {
 
 	// Store the IAL we see for this block element
 	ial []*IAL
+
+	// TitleBlock in TOML
+	titleBlock *title
 }
 
 func (options *Xml) SetIAL(i []*IAL)        { options.ial = append(options.ial, i...) }
@@ -69,7 +72,9 @@ func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 
 func (options *Xml) TitleBlock(out *bytes.Buffer, text []byte) {}
 
-func (options *Xml) TitleBlockTOML(out *bytes.Buffer, data title) {}
+func (options *Xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
+	options.titleBlock = block
+}
 
 func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte) {
 	// use IAL here.
@@ -271,7 +276,7 @@ func referenceFile(id []byte) string {
 	}
 	s := string(id[:3])
 	d := string(id[3:])
-	switch s {	
+	switch s {
 	case "RFC":
 		return "reference.RFC." + d + ".xml"
 	case "I-D":
@@ -368,6 +373,8 @@ func (options *Xml) DocumentHeader(out *bytes.Buffer, first bool) {
 	}
 	out.WriteString("<rfc>\n")
 	out.WriteString("<front>\n")
+	out.WriteString("<title abbrev=\" + options.titleBlock.Abbrev + \">")
+	out.WriteString(options.titleBlock.Title + "</title>\n")
 }
 
 func (options *Xml) DocumentFooter(out *bytes.Buffer, first bool) {

@@ -186,7 +186,7 @@ func (options *Html) TitleBlock(out *bytes.Buffer, text []byte) {
 	out.WriteString("\n</h1>")
 }
 
-func (options *Html) TitleBlockTOML(out *bytes.Buffer, data title) {}
+func (options *Html) TitleBlockTOML(out *bytes.Buffer, data *title) {}
 
 func (options *Html) Header(out *bytes.Buffer, text func() bool, level int, id string) {
 	marker := out.Len()

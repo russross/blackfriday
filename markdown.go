@@ -181,7 +181,7 @@ type Renderer interface {
 	Footnotes(out *bytes.Buffer, text func() bool)
 	FootnoteItem(out *bytes.Buffer, name, text []byte, flags int)
 	TitleBlock(out *bytes.Buffer, text []byte)
-	TitleBlockTOML(out *bytes.Buffer, data title)
+	TitleBlockTOML(out *bytes.Buffer, data *title)
 	Abstract(out *bytes.Buffer, text []byte)
 	//Note
 	//Aside

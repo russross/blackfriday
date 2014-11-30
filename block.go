@@ -306,10 +306,9 @@ func (p *parser) titleBlock(out *bytes.Buffer, data []byte, doRender bool) int {
 	}
 
 	data = bytes.Join(splitData[0:i], []byte("\n"))
-	p.titleBlockTOML(out, data, true)
-	p.r.TitleBlockTOML(out, p.titleblock)
+	block := p.titleBlockTOML(out, data)
+	p.r.TitleBlockTOML(out, &block)
 	p.r.TitleBlock(out, data)
-
 	return len(data)
 }
 
