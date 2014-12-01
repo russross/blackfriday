@@ -21,6 +21,32 @@ import (
 // XML renderer configuration options.
 const ()
 
+type indent struct {
+	in string
+	buf    *bytes.Buffer
+}
+func (i *indent) indent() {
+	i.in += "  "
+}
+func (i *indent) dedent() {
+	if len(i.in)-2 < 0 {
+		i.in = ""
+	}
+	i.in = i.in[:len(i.in)-2]
+}
+
+func (i *indent) WriteString(s string) {
+	// write with current indentation, but check first tag to see it is a
+	// block tag that either indents or dedents.
+	i.buf.WriteString(s)
+	i.buf.WriteString(" ")
+}
+
+func (i *indent) Write(b []byte) {
+	// indent with current indentation
+	i.buf.Write(b)
+}
+
 // Xml is a type that implements the Renderer interface for XML2RFV3 output.
 //
 // Do not create this directly, instead use the XmlRenderer function.
@@ -34,8 +60,14 @@ type Xml struct {
 
 	// TitleBlock in TOML
 	titleBlock *title
+
+	i *indent
 }
 
+func (options *Xml) setBuf(buf *bytes.Buffer) *indent {
+	options.i.buf = buf
+	return options.i
+}
 func (options *Xml) SetIAL(i []*IAL)        { options.ial = append(options.ial, i...) }
 func (options *Xml) GetAndResetIAL() []*IAL { i := options.ial; options.ial = nil; return i }
 
@@ -45,7 +77,7 @@ func (options *Xml) GetAndResetIAL() []*IAL { i := options.ial; options.ial = ni
 // flags is a set of XML_* options ORed together (currently no such options
 // are defined).
 func XmlRenderer(flags int) Renderer {
-	return &Xml{flags: flags}
+	return &Xml{flags: flags, i: &indent{}}
 }
 
 func (options *Xml) GetFlags() int {
@@ -75,10 +107,13 @@ func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 func (options *Xml) TitleBlock(out *bytes.Buffer, text []byte) {}
 
 func (options *Xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
+	in := options.setBuf(out)
 	options.titleBlock = block
 	out.WriteString("<rfc xmlns:xi=\"http://www.w3.org/2001/XInclude\" ipr=\"" +
 		options.titleBlock.Ipr + "\" category=\"" +
 		options.titleBlock.Category + "\" docName=\"" + options.titleBlock.DocName + "\">\n")
+//	out.WriteString("<front>")
+	in.WriteString("<front>")
 	out.WriteString("<front>")
 	out.WriteString("<title abbrev=\"" + options.titleBlock.Abbrev + "\">")
 	out.WriteString(options.titleBlock.Title + "</title>\n\n")
