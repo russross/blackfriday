@@ -19,11 +19,11 @@ func (p *parser) isIAL(data []byte) int {
 			// isn't an IAL.
 			s := string(data[1:i])
 			switch s {
-			case "FRONTMATTER":
+			case "frontmatter":
 				fallthrough
-			case "MAINMATTER":
+			case "mainmatter":
 				fallthrough
-			case "BACKMATTER":
+			case "backmatter":
 				return 0
 			}
 			p.ial = append(p.ial, &IAL{id: s})

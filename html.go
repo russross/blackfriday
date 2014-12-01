@@ -377,7 +377,6 @@ func (options *Html) List(out *bytes.Buffer, text func() bool, flags int) {
 }
 
 func (options *Html) ListTerm(out *bytes.Buffer, text []byte, flags int) { }
-func (options *Html) ListDefinition(out *bytes.Buffer, text []byte, flags int) { }
 
 func (options *Html) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	if flags&LIST_ITEM_CONTAINS_BLOCK != 0 || flags&LIST_ITEM_BEGINNING_OF_LIST != 0 {

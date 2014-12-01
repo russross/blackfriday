@@ -169,9 +169,8 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// :	Definition1
 		// Item2
 		// :	Definition2
-		if i := p.deflist(out, data); i > 0 {
-			data = data[i:]
-			continue
+		if p.dliPrefix(data) > 0 {
+			data = data[p.list(out, data, LIST_TYPE_DEFINITION):]
 		}
 
 		// an itemized/unordered list:
@@ -1076,6 +1075,9 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 // returns unordered list item prefix
 func (p *parser) uliPrefix(data []byte) int {
 	i := 0
+	if len(data) < 3 {
+		return 0
+	}
 
 	// start with up to 3 spaces
 	for i < 3 && data[i] == ' ' {
@@ -1093,6 +1095,9 @@ func (p *parser) uliPrefix(data []byte) int {
 // returns ordered list item prefix
 func (p *parser) oliPrefix(data []byte) int {
 	i := 0
+	if len(data) < 3 {
+		return 0
+	}
 
 	// start with up to 3 spaces
 	for i < 3 && data[i] == ' ' {
@@ -1112,7 +1117,32 @@ func (p *parser) oliPrefix(data []byte) int {
 	return i + 2
 }
 
-// parse ordered or unordered list block
+// returns definition list item prefix
+func (p *parser) dliPrefix(data []byte) int {
+	// return the index of where the term ends
+	i := 0
+	for data[i] != '\n' && i < len(data) {
+		i++
+	}
+	if i == 0 || i == len(data) {
+		return 0
+	}
+	// start with up to 3 spaces before :
+	j := 0
+	for j < 3 && data[i+j] == ' ' && i+j < len(data) {
+		j++
+	}
+	i++
+	if i >= len(data) {
+		return 0
+	}
+	if data[i] == ':' {
+		return i + 1
+	}
+	return 0
+}
+
+// parse ordered or unordered or definition list block
 func (p *parser) list(out *bytes.Buffer, data []byte, flags int) int {
 	i := 0
 	flags |= LIST_ITEM_BEGINNING_OF_LIST
@@ -1122,6 +1152,7 @@ func (p *parser) list(out *bytes.Buffer, data []byte, flags int) int {
 			i += skip
 
 			if skip == 0 || flags&LIST_ITEM_END_OF_LIST != 0 {
+				println("END OF LIST")
 				break
 			}
 			flags &= ^LIST_ITEM_BEGINNING_OF_LIST
@@ -1145,6 +1176,10 @@ func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *int) int {
 	i := p.uliPrefix(data)
 	if i == 0 {
 		i = p.oliPrefix(data)
+	}
+	if i == 0 {
+		println("DLI PREFIX")
+		i = p.dliPrefix(data)
 	}
 	if i == 0 {
 		return 0
@@ -1201,7 +1236,7 @@ gatherlines:
 		switch {
 		// is this a nested list item?
 		case (p.uliPrefix(chunk) > 0 && !p.isHRule(chunk)) ||
-			p.oliPrefix(chunk) > 0:
+			p.oliPrefix(chunk) > 0 || p.dliPrefix(data[line+indent:]) > 0:
 
 			if containsBlankLine {
 				*flags |= LIST_ITEM_CONTAINS_BLOCK
@@ -1231,6 +1266,7 @@ gatherlines:
 		// anything following an empty line is only part
 		// of this item if it is indented 4 spaces
 		// (regardless of the indentation of the beginning of the item)
+		// if the is beginning with ':   term', we have a new term
 		case containsBlankLine && indent < 4:
 			*flags |= LIST_ITEM_END_OF_LIST
 			break gatherlines
@@ -1253,7 +1289,7 @@ gatherlines:
 
 		line = i
 	}
-
+	println("HERE")
 	rawBytes := raw.Bytes()
 
 	// render the contents of the list item
@@ -1290,36 +1326,7 @@ gatherlines:
 }
 
 func (p *parser) deflist(out *bytes.Buffer, data []byte) int {
-	// text, newline, and:
-	// colons as definition markers typically start at the left margin, but may be
-	// indented by up to three spaces. Definition markers must be followed by one or
-	// more spaces or a tab.
-	i := 0
-	termE := 0
-	for data[i] != '\n' {
-		if i == len(data) {
-			return 0
-		}
-		i++
-	}
-	termE = i
-	// start with up to 3 spaces before :
-	j := 0
-	for j < 3 && data[i+j] == ' ' {
-		if i+j == len(data) {
-			return 0
-		}
-		j++
-	}
-	// TODO(Miek): fix all those len checks
-	i++
-	if i == len(data) {
-		return 0
-	}
-	if data[i] != ':' {
-		return 0
-	}
-	i++
+	/*
 	work := func() bool {
 		// make this function ala list with work helper function.
 		var cooked bytes.Buffer
@@ -1364,7 +1371,8 @@ func (p *parser) deflist(out *bytes.Buffer, data []byte) int {
 	// p.inline for term
 	// p.block for definition, ala list()
 	return i
-	return termE
+	*/
+	return 0
 }
 
 // render a single paragraph that has already been parsed out
@@ -1509,13 +1517,13 @@ func createSanitizedAnchorName(text string) string {
 }
 
 func isMatter(text []byte) bool {
-	if string(text) == "{FRONTMATTER}\n" {
+	if string(text) == "{frontmatter}\n" {
 		return true
 	}
-	if string(text) == "{MAINMATTER}\n" {
+	if string(text) == "{mainmatter}\n" {
 		return true
 	}
-	if string(text) == "{BACKMATTER}\n" {
+	if string(text) == "{backmatter}\n" {
 		return true
 	}
 	return false

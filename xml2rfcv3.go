@@ -103,9 +103,7 @@ func (options *Xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 		out.WriteString("<keyword>" + k + "</keyword>\n")
 	}
 	// Author information
-
 	out.WriteString("\n")
-
 }
 
 func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte) {
@@ -184,13 +182,13 @@ func (options *Xml) ListTerm(out *bytes.Buffer, text []byte, flags int) {
 	out.WriteString("</dt>\n")
 }
 
-func (options *Xml) ListDefinition(out *bytes.Buffer, text []byte, flags int) {
-	out.WriteString("<dd>")
-	out.Write(text)
-	out.WriteString("</dd>\n")
-}
-
 func (options *Xml) ListItem(out *bytes.Buffer, text []byte, flags int) {
+	if flags&LIST_TYPE_DEFINITION != 0 {
+		out.WriteString("<dd>")
+		out.Write(text)
+		out.WriteString("</dd>\n")
+		return
+	}
 	out.WriteString("<li>")
 	out.Write(text)
 	out.WriteString("</li>\n")

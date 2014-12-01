@@ -173,7 +173,6 @@ type Renderer interface {
 	List(out *bytes.Buffer, text func() bool, flags int)
 	ListItem(out *bytes.Buffer, text []byte, flags int)
 	ListTerm(out *bytes.Buffer, text []byte, flags int)
-	ListDefinition(out *bytes.Buffer, text []byte, flags int)
 	Paragraph(out *bytes.Buffer, text func() bool)
 	Table(out *bytes.Buffer, header []byte, body []byte, columnData []int)
 	TableRow(out *bytes.Buffer, text []byte)

@@ -216,7 +216,7 @@ implements the following extensions:
 
 *  **Abstracts**, any paragraph with `AB>` (TODO)
 
-*  **{FRONTMATTER}/{MAINMATTER}/{BACKMATTER}** Create useful divisions in your document.
+*  **{frontmatter}/{mainmatter}/{backmatter}** Create useful divisions in your document.
 
 *  **IAL**, kramdown's Inline Attribute List syntax, but took the commonMark
     proposal, thus without the colon `{#id .class key=value key="value"}`.
@@ -255,6 +255,7 @@ Todo
     some instances. It is safe on all utf-8 input.
 *   Fix `<section>` output
 *   Ordered list start number detection
+*   Correctly close document when there is no TOML titleblock
 
 
 License
