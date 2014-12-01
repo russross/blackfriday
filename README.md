@@ -221,7 +221,7 @@ implements the following extensions:
 *  **IAL**, kramdown's Inline Attribute List syntax, but took the commonMark
     proposal, thus without the colon `{#id .class key=value key="value"}`.
 
-*  **Definitition lists**, (TODO)
+*  **Definitition lists**, the markdown extra syntax, short syntax is not supported (yet).
 
 *  **TOML TitleBlock**, add an extended title block prefixed with % in TOML.
 

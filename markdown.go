@@ -183,8 +183,8 @@ type Renderer interface {
 	TitleBlock(out *bytes.Buffer, text []byte)
 	TitleBlockTOML(out *bytes.Buffer, data *title)
 	Abstract(out *bytes.Buffer, text []byte)
+	Aside(out *bytes.Buffer, text []byte)
 	//Note
-	//Aside
 
 	// Span-level callbacks
 	AutoLink(out *bytes.Buffer, link []byte, kind int)
