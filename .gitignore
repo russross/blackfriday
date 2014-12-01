@@ -7,3 +7,5 @@ _test*
 markdown
 tags
 blackfriday-tool/blackfriday-tool
+Makefile
+*.md
