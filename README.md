@@ -256,6 +256,8 @@ Todo
 *   Fix `<section>` output
 *   Ordered list start number detection
 *   Correctly close document when there is no TOML titleblock
+*   Auto anchors for sections
+*   indent XML
 
 
 License
