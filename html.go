@@ -356,9 +356,6 @@ func (options *Html) FootnoteItem(out *bytes.Buffer, name, text []byte, flags in
 	out.WriteString("</li>\n")
 }
 
-func (options *Html) DefList(out *bytes.Buffer, text func() bool, flags int) {}
-func (options *Html) DefListItem(out *bytes.Buffer, text []byte, flags int)  {}
-
 func (options *Html) List(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
 	doubleSpace(out)
@@ -378,6 +375,9 @@ func (options *Html) List(out *bytes.Buffer, text func() bool, flags int) {
 		out.WriteString("</ul>\n")
 	}
 }
+
+func (options *Html) ListTerm(out *bytes.Buffer, text []byte, flags int) { }
+func (options *Html) ListDefinition(out *bytes.Buffer, text []byte, flags int) { }
 
 func (options *Html) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	if flags&LIST_ITEM_CONTAINS_BLOCK != 0 || flags&LIST_ITEM_BEGINNING_OF_LIST != 0 {

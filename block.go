@@ -169,11 +169,10 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// :	Definition1
 		// Item2
 		// :	Definition2
-		if i := p.def(out, data); i > 0 {
-				data = data[i:]
-				continue
+		if i := p.deflist(out, data); i > 0 {
+			data = data[i:]
+			continue
 		}
-
 
 		// an itemized/unordered list:
 		//
@@ -539,6 +538,7 @@ func (p *parser) htmlFindEnd(tag string, data []byte) int {
 func (p *parser) isEmpty(data []byte) int {
 	// it is okay to call isEmpty on an empty buffer
 	if len(data) == 0 {
+		println("RETURNING")
 		return 0
 	}
 
@@ -1289,12 +1289,82 @@ gatherlines:
 	return line
 }
 
-func (p *parser) def(out *bytes.Buffer, data []byte) int {
-	println(string(data))
-	if data[0] == ':' {
-		println("DEF LIST?")
+func (p *parser) deflist(out *bytes.Buffer, data []byte) int {
+	// text, newline, and:
+	// colons as definition markers typically start at the left margin, but may be
+	// indented by up to three spaces. Definition markers must be followed by one or
+	// more spaces or a tab.
+	i := 0
+	termE := 0
+	for data[i] != '\n' {
+		if i == len(data) {
+			return 0
+		}
+		i++
 	}
-	return 0
+	termE = i
+	// start with up to 3 spaces before :
+	j := 0
+	for j < 3 && data[i+j] == ' ' {
+		if i+j == len(data) {
+			return 0
+		}
+		j++
+	}
+	// TODO(Miek): fix all those len checks
+	i++
+	if i == len(data) {
+		return 0
+	}
+	if data[i] != ':' {
+		return 0
+	}
+	i++
+	work := func() bool {
+		// make this function ala list with work helper function.
+		var cooked bytes.Buffer
+		p.inline(&cooked, data[:termE])
+		p.r.ListTerm(out, cooked.Bytes(), 0)
+		return true
+	}
+	work()
+	indent := 1 // start with one for the :
+	for indent < 4 && data[i+indent] == ' ' {
+		indent++
+	}
+
+	line := i
+	var chunk bytes.Buffer
+	// find the end of this line
+	for data[i-1] != '\n' {
+		i++
+	}
+	chunk.Write(data[line+indent : i])
+
+	//gatherlines:
+	for i < len(data) {
+		i++
+		line = i
+		indent = 0 // start with one for the :
+		for indent < 4 && data[i+indent] == ' ' {
+			indent++
+		}
+
+		// find the end of this line
+		for data[i-1] != '\n' {
+			i++
+		}
+
+		if len(data[line:i]) == 0 || p.isEmpty(data[line:i]) > 0 {
+			break
+		}
+		chunk.Write(data[line+indent : i])
+	}
+	p.r.ListDefinition(out, chunk.Bytes(), 0)
+	// p.inline for term
+	// p.block for definition, ala list()
+	return i
+	return termE
 }
 
 // render a single paragraph that has already been parsed out

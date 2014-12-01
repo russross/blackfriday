@@ -66,9 +66,9 @@ func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 	}
 	out.Write(text)
 	if lang == "" {
-		out.WriteString("\n</sourcecode>\n")
+		out.WriteString("</sourcecode>\n")
 	} else {
-		out.WriteString("\n</sourcecode>\n")
+		out.WriteString("</sourcecode>\n")
 	}
 }
 
@@ -154,25 +154,40 @@ func (options *Xml) HRule(out *bytes.Buffer) {
 	// not used
 }
 
-func (options *Xml) DefList(out *bytes.Buffer, text func() bool, flags int) {}
-func (options *Xml) DefListItem(out *bytes.Buffer, text []byte, flags int)  {}
-
 func (options *Xml) List(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
-	if flags&LIST_TYPE_ORDERED != 0 {
+	switch {
+	case flags&LIST_TYPE_ORDERED != 0:
 		out.WriteString("<ol>\n")
-	} else {
-		out.WriteString("\n<ul>\n")
+	case flags&LIST_TYPE_DEFINITION != 0:
+		out.WriteString("<dl>\n")
+	default:
+		out.WriteString("<ul>\n")
 	}
+
 	if !text() {
 		out.Truncate(marker)
 		return
 	}
-	if flags&LIST_TYPE_ORDERED != 0 {
+	switch {
+	case flags&LIST_TYPE_ORDERED != 0:
 		out.WriteString("</ol>\n")
-	} else {
-		out.WriteString("\n</ul>\n")
+	case flags&LIST_TYPE_DEFINITION != 0:
+		out.WriteString("</dl>\n")
+	default:
+		out.WriteString("</ul>\n")
 	}
+}
+func (options *Xml) ListTerm(out *bytes.Buffer, text []byte, flags int) {
+	out.WriteString("<dt>")
+	out.Write(text)
+	out.WriteString("</dt>\n")
+}
+
+func (options *Xml) ListDefinition(out *bytes.Buffer, text []byte, flags int) {
+	out.WriteString("<dd>")
+	out.Write(text)
+	out.WriteString("</dd>\n")
 }
 
 func (options *Xml) ListItem(out *bytes.Buffer, text []byte, flags int) {
