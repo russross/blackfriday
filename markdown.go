@@ -83,6 +83,7 @@ const (
 const (
 	LIST_TYPE_ORDERED = 1 << iota
 	LIST_TYPE_DEFINITION
+	LIST_TYPE_TERM
 	LIST_ITEM_CONTAINS_BLOCK
 	LIST_ITEM_BEGINNING_OF_LIST
 	LIST_ITEM_END_OF_LIST
@@ -172,7 +173,6 @@ type Renderer interface {
 	HRule(out *bytes.Buffer)
 	List(out *bytes.Buffer, text func() bool, flags int)
 	ListItem(out *bytes.Buffer, text []byte, flags int)
-	ListTerm(out *bytes.Buffer, text []byte, flags int)
 	Paragraph(out *bytes.Buffer, text func() bool)
 	Table(out *bytes.Buffer, header []byte, body []byte, columnData []int)
 	TableRow(out *bytes.Buffer, text []byte)

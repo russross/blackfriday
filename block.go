@@ -1152,7 +1152,6 @@ func (p *parser) list(out *bytes.Buffer, data []byte, flags int) int {
 			i += skip
 
 			if skip == 0 || flags&LIST_ITEM_END_OF_LIST != 0 {
-				println("END OF LIST")
 				break
 			}
 			flags &= ^LIST_ITEM_BEGINNING_OF_LIST
@@ -1178,8 +1177,12 @@ func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *int) int {
 		i = p.oliPrefix(data)
 	}
 	if i == 0 {
-		println("DLI PREFIX")
 		i = p.dliPrefix(data)
+		if i > 0 {
+			var rawTerm bytes.Buffer
+			p.inline(&rawTerm, data[:i-2])	 // -2 for : and the newline
+			p.r.ListItem(out, rawTerm.Bytes(), *flags | LIST_TYPE_TERM)
+		}
 	}
 	if i == 0 {
 		return 0
@@ -1289,7 +1292,6 @@ gatherlines:
 
 		line = i
 	}
-	println("HERE")
 	rawBytes := raw.Bytes()
 
 	// render the contents of the list item

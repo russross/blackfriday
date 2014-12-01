@@ -176,17 +176,18 @@ func (options *Xml) List(out *bytes.Buffer, text func() bool, flags int) {
 		out.WriteString("</ul>\n")
 	}
 }
-func (options *Xml) ListTerm(out *bytes.Buffer, text []byte, flags int) {
-	out.WriteString("<dt>")
-	out.Write(text)
-	out.WriteString("</dt>\n")
-}
 
 func (options *Xml) ListItem(out *bytes.Buffer, text []byte, flags int) {
-	if flags&LIST_TYPE_DEFINITION != 0 {
+	if flags&LIST_TYPE_DEFINITION != 0 && flags&LIST_TYPE_TERM == 0 {
 		out.WriteString("<dd>")
 		out.Write(text)
 		out.WriteString("</dd>\n")
+		return
+	}
+	if flags&LIST_TYPE_TERM != 0 {
+		out.WriteString("<dt>")
+		out.Write(text)
+		out.WriteString("</dt>\n")
 		return
 	}
 	out.WriteString("<li>")
