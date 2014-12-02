@@ -7,7 +7,7 @@
 % date = "2014-02-02T00:00:00-00:00"
 % area = "General"
 % workgroup = "RFC Beautification Working Group"
-% keyword = ["Internet-Draft", "Markdown", "XML2RFV v3]
+% keyword = ["Internet-Draft", "Markdown", "XML2RFC v3]
 %
 % [[author]]
 % initial = "R."
@@ -16,6 +16,7 @@
 
 AB> This document shows a markdown syntax for use in creating I-Ds. The document
 AB> is converted to the canonical RFC format: XML2RFC v3 [@I-D.hoffman-xml2rfc].
+AB> The syntax is copied from various sources: CommonMark, kramdown, asciidoc and Leanpub.
 
 {mainmatter}
 
