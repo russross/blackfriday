@@ -21,6 +21,17 @@ import (
 // XML renderer configuration options.
 const ()
 
+// which tags are block tags for which we fiddle with the indentation
+var blocktags = map[string]bool{
+	"abstract": true,
+	"aside": true,
+	"dl": true,
+	"ol": true,
+	"rfc": true,
+	"section": true,
+	"ul": true,
+}
+
 type indent struct {
 	in  string
 	buf *bytes.Buffer
