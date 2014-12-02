@@ -1,3 +1,26 @@
+% title = "Example"
+% abbrev = "ex"
+% category = "info"
+% docname = "draft-example-rfc-markdown-00"
+% ipr = "trust200902"
+%
+% date = "2014-02-02T00:00:00-00:00"
+% area = "General"
+% workgroup = "Making RFC easier"
+% keyword = ["Internet-Draft", "Markdown"]
+%
+% [[author]]
+% initial = "R."
+% surname = "Gieben"
+% fullname = "R. (Miek) Gieben"
+
+AB> abstract
+AB> more
+
+{mainmatter}
+
+# Introduction
+
 # Markdown for XML2RFC v3
 
 Or... how to write Markdown to generate XML that is valid XML2RFC v3. These
@@ -6,7 +29,7 @@ are some assorted notes and ideas.
 Goal:
 
 1. Self contained file with all information to generate a complete I-D;
-1. CommonMarkdown, with some extension.
+1. CommonMarkdown, with some extensions.
 
 ## Document meta data
 
