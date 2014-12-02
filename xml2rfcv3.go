@@ -125,6 +125,12 @@ func (options *Xml) Aside(out *bytes.Buffer, text []byte) {
 	out.WriteString("</aside>\n")
 }
 
+func (options *Xml) Note(out *bytes.Buffer, text []byte) {
+	out.WriteString("<note>\n")
+	out.Write(text)
+	out.WriteString("</note>\n")
+}
+
 func (options *Xml) BlockHtml(out *bytes.Buffer, text []byte) {
 	// a pretty lame thing to do...
 	out.WriteString("\n\\begin{verbatim}\n")

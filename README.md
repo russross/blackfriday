@@ -186,9 +186,11 @@ implements the following extensions:
 
 *  **Asides**, any paragraph with `A>` at the beginning of all lines is an aside.
 
-*  **Notes**, any parapgraph with `N>` (TODO)
+*  **Notes**, any parapgraph with `N>`
 
-*  **Abstracts**, any paragraph with `AB>` (TODO)
+*  **Abstracts**, any paragraph with `AB>`
+
+*  **Comments**, any paragraph prefixed with `C>`
 
 *  **{frontmatter}/{mainmatter}/{backmatter}** Create useful divisions in your document.
 
