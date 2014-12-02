@@ -13,7 +13,7 @@ it is fast, it supports the following extensions
 * tables
 * definition lists
 * smart punctuation
-* substitutions 
+* substitutions
 * [TOML][4] titleblock
 * including other markdown files
 * indices

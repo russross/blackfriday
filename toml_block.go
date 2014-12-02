@@ -2,6 +2,7 @@ package blackfriday
 
 import (
 	"bytes"
+	"log"
 	"time"
 
 	"github.com/BurntSushi/toml"
@@ -29,7 +30,6 @@ type addressPostal struct {
 	Country string
 }
 
-// Better names
 type title struct {
 	Title  string
 	Abbrev string
@@ -50,7 +50,7 @@ func (p *parser) titleBlockTOML(out *bytes.Buffer, data []byte) title {
 	data = bytes.Replace(data, []byte("\n% "), []byte("\n"), -1)
 	var block title
 	if _, err := toml.Decode(string(data), &block); err != nil {
-		println(err.Error())
+		log.Printf("TOML titleblock: %s", err.Error())
 		return block // never an error when encoding markdown
 	}
 	return block

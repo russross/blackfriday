@@ -506,6 +506,7 @@ func (options *Xml) DocumentMatter(out *bytes.Buffer, matter int) {
 	options.docLevel = matter
 }
 
+// TODO(miek): extend
 var entityConvert = map[byte]string{
 	'<': "&lt;",
 	'>': "&gt;",
