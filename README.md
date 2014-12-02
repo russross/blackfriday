@@ -212,7 +212,7 @@ Todo
 *   Ordered list start number detection
 *   Correctly close document when there is no TOML titleblock
 *   Auto anchors for sections
-*   indent XML
+*   pretty print XML
 *   <<{{CODE}} code include from leanpub?
 *   alignment in tables
 
