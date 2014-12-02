@@ -25,7 +25,7 @@ import (
 	"unicode/utf8"
 )
 
-const VERSION = "2.0"
+const VERSION = "1.0"
 
 // These are the supported markdown parsing extensions.
 // OR these values together to select multiple extensions.
@@ -51,6 +51,8 @@ const (
 	EXTENSION_QUOTES                                 // Allow AB> A> and N> to be parsed as abstract, asides and notes
 	EXTENSION_IAL                                    // detect kramdown's IAL syntax
 	EXTENSION_MATTER                                 // use {frontmatter} {mainmatter} {backmatter}
+	EXTENSION_ABSTRACT                               // render abstract
+	EXTENSION_ASIDE                                  // render asides
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML |

@@ -1237,8 +1237,8 @@ func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *int) int {
 		i = p.dliPrefix(data)
 		if i > 0 {
 			var rawTerm bytes.Buffer
-			p.inline(&rawTerm, data[:i-2])	 // -2 for : and the newline
-			p.r.ListItem(out, rawTerm.Bytes(), *flags | LIST_TYPE_TERM)
+			p.inline(&rawTerm, data[:i-2]) // -2 for : and the newline
+			p.r.ListItem(out, rawTerm.Bytes(), *flags|LIST_TYPE_TERM)
 		}
 	}
 	if i == 0 {
@@ -1386,50 +1386,50 @@ gatherlines:
 
 func (p *parser) deflist(out *bytes.Buffer, data []byte) int {
 	/*
-	work := func() bool {
-		// make this function ala list with work helper function.
-		var cooked bytes.Buffer
-		p.inline(&cooked, data[:termE])
-		p.r.ListTerm(out, cooked.Bytes(), 0)
-		return true
-	}
-	work()
-	indent := 1 // start with one for the :
-	for indent < 4 && data[i+indent] == ' ' {
-		indent++
-	}
-
-	line := i
-	var chunk bytes.Buffer
-	// find the end of this line
-	for data[i-1] != '\n' {
-		i++
-	}
-	chunk.Write(data[line+indent : i])
-
-	//gatherlines:
-	for i < len(data) {
-		i++
-		line = i
-		indent = 0 // start with one for the :
+		work := func() bool {
+			// make this function ala list with work helper function.
+			var cooked bytes.Buffer
+			p.inline(&cooked, data[:termE])
+			p.r.ListTerm(out, cooked.Bytes(), 0)
+			return true
+		}
+		work()
+		indent := 1 // start with one for the :
 		for indent < 4 && data[i+indent] == ' ' {
 			indent++
 		}
 
+		line := i
+		var chunk bytes.Buffer
 		// find the end of this line
 		for data[i-1] != '\n' {
 			i++
 		}
-
-		if len(data[line:i]) == 0 || p.isEmpty(data[line:i]) > 0 {
-			break
-		}
 		chunk.Write(data[line+indent : i])
-	}
-	p.r.ListDefinition(out, chunk.Bytes(), 0)
-	// p.inline for term
-	// p.block for definition, ala list()
-	return i
+
+		//gatherlines:
+		for i < len(data) {
+			i++
+			line = i
+			indent = 0 // start with one for the :
+			for indent < 4 && data[i+indent] == ' ' {
+				indent++
+			}
+
+			// find the end of this line
+			for data[i-1] != '\n' {
+				i++
+			}
+
+			if len(data[line:i]) == 0 || p.isEmpty(data[line:i]) > 0 {
+				break
+			}
+			chunk.Write(data[line+indent : i])
+		}
+		p.r.ListDefinition(out, chunk.Bytes(), 0)
+		// p.inline for term
+		// p.block for definition, ala list()
+		return i
 	*/
 	return 0
 }

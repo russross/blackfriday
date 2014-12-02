@@ -22,9 +22,10 @@ import (
 const ()
 
 type indent struct {
-	in string
-	buf    *bytes.Buffer
+	in  string
+	buf *bytes.Buffer
 }
+
 func (i *indent) indent() {
 	i.in += "  "
 }
@@ -112,7 +113,7 @@ func (options *Xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	out.WriteString("<rfc xmlns:xi=\"http://www.w3.org/2001/XInclude\" ipr=\"" +
 		options.titleBlock.Ipr + "\" category=\"" +
 		options.titleBlock.Category + "\" docName=\"" + options.titleBlock.DocName + "\">\n")
-//	out.WriteString("<front>")
+	//	out.WriteString("<front>")
 	in.WriteString("<front>")
 	out.WriteString("<front>")
 	out.WriteString("<title abbrev=\"" + options.titleBlock.Abbrev + "\">")

@@ -1,42 +1,36 @@
 [![Build Status](https://travis-ci.org/russross/blackfriday.svg?branch=master)](https://travis-ci.org/russross/blackfriday)
 
-Blackfriday
-===========
+# ....
 
-Blackfriday is a [Markdown][1] processor implemented in [Go][2]. It
-is paranoid about its input (so you can safely feed it user-supplied
-data), it is fast, it supports common extensions (tables, smart
-punctuation substitutions, etc.), and it is safe for all utf-8
-(unicode) input.
+... is a fork of blackfriday is a [Markdown][1] processor implemented in
+[Go][2]. It supports a number of extensions, inspired by Leanpub, kramdown and
+Asciidoc, that allows for large documents to be written. It is specifically
+designed to write internet drafts for the IETF.
 
+It is paranoid about its input (so you can safely feed it user-supplied data),
+it is fast, it supports the following extensions
+
+* tables
+* definition lists
+* smart punctuation
+* substitutions 
+* [TOML][4] titleblock
+* including other markdown files
+* indices
+* main-, middle- and backmatter divisions
+* citations
+* abstract
+* asides
+* IAL, inline attribute list
+
+And it is safe for all utf-8.
 HTML output is currently supported, along with Smartypants
-extensions. An experimental LaTeX output engine is also included.
+extensions. An XML2RFV v3 output engine is also included.
+Adding DocBook output should not be that hard.
 
 It started as a translation from C of [upskirt][3].
 
-
-Installation
-------------
-
-Blackfriday is compatible with Go 1. If you are using an older
-release of Go, consider using v1.1 of blackfriday, which was based
-on the last stable release of Go prior to Go 1. You can find it as a
-tagged commit on github.
-
-With Go 1 and git installed:
-
-    go get github.com/russross/blackfriday
-
-will download, compile, and install the package into your `$GOPATH`
-directory hierarchy. Alternatively, you can achieve the same if you
-import it into a project:
-
-    import "github.com/russross/blackfriday"
-
-and `go get` without parameters.
-
-Usage
------
+## Usage
 
 For basic usage, it is as simple as getting your input into a byte
 slice and calling:
@@ -47,26 +41,6 @@ This renders it with no extensions enabled. To get a more useful
 feature set, use this instead:
 
     output := blackfriday.MarkdownCommon(input)
-
-### Sanitize untrusted content
-
-Blackfriday itself does nothing to protect against malicious content. If you are
-dealing with user-supplied markdown, we recommend running blackfriday's output
-through HTML sanitizer such as
-[Bluemonday](https://github.com/microcosm-cc/bluemonday).
-
-Here's an example of simple usage of blackfriday together with bluemonday:
-
-``` go
-import (
-    "github.com/microcosm-cc/bluemonday"
-    "github.com/russross/blackfriday"
-)
-
-// ...
-unsafe := blackfriday.MarkdownCommon(input)
-html := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
-```
 
 ### Custom options
 
@@ -129,7 +103,7 @@ All features of upskirt are supported, including:
 *   **Minimal dependencies**. Blackfriday only depends on standard
     library packages in Go. The source code is pretty
     self-contained, so it is easy to add to any project, including
-    Google App Engine projects.
+    Google App Engine projects. And TOML!
 
 *   **Standards compliant**. Output successfully validates using the
     W3C validation tool for HTML 4.01 and XHTML 1.0 Transitional.
@@ -225,25 +199,6 @@ implements the following extensions:
 
 *  **TOML TitleBlock**, add an extended title block prefixed with % in TOML.
 
-Other renderers
----------------
-
-Blackfriday is structured to allow alternative rendering engines. Here
-are a few of note:
-
-*   [github_flavored_markdown](https://godoc.org/github.com/shurcooL/go/github_flavored_markdown):
-    provides a GitHub Flavored Markdown renderer with fenced code block
-    highlighting, clickable header anchor links.
-
-    It's not customizable, and its goal is to produce HTML output
-    equivalent to the [GitHub Markdown API endpoint](https://developer.github.com/v3/markdown/#render-a-markdown-document-in-raw-mode),
-    except the rendering is performed locally.
-
-*   [markdownfmt](https://github.com/shurcooL/markdownfmt): like gofmt,
-    but for markdown.
-
-*   XML output: renders output as XML2RFCv2.
-
 Todo
 ----
 
@@ -258,7 +213,8 @@ Todo
 *   Correctly close document when there is no TOML titleblock
 *   Auto anchors for sections
 *   indent XML
-
+*   <<{{CODE}} code include from leanpub?
+*   alignment in tables
 
 License
 -------
