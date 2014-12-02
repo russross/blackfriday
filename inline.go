@@ -605,7 +605,6 @@ func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 func leftBrace(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
 	if offset == 0 {
-		println("CHECKING MATTER")
 		// {*matter} are only valid at the beginning of the line
 		switch s := string(data); true {
 		case s == "{frontmatter}":

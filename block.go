@@ -546,7 +546,6 @@ func (p *parser) htmlFindEnd(tag string, data []byte) int {
 func (p *parser) isEmpty(data []byte) int {
 	// it is okay to call isEmpty on an empty buffer
 	if len(data) == 0 {
-		println("RETURNING")
 		return 0
 	}
 
