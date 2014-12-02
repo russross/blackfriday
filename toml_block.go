@@ -13,6 +13,8 @@ type author struct {
 	Surname      string
 	Fullname     string
 	Organization string
+	Role         string
+	Ascii        string
 	Address      address
 }
 

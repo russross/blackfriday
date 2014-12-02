@@ -102,6 +102,15 @@ func (options *Xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	for _, k := range options.titleBlock.Keyword {
 		out.WriteString("<keyword>" + k + "</keyword>\n")
 	}
+	for _, a := range options.titleBlock.Author {
+		out.WriteString("<author>\n")
+		out.WriteString("<initials>" + a.Initials + "</initials>\n")
+		out.WriteString("<surname>" + a.Surname + "</surname>\n")
+		out.WriteString("<fullname>" + a.Fullname + "</fullname>\n")
+		out.WriteString("<role>" + a.Role + "</role>\n")
+		out.WriteString("<ascii>" + a.Ascii + "</ascii>\n")
+		out.WriteString("</author>\n")
+	}
 	// Author information
 	out.WriteString("\n")
 }
@@ -338,16 +347,14 @@ func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation
 
 // create reference file
 func referenceFile(id []byte) string {
-	if len(id) < 3 {
+	if len(id) < 4 {
 		return ""
 	}
-	s := string(id[:3])
-	d := string(id[3:])
-	switch s {
+	switch string(id[:3]) {
 	case "RFC":
-		return "reference.RFC." + d + ".xml"
+		return "reference.RFC." + string(id[:3]) + ".xml"
 	case "I-D":
-		return "reference.I-D." + d + ".xml"
+	return "reference.I-D.draft-" + string(id[4:]) + ".xml"
 	}
 	return ""
 }

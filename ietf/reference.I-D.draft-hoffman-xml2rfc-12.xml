@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<reference anchor='I-D.hoffman-xml2rfc'>
+<front>
+<title>The 'XML2RFC' version 3 Vocabulary</title>
+
+<author initials='P' surname='Hoffman' fullname='Paul Hoffman'>
+    <organization />
+</author>
+
+<date month='October' day='27' year='2014' />
+
+<abstract><t>This document defines the "XML2RFC" version 3 vocabulary; an XML- based language used for writing RFCs and Internet-Drafts.  It is heavily derived from the version 2 vocabulary that is also under discussion.  This document obsoletes the v2 grammar described in RFC 2629 and its expected followup, draft-reschke-xml2rfc.  Editorial Note (To be removed by RFC Editor)  Discussion of this draft takes place on the rfc-interest mailing list (rfc-interest@rfc-editor.org), which has its home page at &lt;https://www.rfc-editor.org/mailman/listinfo/rfc-interest>.</t></abstract>
+
+</front>
+
+<seriesInfo name='Internet-Draft' value='draft-hoffman-xml2rfc-12' />
+<format type='TXT'
+        target='http://www.ietf.org/internet-drafts/draft-hoffman-xml2rfc-12.txt' />
+</reference>
