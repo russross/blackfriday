@@ -24,12 +24,12 @@ const ()
 // which tags are block tags for which we fiddle with the indentation
 var blocktags = map[string]bool{
 	"abstract": true,
-	"aside": true,
-	"dl": true,
-	"ol": true,
-	"rfc": true,
-	"section": true,
-	"ul": true,
+	"aside":    true,
+	"dl":       true,
+	"ol":       true,
+	"rfc":      true,
+	"section":  true,
+	"ul":       true,
 }
 
 type indent struct {
@@ -40,6 +40,7 @@ type indent struct {
 func (i *indent) indent() {
 	i.in += "  "
 }
+
 func (i *indent) dedent() {
 	if len(i.in)-2 < 0 {
 		i.in = ""
@@ -47,11 +48,14 @@ func (i *indent) dedent() {
 	i.in = i.in[:len(i.in)-2]
 }
 
+// look for block tag and increment or decrement the indentation.
+func (i *indent) tag() {
+
+}
+
 func (i *indent) WriteString(s string) {
-	// write with current indentation, but check first tag to see it is a
-	// block tag that either indents or dedents.
+	// check first
 	i.buf.WriteString(s)
-	i.buf.WriteString(" ")
 }
 
 func (i *indent) Write(b []byte) {
