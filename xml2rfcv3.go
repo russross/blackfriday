@@ -19,7 +19,9 @@ import (
 )
 
 // XML renderer configuration options.
-const ()
+const (
+	XML_STANDALONE = 1 << iota // create standalone document
+)
 
 // Xml is a type that implements the Renderer interface for XML2RFV3 output.
 //
@@ -75,6 +77,9 @@ func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 func (options *Xml) TitleBlock(out *bytes.Buffer, text []byte) {}
 
 func (options *Xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
+	if options.flags&XML_STANDALONE == 0 {
+		return
+	}
 	options.titleBlock = block
 	out.WriteString("<rfc xmlns:xi=\"http://www.w3.org/2001/XInclude\" ipr=\"" +
 		options.titleBlock.Ipr + "\" category=\"" +
@@ -284,7 +289,7 @@ func (options *Xml) Citation(out *bytes.Buffer, link, title []byte) {
 }
 
 func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation, first bool) {
-	if !first {
+	if !first || options.flags&XML_STANDALONE == 0  {
 		return
 	}
 	// close any option section tags
@@ -354,7 +359,7 @@ func referenceFile(id []byte) string {
 	case "RFC":
 		return "reference.RFC." + string(id[:3]) + ".xml"
 	case "I-D":
-	return "reference.I-D.draft-" + string(id[4:]) + ".xml"
+		return "reference.I-D.draft-" + string(id[4:]) + ".xml"
 	}
 	return ""
 }
@@ -442,14 +447,14 @@ func (options *Xml) NormalText(out *bytes.Buffer, text []byte) {
 
 // header and footer
 func (options *Xml) DocumentHeader(out *bytes.Buffer, first bool) {
-	if !first {
+	if !first || options.flags&XML_STANDALONE == 0  {
 		return
 	}
 	out.WriteString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
 }
 
 func (options *Xml) DocumentFooter(out *bytes.Buffer, first bool) {
-	if !first {
+	if !first || options.flags&XML_STANDALONE == 0  {
 		return
 	}
 	// close any option section tags

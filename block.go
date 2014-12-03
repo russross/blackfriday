@@ -334,6 +334,7 @@ func (p *parser) titleBlock(out *bytes.Buffer, data []byte, doRender bool) int {
 	}
 
 	data = bytes.Join(splitData[0:i], []byte("\n"))
+	// TODO(miek): fix does not belong here
 	block := p.titleBlockTOML(out, data)
 	p.r.TitleBlockTOML(out, &block)
 	p.r.TitleBlock(out, data)

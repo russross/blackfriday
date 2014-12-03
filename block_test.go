@@ -26,6 +26,14 @@ func runMarkdownBlock(input string, extensions int) string {
 	return string(Markdown([]byte(input), renderer, extensions))
 }
 
+func runMarkdownBlockXML(input string, extensions int) string {
+	xmlFlags := 0
+
+	renderer := XmlRenderer(xmlFlags)
+
+	return string(Markdown([]byte(input), renderer, extensions))
+}
+
 func doTestsBlock(t *testing.T, tests []string, extensions int) {
 	// catch and report panics
 	var candidate string
@@ -51,6 +59,37 @@ func doTestsBlock(t *testing.T, tests []string, extensions int) {
 				for end := start + 1; end <= len(input); end++ {
 					candidate = input[start:end]
 					_ = runMarkdownBlock(candidate, extensions)
+				}
+			}
+		}
+	}
+}
+
+func doTestsBlockXML(t *testing.T, tests []string, extensions int) {
+	// catch and report panics
+	var candidate string
+	defer func() {
+		if err := recover(); err != nil {
+			t.Errorf("\npanic while processing [%#v]: %s\n", candidate, err)
+		}
+	}()
+
+	for i := 0; i+1 < len(tests); i += 2 {
+		input := tests[i]
+		candidate = input
+		expected := tests[i+1]
+		actual := runMarkdownBlockXML(candidate, extensions)
+		if actual != expected {
+			t.Errorf("\nInput   [%#v]\nExpected[%#v]\nActual  [%#v]",
+				candidate, expected, actual)
+		}
+
+		// now test every substring to stress test bounds checking
+		if !testing.Short() {
+			for start := 0; start < len(input); start++ {
+				for end := start + 1; end <= len(input); end++ {
+					candidate = input[start:end]
+					_ = runMarkdownBlockXML(candidate, extensions)
 				}
 			}
 		}
@@ -1145,5 +1184,16 @@ func TestTitleBlock_EXTENSION_TITLEBLOCK(t *testing.T) {
 	}
 
 	doTestsBlock(t, tests, EXTENSION_TITLEBLOCK)
+}
 
+func TestDefinitionList(t *testing.T) {
+	var tests = []string{
+		"Term1\n:   Hi There",
+		"<dl>\n<dt>Term1</dt>\n<dd>Hi There</dd>\n</dl>\n",
+
+		"Term1\n:   Yin\nTerm2\n:   Yang\n",
+		"<dl>\n<dt>Term1</dt>\n<dd>Yin</dd>\n<dt>Term2</dt>\n<dd>Yang</dd>\n</dl>\n",
+
+	}
+	doTestsBlockXML(t, tests, 0)
 }

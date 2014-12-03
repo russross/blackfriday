@@ -842,18 +842,22 @@ func doTestsInlineParamXML(t *testing.T, tests []string, extensions, xmlFlags in
 func TestIndexXML(t *testing.T) {
 	var tests = []string{
 		"(((Tiger, Cats)))\n",
-		"<t>\n<iref item=\"Tiger\" subitem=\"Cats\"/>\n</t>\n",
+		"<t><iref item=\"Tiger\" subitem=\"Cats\"/></t>\n",
+
+		"`(((Tiger, Cats)))`\n",
+		"<t><tt>(((Tiger, Cats)))</tt></t>\n",
 
 		"(((Tiger, Cats))\n",
-		"<t>\n(((Tiger, Cats))\n</t>\n",
+		"<t>(((Tiger, Cats))</t>\n",
 	}
 	doTestsInlineXML(t, tests)
 }
 
+// TODO
 func TestCitationXML(t *testing.T) {
 	var tests = []string{
 		"(((Tiger, Cats)))\n",
-		"<t>\n<iref item=\"Tiger\" subitem=\"Cats\"/>\n</t>\n",
+		"<t><iref item=\"Tiger\" subitem=\"Cats\"/></t>\n",
 	}
 	doTestsInlineXML(t, tests)
 }
