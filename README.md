@@ -213,10 +213,7 @@ Todo
     rules (about what constitutes a letter, a punctuation symbol,
     etc.), so it may fail to detect word boundaries correctly in
     some instances. It is safe on all utf-8 input.
-*   Fix `<section>` output
-*   Ordered list start number detection
 *   Correctly close document when there is no TOML titleblock
-*   Auto anchors for sections
 *   pretty print XML
 *   <<{{CODE}} code include from leanpub?
 *   alignment in tables
