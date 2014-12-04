@@ -217,6 +217,8 @@ Todo
 *   pretty print XML
 *   <<{{CODE}} code include from leanpub?
 *   alignment in tables
+*   F> for figures as to capture artworks and source into one figure
+    (needs name syntax)
 
 License
 -------
