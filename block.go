@@ -283,6 +283,14 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 			p.inline(out, data[i:end])
 			return true
 		}
+		if v, ok := p.anchors[id]; ok {
+			// anchor found
+			id += "-" + strconv.Itoa(v)
+			p.anchors[id]++
+		} else {
+			p.anchors[id] = 1
+		}
+
 		p.r.Header(out, work, level, id)
 	}
 	return skip

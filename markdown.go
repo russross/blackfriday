@@ -247,6 +247,10 @@ type parser struct {
 
 	// Placeholder for IALs that can be added to blocklevel elements.
 	ial []*IAL
+
+	// Prevent identical header anchors by appendnig -<sequence_number> starting
+	// with -1, this is the same thing that pandoc does.
+	anchors map[string]int
 }
 
 //
@@ -311,6 +315,7 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	p.r = renderer
 	p.flags = extensions
 	p.refs = make(map[string]*reference)
+	p.anchors = make(map[string]int)
 	p.maxNesting = 16
 	p.insideLink = false
 
