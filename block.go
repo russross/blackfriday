@@ -15,6 +15,7 @@ package blackfriday
 
 import (
 	"bytes"
+	"strconv"
 	"unicode"
 )
 
@@ -159,7 +160,6 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			continue
 		}
 
-
 		// block quote:
 		//
 		// > A big quote I found somewhere
@@ -189,7 +189,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// Item2
 		// :	Definition2
 		if p.dliPrefix(data) > 0 {
-			data = data[p.list(out, data, LIST_TYPE_DEFINITION):]
+			data = data[p.list(out, data, LIST_TYPE_DEFINITION, 0):]
 		}
 
 		// an itemized/unordered list:
@@ -199,7 +199,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		//
 		// also works with + or -
 		if p.uliPrefix(data) > 0 {
-			data = data[p.list(out, data, 0):]
+			data = data[p.list(out, data, 0, 0):]
 			continue
 		}
 
@@ -207,8 +207,12 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		//
 		// 1. Item 1
 		// 2. Item 2
-		if p.oliPrefix(data) > 0 {
-			data = data[p.list(out, data, LIST_TYPE_ORDERED):]
+		if i := p.oliPrefix(data); i > 0 {
+			start := 0
+			if i > 2 {
+				start, _ = strconv.Atoi(string(data[:i-2])) // this cannot fail because we just est. the thing *is* a number
+			}
+			data = data[p.list(out, data, LIST_TYPE_ORDERED, start):]
 			continue
 		}
 		// anything else must look like a normal paragraph
@@ -936,6 +940,7 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 
 	p.r.TableRow(out, rowWork.Bytes())
 }
+
 // returns notequote prefix length
 func (p *parser) notePrefix(data []byte) int {
 	i := 0
@@ -1257,7 +1262,7 @@ func (p *parser) dliPrefix(data []byte) int {
 }
 
 // parse ordered or unordered or definition list block
-func (p *parser) list(out *bytes.Buffer, data []byte, flags int) int {
+func (p *parser) list(out *bytes.Buffer, data []byte, flags, start int) int {
 	i := 0
 	flags |= LIST_ITEM_BEGINNING_OF_LIST
 	work := func() bool {
@@ -1273,7 +1278,7 @@ func (p *parser) list(out *bytes.Buffer, data []byte, flags int) int {
 		return true
 	}
 
-	p.r.List(out, work, flags)
+	p.r.List(out, work, flags, start)
 	return i
 }
 
@@ -1441,56 +1446,6 @@ gatherlines:
 	return line
 }
 
-func (p *parser) deflist(out *bytes.Buffer, data []byte) int {
-	/*
-		work := func() bool {
-			// make this function ala list with work helper function.
-			var cooked bytes.Buffer
-			p.inline(&cooked, data[:termE])
-			p.r.ListTerm(out, cooked.Bytes(), 0)
-			return true
-		}
-		work()
-		indent := 1 // start with one for the :
-		for indent < 4 && data[i+indent] == ' ' {
-			indent++
-		}
-
-		line := i
-		var chunk bytes.Buffer
-		// find the end of this line
-		for data[i-1] != '\n' {
-			i++
-		}
-		chunk.Write(data[line+indent : i])
-
-		//gatherlines:
-		for i < len(data) {
-			i++
-			line = i
-			indent = 0 // start with one for the :
-			for indent < 4 && data[i+indent] == ' ' {
-				indent++
-			}
-
-			// find the end of this line
-			for data[i-1] != '\n' {
-				i++
-			}
-
-			if len(data[line:i]) == 0 || p.isEmpty(data[line:i]) > 0 {
-				break
-			}
-			chunk.Write(data[line+indent : i])
-		}
-		p.r.ListDefinition(out, chunk.Bytes(), 0)
-		// p.inline for term
-		// p.block for definition, ala list()
-		return i
-	*/
-	return 0
-}
-
 // render a single paragraph that has already been parsed out
 func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 	if len(data) == 0 {
@@ -1601,6 +1556,7 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 		if p.flags&EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK != 0 {
 			if p.uliPrefix(current) != 0 ||
 				p.oliPrefix(current) != 0 ||
+				// todo dliPrefix ??
 				p.quotePrefix(current) != 0 ||
 				p.codePrefix(current) != 0 {
 				p.renderParagraph(out, data[:i])

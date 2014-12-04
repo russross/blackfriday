@@ -14,6 +14,7 @@ package blackfriday
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 	"time"
 )
@@ -178,11 +179,15 @@ func (options *Xml) HRule(out *bytes.Buffer) {
 	// not used
 }
 
-func (options *Xml) List(out *bytes.Buffer, text func() bool, flags int) {
+func (options *Xml) List(out *bytes.Buffer, text func() bool, flags, start int) {
 	marker := out.Len()
 	switch {
 	case flags&LIST_TYPE_ORDERED != 0:
-		out.WriteString("<ol>\n")
+		if start <= 1 {
+			out.WriteString("<ol>\n")
+		} else {
+			out.WriteString(fmt.Sprintf("<ol start=\"%d\">\n", start))
+		}
 	case flags&LIST_TYPE_DEFINITION != 0:
 		out.WriteString("<dl>\n")
 	default:
@@ -289,7 +294,7 @@ func (options *Xml) Citation(out *bytes.Buffer, link, title []byte) {
 }
 
 func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation, first bool) {
-	if !first || options.flags&XML_STANDALONE == 0  {
+	if !first || options.flags&XML_STANDALONE == 0 {
 		return
 	}
 	// close any option section tags
@@ -447,14 +452,14 @@ func (options *Xml) NormalText(out *bytes.Buffer, text []byte) {
 
 // header and footer
 func (options *Xml) DocumentHeader(out *bytes.Buffer, first bool) {
-	if !first || options.flags&XML_STANDALONE == 0  {
+	if !first || options.flags&XML_STANDALONE == 0 {
 		return
 	}
 	out.WriteString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
 }
 
 func (options *Xml) DocumentFooter(out *bytes.Buffer, first bool) {
-	if !first || options.flags&XML_STANDALONE == 0  {
+	if !first || options.flags&XML_STANDALONE == 0 {
 		return
 	}
 	// close any option section tags

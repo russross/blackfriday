@@ -173,7 +173,7 @@ type Renderer interface {
 	BlockHtml(out *bytes.Buffer, text []byte)
 	Header(out *bytes.Buffer, text func() bool, level int, id string)
 	HRule(out *bytes.Buffer)
-	List(out *bytes.Buffer, text func() bool, flags int)
+	List(out *bytes.Buffer, text func() bool, flags, start int)
 	ListItem(out *bytes.Buffer, text []byte, flags int)
 	Paragraph(out *bytes.Buffer, text func() bool)
 	Table(out *bytes.Buffer, header []byte, body []byte, columnData []int)

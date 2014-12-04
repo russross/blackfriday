@@ -1195,7 +1195,7 @@ func TestDefinitionListXML(t *testing.T) {
 		"<dl>\n<dt>Term1</dt>\n<dd>Yin</dd>\n<dt>Term2</dt>\n<dd>Yang</dd>\n</dl>\n",
 
 		`Term 1
-:   This is a definition with two paragraphs. Lorem ipsum 
+:   This is a definition with two paragraphs. Lorem ipsum
 
     Vestibulum enim wisi, viverra nec, fringilla in, laoreet
     vitae, risus.
@@ -1214,7 +1214,7 @@ Term 2
 		"<dl>\n<dt>Term 1</dt>\n<dd><t>This is a definition with two paragraphs. Lorem ipsum</t>\n<t>Vestibulum enim wisi, viverra nec, fringilla in, laoreet\nvitae, risus.</t></dd>\n<dt>Term 2</dt>\n<dd><t>This definition has a code block, a blockquote and a list.</t>\n<sourcecode>\ncode block.\n</sourcecode>\n<blockquote>\n<t>block quote\non two lines.</t>\n</blockquote>\n<ol>\n<li>first list item</li>\n<li>second list item</li>\n</ol></dd>\n</dl>\n",
 
 		`Apple
-:   Pomaceous fruit of plants of the genus Malus in 
+:   Pomaceous fruit of plants of the genus Malus in
     the family Rosaceae.
 
 Orange and *Apples*
@@ -1249,4 +1249,13 @@ func testTitleBlockTOMLXML(t *testing.T) {
 		"",
 	}
 	doTestsBlockXML(t, tests, 0)
+}
+
+func TestOrderedListStartXML(t *testing.T) {
+	var tests = []string{
+		"1. hello\n1. hello\n\ndivide\n\n4. hello\n5. hello\n\ndivide\n\n 7. hello\n5. hello\n",
+		"<ol>\n<li>hello</li>\n<li>hello</li>\n</ol>\n<t>divide</t>\n<ol start=\"4\">\n<li>hello</li>\n<li>hello</li>\n</ol>\n<t>divide</t>\n<ol>\n<li>hello</li>\n<li>hello</li>\n</ol>\n",
+	}
+	doTestsBlockXML(t, tests, 0)
+
 }
