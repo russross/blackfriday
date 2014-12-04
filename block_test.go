@@ -1219,7 +1219,7 @@ Term 2
 
 Orange and *Apples*
 :   The thing of an evergreen tree of the genus Citrus.`,
-		"<dl>\n<dt>Apple</dt>\n<dd><t>Pomaceous fruit of plants of the genus Malus in\nthe family Rosaceae.</t></dd>\n<dt>Orange and <i>Apples</i></dt>\n<dd><t>The thing of an evergreen tree of the genus Citrus.</t></dd>\n</dl>\n",
+		"<dl>\n<dt>Apple</dt>\n<dd><t>Pomaceous fruit of plants of the genus Malus in\nthe family Rosaceae.</t></dd>\n<dt>Orange and <em>Apples</em></dt>\n<dd><t>The thing of an evergreen tree of the genus Citrus.</t></dd>\n</dl>\n",
 	}
 	doTestsBlockXML(t, tests, 0)
 }

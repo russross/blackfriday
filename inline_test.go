@@ -861,3 +861,18 @@ func TestCitationXML(t *testing.T) {
 	}
 	doTestsInlineXML(t, tests)
 }
+
+func TestRFC2119XML(t *testing.T) {
+	var tests = []string{
+		"MUST",
+		"<t>MUST</t>\n",
+
+		"*MUST*",
+		"<t><em>MUST</em></t>\n",
+
+		"**MUST**",
+		"<t><bcp14>MUST</bcp14></t>\n",
+	}
+	doTestsInlineXML(t, tests)
+
+}

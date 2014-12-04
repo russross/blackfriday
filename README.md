@@ -22,6 +22,11 @@ it is fast, it supports the following extensions
 * abstract
 * asides
 * IAL, inline attribute list
+* pay attention to the first number of ordered list, `4.` start a list with 4. instead of 1.
+
+## Maybe
+
+* Extension: example_lists from markdown `(@)` syntax.
 
 And it is safe for all utf-8.
 HTML output is currently supported, along with Smartypants

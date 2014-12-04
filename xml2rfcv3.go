@@ -24,6 +24,19 @@ const (
 	XML_STANDALONE = 1 << iota // create standalone document
 )
 
+var words2119 = map[string]bool{
+	"MUST":        true,
+	"MUST NOT":    true,
+	"REQUIRED":    true,
+	"SHALL":       true,
+	"SHALL NOT":   true,
+	"SHOULD":      true,
+	"SHOULD NOT":  true,
+	"RECOMMENDED": true,
+	"MAY":         true,
+	"OPTIONAL":    true,
+}
+
 // Xml is a type that implements the Renderer interface for XML2RFV3 output.
 //
 // Do not create this directly, instead use the XmlRenderer function.
@@ -159,7 +172,6 @@ func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id st
 	//marker := out.Len()
 	//out.Truncate(marker)
 
-	id = "a"
 	if level <= options.sectionLevel {
 		// close previous ones
 		for i := options.sectionLevel - level + 1; i > 0; i-- {
@@ -387,15 +399,23 @@ func (options *Xml) CodeSpan(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Xml) DoubleEmphasis(out *bytes.Buffer, text []byte) {
-	out.WriteString("<b>")
+	// Check for 2119 Keywords
+	s := string(text)
+	if _, ok := words2119[s]; ok {
+		out.WriteString("<bcp14>")
+		out.Write(text)
+		out.WriteString("</bcp14>")
+		return
+	}
+	out.WriteString("<strong>")
 	out.Write(text)
-	out.WriteString("</b>")
+	out.WriteString("</strong>")
 }
 
 func (options *Xml) Emphasis(out *bytes.Buffer, text []byte) {
-	out.WriteString("<i>")
+	out.WriteString("<em>")
 	out.Write(text)
-	out.WriteString("</i>")
+	out.WriteString("</em>")
 }
 
 func (options *Xml) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
@@ -429,9 +449,9 @@ func (options *Xml) RawHtmlTag(out *bytes.Buffer, tag []byte) {
 }
 
 func (options *Xml) TripleEmphasis(out *bytes.Buffer, text []byte) {
-	out.WriteString("\\textbf{\\textit{")
+	out.WriteString("<strong><em>")
 	out.Write(text)
-	out.WriteString("}}")
+	out.WriteString("</em></strong>")
 }
 
 func (options *Xml) StrikeThrough(out *bytes.Buffer, text []byte) {
