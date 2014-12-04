@@ -62,7 +62,7 @@ func (options *Xml) GetState() int {
 func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 	s := renderIAL(options.GetAndResetIAL())
 	if lang == "" {
-		out.WriteString("\n<sourcecode" + s + ">\n")
+		out.WriteString("<sourcecode" + s + ">\n")
 	} else {
 		out.WriteString("\n<sourcecode" + s + "type=\"" + lang + "\">\n")
 	}
