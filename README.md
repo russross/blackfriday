@@ -217,8 +217,9 @@ Todo
 *   pretty print XML
 *   <<{{CODE}} code include from leanpub?
 *   alignment in tables
-*   F> for figures as to capture artworks and source into one figure
-    (needs name syntax)
+*   F> first paragraph is the caption, no way to specify name,
+    (unless, you use a header - may be that we should allow this
+        and keep track of being in F Aside
 
 License
 -------
