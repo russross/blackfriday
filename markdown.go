@@ -113,6 +113,12 @@ const (
 	DOC_BACK_MATTER
 )
 
+// Headers in figure, asides, notes and abstract(s) can be typset
+// differently. We call these quote text blocks
+const (
+	HEADER_IN_QUOTE = 1 << iota
+)
+
 // These are the tags that are recognized as HTML block tags.
 // Any of these can be included in markdown text without special escaping.
 var blockTags = map[string]bool{
@@ -171,7 +177,7 @@ type Renderer interface {
 	BlockCode(out *bytes.Buffer, text []byte, lang string)
 	BlockQuote(out *bytes.Buffer, text []byte)
 	BlockHtml(out *bytes.Buffer, text []byte)
-	Header(out *bytes.Buffer, text func() bool, level int, id string)
+	Header(out *bytes.Buffer, text func() bool, level int, id string, quote bool)
 	HRule(out *bytes.Buffer)
 	List(out *bytes.Buffer, text func() bool, flags, start int)
 	ListItem(out *bytes.Buffer, text []byte, flags int)
@@ -236,6 +242,7 @@ type parser struct {
 	nesting        int
 	maxNesting     int
 	insideLink     bool
+	insideQuote    bool // Header inside quote (blockquote, aside, figure)
 
 	// Don't need to save, kill current titleblock
 	titleblock title
@@ -248,7 +255,7 @@ type parser struct {
 	// Placeholder for IALs that can be added to blocklevel elements.
 	ial []*IAL
 
-	// Prevent identical header anchors by appendnig -<sequence_number> starting
+	// Prevent identical header anchors by appending -<sequence_number> starting
 	// with -1, this is the same thing that pandoc does.
 	anchors map[string]int
 }

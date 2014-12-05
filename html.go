@@ -188,7 +188,7 @@ func (options *Html) TitleBlock(out *bytes.Buffer, text []byte) {
 
 func (options *Html) TitleBlockTOML(out *bytes.Buffer, data *title) {}
 
-func (options *Html) Header(out *bytes.Buffer, text func() bool, level int, id string) {
+func (options *Html) Header(out *bytes.Buffer, text func() bool, level int, id string, quote bool) {
 	marker := out.Len()
 	doubleSpace(out)
 

@@ -166,11 +166,17 @@ func (options *Xml) BlockHtml(out *bytes.Buffer, text []byte) {
 	out.WriteString("\n\\end{verbatim}\n")
 }
 
-func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id string) {
+func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id string, quote bool) {
 	// set amount of open in options, so we know what to close after we finish
 	// parsing the doc.
 	//marker := out.Len()
 	//out.Truncate(marker)
+	if quote { // this is a header inside an quoted text block (figure, aside)
+		out.WriteString("<name>") // typeset this differently.
+		text()
+		out.WriteString("</name>\n")
+		return
+	}
 
 	if level <= options.sectionLevel {
 		// close previous ones

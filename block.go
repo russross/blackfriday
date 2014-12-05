@@ -138,7 +138,9 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// AB> This is an abstract
 		// AB> I found on the web
 		if p.abstractPrefix(data) > 0 {
+			p.insideQuote = true
 			data = data[p.abstract(out, data):]
+			p.insideQuote = false
 			continue
 		}
 
@@ -147,7 +149,9 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// A> This is an aside
 		// A> I found on the web
 		if p.asidePrefix(data) > 0 {
+			p.insideQuote = true
 			data = data[p.aside(out, data):]
+			p.insideQuote = false
 			continue
 		}
 
@@ -156,7 +160,25 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// N> This is an aside
 		// N> I found on the web
 		if p.notePrefix(data) > 0 {
+			p.insideQuote = true
 			data = data[p.note(out, data):]
+			p.insideQuote = false
+			continue
+		}
+
+		// Figure quote:
+		//
+		// F> # this is a figure
+		// F>
+		// F> A little caption for this program.
+		// F>
+		// F> ``` go
+		// F> println("Golang")
+		// F> ```
+		if p.figurePrefix(data) > 0 {
+			p.insideQuote = true
+			// data = data[p.figure(out, data):]
+			p.insideQuote = false
 			continue
 		}
 
@@ -165,7 +187,9 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// > A big quote I found somewhere
 		// > on the web
 		if p.quotePrefix(data) > 0 {
+			p.insideQuote = true
 			data = data[p.quote(out, data):]
+			p.insideQuote = false
 			continue
 		}
 
@@ -291,7 +315,7 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 			p.anchors[id] = 1
 		}
 
-		p.r.Header(out, work, level, id)
+		p.r.Header(out, work, level, id, p.insideQuote)
 	}
 	return skip
 }
@@ -949,6 +973,58 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 	p.r.TableRow(out, rowWork.Bytes())
 }
 
+// returns figurequote prefix length
+func (p *parser) figurePrefix(data []byte) int {
+	i := 0
+	for i < 3 && data[i] == ' ' {
+		i++
+	}
+	if data[i] == 'F' && data[i+1] == '>' {
+		if data[i+2] == ' ' {
+			return i + 3
+		}
+		return i + 2
+	}
+	return 0
+}
+
+// parse an figure fragment
+func (p *parser) figure(out *bytes.Buffer, data []byte) int {
+	/*
+	var raw bytes.Buffer
+	beg, end := 0, 0
+	for beg < len(data) {
+		end = beg
+		for data[end] != '\n' {
+			end++
+		}
+		end++
+
+		if pre := p.notePrefix(data[beg:]); pre > 0 {
+			// skip the prefix
+			beg += pre
+		} else if p.isEmpty(data[beg:]) > 0 &&
+			(end >= len(data) ||
+				(p.notePrefix(data[end:]) == 0 && p.isEmpty(data[end:]) == 0)) {
+			// abstract ends with at least one blank line
+			// followed by something without a abstract prefix
+			break
+		}
+
+		// this line is part of the abstract
+		raw.Write(data[beg:end])
+		beg = end
+	}
+
+	var cooked bytes.Buffer
+	p.block(&cooked, raw.Bytes())
+	p.r.Note(out, cooked.Bytes())
+	return end
+	*/
+	return 0
+}
+
+
 // returns notequote prefix length
 func (p *parser) notePrefix(data []byte) int {
 	i := 0
@@ -1535,7 +1611,7 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 					id = createSanitizedAnchorName(string(data[prev:eol]))
 				}
 
-				p.r.Header(out, work, level, id)
+				p.r.Header(out, work, level, id, p.insideQuote)
 
 				// find the end of the underline
 				for data[i] != '\n' {

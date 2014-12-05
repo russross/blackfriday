@@ -1257,5 +1257,12 @@ func TestOrderedListStartXML(t *testing.T) {
 		"<ol>\n<li>hello</li>\n<li>hello</li>\n</ol>\n<t>divide</t>\n<ol start=\"4\">\n<li>hello</li>\n<li>hello</li>\n</ol>\n<t>divide</t>\n<ol>\n<li>hello</li>\n<li>hello</li>\n</ol>\n",
 	}
 	doTestsBlockXML(t, tests, 0)
+}
 
+func TestInsideQuoteXML(t *testing.T) {
+	var tests = []string{
+		"N> # hello\nN>\n N> text\n",
+		"<note>\n<name>hello</name>\n<t>text</t>\n</note>\n",
+	}
+	doTestsBlockXML(t, tests, 0)
 }
