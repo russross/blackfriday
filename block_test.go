@@ -1267,3 +1267,11 @@ func TestInsideQuoteXML(t *testing.T) {
 	}
 	doTestsBlockXML(t, tests, 0)
 }
+
+func TestFigureXML(t *testing.T) {
+	var tests = []string{
+		"F> # hallo\nF>\nF> A paragraph\nF>\n>F> ``` go\nF> println(go)\nF> ````\n",
+		"<figure>\n<name>hallo</name>\n<t>A paragraph</t>\n<blockquote>\n<figure>\n<t><tt>go\nprintln(go)\n</tt>`</t>\n</figure>\n</blockquote>\n</figure>\n",
+	}
+	doTestsBlockXML(t, tests, 0)
+}
