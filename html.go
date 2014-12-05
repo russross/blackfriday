@@ -283,6 +283,13 @@ func (options *Html) Aside(out *bytes.Buffer, text []byte) {
 	out.WriteString("</blockquote>\n")
 }
 
+func (options *Html) Figure(out *bytes.Buffer, text []byte) {
+	doubleSpace(out)
+	out.WriteString("<blockquote>\n")
+	out.Write(text)
+	out.WriteString("</blockquote>\n")
+}
+
 func (options *Html) Note(out *bytes.Buffer, text []byte) {
 	doubleSpace(out)
 	out.WriteString("<blockquote>\n")

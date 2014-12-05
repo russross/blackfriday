@@ -177,7 +177,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// F> ```
 		if p.figurePrefix(data) > 0 {
 			p.insideQuote = true
-			// data = data[p.figure(out, data):]
+			data = data[p.figure(out, data):]
 			p.insideQuote = false
 			continue
 		}
@@ -990,37 +990,35 @@ func (p *parser) figurePrefix(data []byte) int {
 
 // parse an figure fragment
 func (p *parser) figure(out *bytes.Buffer, data []byte) int {
-	/*
-		var raw bytes.Buffer
-		beg, end := 0, 0
-		for beg < len(data) {
-			end = beg
-			for data[end] != '\n' {
-				end++
-			}
+	var raw bytes.Buffer
+	beg, end := 0, 0
+	for beg < len(data) {
+		end = beg
+		for data[end] != '\n' {
 			end++
+		}
+		end++
 
-			if pre := p.notePrefix(data[beg:]); pre > 0 {
-				// skip the prefix
-				beg += pre
-			} else if p.isEmpty(data[beg:]) > 0 &&
-				(end >= len(data) ||
-					(p.notePrefix(data[end:]) == 0 && p.isEmpty(data[end:]) == 0)) {
-				// abstract ends with at least one blank line
-				// followed by something without a abstract prefix
-				break
-			}
-
-			// this line is part of the abstract
-			raw.Write(data[beg:end])
-			beg = end
+		if pre := p.figurePrefix(data[beg:]); pre > 0 {
+			// skip the prefix
+			beg += pre
+		} else if p.isEmpty(data[beg:]) > 0 &&
+			(end >= len(data) ||
+				(p.figurePrefix(data[end:]) == 0 && p.isEmpty(data[end:]) == 0)) {
+			// figure ends with at least one blank line
+			// followed by something without a figure prefix
+			break
 		}
 
-		var cooked bytes.Buffer
-		p.block(&cooked, raw.Bytes())
-		p.r.Note(out, cooked.Bytes())
-		return end
-	*/
+		// this line is part of the abstract
+		raw.Write(data[beg:end])
+		beg = end
+	}
+
+	var cooked bytes.Buffer
+	p.block(&cooked, raw.Bytes())
+	p.r.Figure(out, cooked.Bytes())
+	return end
 	return 0
 }
 

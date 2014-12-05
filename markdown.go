@@ -49,11 +49,9 @@ const (
 	EXTENSION_INCLUDE                                // Include file with {{ syntax
 	EXTENSION_INDEX                                  // Support index with ((( syntax
 	EXTENSION_CITATION                               // Support citations via the link syntax
-	EXTENSION_QUOTES                                 // Allow AB> A> and N> to be parsed as abstract, asides and notes
+	EXTENSION_QUOTES                                 // Allow AB> A> and N> to be parsed as abstract, asides and notes (and F>) (TODO(miek): use this
 	EXTENSION_IAL                                    // detect kramdown's IAL syntax
 	EXTENSION_MATTER                                 // use {frontmatter} {mainmatter} {backmatter}
-	EXTENSION_ABSTRACT                               // render abstract
-	EXTENSION_ASIDE                                  // render asides
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML |
@@ -195,6 +193,7 @@ type Renderer interface {
 	TitleBlockTOML(out *bytes.Buffer, data *title)
 	Abstract(out *bytes.Buffer, text []byte)
 	Aside(out *bytes.Buffer, text []byte)
+	Figure(out *bytes.Buffer, text []byte)
 	Note(out *bytes.Buffer, text []byte)
 
 	// Span-level callbacks
