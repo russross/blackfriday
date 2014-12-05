@@ -14,6 +14,7 @@ package blackfriday
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 	"time"
 )
@@ -22,6 +23,19 @@ import (
 const (
 	XML_STANDALONE = 1 << iota // create standalone document
 )
+
+var words2119 = map[string]bool{
+	"MUST":        true,
+	"MUST NOT":    true,
+	"REQUIRED":    true,
+	"SHALL":       true,
+	"SHALL NOT":   true,
+	"SHOULD":      true,
+	"SHOULD NOT":  true,
+	"RECOMMENDED": true,
+	"MAY":         true,
+	"OPTIONAL":    true,
+}
 
 // Xml is a type that implements the Renderer interface for XML2RFV3 output.
 //
@@ -62,7 +76,7 @@ func (options *Xml) GetState() int {
 func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 	s := renderIAL(options.GetAndResetIAL())
 	if lang == "" {
-		out.WriteString("\n<sourcecode" + s + ">\n")
+		out.WriteString("<sourcecode" + s + ">\n")
 	} else {
 		out.WriteString("\n<sourcecode" + s + "type=\"" + lang + "\">\n")
 	}
@@ -152,13 +166,18 @@ func (options *Xml) BlockHtml(out *bytes.Buffer, text []byte) {
 	out.WriteString("\n\\end{verbatim}\n")
 }
 
-func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id string) {
+func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id string, quote bool) {
 	// set amount of open in options, so we know what to close after we finish
 	// parsing the doc.
 	//marker := out.Len()
 	//out.Truncate(marker)
+	if quote { // this is a header inside an quoted text block (figure, aside)
+		out.WriteString("<name>") // typeset this differently.
+		text()
+		out.WriteString("</name>\n")
+		return
+	}
 
-	id = "a"
 	if level <= options.sectionLevel {
 		// close previous ones
 		for i := options.sectionLevel - level + 1; i > 0; i-- {
@@ -178,11 +197,15 @@ func (options *Xml) HRule(out *bytes.Buffer) {
 	// not used
 }
 
-func (options *Xml) List(out *bytes.Buffer, text func() bool, flags int) {
+func (options *Xml) List(out *bytes.Buffer, text func() bool, flags, start int) {
 	marker := out.Len()
 	switch {
 	case flags&LIST_TYPE_ORDERED != 0:
-		out.WriteString("<ol>\n")
+		if start <= 1 {
+			out.WriteString("<ol>\n")
+		} else {
+			out.WriteString(fmt.Sprintf("<ol start=\"%d\">\n", start))
+		}
 	case flags&LIST_TYPE_DEFINITION != 0:
 		out.WriteString("<dl>\n")
 	default:
@@ -289,7 +312,7 @@ func (options *Xml) Citation(out *bytes.Buffer, link, title []byte) {
 }
 
 func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation, first bool) {
-	if !first || options.flags&XML_STANDALONE == 0  {
+	if !first || options.flags&XML_STANDALONE == 0 {
 		return
 	}
 	// close any option section tags
@@ -382,15 +405,23 @@ func (options *Xml) CodeSpan(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Xml) DoubleEmphasis(out *bytes.Buffer, text []byte) {
-	out.WriteString("<b>")
+	// Check for 2119 Keywords
+	s := string(text)
+	if _, ok := words2119[s]; ok {
+		out.WriteString("<bcp14>")
+		out.Write(text)
+		out.WriteString("</bcp14>")
+		return
+	}
+	out.WriteString("<strong>")
 	out.Write(text)
-	out.WriteString("</b>")
+	out.WriteString("</strong>")
 }
 
 func (options *Xml) Emphasis(out *bytes.Buffer, text []byte) {
-	out.WriteString("<i>")
+	out.WriteString("<em>")
 	out.Write(text)
-	out.WriteString("</i>")
+	out.WriteString("</em>")
 }
 
 func (options *Xml) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
@@ -424,9 +455,9 @@ func (options *Xml) RawHtmlTag(out *bytes.Buffer, tag []byte) {
 }
 
 func (options *Xml) TripleEmphasis(out *bytes.Buffer, text []byte) {
-	out.WriteString("\\textbf{\\textit{")
+	out.WriteString("<strong><em>")
 	out.Write(text)
-	out.WriteString("}}")
+	out.WriteString("</em></strong>")
 }
 
 func (options *Xml) StrikeThrough(out *bytes.Buffer, text []byte) {
@@ -447,14 +478,14 @@ func (options *Xml) NormalText(out *bytes.Buffer, text []byte) {
 
 // header and footer
 func (options *Xml) DocumentHeader(out *bytes.Buffer, first bool) {
-	if !first || options.flags&XML_STANDALONE == 0  {
+	if !first || options.flags&XML_STANDALONE == 0 {
 		return
 	}
 	out.WriteString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
 }
 
 func (options *Xml) DocumentFooter(out *bytes.Buffer, first bool) {
-	if !first || options.flags&XML_STANDALONE == 0  {
+	if !first || options.flags&XML_STANDALONE == 0 {
 		return
 	}
 	// close any option section tags

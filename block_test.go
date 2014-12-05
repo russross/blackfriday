@@ -1186,7 +1186,7 @@ func TestTitleBlock_EXTENSION_TITLEBLOCK(t *testing.T) {
 	doTestsBlock(t, tests, EXTENSION_TITLEBLOCK)
 }
 
-func TestDefinitionList(t *testing.T) {
+func TestDefinitionListXML(t *testing.T) {
 	var tests = []string{
 		"Term1\n:   Hi There",
 		"<dl>\n<dt>Term1</dt>\n<dd>Hi There</dd>\n</dl>\n",
@@ -1194,6 +1194,75 @@ func TestDefinitionList(t *testing.T) {
 		"Term1\n:   Yin\nTerm2\n:   Yang\n",
 		"<dl>\n<dt>Term1</dt>\n<dd>Yin</dd>\n<dt>Term2</dt>\n<dd>Yang</dd>\n</dl>\n",
 
+		`Term 1
+:   This is a definition with two paragraphs. Lorem ipsum
+
+    Vestibulum enim wisi, viverra nec, fringilla in, laoreet
+    vitae, risus.
+
+Term 2
+:   This definition has a code block, a blockquote and a list.
+
+        code block.
+
+    > block quote
+    > on two lines.
+
+    1.  first list item
+    2.  second list item`,
+
+		"<dl>\n<dt>Term 1</dt>\n<dd><t>This is a definition with two paragraphs. Lorem ipsum</t>\n<t>Vestibulum enim wisi, viverra nec, fringilla in, laoreet\nvitae, risus.</t></dd>\n<dt>Term 2</dt>\n<dd><t>This definition has a code block, a blockquote and a list.</t>\n<sourcecode>\ncode block.\n</sourcecode>\n<blockquote>\n<t>block quote\non two lines.</t>\n</blockquote>\n<ol>\n<li>first list item</li>\n<li>second list item</li>\n</ol></dd>\n</dl>\n",
+
+		`Apple
+:   Pomaceous fruit of plants of the genus Malus in
+    the family Rosaceae.
+
+Orange and *Apples*
+:   The thing of an evergreen tree of the genus Citrus.`,
+		"<dl>\n<dt>Apple</dt>\n<dd><t>Pomaceous fruit of plants of the genus Malus in\nthe family Rosaceae.</t></dd>\n<dt>Orange and <em>Apples</em></dt>\n<dd><t>The thing of an evergreen tree of the genus Citrus.</t></dd>\n</dl>\n",
+	}
+	doTestsBlockXML(t, tests, 0)
+}
+
+func TestAbstractNoteAsideXML(t *testing.T) {
+	var tests = []string{
+		"AB> begin of abstract\nAB>\nAB> this is an abstract\n",
+		"<abstract>\n<t>begin of abstract</t>\n<t>this is an abstract</t>\n</abstract>\n",
+
+		"N> begin of note\nN> this is a note\n",
+		"<note>\n<t>begin of note\nthis is a note</t>\n</note>\n",
+
+		"A> begin of aside\nN> this is an aside\n",
+		"<aside>\n<t>begin of aside\nN> this is an aside</t>\n</aside>\n",
+	}
+	doTestsBlockXML(t, tests, 0)
+}
+
+// does not work, yet.
+func testTitleBlockTOMLXML(t *testing.T) {
+	var tests = []string{
+		`% title = "Example"
+% abbrev = "ex"
+% category = "info"
+% docname = "draft-example-rfc-markdown-00"
+% ipr = "trust200902"`,
+		"",
+	}
+	doTestsBlockXML(t, tests, 0)
+}
+
+func TestOrderedListStartXML(t *testing.T) {
+	var tests = []string{
+		"1. hello\n1. hello\n\ndivide\n\n4. hello\n5. hello\n\ndivide\n\n 7. hello\n5. hello\n",
+		"<ol>\n<li>hello</li>\n<li>hello</li>\n</ol>\n<t>divide</t>\n<ol start=\"4\">\n<li>hello</li>\n<li>hello</li>\n</ol>\n<t>divide</t>\n<ol>\n<li>hello</li>\n<li>hello</li>\n</ol>\n",
+	}
+	doTestsBlockXML(t, tests, 0)
+}
+
+func TestInsideQuoteXML(t *testing.T) {
+	var tests = []string{
+		"N> # hello\nN>\n N> text\n",
+		"<note>\n<name>hello</name>\n<t>text</t>\n</note>\n",
 	}
 	doTestsBlockXML(t, tests, 0)
 }

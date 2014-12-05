@@ -24,6 +24,11 @@ it is fast, it supports the following extensions:
 * abstract
 * asides
 * IAL, inline attribute list
+* pay attention to the first number of ordered list, `4.` start a list with 4. instead of 1.
+
+## Maybe
+
+* Extension: example_lists from markdown `(@)` syntax.
 
 And it is safe for all utf-8.
 HTML output is currently supported, along with Smartypants
@@ -210,13 +215,13 @@ Todo
     rules (about what constitutes a letter, a punctuation symbol,
     etc.), so it may fail to detect word boundaries correctly in
     some instances. It is safe on all utf-8 input.
-*   Fix `<section>` output
-*   Ordered list start number detection
 *   Correctly close document when there is no TOML titleblock
-*   Auto anchors for sections
 *   pretty print XML
 *   <<{{CODE}} code include from leanpub?
 *   alignment in tables
+*   F> first paragraph is the caption, no way to specify name,
+    (unless, you use a header - may be that we should allow this
+        and keep track of being in F Aside
 
 License
 -------

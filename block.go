@@ -15,6 +15,7 @@ package blackfriday
 
 import (
 	"bytes"
+	"strconv"
 	"unicode"
 )
 
@@ -137,7 +138,9 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// AB> This is an abstract
 		// AB> I found on the web
 		if p.abstractPrefix(data) > 0 {
+			p.insideQuote = true
 			data = data[p.abstract(out, data):]
+			p.insideQuote = false
 			continue
 		}
 
@@ -146,7 +149,9 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// A> This is an aside
 		// A> I found on the web
 		if p.asidePrefix(data) > 0 {
+			p.insideQuote = true
 			data = data[p.aside(out, data):]
+			p.insideQuote = false
 			continue
 		}
 
@@ -155,17 +160,36 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// N> This is an aside
 		// N> I found on the web
 		if p.notePrefix(data) > 0 {
+			p.insideQuote = true
 			data = data[p.note(out, data):]
+			p.insideQuote = false
 			continue
 		}
 
+		// Figure quote:
+		//
+		// F> # this is a figure
+		// F>
+		// F> A little caption for this program.
+		// F>
+		// F> ``` go
+		// F> println("Golang")
+		// F> ```
+		if p.figurePrefix(data) > 0 {
+			p.insideQuote = true
+			// data = data[p.figure(out, data):]
+			p.insideQuote = false
+			continue
+		}
 
 		// block quote:
 		//
 		// > A big quote I found somewhere
 		// > on the web
 		if p.quotePrefix(data) > 0 {
+			p.insideQuote = true
 			data = data[p.quote(out, data):]
+			p.insideQuote = false
 			continue
 		}
 
@@ -189,7 +213,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// Item2
 		// :	Definition2
 		if p.dliPrefix(data) > 0 {
-			data = data[p.list(out, data, LIST_TYPE_DEFINITION):]
+			data = data[p.list(out, data, LIST_TYPE_DEFINITION, 0):]
 		}
 
 		// an itemized/unordered list:
@@ -199,7 +223,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		//
 		// also works with + or -
 		if p.uliPrefix(data) > 0 {
-			data = data[p.list(out, data, 0):]
+			data = data[p.list(out, data, 0, 0):]
 			continue
 		}
 
@@ -207,8 +231,12 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		//
 		// 1. Item 1
 		// 2. Item 2
-		if p.oliPrefix(data) > 0 {
-			data = data[p.list(out, data, LIST_TYPE_ORDERED):]
+		if i := p.oliPrefix(data); i > 0 {
+			start := 0
+			if i > 2 {
+				start, _ = strconv.Atoi(string(data[:i-2])) // this cannot fail because we just est. the thing *is* a number
+			}
+			data = data[p.list(out, data, LIST_TYPE_ORDERED, start):]
 			continue
 		}
 		// anything else must look like a normal paragraph
@@ -279,7 +307,15 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 			p.inline(out, data[i:end])
 			return true
 		}
-		p.r.Header(out, work, level, id)
+		if v, ok := p.anchors[id]; ok {
+			// anchor found
+			id += "-" + strconv.Itoa(v)
+			p.anchors[id]++
+		} else {
+			p.anchors[id] = 1
+		}
+
+		p.r.Header(out, work, level, id, p.insideQuote)
 	}
 	return skip
 }
@@ -936,6 +972,59 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 
 	p.r.TableRow(out, rowWork.Bytes())
 }
+
+// returns figurequote prefix length
+func (p *parser) figurePrefix(data []byte) int {
+	i := 0
+	for i < 3 && data[i] == ' ' {
+		i++
+	}
+	if data[i] == 'F' && data[i+1] == '>' {
+		if data[i+2] == ' ' {
+			return i + 3
+		}
+		return i + 2
+	}
+	return 0
+}
+
+// parse an figure fragment
+func (p *parser) figure(out *bytes.Buffer, data []byte) int {
+	/*
+	var raw bytes.Buffer
+	beg, end := 0, 0
+	for beg < len(data) {
+		end = beg
+		for data[end] != '\n' {
+			end++
+		}
+		end++
+
+		if pre := p.notePrefix(data[beg:]); pre > 0 {
+			// skip the prefix
+			beg += pre
+		} else if p.isEmpty(data[beg:]) > 0 &&
+			(end >= len(data) ||
+				(p.notePrefix(data[end:]) == 0 && p.isEmpty(data[end:]) == 0)) {
+			// abstract ends with at least one blank line
+			// followed by something without a abstract prefix
+			break
+		}
+
+		// this line is part of the abstract
+		raw.Write(data[beg:end])
+		beg = end
+	}
+
+	var cooked bytes.Buffer
+	p.block(&cooked, raw.Bytes())
+	p.r.Note(out, cooked.Bytes())
+	return end
+	*/
+	return 0
+}
+
+
 // returns notequote prefix length
 func (p *parser) notePrefix(data []byte) int {
 	i := 0
@@ -1257,7 +1346,7 @@ func (p *parser) dliPrefix(data []byte) int {
 }
 
 // parse ordered or unordered or definition list block
-func (p *parser) list(out *bytes.Buffer, data []byte, flags int) int {
+func (p *parser) list(out *bytes.Buffer, data []byte, flags, start int) int {
 	i := 0
 	flags |= LIST_ITEM_BEGINNING_OF_LIST
 	work := func() bool {
@@ -1273,7 +1362,7 @@ func (p *parser) list(out *bytes.Buffer, data []byte, flags int) int {
 		return true
 	}
 
-	p.r.List(out, work, flags)
+	p.r.List(out, work, flags, start)
 	return i
 }
 
@@ -1441,56 +1530,6 @@ gatherlines:
 	return line
 }
 
-func (p *parser) deflist(out *bytes.Buffer, data []byte) int {
-	/*
-		work := func() bool {
-			// make this function ala list with work helper function.
-			var cooked bytes.Buffer
-			p.inline(&cooked, data[:termE])
-			p.r.ListTerm(out, cooked.Bytes(), 0)
-			return true
-		}
-		work()
-		indent := 1 // start with one for the :
-		for indent < 4 && data[i+indent] == ' ' {
-			indent++
-		}
-
-		line := i
-		var chunk bytes.Buffer
-		// find the end of this line
-		for data[i-1] != '\n' {
-			i++
-		}
-		chunk.Write(data[line+indent : i])
-
-		//gatherlines:
-		for i < len(data) {
-			i++
-			line = i
-			indent = 0 // start with one for the :
-			for indent < 4 && data[i+indent] == ' ' {
-				indent++
-			}
-
-			// find the end of this line
-			for data[i-1] != '\n' {
-				i++
-			}
-
-			if len(data[line:i]) == 0 || p.isEmpty(data[line:i]) > 0 {
-				break
-			}
-			chunk.Write(data[line+indent : i])
-		}
-		p.r.ListDefinition(out, chunk.Bytes(), 0)
-		// p.inline for term
-		// p.block for definition, ala list()
-		return i
-	*/
-	return 0
-}
-
 // render a single paragraph that has already been parsed out
 func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 	if len(data) == 0 {
@@ -1572,7 +1611,7 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 					id = createSanitizedAnchorName(string(data[prev:eol]))
 				}
 
-				p.r.Header(out, work, level, id)
+				p.r.Header(out, work, level, id, p.insideQuote)
 
 				// find the end of the underline
 				for data[i] != '\n' {
@@ -1601,6 +1640,7 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 		if p.flags&EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK != 0 {
 			if p.uliPrefix(current) != 0 ||
 				p.oliPrefix(current) != 0 ||
+				// todo dliPrefix ??
 				p.quotePrefix(current) != 0 ||
 				p.codePrefix(current) != 0 {
 				p.renderParagraph(out, data[:i])
