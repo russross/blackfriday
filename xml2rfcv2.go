@@ -1,4 +1,4 @@
-// XML2RFC v3 rendering backend
+// XML2RFC v2 rendering backend
 
 package mmark
 
@@ -9,29 +9,16 @@ import (
 	"time"
 )
 
-// XML renderer configuration options.
+// XML2 renderer configuration options.
 const (
-	XML_STANDALONE = 1 << iota // create standalone document
+	XML2_STANDALONE = 1 << iota // create standalone document
 )
 
-var words2119 = map[string]bool{
-	"MUST":        true,
-	"MUST NOT":    true,
-	"REQUIRED":    true,
-	"SHALL":       true,
-	"SHALL NOT":   true,
-	"SHOULD":      true,
-	"SHOULD NOT":  true,
-	"RECOMMENDED": true,
-	"MAY":         true,
-	"OPTIONAL":    true,
-}
-
-// Xml is a type that implements the Renderer interface for XML2RFV3 output.
+// Xml2 is a type that implements the Renderer interface for XML2RFV2 output.
 //
-// Do not create this directly, instead use the XmlRenderer function.
-type Xml struct {
-	flags        int // XML_* options
+// Do not create this directly, instead use the Xml2Renderer function.
+type Xml2 struct {
+	flags        int // XML2_* options
 	sectionLevel int // current section level
 	docLevel     int // frontmatter/mainmatter or backmatter
 
@@ -42,27 +29,27 @@ type Xml struct {
 	titleBlock *title
 }
 
-func (options *Xml) SetIAL(i []*IAL)        { options.ial = append(options.ial, i...) }
-func (options *Xml) GetAndResetIAL() []*IAL { i := options.ial; options.ial = nil; return i }
+func (options *Xml2) SetIAL(i []*IAL)        { options.ial = append(options.ial, i...) }
+func (options *Xml2) GetAndResetIAL() []*IAL { i := options.ial; options.ial = nil; return i }
 
-// XmlRenderer creates and configures a Xml object, which
+// Xml2Renderer creates and configures a Xml2 object, which
 // satisfies the Renderer interface.
 //
-// flags is a set of XML_* options ORed together
-func XmlRenderer(flags int) Renderer {
-	return &Xml{flags: flags}
+// flags is a set of XML2_* options ORed together
+func Xml2Renderer(flags int) Renderer {
+	return &Xml2{flags: flags}
 }
 
-func (options *Xml) GetFlags() int {
+func (options *Xml2) GetFlags() int {
 	return options.flags
 }
 
-func (options *Xml) GetState() int {
+func (options *Xml2) GetState() int {
 	return 0
 }
 
 // render code chunks using verbatim, or listings if we have a language
-func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string) {
+func (options *Xml2) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 	s := renderIAL(options.GetAndResetIAL())
 	if lang == "" {
 		out.WriteString("<sourcecode" + s + ">\n")
@@ -77,9 +64,9 @@ func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 	}
 }
 
-func (options *Xml) TitleBlock(out *bytes.Buffer, text []byte) {}
+func (options *Xml2) TitleBlock(out *bytes.Buffer, text []byte) {}
 
-func (options *Xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
+func (options *Xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	if options.flags&XML_STANDALONE == 0 {
 		return
 	}
@@ -123,45 +110,45 @@ func (options *Xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	out.WriteString("\n")
 }
 
-func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte) {
+func (options *Xml2) BlockQuote(out *bytes.Buffer, text []byte) {
 	s := renderIAL(options.GetAndResetIAL())
 	out.WriteString("<blockquote" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</blockquote>\n")
 }
 
-func (options *Xml) Abstract(out *bytes.Buffer, text []byte) {
+func (options *Xml2) Abstract(out *bytes.Buffer, text []byte) {
 	out.WriteString("<abstract>\n")
 	out.Write(text)
 	out.WriteString("</abstract>\n")
 }
 
-func (options *Xml) Aside(out *bytes.Buffer, text []byte) {
+func (options *Xml2) Aside(out *bytes.Buffer, text []byte) {
 	out.WriteString("<aside>\n")
 	out.Write(text)
 	out.WriteString("</aside>\n")
 }
 
-func (options *Xml) Note(out *bytes.Buffer, text []byte) {
+func (options *Xml2) Note(out *bytes.Buffer, text []byte) {
 	out.WriteString("<note>\n")
 	out.Write(text)
 	out.WriteString("</note>\n")
 }
 
-func (options *Xml) Figure(out *bytes.Buffer, text []byte) {
+func (options *Xml2) Figure(out *bytes.Buffer, text []byte) {
 	out.WriteString("<figure>\n")
 	out.Write(text)
 	out.WriteString("</figure>\n")
 }
 
-func (options *Xml) BlockHtml(out *bytes.Buffer, text []byte) {
+func (options *Xml2) BlockHtml(out *bytes.Buffer, text []byte) {
 	// a pretty lame thing to do...
 	out.WriteString("\n\\begin{verbatim}\n")
 	out.Write(text)
 	out.WriteString("\n\\end{verbatim}\n")
 }
 
-func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id string, quote bool) {
+func (options *Xml2) Header(out *bytes.Buffer, text func() bool, level int, id string, quote bool) {
 	// set amount of open in options, so we know what to close after we finish
 	// parsing the doc.
 	//marker := out.Len()
@@ -188,11 +175,11 @@ func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id st
 	return
 }
 
-func (options *Xml) HRule(out *bytes.Buffer) {
+func (options *Xml2) HRule(out *bytes.Buffer) {
 	// not used
 }
 
-func (options *Xml) List(out *bytes.Buffer, text func() bool, flags, start int) {
+func (options *Xml2) List(out *bytes.Buffer, text func() bool, flags, start int) {
 	marker := out.Len()
 	switch {
 	case flags&LIST_TYPE_ORDERED != 0:
@@ -221,7 +208,7 @@ func (options *Xml) List(out *bytes.Buffer, text func() bool, flags, start int) 
 	}
 }
 
-func (options *Xml) ListItem(out *bytes.Buffer, text []byte, flags int) {
+func (options *Xml2) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	if flags&LIST_TYPE_DEFINITION != 0 && flags&LIST_TYPE_TERM == 0 {
 		out.WriteString("<dd>")
 		out.Write(text)
@@ -239,7 +226,7 @@ func (options *Xml) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	out.WriteString("</li>\n")
 }
 
-func (options *Xml) Paragraph(out *bytes.Buffer, text func() bool) {
+func (options *Xml2) Paragraph(out *bytes.Buffer, text func() bool) {
 	marker := out.Len()
 	out.WriteString("<t>")
 	if !text() {
@@ -249,9 +236,9 @@ func (options *Xml) Paragraph(out *bytes.Buffer, text func() bool) {
 	out.WriteString("</t>\n")
 }
 
-func (options *Xml) Tables(out *bytes.Buffer, text []byte) {}
+func (options *Xml2) Tables(out *bytes.Buffer, text []byte) {}
 
-func (options *Xml) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, table bool) {
+func (options *Xml2) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, table bool) {
 	out.WriteString("<table>\n<thead>\n")
 	out.Write(header)
 	out.WriteString("</thead>\n")
@@ -259,13 +246,13 @@ func (options *Xml) Table(out *bytes.Buffer, header []byte, body []byte, columnD
 	out.WriteString("</table>\n")
 }
 
-func (options *Xml) TableRow(out *bytes.Buffer, text []byte) {
+func (options *Xml2) TableRow(out *bytes.Buffer, text []byte) {
 	out.WriteString("<tr>")
 	out.Write(text)
 	out.WriteString("<tr>\n")
 }
 
-func (options *Xml) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
+func (options *Xml2) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
 	a := ""
 	switch align {
 	case TABLE_ALIGNMENT_LEFT:
@@ -281,30 +268,30 @@ func (options *Xml) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
 
 }
 
-func (options *Xml) TableCell(out *bytes.Buffer, text []byte, align int) {
+func (options *Xml2) TableCell(out *bytes.Buffer, text []byte, align int) {
 	out.WriteString("<td>")
 	out.Write(text)
 	out.WriteString("</td>")
 }
 
-func (options *Xml) Footnotes(out *bytes.Buffer, text func() bool) {
+func (options *Xml2) Footnotes(out *bytes.Buffer, text func() bool) {
 	// not used
 }
 
-func (options *Xml) FootnoteItem(out *bytes.Buffer, name, text []byte, flags int) {
+func (options *Xml2) FootnoteItem(out *bytes.Buffer, name, text []byte, flags int) {
 	// not used
 }
 
-func (options *Xml) Index(out *bytes.Buffer, primary, secondary []byte) {
+func (options *Xml2) Index(out *bytes.Buffer, primary, secondary []byte) {
 	out.WriteString("<iref item=\"" + string(primary) + "\"")
 	out.WriteString(" subitem=\"" + string(secondary) + "\"" + "/>")
 }
 
-func (options *Xml) Citation(out *bytes.Buffer, link, title []byte) {
+func (options *Xml2) Citation(out *bytes.Buffer, link, title []byte) {
 	out.WriteString("<xref target=\"" + string(link) + "\"/>")
 }
 
-func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation, first bool) {
+func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citation, first bool) {
 	if !first || options.flags&XML_STANDALONE == 0 {
 		return
 	}
@@ -366,21 +353,7 @@ func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation
 	}
 }
 
-// create reference file
-func referenceFile(id []byte) string {
-	if len(id) < 4 {
-		return ""
-	}
-	switch string(id[:3]) {
-	case "RFC":
-		return "reference.RFC." + string(id[:3]) + ".xml"
-	case "I-D":
-		return "reference.I-D.draft-" + string(id[4:]) + ".xml"
-	}
-	return ""
-}
-
-func (options *Xml) AutoLink(out *bytes.Buffer, link []byte, kind int) {
+func (options *Xml2) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	out.WriteString("\\href{")
 	if kind == LINK_TYPE_EMAIL {
 		out.WriteString("mailto:")
@@ -391,13 +364,13 @@ func (options *Xml) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	out.WriteString("}")
 }
 
-func (options *Xml) CodeSpan(out *bytes.Buffer, text []byte) {
+func (options *Xml2) CodeSpan(out *bytes.Buffer, text []byte) {
 	out.WriteString("<tt>")
 	convertEntity(out, text)
 	out.WriteString("</tt>")
 }
 
-func (options *Xml) DoubleEmphasis(out *bytes.Buffer, text []byte) {
+func (options *Xml2) DoubleEmphasis(out *bytes.Buffer, text []byte) {
 	// Check for 2119 Keywords
 	s := string(text)
 	if _, ok := words2119[s]; ok {
@@ -411,13 +384,13 @@ func (options *Xml) DoubleEmphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("</strong>")
 }
 
-func (options *Xml) Emphasis(out *bytes.Buffer, text []byte) {
+func (options *Xml2) Emphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("<em>")
 	out.Write(text)
 	out.WriteString("</em>")
 }
 
-func (options *Xml) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
+func (options *Xml2) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
 	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
 		// treat it like a link
 		out.WriteString("\\href{")
@@ -432,11 +405,11 @@ func (options *Xml) Image(out *bytes.Buffer, link []byte, title []byte, alt []by
 	}
 }
 
-func (options *Xml) LineBreak(out *bytes.Buffer) {
+func (options *Xml2) LineBreak(out *bytes.Buffer) {
 	out.WriteString("\n<vspace/>\n")
 }
 
-func (options *Xml) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
+func (options *Xml2) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
 	out.WriteString("\\href{")
 	out.Write(link)
 	out.WriteString("}{")
@@ -444,40 +417,40 @@ func (options *Xml) Link(out *bytes.Buffer, link []byte, title []byte, content [
 	out.WriteString("}")
 }
 
-func (options *Xml) RawHtmlTag(out *bytes.Buffer, tag []byte) {
+func (options *Xml2) RawHtmlTag(out *bytes.Buffer, tag []byte) {
 }
 
-func (options *Xml) TripleEmphasis(out *bytes.Buffer, text []byte) {
+func (options *Xml2) TripleEmphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("<strong><em>")
 	out.Write(text)
 	out.WriteString("</em></strong>")
 }
 
-func (options *Xml) StrikeThrough(out *bytes.Buffer, text []byte) {
+func (options *Xml2) StrikeThrough(out *bytes.Buffer, text []byte) {
 	out.Write(text)
 }
 
-func (options *Xml) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
+func (options *Xml2) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
 	// not used
 }
 
-func (options *Xml) Entity(out *bytes.Buffer, entity []byte) {
+func (options *Xml2) Entity(out *bytes.Buffer, entity []byte) {
 	out.Write(entity)
 }
 
-func (options *Xml) NormalText(out *bytes.Buffer, text []byte) {
+func (options *Xml2) NormalText(out *bytes.Buffer, text []byte) {
 	out.Write(text)
 }
 
 // header and footer
-func (options *Xml) DocumentHeader(out *bytes.Buffer, first bool) {
+func (options *Xml2) DocumentHeader(out *bytes.Buffer, first bool) {
 	if !first || options.flags&XML_STANDALONE == 0 {
 		return
 	}
 	out.WriteString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
 }
 
-func (options *Xml) DocumentFooter(out *bytes.Buffer, first bool) {
+func (options *Xml2) DocumentFooter(out *bytes.Buffer, first bool) {
 	if !first || options.flags&XML_STANDALONE == 0 {
 		return
 	}
@@ -497,7 +470,7 @@ func (options *Xml) DocumentFooter(out *bytes.Buffer, first bool) {
 	out.WriteString("</rfc>\n")
 }
 
-func (options *Xml) DocumentMatter(out *bytes.Buffer, matter int) {
+func (options *Xml2) DocumentMatter(out *bytes.Buffer, matter int) {
 	// we default to frontmatter already openened in the documentHeader
 	switch matter {
 	case DOC_FRONT_MATTER:
@@ -510,20 +483,4 @@ func (options *Xml) DocumentMatter(out *bytes.Buffer, matter int) {
 		out.WriteString("<back>\n")
 	}
 	options.docLevel = matter
-}
-
-var entityConvert = map[byte]string{
-	'<': "&lt;",
-	'>': "&gt;",
-	'&': "&amp;",
-}
-
-func convertEntity(out *bytes.Buffer, text []byte) {
-	for i := 0; i < len(text); i++ {
-		if s, ok := entityConvert[text[i]]; ok {
-			out.WriteString(s)
-			continue
-		}
-		out.WriteByte(text[i])
-	}
 }
