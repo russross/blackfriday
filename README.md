@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/russross/blackfriday.svg?branch=master)](https://travis-ci.org/russross/blackfriday)
 
+Everything that was true of blackfriday, might not be true for mmark.
+
 # ....
 
 ... is a fork of blackfriday is a [Markdown][1] processor implemented in
@@ -8,7 +10,7 @@ Asciidoc, that allows for large documents to be written. It is specifically
 designed to write internet drafts for the IETF.
 
 It is paranoid about its input (so you can safely feed it user-supplied data),
-it is fast, it supports the following extensions
+it is fast, it supports the following extensions:
 
 * tables
 * definition lists
