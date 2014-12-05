@@ -373,7 +373,7 @@ func referenceFile(id []byte) string {
 	}
 	switch string(id[:3]) {
 	case "RFC":
-		return "reference.RFC." + string(id[:3]) + ".xml"
+		return "reference.RFC." + string(id[3:]) + ".xml"
 	case "I-D":
 		return "reference.I-D.draft-" + string(id[4:]) + ".xml"
 	}

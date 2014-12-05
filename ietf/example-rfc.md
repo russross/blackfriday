@@ -1,7 +1,7 @@
 % title = "Signaling Type of Denial via Delegation Signer Records"
 % abbrev = "DS Denial Type Signalling"
 % date = "20131201T00:00:00-00:00"
-%
+% 
 % [[author]]
 % initials = "R."
 % surname = "Gieben"
@@ -21,19 +21,19 @@ AB> include the type of authenticated denial used in the zone.
 
 # Introduction
 
-The DS Resource Record [@RFC3658]
+The DS Resource Record [@RFC3658,i]
 is published in parent zones to distribute a cryptographic digest of one key in a child's
 DNSKEY RRset. With the DS published, a zone sets expectations for a validator. In
 particular a digest of the DNSKEY, the algorithm used for signature of the
 DNSKEY and the type of authenticated denial of existence used.
 
-When NSEC3 [@RFC5155] was ....
+When NSEC3 [@RFC5155,n] was ....
 
 > This transition method is best described as a hack.
 
 In this document, the key words "MUST", "MUST NOT", "REQUIRED",
 "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY",
-and "OPTIONAL" are to be interpreted as described in [@RFC2119].
+and "OPTIONAL" are to be interpreted as described in [@RFC2119,n].
 
 # DS Record Field Values
 
@@ -52,7 +52,7 @@ Digest:
 
             digest = Denial Type | HASH(DNSKEY owner name | DNSKEY RDATA)
 
-    where DNSKEY RDATA is defined by [@RFC4034] as:
+    where DNSKEY RDATA is defined by [@RFC4034,n] as:
 
             DNSKEY RDATA = Flags | Protocol | Algorithm | Public Key
 
@@ -108,8 +108,8 @@ DS records has been assigned by IANA.
 At the time of this writing, the current digest types assigned for
 use in DS records are as follows:
 
-VALUE   | Digest Type      |   Status
-----------------------------------------
+ VALUE  |  Digest Type     |   Status
+ -------|------------------|-------------
   0     | Reserved         |      -
   1     | SHA-1            |   MANDATORY
   2     | SHA-256          |   MANDATORY
@@ -126,8 +126,8 @@ registry are:
 
 T> # A table caption.
 T>
-T>   VALUE  |  Denial Type
-T> ---------|-------------------
+T>  VALUE   |  Denial Type
+T>  --------|-------------------
 T>     0    |  Reserved
 T>     1    |  NSEC
 T>     2    |  NSEC3 w/ SHA-1
