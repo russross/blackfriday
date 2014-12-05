@@ -41,6 +41,7 @@ const (
 	EXTENSION_INDEX                                  // Support index with ((( syntax
 	EXTENSION_CITATION                               // Support citations via the link syntax
 	EXTENSION_QUOTES                                 // Allow AB> A> and N> to be parsed as abstract, asides and notes (and F>) (TODO(miek): use this
+	EXTENSION_TABLE_QUOTES				 // Detect T> for tables a so a name and caption can be given just like for figure (F>)
 	EXTENSION_IAL                                    // detect kramdown's IAL syntax
 	EXTENSION_MATTER                                 // use {frontmatter} {mainmatter} {backmatter}
 
@@ -174,10 +175,11 @@ type Renderer interface {
 	List(out *bytes.Buffer, text func() bool, flags, start int)
 	ListItem(out *bytes.Buffer, text []byte, flags int)
 	Paragraph(out *bytes.Buffer, text func() bool)
-	Table(out *bytes.Buffer, header []byte, body []byte, columnData []int)
+	Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, table bool)
 	TableRow(out *bytes.Buffer, text []byte)
 	TableHeaderCell(out *bytes.Buffer, text []byte, flags int)
 	TableCell(out *bytes.Buffer, text []byte, flags int)
+	Tables(out *bytes.Buffer, text []byte)
 	Footnotes(out *bytes.Buffer, text func() bool)
 	FootnoteItem(out *bytes.Buffer, name, text []byte, flags int)
 	TitleBlock(out *bytes.Buffer, text []byte)
@@ -236,6 +238,7 @@ type parser struct {
 	maxNesting     int
 	insideLink     bool
 	insideQuote    bool // Header inside quote (blockquote, aside, figure)
+	insideTable    bool // T> already openend table, table tag should be excluded.
 
 	// Don't need to save, kill current titleblock
 	titleblock title

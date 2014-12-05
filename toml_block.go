@@ -26,19 +26,23 @@ type address struct {
 }
 
 type addressPostal struct {
-	Street  string
-	City    string
-	Code    string
-	Country string
+	Street     string
+	City       string
+	Code       string
+	Country    string
+	PostalLine []string
 }
 
 type title struct {
 	Title  string
 	Abbrev string
 
-	DocName  string
-	Ipr      string
-	Category string
+	DocName        string
+	Ipr            string
+	Category       string
+	Obsoletes      []string
+	Updates		[]string
+	SubmissionType string
 
 	Date      time.Time
 	Area      string

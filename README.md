@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/miekg/mmark.svg?branch=master)](https://travis-ci.org/miekg/mmark)
 
-Everything that was true of [blackfriday][1], might not be true for mmark anymore.
+Everything that was true of [blackfriday][5], might not be true for mmark anymore.
 
 # Mmark
 
@@ -18,7 +18,7 @@ It is fast and it supports the following extensions:
 * definition lists
 * smart punctuation
 * substitutions
-* [TOML][4] titleblock
+* [TOML][3] titleblock
 * including other markdown files
 * indices
 * main-, middle- and backmatter divisions
@@ -28,7 +28,7 @@ It is fast and it supports the following extensions:
 * IAL, inline attribute list
 * pay attention to the first number of ordered list, `4.` start a list with 4. instead of 1.
 
-Mmark is forked from blackfriday which started out as a translation from C of [upskirt][3].
+Mmark is forked from blackfriday which started out as a translation from C of [upskirt][4].
 
 ## Usage
 
@@ -230,4 +230,6 @@ Mmark is distributed under the Simplified BSD License:
 
    [1]: http://daringfireball.net/projects/markdown/ "Markdown"
    [2]: http://golang.org/ "Go Language"
-   [3]: http://github.com/tanoku/upskirt "Upskirt"
+   [3]: https://github.com/toml-lang/toml "TOML"
+   [4]: http://github.com/tanoku/upskirt "Upskirt"
+   [5]: http://github.com/russross/blackfriday "Blackfriday"

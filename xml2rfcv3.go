@@ -254,8 +254,10 @@ func (options *Xml) Paragraph(out *bytes.Buffer, text func() bool) {
 	out.WriteString("</t>\n")
 }
 
-func (options *Xml) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int) {
-	out.WriteString("\n\\begin{tabular}{")
+func (options *Xml) Tables(out *bytes.Buffer, text []byte) { }
+
+func (options *Xml) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, table bool) {
+	out.WriteString("<table>\n")
 	for _, elt := range columnData {
 		switch elt {
 		case TABLE_ALIGNMENT_LEFT:
@@ -270,7 +272,7 @@ func (options *Xml) Table(out *bytes.Buffer, header []byte, body []byte, columnD
 	out.Write(header)
 	out.WriteString(" \\\\\n\\hline\n")
 	out.Write(body)
-	out.WriteString("\n\\end{tabular}\n")
+	out.WriteString("</table>\n")
 }
 
 func (options *Xml) TableRow(out *bytes.Buffer, text []byte) {
@@ -519,10 +521,10 @@ func (options *Xml) DocumentMatter(out *bytes.Buffer, matter int) {
 	options.docLevel = matter
 }
 
-// TODO(miek): extend
 var entityConvert = map[byte]string{
 	'<': "&lt;",
 	'>': "&gt;",
+	'&': "&amp;",
 }
 
 func convertEntity(out *bytes.Buffer, text []byte) {

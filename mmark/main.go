@@ -1,6 +1,6 @@
 //
 // Blackfriday Markdown Processor
-// Available at http://github.com/russross/blackfriday
+// Available at http://github.com/russross/mmark
 //
 // Copyright © 2011 Russ Ross <russ@russross.com>.
 // Distributed under the Simplified BSD License.
@@ -18,7 +18,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/miekg/blackfriday"
+	"github.com/miekg/mmark"
 	"io/ioutil"
 	"os"
 	"runtime/pprof"
@@ -53,8 +53,8 @@ func main() {
 	flag.IntVar(&repeat, "repeat", 1,
 		"Process the input multiple times (for benchmarking)")
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Blackfriday Markdown Processor v"+blackfriday.VERSION+
-			"\nAvailable at http://github.com/russross/blackfriday\n\n"+
+		fmt.Fprintf(os.Stderr, "Blackfriday Markdown Processor v"+mmark.VERSION+
+			"\nAvailable at http://github.com/russross/mmark\n\n"+
 			"Copyright © 2011 Russ Ross <russ@russross.com>\n"+
 			"Distributed under the Simplified BSD License\n"+
 			"See website for details\n\n"+
@@ -112,53 +112,53 @@ func main() {
 
 	// set up options
 	extensions := 0
-	extensions |= blackfriday.EXTENSION_NO_INTRA_EMPHASIS
-	extensions |= blackfriday.EXTENSION_TABLES
-	extensions |= blackfriday.EXTENSION_FENCED_CODE
-	extensions |= blackfriday.EXTENSION_AUTOLINK
-	extensions |= blackfriday.EXTENSION_STRIKETHROUGH
-	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
-	extensions |= blackfriday.EXTENSION_INDEX
-	extensions |= blackfriday.EXTENSION_CITATION
-	extensions |= blackfriday.EXTENSION_TITLEBLOCK
-	extensions |= blackfriday.EXTENSION_HEADER_IDS
-	extensions |= blackfriday.EXTENSION_AUTO_HEADER_IDS
-	extensions |= blackfriday.EXTENSION_UNIQUE_HEADER_IDS
+	extensions |= mmark.EXTENSION_NO_INTRA_EMPHASIS
+	extensions |= mmark.EXTENSION_TABLES
+	extensions |= mmark.EXTENSION_FENCED_CODE
+	extensions |= mmark.EXTENSION_AUTOLINK
+	extensions |= mmark.EXTENSION_STRIKETHROUGH
+	extensions |= mmark.EXTENSION_SPACE_HEADERS
+	extensions |= mmark.EXTENSION_INDEX
+	extensions |= mmark.EXTENSION_CITATION
+	extensions |= mmark.EXTENSION_TITLEBLOCK
+	extensions |= mmark.EXTENSION_HEADER_IDS
+	extensions |= mmark.EXTENSION_AUTO_HEADER_IDS
+	extensions |= mmark.EXTENSION_UNIQUE_HEADER_IDS
 
-	var renderer blackfriday.Renderer
+	var renderer mmark.Renderer
 	if xml {
 		// render the data into Xml
-		renderer = blackfriday.XmlRenderer(0)
+		renderer = mmark.XmlRenderer(0)
 	} else {
 		// render the data into HTML
 		htmlFlags := 0
 		if xhtml {
-			htmlFlags |= blackfriday.HTML_USE_XHTML
+			htmlFlags |= mmark.HTML_USE_XHTML
 		}
 		if smartypants {
-			htmlFlags |= blackfriday.HTML_USE_SMARTYPANTS
+			htmlFlags |= mmark.HTML_USE_SMARTYPANTS
 		}
 		if fractions {
-			htmlFlags |= blackfriday.HTML_SMARTYPANTS_FRACTIONS
+			htmlFlags |= mmark.HTML_SMARTYPANTS_FRACTIONS
 		}
 		title := ""
 		if page {
-			htmlFlags |= blackfriday.HTML_COMPLETE_PAGE
+			htmlFlags |= mmark.HTML_COMPLETE_PAGE
 			title = getTitle(input)
 		}
 		if toconly {
-			htmlFlags |= blackfriday.HTML_OMIT_CONTENTS
+			htmlFlags |= mmark.HTML_OMIT_CONTENTS
 		}
 		if toc {
-			htmlFlags |= blackfriday.HTML_TOC
+			htmlFlags |= mmark.HTML_TOC
 		}
-		renderer = blackfriday.HtmlRenderer(htmlFlags, title, css)
+		renderer = mmark.HtmlRenderer(htmlFlags, title, css)
 	}
 
 	// parse and render
 	var output []byte
 	for i := 0; i < repeat; i++ {
-		output = blackfriday.Markdown(input, renderer, extensions)
+		output = mmark.Markdown(input, renderer, extensions)
 	}
 
 	// output the result
