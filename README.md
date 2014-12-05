@@ -1,13 +1,13 @@
-[![Build Status](https://travis-ci.org/russross/blackfriday.svg?branch=master)](https://travis-ci.org/russross/blackfriday)
+[![Build Status](https://travis-ci.org/miekg/mmark.svg?branch=master)](https://travis-ci.org/miekg/mmark)
 
-Everything that was true of blackfriday, might not be true for mmark.
+Everything that was true of [blackfriday][1], might not be true for mmark anymore.
 
-# ....
+# Mmark
 
-... is a fork of blackfriday is a [Markdown][1] processor implemented in
+Mmark is a fork of blackfriday which is a [Markdown][1] processor implemented in
 [Go][2]. It supports a number of extensions, inspired by Leanpub, kramdown and
 Asciidoc, that allows for large documents to be written. It is specifically
-designed to write internet drafts for the IETF.
+designed to write internet drafts and RFCs for the IETF.
 
 It is paranoid about its input (so you can safely feed it user-supplied data),
 it is fast, it supports the following extensions:
@@ -48,34 +48,6 @@ This renders it with no extensions enabled. To get a more useful
 feature set, use this instead:
 
     output := blackfriday.MarkdownCommon(input)
-
-### Custom options
-
-If you want to customize the set of options, first get a renderer
-(currently either the HTML or LaTeX output engines), then use it to
-call the more general `Markdown` function. For examples, see the
-implementations of `MarkdownBasic` and `MarkdownCommon` in
-`markdown.go`.
-
-You can also check out `blackfriday-tool` for a more complete example
-of how to use it. Download and install it using:
-
-    go get github.com/russross/blackfriday-tool
-
-This is a simple command-line tool that allows you to process a
-markdown file using a standalone program.  You can also browse the
-source directly on github if you are just looking for some example
-code:
-
-* <http://github.com/russross/blackfriday-tool>
-
-Note that if you have not already done so, installing
-`blackfriday-tool` will be sufficient to download and install
-blackfriday in addition to the tool itself. The tool binary will be
-installed in `$GOPATH/bin`.  This is a statically-linked binary that
-can be copied to wherever you need it without worrying about
-dependencies and library versions.
-
 
 Features
 --------
@@ -211,6 +183,7 @@ implements the following extensions:
 Todo
 ----
 
+*   kill titleblock
 *   More unit testing
 *   Markdown pretty-printer output engine
 *   Improve unicode support. It does not understand all unicode
@@ -228,9 +201,12 @@ Todo
 License
 -------
 
-Blackfriday is distributed under the Simplified BSD License:
+Mmark is a fork of blackfriday, hence is shares it's license.
+
+Mmark is distributed under the Simplified BSD License:
 
 > Copyright © 2011 Russ Ross
+> Copyright © 2014 Miek Gieben
 > All rights reserved.
 >
 > Redistribution and use in source and binary forms, with or without
