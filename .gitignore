@@ -6,6 +6,4 @@ _obj
 _test*
 markdown
 tags
-blackfriday-tool/blackfriday-tool
 Makefile
-*.md
