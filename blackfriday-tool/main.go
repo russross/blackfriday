@@ -123,6 +123,7 @@ func main() {
 	extensions |= blackfriday.EXTENSION_TITLEBLOCK
 	extensions |= blackfriday.EXTENSION_HEADER_IDS
 	extensions |= blackfriday.EXTENSION_AUTO_HEADER_IDS
+	extensions |= blackfriday.EXTENSION_UNIQUE_HEADER_IDS
 
 	var renderer blackfriday.Renderer
 	if xml {

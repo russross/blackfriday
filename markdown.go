@@ -42,6 +42,7 @@ const (
 	EXTENSION_FOOTNOTES                              // Pandoc-style footnotes
 	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK             // No need to insert an empty line to start a (code, quote, order list, unorder list)block
 	EXTENSION_HEADER_IDS                             // specify header IDs  with {#id}
+	EXTENSION_UNIQUE_HEADER_IDS                      // When detecting identical anchors add a sequence number -1, -2 etc.
 	EXTENSION_TITLEBLOCK                             // Titleblock ala pandoc
 	EXTENSION_TOML_TITLEBLOCK                        // Titleblock in TOML
 	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text
@@ -68,6 +69,8 @@ const (
 		EXTENSION_STRIKETHROUGH |
 		EXTENSION_SPACE_HEADERS |
 		EXTENSION_HEADER_IDS
+
+	commonXmlExtensions = commonExtensions | EXTENSION_UNIQUE_HEADER_IDS
 )
 
 // These are the possible flag values for the link renderer.

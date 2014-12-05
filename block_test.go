@@ -29,6 +29,7 @@ func runMarkdownBlock(input string, extensions int) string {
 func runMarkdownBlockXML(input string, extensions int) string {
 	xmlFlags := 0
 
+	extensions |= EXTENSION_UNIQUE_HEADER_IDS
 	renderer := XmlRenderer(xmlFlags)
 
 	return string(Markdown([]byte(input), renderer, extensions))

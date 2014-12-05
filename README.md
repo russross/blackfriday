@@ -206,6 +206,8 @@ implements the following extensions:
 
 *  **TOML TitleBlock**, add an extended title block prefixed with % in TOML.
 
+*  **Unique anchors**, make anchors unique by adding sequence numbers to them.
+
 Todo
 ----
 

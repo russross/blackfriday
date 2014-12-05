@@ -307,7 +307,7 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 			p.inline(out, data[i:end])
 			return true
 		}
-		if v, ok := p.anchors[id]; ok {
+		if v, ok := p.anchors[id]; ok && p.flags&EXTENSION_UNIQUE_HEADER_IDS != 0 {
 			// anchor found
 			id += "-" + strconv.Itoa(v)
 			p.anchors[id]++
@@ -991,39 +991,38 @@ func (p *parser) figurePrefix(data []byte) int {
 // parse an figure fragment
 func (p *parser) figure(out *bytes.Buffer, data []byte) int {
 	/*
-	var raw bytes.Buffer
-	beg, end := 0, 0
-	for beg < len(data) {
-		end = beg
-		for data[end] != '\n' {
+		var raw bytes.Buffer
+		beg, end := 0, 0
+		for beg < len(data) {
+			end = beg
+			for data[end] != '\n' {
+				end++
+			}
 			end++
+
+			if pre := p.notePrefix(data[beg:]); pre > 0 {
+				// skip the prefix
+				beg += pre
+			} else if p.isEmpty(data[beg:]) > 0 &&
+				(end >= len(data) ||
+					(p.notePrefix(data[end:]) == 0 && p.isEmpty(data[end:]) == 0)) {
+				// abstract ends with at least one blank line
+				// followed by something without a abstract prefix
+				break
+			}
+
+			// this line is part of the abstract
+			raw.Write(data[beg:end])
+			beg = end
 		}
-		end++
 
-		if pre := p.notePrefix(data[beg:]); pre > 0 {
-			// skip the prefix
-			beg += pre
-		} else if p.isEmpty(data[beg:]) > 0 &&
-			(end >= len(data) ||
-				(p.notePrefix(data[end:]) == 0 && p.isEmpty(data[end:]) == 0)) {
-			// abstract ends with at least one blank line
-			// followed by something without a abstract prefix
-			break
-		}
-
-		// this line is part of the abstract
-		raw.Write(data[beg:end])
-		beg = end
-	}
-
-	var cooked bytes.Buffer
-	p.block(&cooked, raw.Bytes())
-	p.r.Note(out, cooked.Bytes())
-	return end
+		var cooked bytes.Buffer
+		p.block(&cooked, raw.Bytes())
+		p.r.Note(out, cooked.Bytes())
+		return end
 	*/
 	return 0
 }
-
 
 // returns notequote prefix length
 func (p *parser) notePrefix(data []byte) int {
