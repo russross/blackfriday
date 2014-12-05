@@ -254,46 +254,42 @@ func (options *Xml) Paragraph(out *bytes.Buffer, text func() bool) {
 	out.WriteString("</t>\n")
 }
 
-func (options *Xml) Tables(out *bytes.Buffer, text []byte) { }
+func (options *Xml) Tables(out *bytes.Buffer, text []byte) {}
 
 func (options *Xml) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, table bool) {
-	out.WriteString("<table>\n")
-	for _, elt := range columnData {
-		switch elt {
-		case TABLE_ALIGNMENT_LEFT:
-			out.WriteByte('l')
-		case TABLE_ALIGNMENT_RIGHT:
-			out.WriteByte('r')
-		default:
-			out.WriteByte('c')
-		}
-	}
-	out.WriteString("}\n")
+	out.WriteString("<table>\n<thead>\n")
 	out.Write(header)
-	out.WriteString(" \\\\\n\\hline\n")
+	out.WriteString("</thead>\n")
 	out.Write(body)
 	out.WriteString("</table>\n")
 }
 
 func (options *Xml) TableRow(out *bytes.Buffer, text []byte) {
-	if out.Len() > 0 {
-		out.WriteString(" \\\\\n")
-	}
+	out.WriteString("<tr>")
 	out.Write(text)
+	out.WriteString("<tr>\n")
 }
 
 func (options *Xml) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
-	if out.Len() > 0 {
-		out.WriteString(" & ")
+	a := ""
+	switch align {
+	case TABLE_ALIGNMENT_LEFT:
+		a = " align=\"left\""
+	case TABLE_ALIGNMENT_RIGHT:
+		a = " align=\"right\""
+	default:
+		a = " align=\"center\""
 	}
+	out.WriteString("<th" + a + ">")
 	out.Write(text)
+	out.WriteString("</th>")
+
 }
 
 func (options *Xml) TableCell(out *bytes.Buffer, text []byte, align int) {
-	if out.Len() > 0 {
-		out.WriteString(" & ")
-	}
+	out.WriteString("<td>")
 	out.Write(text)
+	out.WriteString("</td>")
 }
 
 func (options *Xml) Footnotes(out *bytes.Buffer, text func() bool) {
