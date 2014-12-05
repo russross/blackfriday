@@ -18,18 +18,19 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/miekg/mmark"
 	"io/ioutil"
 	"os"
 	"runtime/pprof"
 	"strings"
+
+	"github.com/miekg/mmark"
 )
 
 const DEFAULT_TITLE = ""
 
 func main() {
 	// parse command-line options
-	var page, toc, toconly, xhtml, xml, smartypants, fractions bool
+	var page, toc, toconly, xhtml, xml, xml2, smartypants, fractions bool
 	var css, cpuprofile string
 	var repeat int
 	flag.BoolVar(&page, "page", false,
@@ -41,7 +42,9 @@ func main() {
 	flag.BoolVar(&xhtml, "xhtml", true,
 		"Use XHTML-style tags in HTML output")
 	flag.BoolVar(&xml, "xml", false,
-		"Generate XML output instead of HTML")
+		"Generate XML2RFC v3 output")
+	flag.BoolVar(&xml2, "xml2", false,
+		"Generate XML2RFC v2 output")
 	flag.BoolVar(&smartypants, "smartypants", true,
 		"Apply smartypants-style substitutions")
 	flag.BoolVar(&fractions, "fractions", true,
@@ -53,8 +56,9 @@ func main() {
 	flag.IntVar(&repeat, "repeat", 1,
 		"Process the input multiple times (for benchmarking)")
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Blackfriday Markdown Processor v"+mmark.VERSION+
-			"\nAvailable at http://github.com/russross/mmark\n\n"+
+		fmt.Fprintf(os.Stderr, "Mmark Markdown Processor v"+mmark.VERSION+
+			"\nAvailable at http://github.com/miekg/mmark\n\n"+
+			"Copyright © 2014 Miek Gieben <miek@miek.nl>\n"+
 			"Copyright © 2011 Russ Ross <russ@russross.com>\n"+
 			"Distributed under the Simplified BSD License\n"+
 			"See website for details\n\n"+
@@ -69,9 +73,6 @@ func main() {
 	// enforce implied options
 	if css != "" {
 		page = true
-	}
-	if page {
-		xml = false
 	}
 	if toconly {
 		toc = true
@@ -126,9 +127,17 @@ func main() {
 	extensions |= mmark.EXTENSION_UNIQUE_HEADER_IDS
 
 	var renderer mmark.Renderer
+	xmlFlags := 0
 	if xml {
-		// render the data into Xml
-		renderer = mmark.XmlRenderer(0)
+		if page {
+			xmlFlags = mmark.XML_STANDALONE
+		}
+		renderer = mmark.XmlRenderer(xmlFlags)
+	} else if xml2 {
+		if page {
+			xmlFlags = mmark.XML2_STANDALONE
+		}
+		renderer = mmark.Xml2Renderer(xmlFlags)
 	} else {
 		// render the data into HTML
 		htmlFlags := 0
