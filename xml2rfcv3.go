@@ -1,16 +1,10 @@
 //
-// Blackfriday Markdown Processor
-// Available at http://github.com/russross/blackfriday
-//
-// Copyright © 2014 Miek Gieben <miek@miek.nl>.
-
-//
 //
 // XML2RFC v3 rendering backend
 //
 //
 
-package blackfriday
+package mmark
 
 import (
 	"bytes"

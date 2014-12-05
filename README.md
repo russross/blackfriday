@@ -9,8 +9,10 @@ Mmark is a fork of blackfriday which is a [Markdown][1] processor implemented in
 Asciidoc, that allows for large documents to be written. It is specifically
 designed to write internet drafts and RFCs for the IETF.
 
-It is paranoid about its input (so you can safely feed it user-supplied data),
-it is fast, it supports the following extensions:
+It can currently output HTML5 or XML2RFC v3 XML. Other output engines could be
+easily added.
+
+It is fast and it supports the following extensions:
 
 * tables
 * definition lists
@@ -26,28 +28,19 @@ it is fast, it supports the following extensions:
 * IAL, inline attribute list
 * pay attention to the first number of ordered list, `4.` start a list with 4. instead of 1.
 
-## Maybe
-
-* Extension: example_lists from markdown `(@)` syntax.
-
-And it is safe for all utf-8.
-HTML output is currently supported, along with Smartypants
-extensions. An XML2RFV v3 output engine is also included.
-Adding DocBook output should not be that hard.
-
-It started as a translation from C of [upskirt][3].
+Mmark is forked from blackfriday which started out as a translation from C of [upskirt][3].
 
 ## Usage
 
 For basic usage, it is as simple as getting your input into a byte
 slice and calling:
 
-    output := blackfriday.MarkdownBasic(input)
+    output := mmark.MarkdownBasic(input)
 
 This renders it with no extensions enabled. To get a more useful
 feature set, use this instead:
 
-    output := blackfriday.MarkdownCommon(input)
+    output := mmark.MarkdownCommon(input)
 
 Features
 --------

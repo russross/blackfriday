@@ -1,17 +1,8 @@
 //
-// Blackfriday Markdown Processor
-// Available at http://github.com/russross/blackfriday
-//
-// Copyright © 2011 Russ Ross <russ@russross.com>.
-// Distributed under the Simplified BSD License.
-// See README.md for details.
-//
-
-//
 // Markdown 1.0.3 reference tests
 //
 
-package blackfriday
+package mmark
 
 import (
 	"io/ioutil"

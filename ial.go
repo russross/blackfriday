@@ -1,6 +1,6 @@
 // IAL implements
 
-package blackfriday
+package mmark
 
 // One or more of these can be attached to block elements
 
