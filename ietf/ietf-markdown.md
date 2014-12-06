@@ -33,25 +33,25 @@ The document meta data is speficied in a titleblock (prefix with `%`) which is t
 ## Citations
 
 Citation use the synax from Pandoc: [@smith04], but is more strict, the `@`-sign must be the first
-character after the open brace. 
-More general the syntax is `[@REF(MOD:PATH) TEXT]`, where
+character after the open brace.
+More general the syntax is `[@REF,MOD,PATH TEXT]`, where
 
-REF: 
+REF:
 :   is the reference anchor;
 MOD:
 :   is either n for normative or i for informative references. The default is i when left out;
-PATH: 
+PATH:
 :   the name of the reference file;
 TEXT:
 :   text used to reference.
 
 So a fully specified reference would look like this:
 
-    [@RFC1035(n:bib/reference.RFC.1035.xml) Section 1]
+    [@RFC1035,n,bib/reference.RFC.1035.xml 1.1]
 
 ... knows about RFC and I-D references and will use default filenames for the citations. When referencing
 an RFC, the default filename will be `reference.RFC.<NUMBER>.xml` and when referencing I-Ds,
-the filename will become `reference.I-D.draft-<name>.xml`. (This does not have a sequence number).
+the filename will become `reference.I-D.draft-<name>.xml`.
 
 The reference section(s) are outputted automatically when there are citations in the document.
 

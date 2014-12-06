@@ -1163,21 +1163,6 @@ func TestFencedCodeBlock_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
 	doTestsBlock(t, tests, EXTENSION_FENCED_CODE|EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK)
 }
 
-func TestTitleBlock_EXTENSION_TITLEBLOCK(t *testing.T) {
-	var tests = []string{
-		"% Some title\n" +
-			"% Another title line\n" +
-			"% Yep, more here too\n",
-		"<h1 class=\"title\">" +
-			"Some title\n" +
-			"Another title line\n" +
-			"Yep, more here too\n" +
-			"</h1>",
-	}
-
-	doTestsBlock(t, tests, EXTENSION_TITLEBLOCK)
-}
-
 func TestDefinitionListXML(t *testing.T) {
 	var tests = []string{
 		"Term1\n:   Hi There",

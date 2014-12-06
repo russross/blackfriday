@@ -58,12 +58,11 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			}
 		}
 
-		// title block
+		// title block in TOML
 		//
-		// % stuff
-		// % more stuff
-		// % even more stuff TOML_TITLEBLOCK
-		if p.flags&EXTENSION_TITLEBLOCK != 0 {
+		// % stuff = "dbllaa"
+		// % port = 1024
+		if p.flags&EXTENSION_TITLEBLOCK_TOML != 0 {
 			if data[0] == '%' {
 				if i := p.titleBlock(out, data, true); i > 0 {
 					data = data[i:]
@@ -377,10 +376,8 @@ func (p *parser) titleBlock(out *bytes.Buffer, data []byte, doRender bool) int {
 	}
 
 	data = bytes.Join(splitData[0:i], []byte("\n"))
-	// TODO(miek): fix does not belong here
 	block := p.titleBlockTOML(out, data)
 	p.r.TitleBlockTOML(out, &block)
-	p.r.TitleBlock(out, data)
 	return len(data)
 }
 

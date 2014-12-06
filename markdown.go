@@ -34,8 +34,7 @@ const (
 	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK             // No need to insert an empty line to start a (code, quote, order list, unorder list)block
 	EXTENSION_HEADER_IDS                             // specify header IDs  with {#id}
 	EXTENSION_UNIQUE_HEADER_IDS                      // When detecting identical anchors add a sequence number -1, -2 etc.
-	EXTENSION_TITLEBLOCK                             // Titleblock ala pandoc
-	EXTENSION_TOML_TITLEBLOCK                        // Titleblock in TOML
+	EXTENSION_TITLEBLOCK_TOML                        // Titleblock in TOML
 	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text
 	EXTENSION_INCLUDE                                // Include file with {{ syntax
 	EXTENSION_INDEX                                  // Support index with ((( syntax
@@ -182,7 +181,6 @@ type Renderer interface {
 	Tables(out *bytes.Buffer, text []byte)
 	Footnotes(out *bytes.Buffer, text func() bool)
 	FootnoteItem(out *bytes.Buffer, name, text []byte, flags int)
-	TitleBlock(out *bytes.Buffer, text []byte)
 	TitleBlockTOML(out *bytes.Buffer, data *title)
 	Abstract(out *bytes.Buffer, text []byte)
 	Aside(out *bytes.Buffer, text []byte)

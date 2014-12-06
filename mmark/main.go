@@ -121,7 +121,7 @@ func main() {
 	extensions |= mmark.EXTENSION_SPACE_HEADERS
 	extensions |= mmark.EXTENSION_INDEX
 	extensions |= mmark.EXTENSION_CITATION
-	extensions |= mmark.EXTENSION_TITLEBLOCK
+	extensions |= mmark.EXTENSION_TITLEBLOCK_TOML
 	extensions |= mmark.EXTENSION_HEADER_IDS
 	extensions |= mmark.EXTENSION_AUTO_HEADER_IDS
 	extensions |= mmark.EXTENSION_UNIQUE_HEADER_IDS

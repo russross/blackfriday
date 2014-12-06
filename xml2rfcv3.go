@@ -77,8 +77,6 @@ func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 	}
 }
 
-func (options *Xml) TitleBlock(out *bytes.Buffer, text []byte) {}
-
 func (options *Xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	if options.flags&XML_STANDALONE == 0 {
 		return

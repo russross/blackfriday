@@ -1,7 +1,7 @@
 % title = "Signaling Type of Denial via Delegation Signer Records"
 % abbrev = "DS Denial Type Signalling"
 % date = "20131201T00:00:00-00:00"
-% 
+%
 % [[author]]
 % initials = "R."
 % surname = "Gieben"
@@ -11,10 +11,10 @@
 % area = "Network"
 % keyword = ["DNSSEC"]
 
-AB> This document defines a transition mechanism for using new hash algorithms 
+AB> This document defines a transition mechanism for using new hash algorithms
 AB> when providing hashed authenticated denial of existence in a zone. The transition mechanism
 AB> defines a new digest type for Delegation Signer (DS) Resource
-AB> Records that points to extra data embedded in the digest to 
+AB> Records that points to extra data embedded in the digest to
 AB> include the type of authenticated denial used in the zone.
 
 {mainmatter}
@@ -42,7 +42,7 @@ prefixing the digest in the DS record with two octets defining
 the Denial Type:
 
 Denial Type:
-:   An extra 16 bit integer value (see [](#iana-considerations)) encoded in the DS' digest 
+:   An extra 16 bit integer value (see [](#iana-considerations)) encoded in the DS' digest
     that indicates the denial of existence in use in the (child) zone.
 
 Digest:
@@ -82,8 +82,8 @@ The Denial Type is a 16 bit unsigned integer value stored in network order.
 
 ##  Example DS Record Using SHA-256 and Denial Type TBD
 
-The following is an example DNSKEY, and a matching DS record that 
-includes denial type TBD that refences that NSEC3/SHA1 is in use in 
+The following is an example DNSKEY, and a matching DS record that
+includes denial type TBD that refences that NSEC3/SHA1 is in use in
 the child zone. This
 DNSKEY record comes from the example DNSKEY/DS records found in
 section 5.4 of [@RFC4034].
@@ -155,7 +155,7 @@ resolvers.
 
 ## Algorithm Aliasing
 
-This is a good, or maybe the best way to deal with this transition, but 
+This is a good, or maybe the best way to deal with this transition, but
 because the algorithm namespace is only 8 bits and each aliases need to
 alias all previous aliases...
 
