@@ -9,16 +9,18 @@ import (
 	"time"
 )
 
-// XML2 renderer configuration options.
+// References code in Xml2rfcv3.go
+
+// XML renderer configuration options.
 const (
 	XML2_STANDALONE = 1 << iota // create standalone document
 )
 
-// Xml2 is a type that implements the Renderer interface for XML2RFV2 output.
+// Xml2 is a type that implements the Renderer interface for XML2RFV3 output.
 //
 // Do not create this directly, instead use the Xml2Renderer function.
 type Xml2 struct {
-	flags        int // XML2_* options
+	flags        int // XML_* options
 	sectionLevel int // current section level
 	docLevel     int // frontmatter/mainmatter or backmatter
 
@@ -29,24 +31,15 @@ type Xml2 struct {
 	titleBlock *title
 }
 
-func (options *Xml2) SetIAL(i []*IAL)        { options.ial = append(options.ial, i...) }
-func (options *Xml2) GetAndResetIAL() []*IAL { i := options.ial; options.ial = nil; return i }
-
-// Xml2Renderer creates and configures a Xml2 object, which
+// Xml2Renderer creates and configures a Xml object, which
 // satisfies the Renderer interface.
 //
-// flags is a set of XML2_* options ORed together
-func Xml2Renderer(flags int) Renderer {
-	return &Xml2{flags: flags}
-}
-
-func (options *Xml2) GetFlags() int {
-	return options.flags
-}
-
-func (options *Xml2) GetState() int {
-	return 0
-}
+// flags is a set of XML_* options ORed together
+func Xml2Renderer(flags int) Renderer        { return &Xml{flags: flags} }
+func (options *Xml2) GetFlags() int          { return options.flags }
+func (options *Xml2) GetState() int          { return 0 }
+func (options *Xml2) SetIAL(i []*IAL)        { options.ial = append(options.ial, i...) }
+func (options *Xml2) GetAndResetIAL() []*IAL { i := options.ial; options.ial = nil; return i }
 
 // render code chunks using verbatim, or listings if we have a language
 func (options *Xml2) BlockCode(out *bytes.Buffer, text []byte, lang string) {
@@ -116,34 +109,36 @@ func (options *Xml2) BlockQuote(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Xml2) Abstract(out *bytes.Buffer, text []byte) {
-	out.WriteString("<abstract>\n")
+	s := renderIAL(options.GetAndResetIAL())
+	out.WriteString("<abstract" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</abstract>\n")
 }
 
 func (options *Xml2) Aside(out *bytes.Buffer, text []byte) {
-	out.WriteString("<aside>\n")
+	s := renderIAL(options.GetAndResetIAL())
+	out.WriteString("<aside" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</aside>\n")
 }
 
 func (options *Xml2) Note(out *bytes.Buffer, text []byte) {
-	out.WriteString("<note>\n")
+	s := renderIAL(options.GetAndResetIAL())
+	out.WriteString("<note" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</note>\n")
 }
 
 func (options *Xml2) Figure(out *bytes.Buffer, text []byte) {
-	out.WriteString("<figure>\n")
+	s := renderIAL(options.GetAndResetIAL())
+	out.WriteString("<figure" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</figure>\n")
 }
 
 func (options *Xml2) BlockHtml(out *bytes.Buffer, text []byte) {
-	// a pretty lame thing to do...
-	out.WriteString("\n\\begin{verbatim}\n")
-	out.Write(text)
-	out.WriteString("\n\\end{verbatim}\n")
+	// not supported, don't know yet if this is useful
+	return
 }
 
 func (options *Xml2) Header(out *bytes.Buffer, text func() bool, level int, id string, quote bool) {
@@ -165,6 +160,8 @@ func (options *Xml2) Header(out *bytes.Buffer, text func() bool, level int, id s
 		}
 	}
 	// new section
+	// Clashes with IAL, need to check ID
+	renderIAL(options.GetAndResetIAL()) // Clear IAL here, so it will not pile up for following items
 	out.WriteString("\n<section anchor=\"" + id + "\">\n")
 	out.WriteString("<name>")
 	text() // check bool here
@@ -179,17 +176,18 @@ func (options *Xml2) HRule(out *bytes.Buffer) {
 
 func (options *Xml2) List(out *bytes.Buffer, text func() bool, flags, start int) {
 	marker := out.Len()
+	s := renderIAL(options.GetAndResetIAL())
 	switch {
 	case flags&LIST_TYPE_ORDERED != 0:
 		if start <= 1 {
-			out.WriteString("<ol>\n")
+			out.WriteString("<ol" + s + ">\n")
 		} else {
-			out.WriteString(fmt.Sprintf("<ol start=\"%d\">\n", start))
+			out.WriteString(fmt.Sprintf("<ol"+s+" start=\"%d\">\n", start))
 		}
 	case flags&LIST_TYPE_DEFINITION != 0:
-		out.WriteString("<dl>\n")
+		out.WriteString("<dl" + s + ">\n")
 	default:
-		out.WriteString("<ul>\n")
+		out.WriteString("<ul" + s + ">\n")
 	}
 
 	if !text() {
@@ -225,8 +223,9 @@ func (options *Xml2) ListItem(out *bytes.Buffer, text []byte, flags int) {
 }
 
 func (options *Xml2) Paragraph(out *bytes.Buffer, text func() bool) {
+	s := renderIAL(options.GetAndResetIAL())
 	marker := out.Len()
-	out.WriteString("<t>")
+	out.WriteString("<t" + s + ">")
 	if !text() {
 		out.Truncate(marker)
 		return
@@ -234,10 +233,14 @@ func (options *Xml2) Paragraph(out *bytes.Buffer, text func() bool) {
 	out.WriteString("</t>\n")
 }
 
-func (options *Xml2) Tables(out *bytes.Buffer, text []byte) {}
+func (options *Xml2) Tables(out *bytes.Buffer, text []byte) {
+	s := renderIAL(options.GetAndResetIAL())
+	s = s
+}
 
 func (options *Xml2) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, table bool) {
-	out.WriteString("<table>\n<thead>\n")
+	s := renderIAL(options.GetAndResetIAL())
+	out.WriteString("<table" + s + ">\n<thead>\n")
 	out.Write(header)
 	out.WriteString("</thead>\n")
 	out.Write(body)
@@ -286,7 +289,11 @@ func (options *Xml2) Index(out *bytes.Buffer, primary, secondary []byte) {
 }
 
 func (options *Xml2) Citation(out *bytes.Buffer, link, title []byte) {
-	out.WriteString("<xref target=\"" + string(link) + "\"/>")
+	if len(title) == 0 {
+		out.WriteString("<xref target=\"" + string(link) + "\"/>")
+		return
+	}
+	out.WriteString("<xref target=\"" + string(link) + "\" section=\"" + string(title) + "\"/>")
 }
 
 func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citation, first bool) {
@@ -352,14 +359,12 @@ func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citatio
 }
 
 func (options *Xml2) AutoLink(out *bytes.Buffer, link []byte, kind int) {
-	out.WriteString("\\href{")
+	out.WriteString("<eref target=\"")
 	if kind == LINK_TYPE_EMAIL {
 		out.WriteString("mailto:")
 	}
 	out.Write(link)
-	out.WriteString("}{")
-	out.Write(link)
-	out.WriteString("}")
+	out.WriteString("\"/>")
 }
 
 func (options *Xml2) CodeSpan(out *bytes.Buffer, text []byte) {
@@ -388,7 +393,19 @@ func (options *Xml2) Emphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("</em>")
 }
 
+// Inline, by including all of the SVG in the content of the element
+//      (such as "<artwork type="svg"><svg xmlns...">")
+//
+//   o  Inline, but using XInclude (see Appendix B.1 (such as "<artwork
+//      type="svg"><xi:include href=...")
+//
+//   o  As a data: URI (such as "<artwork type="svg" src="data:image/
+//      svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3...">")
+//
+//   o  As a URI to an external entity (such as "<artwork type="svg"
+//      src="http://www.example.com/...">")
 func (options *Xml2) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
+	renderIAL(options.GetAndResetIAL()) // TODO(miek): useful?
 	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
 		// treat it like a link
 		out.WriteString("\\href{")
@@ -404,15 +421,14 @@ func (options *Xml2) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 }
 
 func (options *Xml2) LineBreak(out *bytes.Buffer) {
-	out.WriteString("\n<vspace/>\n")
+	out.WriteString("\n<br/>\n")
 }
 
 func (options *Xml2) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
-	out.WriteString("\\href{")
+	out.WriteString("<xref target=\"")
 	out.Write(link)
-	out.WriteString("}{")
-	out.Write(content)
-	out.WriteString("}")
+	out.WriteString("\"/>")
+	//	out.Write(content)
 }
 
 func (options *Xml2) RawHtmlTag(out *bytes.Buffer, tag []byte) {
@@ -459,25 +475,29 @@ func (options *Xml2) DocumentFooter(out *bytes.Buffer, first bool) {
 	}
 	switch options.docLevel {
 	case DOC_FRONT_MATTER:
-		out.WriteString("</front>\n")
+		out.WriteString("\n</front>\n")
 	case DOC_MAIN_MATTER:
-		out.WriteString("</middle>\n")
+		out.WriteString("\n</middle>\n")
 	case DOC_BACK_MATTER:
-		out.WriteString("</back>\n")
+		out.WriteString("\n</back>\n")
 	}
 	out.WriteString("</rfc>\n")
 }
 
 func (options *Xml2) DocumentMatter(out *bytes.Buffer, matter int) {
 	// we default to frontmatter already openened in the documentHeader
+	for i := options.sectionLevel; i > 0; i-- {
+		out.WriteString("</section>\n")
+		options.sectionLevel--
+	}
 	switch matter {
 	case DOC_FRONT_MATTER:
 		// already open
 	case DOC_MAIN_MATTER:
 		out.WriteString("</front>\n")
-		out.WriteString("<middle>\n")
+		out.WriteString("\n<middle>\n")
 	case DOC_BACK_MATTER:
-		out.WriteString("</middle>\n")
+		out.WriteString("\n</middle>\n")
 		out.WriteString("<back>\n")
 	}
 	options.docLevel = matter
