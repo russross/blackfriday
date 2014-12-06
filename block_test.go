@@ -1266,3 +1266,11 @@ func TestFigureXML(t *testing.T) {
 	}
 	doTestsBlockXML(t, tests, 0)
 }
+
+func TestIAL(t *testing.T) {
+	var tests = []string{
+		"{attribution=\"BLA BLA\" .green}\n{bla=BLA}\n{more=\"ALB ALB\" #ref:quote .yellow}\n> Hallo2\n> Hallo3\n\nThis is no one `{source='BLEIP'}` on of them\n\n{evenmore=\"BLE BLE\"}\n> Hallo6\n> Hallo7",
+		"<blockquote anchor=\"ref:quote\" class=\"green yellow\" attribution=\"BLA BLA\" bla=\"BLA\" more=\"ALB ALB\">\n<t>Hallo2\nHallo3</t>\n</blockquote>\n<t>This is no one <tt>{source='BLEIP'}</tt> on of them</t>\n<blockquote evenmore=\"BLE BLE\">\n<t>Hallo6\nHallo7</t>\n</blockquote>\n",
+	}
+	doTestsBlockXML(t, tests, 0)
+}
