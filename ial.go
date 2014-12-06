@@ -2,6 +2,10 @@
 
 package mmark
 
+import (
+	"bytes"
+)
+
 // One or more of these can be attached to block elements
 
 type IAL struct {
@@ -11,13 +15,12 @@ type IAL struct {
 }
 
 // Parsing and thus detecting an IAL. Return a valid *IAL or nil.
-// IAL can have #id, .class or key=value element seperated by spaces, that
-// may be escaped
+// IAL can have #id, .class or key=value element seperated by spaces, that may be escaped
 func (p *parser) isIAL(data []byte) int {
 	esc := false
 	quote := false
 	ialB := 0
-	ial := &IAL{}
+	ial := &IAL{attr: make(map[string]string)}
 	for i := 0; i < len(data); i++ {
 		switch data[i] {
 		case ' ':
@@ -31,7 +34,10 @@ func (p *parser) isIAL(data []byte) int {
 			case chunk[0] == '#':
 				ial.id = string(chunk[1:])
 			default:
-				// key=value
+				k, v := parseKeyValue(chunk)
+				if k != "" {
+					ial.attr[k] = v
+				}
 			}
 			ialB = i
 		case '"':
@@ -64,7 +70,10 @@ func (p *parser) isIAL(data []byte) int {
 			case chunk[0] == '#':
 				ial.id = string(chunk[1:])
 			default:
-				// key=value
+				k, v := parseKeyValue(chunk)
+				if k != "" {
+					ial.attr[k] = v
+				}
 			}
 			p.ial = append(p.ial, ial)
 			return i + 1
@@ -80,7 +89,7 @@ func (p *parser) isIAL(data []byte) int {
 func renderIAL(i []*IAL) string {
 	anchor := ""
 	class := ""
-	//	attr := ""
+	attr := ""
 	for _, i1 := range i {
 		if i1.id != "" {
 			anchor = "anchor=\"" + i1.id + "\""
@@ -92,6 +101,14 @@ func renderIAL(i []*IAL) string {
 			}
 			class += " " + c1
 		}
+		for k, v := range i1.attr {
+			if attr == "" {
+				attr = k + "=\"" + v + "\""	
+				continue
+			}
+			attr +=  " " + k + "=\"" + v + "\""	
+
+		}
 	}
 	s := ""
 	if anchor != "" {
@@ -100,5 +117,17 @@ func renderIAL(i []*IAL) string {
 	if class != "" {
 		s += " class=\"" + class + "\""
 	}
+	if attr != "" {
+		s += " " + attr
+	}
 	return s
+}
+
+func parseKeyValue(chunk []byte) (string, string) {
+	chunks := bytes.SplitN(chunk, []byte{'='}, 2)
+	if len(chunks) != 2 {
+		return "", ""
+	}
+	chunks[1] = bytes.Replace(chunks[1], []byte{'"'}, nil, -1)
+	return string(chunks[0]), string(chunks[1])
 }

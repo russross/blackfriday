@@ -4,6 +4,7 @@
 Hallo, this is text
 
 {attribution="BLA BLA" .green}
+{sla=BLA .green}
 {more="ALB ALB" #ref:quote .yellow}
 > Hallo2
 > Hallo3

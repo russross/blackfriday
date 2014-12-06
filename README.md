@@ -30,6 +30,11 @@ It is fast and it supports the following extensions:
 
 Mmark is forked from blackfriday which started out as a translation from C of [upskirt][4].
 
+## Enviroment variables
+
+`MMARK_REFDIR`: is set prefix 
+`MMARK_REFONLINE`, use online references
+
 ## Usage
 
 For basic usage, it is as simple as getting your input into a byte
