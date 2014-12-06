@@ -1,6 +1,6 @@
 % title = "Signaling Type of Denial via Delegation Signer Records"
 % abbrev = "DS Denial Type Signalling"
-% date = "20131201T00:00:00-00:00"
+% date = 2014-12-01T00:00:00Z
 %
 % [[author]]
 % initials = "R."

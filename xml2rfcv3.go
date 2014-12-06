@@ -490,25 +490,29 @@ func (options *Xml) DocumentFooter(out *bytes.Buffer, first bool) {
 	}
 	switch options.docLevel {
 	case DOC_FRONT_MATTER:
-		out.WriteString("</front>\n")
+		out.WriteString("\n</front>\n")
 	case DOC_MAIN_MATTER:
-		out.WriteString("</middle>\n")
+		out.WriteString("\n</middle>\n")
 	case DOC_BACK_MATTER:
-		out.WriteString("</back>\n")
+		out.WriteString("\n</back>\n")
 	}
 	out.WriteString("</rfc>\n")
 }
 
 func (options *Xml) DocumentMatter(out *bytes.Buffer, matter int) {
 	// we default to frontmatter already openened in the documentHeader
+		for i := options.sectionLevel; i > 0; i-- {
+			out.WriteString("</section>\n")
+			options.sectionLevel--
+		}
 	switch matter {
 	case DOC_FRONT_MATTER:
 		// already open
 	case DOC_MAIN_MATTER:
 		out.WriteString("</front>\n")
-		out.WriteString("<middle>\n")
+		out.WriteString("\n<middle>\n")
 	case DOC_BACK_MATTER:
-		out.WriteString("</middle>\n")
+		out.WriteString("\n</middle>\n")
 		out.WriteString("<back>\n")
 	}
 	options.docLevel = matter

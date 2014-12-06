@@ -183,10 +183,8 @@ implements the following extensions:
 Todo
 ----
 
-*   kill titleblock
 *   Check outputted XML for wellformedness
 *   More unit testing
-*   Correctly close document when there is no TOML titleblock
 *   pretty print XML
 *   <<{{CODE}} code include from leanpub?
 *   alignment in tables

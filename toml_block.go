@@ -52,8 +52,8 @@ type title struct {
 }
 
 func (p *parser) titleBlockTOML(out *bytes.Buffer, data []byte) title {
-	data = bytes.TrimPrefix(data, []byte("% "))
-	data = bytes.Replace(data, []byte("\n% "), []byte("\n"), -1)
+	data = bytes.TrimPrefix(data, []byte("%"))
+	data = bytes.Replace(data, []byte("\n%"), []byte("\n"), -1)
 	var block title
 	if _, err := toml.Decode(string(data), &block); err != nil {
 		log.Printf("TOML titleblock: %s", err.Error())
