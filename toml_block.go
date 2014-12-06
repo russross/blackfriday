@@ -41,7 +41,7 @@ type title struct {
 	Ipr            string
 	Category       string
 	Obsoletes      []string
-	Updates		[]string
+	Updates        []string
 	SubmissionType string
 
 	Date      time.Time

@@ -183,7 +183,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			p.insideQuote = true
 			p.insideTable = true
 			data = data[p.tables(out, data):]
-			p.insideQuote = false	// hmmm, will this recurse correctly..??
+			p.insideQuote = false // hmmm, will this recurse correctly..??
 			p.insideTable = false
 			continue
 		}
@@ -321,8 +321,8 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 			p.anchors[id] = 1
 		}
 
-	p.r.SetIAL(p.ial)
-	p.ial = nil
+		p.r.SetIAL(p.ial)
+		p.ial = nil
 		p.r.Header(out, work, level, id, p.insideQuote)
 	}
 	return skip

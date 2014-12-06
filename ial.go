@@ -103,10 +103,10 @@ func renderIAL(i []*IAL) string {
 		}
 		for k, v := range i1.attr {
 			if attr == "" {
-				attr = k + "=\"" + v + "\""	
+				attr = k + "=\"" + v + "\""
 				continue
 			}
-			attr +=  " " + k + "=\"" + v + "\""	
+			attr += " " + k + "=\"" + v + "\""
 
 		}
 	}

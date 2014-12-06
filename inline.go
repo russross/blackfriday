@@ -268,7 +268,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			case data[j] == ' ':
 				if spaceB == 0 {
 					spaceB = j
-					title = data[j+1:txtE]
+					title = data[j+1 : txtE]
 					if commaB == 0 {
 						id = data[2:spaceB]
 					}
@@ -279,12 +279,12 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			id = data[2:txtE]
 		}
 		if commaB > 0 {
-			end := txtE+1 // hmmm
+			end := txtE + 1 // hmmm
 			if spaceB > 0 {
-				end = spaceB+1
+				end = spaceB + 1
 			}
 			for j := commaB + 1; j < end; j++ {
-				if data[j] == ',' || j == end -1 {
+				if data[j] == ',' || j == end-1 {
 					chunk := data[commaB+1 : j]
 					switch {
 					case len(chunk) == 1:

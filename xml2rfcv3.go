@@ -42,24 +42,15 @@ type Xml struct {
 	titleBlock *title
 }
 
-func (options *Xml) SetIAL(i []*IAL)        { options.ial = append(options.ial, i...) }
-func (options *Xml) GetAndResetIAL() []*IAL { i := options.ial; options.ial = nil; return i }
-
 // XmlRenderer creates and configures a Xml object, which
 // satisfies the Renderer interface.
 //
 // flags is a set of XML_* options ORed together
-func XmlRenderer(flags int) Renderer {
-	return &Xml{flags: flags}
-}
-
-func (options *Xml) GetFlags() int {
-	return options.flags
-}
-
-func (options *Xml) GetState() int {
-	return 0
-}
+func XmlRenderer(flags int) Renderer        { return &Xml{flags: flags} }
+func (options *Xml) GetFlags() int          { return options.flags }
+func (options *Xml) GetState() int          { return 0 }
+func (options *Xml) SetIAL(i []*IAL)        { options.ial = append(options.ial, i...) }
+func (options *Xml) GetAndResetIAL() []*IAL { i := options.ial; options.ial = nil; return i }
 
 // render code chunks using verbatim, or listings if we have a language
 func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string) {
@@ -129,34 +120,36 @@ func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Xml) Abstract(out *bytes.Buffer, text []byte) {
-	out.WriteString("<abstract>\n")
+	s := renderIAL(options.GetAndResetIAL())
+	out.WriteString("<abstract" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</abstract>\n")
 }
 
 func (options *Xml) Aside(out *bytes.Buffer, text []byte) {
-	out.WriteString("<aside>\n")
+	s := renderIAL(options.GetAndResetIAL())
+	out.WriteString("<aside" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</aside>\n")
 }
 
 func (options *Xml) Note(out *bytes.Buffer, text []byte) {
-	out.WriteString("<note>\n")
+	s := renderIAL(options.GetAndResetIAL())
+	out.WriteString("<note" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</note>\n")
 }
 
 func (options *Xml) Figure(out *bytes.Buffer, text []byte) {
-	out.WriteString("<figure>\n")
+	s := renderIAL(options.GetAndResetIAL())
+	out.WriteString("<figure" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</figure>\n")
 }
 
 func (options *Xml) BlockHtml(out *bytes.Buffer, text []byte) {
-	// a pretty lame thing to do...
-	out.WriteString("\n\\begin{verbatim}\n")
-	out.Write(text)
-	out.WriteString("\n\\end{verbatim}\n")
+	// not supported, don't know yet if this is useful
+	return
 }
 
 func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id string, quote bool) {
@@ -178,6 +171,8 @@ func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id st
 		}
 	}
 	// new section
+	// Clashes with IAL, need to check ID
+	renderIAL(options.GetAndResetIAL()) // Clear IAL here, so it will not pile up for following items
 	out.WriteString("\n<section anchor=\"" + id + "\">\n")
 	out.WriteString("<name>")
 	text() // check bool here
@@ -192,17 +187,18 @@ func (options *Xml) HRule(out *bytes.Buffer) {
 
 func (options *Xml) List(out *bytes.Buffer, text func() bool, flags, start int) {
 	marker := out.Len()
+	s := renderIAL(options.GetAndResetIAL())
 	switch {
 	case flags&LIST_TYPE_ORDERED != 0:
 		if start <= 1 {
-			out.WriteString("<ol>\n")
+			out.WriteString("<ol" + s + ">\n")
 		} else {
-			out.WriteString(fmt.Sprintf("<ol start=\"%d\">\n", start))
+			out.WriteString(fmt.Sprintf("<ol"+s+" start=\"%d\">\n", start))
 		}
 	case flags&LIST_TYPE_DEFINITION != 0:
-		out.WriteString("<dl>\n")
+		out.WriteString("<dl" + s + ">\n")
 	default:
-		out.WriteString("<ul>\n")
+		out.WriteString("<ul" + s + ">\n")
 	}
 
 	if !text() {
@@ -238,8 +234,9 @@ func (options *Xml) ListItem(out *bytes.Buffer, text []byte, flags int) {
 }
 
 func (options *Xml) Paragraph(out *bytes.Buffer, text func() bool) {
+	s := renderIAL(options.GetAndResetIAL())
 	marker := out.Len()
-	out.WriteString("<t>")
+	out.WriteString("<t" + s + ">")
 	if !text() {
 		out.Truncate(marker)
 		return
@@ -247,10 +244,14 @@ func (options *Xml) Paragraph(out *bytes.Buffer, text func() bool) {
 	out.WriteString("</t>\n")
 }
 
-func (options *Xml) Tables(out *bytes.Buffer, text []byte) {}
+func (options *Xml) Tables(out *bytes.Buffer, text []byte) {
+	s := renderIAL(options.GetAndResetIAL())
+	s = s
+}
 
 func (options *Xml) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, table bool) {
-	out.WriteString("<table>\n<thead>\n")
+	s := renderIAL(options.GetAndResetIAL())
+	out.WriteString("<table" + s + ">\n<thead>\n")
 	out.Write(header)
 	out.WriteString("</thead>\n")
 	out.Write(body)
@@ -383,14 +384,12 @@ func referenceFile(c *citation) string {
 }
 
 func (options *Xml) AutoLink(out *bytes.Buffer, link []byte, kind int) {
-	out.WriteString("\\href{")
+	out.WriteString("<eref target=\"")
 	if kind == LINK_TYPE_EMAIL {
 		out.WriteString("mailto:")
 	}
 	out.Write(link)
-	out.WriteString("}{")
-	out.Write(link)
-	out.WriteString("}")
+	out.WriteString("\"/>")
 }
 
 func (options *Xml) CodeSpan(out *bytes.Buffer, text []byte) {
@@ -419,7 +418,19 @@ func (options *Xml) Emphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("</em>")
 }
 
+// Inline, by including all of the SVG in the content of the element
+//      (such as "<artwork type="svg"><svg xmlns...">")
+//
+//   o  Inline, but using XInclude (see Appendix B.1 (such as "<artwork
+//      type="svg"><xi:include href=...")
+//
+//   o  As a data: URI (such as "<artwork type="svg" src="data:image/
+//      svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3...">")
+//
+//   o  As a URI to an external entity (such as "<artwork type="svg"
+//      src="http://www.example.com/...">")
 func (options *Xml) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
+	renderIAL(options.GetAndResetIAL()) // TODO(miek): useful?
 	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
 		// treat it like a link
 		out.WriteString("\\href{")
@@ -435,15 +446,14 @@ func (options *Xml) Image(out *bytes.Buffer, link []byte, title []byte, alt []by
 }
 
 func (options *Xml) LineBreak(out *bytes.Buffer) {
-	out.WriteString("\n<vspace/>\n")
+	out.WriteString("\n<br/>\n")
 }
 
 func (options *Xml) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
-	out.WriteString("\\href{")
+	out.WriteString("<xref target=\"")
 	out.Write(link)
-	out.WriteString("}{")
-	out.Write(content)
-	out.WriteString("}")
+	out.WriteString("\"/>")
+	//	out.Write(content)
 }
 
 func (options *Xml) RawHtmlTag(out *bytes.Buffer, tag []byte) {
@@ -501,10 +511,10 @@ func (options *Xml) DocumentFooter(out *bytes.Buffer, first bool) {
 
 func (options *Xml) DocumentMatter(out *bytes.Buffer, matter int) {
 	// we default to frontmatter already openened in the documentHeader
-		for i := options.sectionLevel; i > 0; i-- {
-			out.WriteString("</section>\n")
-			options.sectionLevel--
-		}
+	for i := options.sectionLevel; i > 0; i-- {
+		out.WriteString("</section>\n")
+		options.sectionLevel--
+	}
 	switch matter {
 	case DOC_FRONT_MATTER:
 		// already open

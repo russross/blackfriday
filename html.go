@@ -280,7 +280,7 @@ func (options *Html) Note(out *bytes.Buffer, text []byte) {
 	out.WriteString("</blockquote>\n")
 }
 
-func (options *Html) Tables(out *bytes.Buffer, text []byte) { }
+func (options *Html) Tables(out *bytes.Buffer, text []byte) {}
 
 func (options *Html) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, table bool) {
 	doubleSpace(out)

@@ -1,11 +1,14 @@
 % title = "Signaling Type of Denial via Delegation Signer Records"
 % abbrev = "DS Denial Type Signalling"
 % date = 2014-12-01T00:00:00Z
+% docName = "signal-00"
+% ipr = "blaat"
+% caterogy = "informational"
 %
 % [[author]]
 % initials = "R."
 % surname = "Gieben"
-% fullnanm = "R. (Miek) Gieben"
+% fullname = "R. (Miek) Gieben"
 % organization = "Google"
 % address.email = "miek@google.com"
 % area = "Network"
@@ -87,6 +90,8 @@ includes denial type TBD that refences that NSEC3/SHA1 is in use in
 the child zone. This
 DNSKEY record comes from the example DNSKEY/DS records found in
 section 5.4 of [@RFC4034].
+
+As you can use over at this URL <http://www.miek.nl>.
 
 The DNSKEY record:
 

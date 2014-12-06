@@ -184,6 +184,7 @@ Todo
 ----
 
 *   Check outputted XML for wellformedness
+*   titleblock organisation
 *   More unit testing
 *   pretty print XML
 *   <<{{CODE}} code include from leanpub?
