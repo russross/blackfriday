@@ -41,7 +41,7 @@ const (
 	EXTENSION_INDEX                                  // Support index with ((( syntax
 	EXTENSION_CITATION                               // Support citations via the link syntax
 	EXTENSION_QUOTES                                 // Allow AB> A> and N> to be parsed as abstract, asides and notes (and F>) (TODO(miek): use this
-	EXTENSION_TABLE_QUOTES				 // Detect T> for tables a so a name and caption can be given just like for figure (F>)
+	EXTENSION_TABLE_QUOTES                           // Detect T> for tables a so a name and caption can be given just like for figure (F>)
 	EXTENSION_IAL                                    // detect kramdown's IAL syntax
 	EXTENSION_MATTER                                 // use {frontmatter} {mainmatter} {backmatter}
 

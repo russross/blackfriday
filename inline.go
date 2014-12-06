@@ -249,34 +249,57 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	}
 
 	// TODO(miek): parse p. 23 parts here (title)
-	// [@RFC2534(n:bib/reference.xml) p. 23]
-	// [@REF(n|i:file) text]
+	// [@RFC2534(n,bib/reference.xml p. 23]
+	// [@REF,n|i,#11,file text]
 	if (t == linkCitation || data[1] == '@') && p.flags&EXTENSION_CITATION != 0 {
 		var (
-			parenB, parenE int
+			commaB, spaceB int
 			id, file       []byte
+			typ            byte
 		)
-		typ := byte('i')
+		typ = 'i'
 		for j := 0; j < txtE; j++ {
-			if data[j] == '(' {
-				id = data[2:j]
-				parenB = j
-				continue
-			}
-			if data[j] == ')' {
-				parenE = j
-				break
+			switch {
+			case data[j] == ',':
+				if commaB == 0 {
+					commaB = j
+					id = data[2:commaB]
+				}
+			case data[j] == ' ':
+				if spaceB == 0 {
+					spaceB = j
+					title = data[j+1:txtE]
+					if commaB == 0 {
+						id = data[2:spaceB]
+					}
+				}
 			}
 		}
-		if parenB > 0 && parenE > 0 {
-			id = data[2:parenB]
-			typ = data[parenB+1]
-			for j := parenB; j < parenE; j++ {
-				if data[j] == ':' { // left is typ, right is filename
-					typ = data[j-1]
-					file = data[j+1 : txtE-1]
-					break
+		if commaB == 0 && spaceB == 0 {
+			id = data[2:txtE]
+		}
+		if commaB > 0 {
+			end := txtE+1 // hmmm
+			if spaceB > 0 {
+				end = spaceB+1
+			}
+			for j := commaB + 1; j < end; j++ {
+				if data[j] == ',' || j == end -1 {
+					chunk := data[commaB+1 : j]
+					switch {
+					case len(chunk) == 1:
+						if chunk[0] == 'n' || chunk[0] == 'N' {
+							typ = 'n'
+						}
+						if chunk[0] == 'i' || chunk[0] == 'I' {
+							typ = 'i'
+						}
+					default:
+						file = chunk
+					}
+					commaB = j
 				}
+
 			}
 		}
 		if id == nil {

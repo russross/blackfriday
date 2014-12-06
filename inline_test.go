@@ -790,7 +790,6 @@ func TestFootnotesWithParameters(t *testing.T) {
 	doTestsInlineParam(t, tests, EXTENSION_FOOTNOTES, HTML_FOOTNOTE_RETURN_LINKS, params)
 }
 
-
 func runMarkdownInlineXML(input string, extensions, xmlFlags int) string {
 	extensions |= EXTENSION_AUTOLINK
 	extensions |= EXTENSION_STRIKETHROUGH
@@ -845,13 +844,30 @@ func TestIndexXML(t *testing.T) {
 	doTestsInlineXML(t, tests)
 }
 
-// TODO
-func TestCitationXML(t *testing.T) {
+func testCitationXML(t *testing.T) {
 	var tests = []string{
-		"(((Tiger, Cats)))\n",
-		"<t><iref item=\"Tiger\" subitem=\"Cats\"/></t>\n",
+		"[@RFC2525]",
+		"",
+
+		"[@RFC1024n]",
+		"",
+
+		"[@RFC3024,i,]",
+		"",
+
+		"[@RFC3025,n]",
+		"",
+
+		"[@I-D.6man-udpzero]",
+		"",
+
+		"[@I-D.6man-udpzero,i,/bib/reference]",
+		"",
+
+		"[@I-D.6man-udpzero,i,/bib/reference p. 23]",
+		"",
 	}
-	doTestsInlineXML(t, tests)
+	doTestsInlineParamXML(t, tests, 0, XML_STANDALONE)
 }
 
 func TestRFC2119XML(t *testing.T) {

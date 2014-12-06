@@ -150,11 +150,13 @@ implements the following extensions:
 
 *   **Citations**, using the citation syntax from pandoc `[@RFC2535 p. 23]`, the citation
     can either be informative (default) or normative, this can be indicated by using
-    the `i` or `n` modifer: `[@RFC2535(n)]`.
+    the `i` or `n` modifer: `[@RFC2535,n]`.
 
     To make the references work you can optionally include a filename:
-    `[@RFC233(n:bib/reference.RFC.2525.xml)]`. If you reference an RFC or ID
-    the filename will be contructed automatically.
+    `[@RFC233,n,bib/reference.RFC.2525.xml]`. If you reference an RFC or ID
+    the filename (or URL?) will be contructed automatically.
+
+    A citation is informative by default.
 
 *  **Asides**, any paragraph with `A>` at the beginning of all lines is an aside.
 

@@ -330,7 +330,7 @@ func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citatio
 				if c.typ == 'i' {
 					f := string(c.filename)
 					if f == "" {
-						f = referenceFile(c.link)
+						f = referenceFile(c)
 					}
 					out.WriteString("\t<xi:include href=\"" + f + "\"/>\n")
 				}
@@ -343,7 +343,7 @@ func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citatio
 				if c.typ == 'n' {
 					f := string(c.filename)
 					if f == "" {
-						f = referenceFile(c.link)
+						f = referenceFile(c)
 					}
 					out.WriteString("\t<xi:include href=\"" + f + "\"/>\n")
 				}

@@ -301,7 +301,11 @@ func (options *Xml) Index(out *bytes.Buffer, primary, secondary []byte) {
 }
 
 func (options *Xml) Citation(out *bytes.Buffer, link, title []byte) {
-	out.WriteString("<xref target=\"" + string(link) + "\"/>")
+	if len(title) == 0 {
+		out.WriteString("<xref target=\"" + string(link) + "\"/>")
+		return
+	}
+	out.WriteString("<xref target=\"" + string(link) + "\" section=\"" + string(title) + "\"/>")
 }
 
 func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation, first bool) {
@@ -343,7 +347,7 @@ func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation
 				if c.typ == 'i' {
 					f := string(c.filename)
 					if f == "" {
-						f = referenceFile(c.link)
+						f = referenceFile(c)
 					}
 					out.WriteString("\t<xi:include href=\"" + f + "\"/>\n")
 				}
@@ -356,7 +360,7 @@ func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation
 				if c.typ == 'n' {
 					f := string(c.filename)
 					if f == "" {
-						f = referenceFile(c.link)
+						f = referenceFile(c)
 					}
 					out.WriteString("\t<xi:include href=\"" + f + "\"/>\n")
 				}
@@ -367,15 +371,15 @@ func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation
 }
 
 // create reference file
-func referenceFile(id []byte) string {
-	if len(id) < 4 {
+func referenceFile(c *citation) string {
+	if len(c.link) < 4 {
 		return ""
 	}
-	switch string(id[:3]) {
+	switch string(c.link[:3]) {
 	case "RFC":
-		return "reference.RFC." + string(id[3:]) + ".xml"
+		return "reference.RFC." + string(c.link[3:]) + ".xml"
 	case "I-D":
-		return "reference.I-D.draft-" + string(id[4:]) + ".xml"
+		return "reference.I-D.draft-" + string(c.link[4:]) + ".xml"
 	}
 	return ""
 }
