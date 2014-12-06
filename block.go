@@ -321,6 +321,8 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 			p.anchors[id] = 1
 		}
 
+	p.r.SetIAL(p.ial)
+	p.ial = nil
 		p.r.Header(out, work, level, id, p.insideQuote)
 	}
 	return skip
@@ -805,6 +807,9 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 		p.tableRow(&body, data[rowStart:i], columns, false)
 	}
 
+	p.r.SetIAL(p.ial)
+	p.ial = nil
+
 	p.r.Table(out, header.Bytes(), body.Bytes(), columns, p.insideTable)
 
 	return i
@@ -1119,6 +1124,9 @@ func (p *parser) list(out *bytes.Buffer, data []byte, flags, start int) int {
 		return true
 	}
 
+	p.r.SetIAL(p.ial)
+	p.ial = nil
+
 	p.r.List(out, work, flags, start)
 	return i
 }
@@ -1316,6 +1324,10 @@ func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 		p.inline(out, data[beg:end])
 		return true
 	}
+
+	p.r.SetIAL(p.ial)
+	p.ial = nil
+
 	p.r.Paragraph(out, work)
 }
 

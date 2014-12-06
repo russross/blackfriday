@@ -46,9 +46,12 @@ func (p *parser) tables(out *bytes.Buffer, data []byte) int {
 
 	var cooked bytes.Buffer
 	p.block(&cooked, raw.Bytes())
+
+	p.r.SetIAL(p.ial)
+	p.ial = nil
+
 	p.r.Tables(out, cooked.Bytes())
 	return end
-	return 0
 }
 
 // returns figurequote prefix length
@@ -93,9 +96,12 @@ func (p *parser) figure(out *bytes.Buffer, data []byte) int {
 
 	var cooked bytes.Buffer
 	p.block(&cooked, raw.Bytes())
+
+	p.r.SetIAL(p.ial)
+	p.ial = nil
+
 	p.r.Figure(out, cooked.Bytes())
 	return end
-	return 0
 }
 
 // returns notequote prefix length
@@ -138,6 +144,10 @@ func (p *parser) note(out *bytes.Buffer, data []byte) int {
 
 	var cooked bytes.Buffer
 	p.block(&cooked, raw.Bytes())
+
+	p.r.SetIAL(p.ial)
+	p.ial = nil
+
 	p.r.Note(out, cooked.Bytes())
 	return end
 }
@@ -182,6 +192,10 @@ func (p *parser) aside(out *bytes.Buffer, data []byte) int {
 
 	var cooked bytes.Buffer
 	p.block(&cooked, raw.Bytes())
+
+	p.r.SetIAL(p.ial)
+	p.ial = nil
+
 	p.r.Aside(out, cooked.Bytes())
 	return end
 }
@@ -230,6 +244,10 @@ func (p *parser) abstract(out *bytes.Buffer, data []byte) int {
 
 	var cooked bytes.Buffer
 	p.block(&cooked, raw.Bytes())
+
+	p.r.SetIAL(p.ial)
+	p.ial = nil
+
 	p.r.Abstract(out, cooked.Bytes())
 	return end
 }
@@ -278,8 +296,10 @@ func (p *parser) quote(out *bytes.Buffer, data []byte) int {
 
 	var cooked bytes.Buffer
 	p.block(&cooked, raw.Bytes())
+
 	p.r.SetIAL(p.ial)
 	p.ial = nil
+
 	p.r.BlockQuote(out, cooked.Bytes())
 	return end
 }
