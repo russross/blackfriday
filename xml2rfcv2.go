@@ -249,7 +249,7 @@ func (options *Xml2) Table(out *bytes.Buffer, header []byte, body []byte, column
 func (options *Xml2) TableRow(out *bytes.Buffer, text []byte) {
 	out.WriteString("<tr>")
 	out.Write(text)
-	out.WriteString("<tr>\n")
+	out.WriteString("</tr>\n")
 }
 
 func (options *Xml2) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {

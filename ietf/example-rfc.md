@@ -65,7 +65,8 @@ This document does *not* change the presentation format of DS records.
 
 The resulting on-the-wire format for the resulting DS record will be as follows:
 
-F> # The on-the-wire format for the DS. The length of the digest is specified in the respective RFCs defining the digest type. {#fig:wire}
+{#fig:wire}
+F> # The on-the-wire format for the DS. The length of the digest is specified in the respective RFCs defining the digest type.
 F>
 F>                          1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
 F>      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -108,15 +109,15 @@ DS records has been assigned by IANA.
 At the time of this writing, the current digest types assigned for
 use in DS records are as follows:
 
- VALUE  |  Digest Type     |   Status
- -------|------------------|-------------
-  0     | Reserved         |      -
-  1     | SHA-1            |   MANDATORY
-  2     | SHA-256          |   MANDATORY
-  3     | GOST R 34.11-94  |   OPTIONAL
-  4     | SHA-384          |   OPTIONAL
-  TBD   | DT-SHA-256       |   OPTIONAL
- TDB-255| Unassigned       |      -
+VALUE  |  Digest Type     |   Status
+-------|------------------|-------------
+ 0     | Reserved         |      -
+ 1     | SHA-1            |   MANDATORY
+ 2     | SHA-256          |   MANDATORY
+ 3     | GOST R 34.11-94  |   OPTIONAL
+ 4     | SHA-384          |   OPTIONAL
+ TBD   | DT-SHA-256       |   OPTIONAL
+TDB-255| Unassigned       |      -
 
 All future assigned Digest Types MUST assume that there is a Denial Type incorporated in the Digest.
 
