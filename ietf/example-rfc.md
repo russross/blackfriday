@@ -138,7 +138,7 @@ T>  5-65535 |  Unassigned
 
 # Acknowledgements
 
-The idea for this draft comes from Mark Andrews.
+...
 
 {backmatter}
 

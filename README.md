@@ -179,19 +179,12 @@ Todo
 ----
 
 *   kill titleblock
+*   Check outputted XML for wellformedness
 *   More unit testing
-*   Markdown pretty-printer output engine
-*   Improve unicode support. It does not understand all unicode
-    rules (about what constitutes a letter, a punctuation symbol,
-    etc.), so it may fail to detect word boundaries correctly in
-    some instances. It is safe on all utf-8 input.
 *   Correctly close document when there is no TOML titleblock
 *   pretty print XML
 *   <<{{CODE}} code include from leanpub?
 *   alignment in tables
-*   F> first paragraph is the caption, no way to specify name,
-    (unless, you use a header - may be that we should allow this
-        and keep track of being in F Aside
 
 License
 -------
