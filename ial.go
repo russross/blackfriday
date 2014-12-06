@@ -24,8 +24,15 @@ func (p *parser) isIAL(data []byte) int {
 			if quote {
 				continue
 			}
-			chunk := data[ialB:i]
-			println("IAL chunk seen", string(chunk))
+			chunk := data[ialB+1 : i]
+			switch {
+			case chunk[0] == '.':
+				ial.class = append(ial.class, string(chunk[1:]))
+			case chunk[0] == '#':
+				ial.id = string(chunk[1:])
+			default:
+				// key=value
+			}
 			ialB = i
 		case '"':
 			if esc {
@@ -36,6 +43,10 @@ func (p *parser) isIAL(data []byte) int {
 		case '\\':
 			esc = !esc
 		case '}':
+			if esc {
+				esc = !esc
+				continue
+			}
 			// if this is mainmatter, frontmatter, or backmatter it isn't an IAL.
 			s := string(data[1:i])
 			switch s {
@@ -46,13 +57,12 @@ func (p *parser) isIAL(data []byte) int {
 			case "backmatter":
 				return 0
 			}
-			chunk := data[ialB:i]
-			println("IAL 2 chunk seen", string(chunk))
+			chunk := data[ialB+1 : i]
 			switch {
 			case chunk[0] == '.':
-				ial.id = string(chunk[1:])
-			case chunk[0] == '#':
 				ial.class = append(ial.class, string(chunk[1:]))
+			case chunk[0] == '#':
+				ial.id = string(chunk[1:])
 			default:
 				// key=value
 			}
@@ -68,12 +78,27 @@ func (p *parser) isIAL(data []byte) int {
 // renderIAL renders an IAL and returns a string that can be included in the tag:
 // class="class" anchor="id" key="value"
 func renderIAL(i []*IAL) string {
-	if i == nil {
-		return ""
+	anchor := ""
+	class := ""
+	//	attr := ""
+	for _, i1 := range i {
+		if i1.id != "" {
+			anchor = "anchor=\"" + i1.id + "\""
+		}
+		for _, c1 := range i1.class {
+			if class == "" {
+				class += c1
+				continue
+			}
+			class += " " + c1
+		}
 	}
 	s := ""
-	for _, i1 := range i {
-		s += " " + i1.id
+	if anchor != "" {
+		s = " " + anchor
+	}
+	if class != "" {
+		s += " class=\"" + class + "\""
 	}
 	return s
 }

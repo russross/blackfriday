@@ -3,10 +3,10 @@
 
 Hallo, this is text
 
+{attribution="BLA BLA" .green}
+{more="ALB ALB" #ref:quote .yellow}
 > Hallo2
 > Hallo3
-{attribution="BLA BLA"}
-{more="ALB ALB"}
 
 This is no one `{source='BLEIP'}` on of them
 Hallo, this is text
