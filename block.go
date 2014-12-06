@@ -1325,9 +1325,6 @@ func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 		return true
 	}
 
-	p.r.SetIAL(p.ial)
-	p.ial = nil
-
 	p.r.Paragraph(out, work)
 }
 

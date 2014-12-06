@@ -309,6 +309,10 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		if _, ok := p.citations[string(id)]; !ok {
 			p.citations[string(id)] = &citation{link: id, title: title, typ: typ, filename: file}
 		}
+
+		//p.r.SetIAL(p.ial)
+		//p.ial = nil
+
 		p.r.Citation(out, id, title)
 		return txtE + 1
 	}
@@ -572,6 +576,9 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		if outSize > 0 && outBytes[outSize-1] == '!' {
 			out.Truncate(outSize - 1)
 		}
+
+		p.r.SetIAL(p.ial)
+		p.ial = nil
 
 		p.r.Image(out, uLink, title, content.Bytes())
 

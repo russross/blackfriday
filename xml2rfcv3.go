@@ -106,9 +106,9 @@ func (options *Xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 		out.WriteString("<fullname>" + a.Fullname + "</fullname>\n")
 		out.WriteString("<role>" + a.Role + "</role>\n")
 		out.WriteString("<ascii>" + a.Ascii + "</ascii>\n")
+		out.WriteString("<organization>" + a.Organization + "</organization>\n")
 		out.WriteString("</author>\n")
 	}
-	// Author information
 	out.WriteString("\n")
 }
 
@@ -246,16 +246,23 @@ func (options *Xml) Paragraph(out *bytes.Buffer, text func() bool) {
 
 func (options *Xml) Tables(out *bytes.Buffer, text []byte) {
 	s := renderIAL(options.GetAndResetIAL())
-	s = s
+	out.WriteString("<table" + s + ">\n")
+	out.Write(text)
+	out.WriteString("</table>\n")
 }
 
 func (options *Xml) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, table bool) {
 	s := renderIAL(options.GetAndResetIAL())
-	out.WriteString("<table" + s + ">\n<thead>\n")
+	if !table {
+		out.WriteString("<table" + s + ">")
+	}
+	out.WriteString("\n<thead>\n")
 	out.Write(header)
 	out.WriteString("</thead>\n")
 	out.Write(body)
-	out.WriteString("</table>\n")
+	if !table {
+		out.WriteString("</table>\n")
+	}
 }
 
 func (options *Xml) TableRow(out *bytes.Buffer, text []byte) {
@@ -418,30 +425,28 @@ func (options *Xml) Emphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("</em>")
 }
 
-// Inline, by including all of the SVG in the content of the element
-//      (such as "<artwork type="svg"><svg xmlns...">")
-//
-//   o  Inline, but using XInclude (see Appendix B.1 (such as "<artwork
-//      type="svg"><xi:include href=...")
-//
-//   o  As a data: URI (such as "<artwork type="svg" src="data:image/
-//      svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3...">")
-//
-//   o  As a URI to an external entity (such as "<artwork type="svg"
-//      src="http://www.example.com/...">")
 func (options *Xml) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
-	renderIAL(options.GetAndResetIAL()) // TODO(miek): useful?
+	// use title as type= attribute???
+	s := renderIAL(options.GetAndResetIAL())
 	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
-		// treat it like a link
-		out.WriteString("\\href{")
-		out.Write(link)
-		out.WriteString("}{")
+		// link to external entity
+		out.WriteString("<artwork" + s)
+		out.WriteString(" alt=\"")
 		out.Write(alt)
-		out.WriteString("}")
-	} else {
-		out.WriteString("\\includegraphics{")
+		out.WriteString("\"")
+		out.WriteString(" src=\"")
 		out.Write(link)
-		out.WriteString("}")
+		out.WriteString("\">")
+	} else {
+		// local file, xi:include it
+		out.WriteString("<artwork" + s)
+		out.WriteString(" alt=\"")
+		out.Write(alt)
+		out.WriteString("\">")
+		out.WriteString("<xi:include href=\"")
+		out.Write(link)
+		out.WriteString("\"/>\n")
+		out.WriteString("</artwork>\n")
 	}
 }
 

@@ -115,7 +115,7 @@ At the time of this writing, the current digest types assigned for
 use in DS records are as follows:
 
 VALUE  |  Digest Type     |   Status
--------|------------------|-------------
+------:|:-----------------|-------------
  0     | Reserved         |      -
  1     | SHA-1            |   MANDATORY
  2     | SHA-256          |   MANDATORY
@@ -149,14 +149,13 @@ T>  5-65535 |  Unassigned
 
 # Other Options
 
-## Querying for NSEC3PARAM
+## Images
 
-A different approach could have been to use the NSEC3PARAM record at
-the zone apex to determine the hash algorithm, as well as other
-parameters. This would however result in mandatory extra queries
-during validation, and it would be a change in the resolution
-process, as the NSEC3PARAM is currently not used by validating
-resolvers.
+{type="ascii-art"}
+![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png)
+
+{type="ascii-art"}
+![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png)
 
 ## Algorithm Aliasing
 

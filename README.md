@@ -188,7 +188,6 @@ Todo
 *   More unit testing
 *   pretty print XML
 *   <<{{CODE}} code include from leanpub?
-*   alignment in tables
 
 License
 -------
