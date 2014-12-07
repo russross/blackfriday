@@ -30,7 +30,7 @@ It is fast and it supports the following extensions:
 
 Mmark is forked from blackfriday which started out as a translation from C of [upskirt][4].
 
-## Enviroment variables
+## Enviroment variables?
 
 `MMARK_REFDIR`: is set prefix 
 `MMARK_REFONLINE`, use online references
@@ -103,7 +103,7 @@ implements the following extensions:
 
     ```
     Name    | Age
-    --------|------
+    --------|-----:
     Bob     | 27
     Alice   | 23
     ```
@@ -163,11 +163,11 @@ implements the following extensions:
 
     A citation is informative by default.
 
-*  **Asides**, any paragraph with `A>` at the beginning of all lines is an aside.
-
 *  **Notes**, any parapgraph with `N>`
 
-*  **Abstracts**, any paragraph with `AB>`
+*  **Abstracts**, any paragraph with `A>`
+
+*  **Asides**, any paragraph with `AS>` at the beginning of all lines is an aside.
 
 *  **{frontmatter}/{mainmatter}/{backmatter}** Create useful divisions in your document.
 
@@ -192,7 +192,13 @@ Todo
 *   indentend code blocks -> artwork
 *   images -> artwork, use title for caption
 *   quotes in citation for the section= attribute?
-
+*   cleanups - and loose a bunch of extensions
+*   ordered lists with a.|| (| = space here)
+    ```
+            A.||
+            I.|| - roman
+            ii.|| roman
+    ```
 
 License
 -------

@@ -165,7 +165,7 @@ The people in the following list:
 ![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Title")
 
 {type="ascii-art"}
-![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Title")
+![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Title2")
 
 ## Algorithm Aliasing
 
