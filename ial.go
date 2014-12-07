@@ -16,6 +16,7 @@ type IAL struct {
 
 // Parsing and thus detecting an IAL. Return a valid *IAL or nil.
 // IAL can have #id, .class or key=value element seperated by spaces, that may be escaped
+// TODO(miek): don't parse this in code blocks
 func (p *parser) isIAL(data []byte) int {
 	esc := false
 	quote := false
@@ -28,6 +29,10 @@ func (p *parser) isIAL(data []byte) int {
 				continue
 			}
 			chunk := data[ialB+1 : i]
+			if len(chunk) == 0 {
+				ialB = i
+				continue
+			}
 			switch {
 			case chunk[0] == '.':
 				ial.class = append(ial.class, string(chunk[1:]))
@@ -64,6 +69,9 @@ func (p *parser) isIAL(data []byte) int {
 				return 0
 			}
 			chunk := data[ialB+1 : i]
+			if len(chunk) == 0 {
+				return i+1
+			}
 			switch {
 			case chunk[0] == '.':
 				ial.class = append(ial.class, string(chunk[1:]))
