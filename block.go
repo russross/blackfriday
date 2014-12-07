@@ -810,6 +810,9 @@ func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns 
 
 	// include the newline in the data sent to tableRow
 	header := data[:i+1]
+	if len(caption) != 0 {
+		header = data[len(caption)+7:i+1]
+	}
 
 	// column count ignores pipes at beginning or end of line
 	if data[0] == '|' {

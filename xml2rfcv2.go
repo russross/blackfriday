@@ -283,7 +283,7 @@ func (options *Xml2) Citation(out *bytes.Buffer, link, title []byte) {
 		out.WriteString("<xref target=\"" + string(link) + "\"/>")
 		return
 	}
-	out.WriteString("<xref target=\"" + string(link) + "\" section=\"" + string(title) + "\"/>")
+	out.WriteString("<xref target=\"" + string(link) + "\"/>")
 }
 
 func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citation) {
