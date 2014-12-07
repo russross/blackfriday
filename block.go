@@ -1416,13 +1416,20 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 
 func createSanitizedAnchorName(text string) string {
 	var anchorName []rune
+	number := 0
 	for _, r := range []rune(text) {
 		switch {
 		case r == ' ':
 			anchorName = append(anchorName, '-')
-		case unicode.IsLetter(r) || unicode.IsNumber(r):
+		case unicode.IsNumber(r):
+			number++
+			fallthrough
+		case unicode.IsLetter(r):
 			anchorName = append(anchorName, unicode.ToLower(r))
 		}
+	}
+	if number == len(text) {
+		anchorName = append([]rune{'z'}, anchorName...)
 	}
 	return string(anchorName)
 }

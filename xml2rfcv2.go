@@ -45,9 +45,9 @@ func (options *Xml2) GetAndResetIAL() []*IAL { i := options.ial; options.ial = n
 func (options *Xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte) {
 	s := renderIAL(options.GetAndResetIAL())
 	if lang == "" {
-		out.WriteString("\n<figure><artwork" + s + ">\n")
+		out.WriteString("\n<figure" + s + "><artwork>\n")
 	} else {
-		out.WriteString("\n<figure><artwork" + s + "type=\"" + lang + "\">\n")
+		out.WriteString("\n<figure" + s + "><artwork>\n")
 	}
 	out.Write(text)
 	if lang == "" {
@@ -69,6 +69,19 @@ func (options *Xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	out.WriteString("<title abbrev=\"" + options.titleBlock.Abbrev + "\">")
 	out.WriteString(options.titleBlock.Title + "</title>\n\n")
 
+	for _, a := range options.titleBlock.Author {
+		out.WriteString("<author")
+		out.WriteString(" initials=\"" + a.Initials + "\"")
+		out.WriteString(" surname=\"" + a.Surname + "\"")
+		out.WriteString(" fullname=\"" + a.Fullname + "\">\n")
+
+		out.WriteString("<organization>" + a.Organization + "</organization>\n")
+		out.WriteString("<address>\n")
+		out.WriteString("<email>" + a.Address.Email + "</email>\n")
+		out.WriteString("</address>\n")
+		out.WriteString("</author>\n")
+	}
+
 	year := ""
 	if options.titleBlock.Date.Year() > 0 {
 		year = " year=\"" + strconv.Itoa(options.titleBlock.Date.Year()) + "\""
@@ -88,16 +101,6 @@ func (options *Xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	for _, k := range options.titleBlock.Keyword {
 		out.WriteString("<keyword>" + k + "</keyword>\n")
 	}
-	for _, a := range options.titleBlock.Author {
-		out.WriteString("<author>\n")
-		out.WriteString("<initials>" + a.Initials + "</initials>\n")
-		out.WriteString("<surname>" + a.Surname + "</surname>\n")
-		out.WriteString("<fullname>" + a.Fullname + "</fullname>\n")
-		out.WriteString("<role>" + a.Role + "</role>\n")
-		out.WriteString("<ascii>" + a.Ascii + "</ascii>\n")
-		out.WriteString("</author>\n")
-	}
-	// Author information
 	out.WriteString("\n")
 }
 
@@ -388,6 +391,9 @@ func (options *Xml2) LineBreak(out *bytes.Buffer) {
 }
 
 func (options *Xml2) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
+	if link[0] == '#' {
+		link = link[1:]
+	}
 	out.WriteString("<xref target=\"")
 	out.Write(link)
 	out.WriteString("\"/>")
@@ -425,6 +431,7 @@ func (options *Xml2) DocumentHeader(out *bytes.Buffer, first bool) {
 		return
 	}
 	out.WriteString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
+	out.WriteString("<!DOCTYPE rfc SYSTEM 'rfc2629.dtd' [ ]>\n")
 }
 
 func (options *Xml2) DocumentFooter(out *bytes.Buffer, first bool) {

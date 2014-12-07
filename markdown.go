@@ -450,6 +450,7 @@ func secondPass(p *parser, input []byte, depth int) []byte {
 			return true
 		})
 	}
+	// Set references in parser
 	p.r.References(&output, p.citations, depth == 0)
 	p.r.DocumentFooter(&output, depth == 0)
 

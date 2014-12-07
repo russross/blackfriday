@@ -1,9 +1,10 @@
 % title = "Signaling Type of Denial via Delegation Signer Records"
 % abbrev = "DS Denial Type Signalling"
+% docName = "example-00"
+% ipr = "trust200902"
+% category = "info"
+%
 % date = 2014-12-01T00:00:00Z
-% docName = "signal-00"
-% ipr = "blaat"
-% caterogy = "informational"
 %
 % [[author]]
 % initials = "R."

@@ -112,13 +112,17 @@ func (options *Xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 		out.WriteString("<keyword>" + k + "</keyword>\n")
 	}
 	for _, a := range options.titleBlock.Author {
-		out.WriteString("<author>\n")
-		out.WriteString("<initials>" + a.Initials + "</initials>\n")
-		out.WriteString("<surname>" + a.Surname + "</surname>\n")
-		out.WriteString("<fullname>" + a.Fullname + "</fullname>\n")
+		out.WriteString("<author")
+		out.WriteString(" initials=\"" + a.Initials + "\"")
+		out.WriteString(" surname=\"" + a.Surname + "\"")
+		out.WriteString(" fullname=\"" + a.Fullname + "\">")
+
+		out.WriteString("<organization>" + a.Organization + "</organization>\n")
+		out.WriteString("<address>\n")
+		out.WriteString("<email>" + a.Address.Email + "</email>\n")
+		out.WriteString("</address>\n")
 		out.WriteString("<role>" + a.Role + "</role>\n")
 		out.WriteString("<ascii>" + a.Ascii + "</ascii>\n")
-		out.WriteString("<organization>" + a.Organization + "</organization>\n")
 		out.WriteString("</author>\n")
 	}
 	out.WriteString("\n")
@@ -447,6 +451,10 @@ func (options *Xml) LineBreak(out *bytes.Buffer) {
 }
 
 func (options *Xml) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
+	// kill # in the link name
+	if link[0] == '#' {
+		link = link[1:]
+	}
 	out.WriteString("<xref target=\"")
 	out.Write(link)
 	out.WriteString("\"/>")
