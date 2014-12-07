@@ -53,18 +53,30 @@ func (options *Xml) SetIAL(i []*IAL)        { options.ial = append(options.ial, 
 func (options *Xml) GetAndResetIAL() []*IAL { i := options.ial; options.ial = nil; return i }
 
 // render code chunks using verbatim, or listings if we have a language
-func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string) {
+func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte) {
+	// Tick of language for sourcecode...
 	s := renderIAL(options.GetAndResetIAL())
+	if len(caption) > 0 {
+		out.WriteString("<figure" + s + ">\n")
+		s = ""
+		out.WriteString("<name>")
+		out.Write(caption)
+		out.WriteString("</name>\n")
+	}
+
 	if lang == "" {
-		out.WriteString("<sourcecode" + s + ">\n")
+		out.WriteString("<artwork" + s + ">\n")
 	} else {
 		out.WriteString("\n<sourcecode" + s + "type=\"" + lang + "\">\n")
 	}
 	out.Write(text)
 	if lang == "" {
-		out.WriteString("</sourcecode>\n")
+		out.WriteString("</artwork>\n")
 	} else {
-		out.WriteString("</sourcecode>\n")
+		out.WriteString("</sourcode>\n")
+	}
+	if len(caption) > 0 {
+		out.WriteString("</figure>\n")
 	}
 }
 
@@ -140,30 +152,16 @@ func (options *Xml) Note(out *bytes.Buffer, text []byte) {
 	out.WriteString("</note>\n")
 }
 
-func (options *Xml) Figure(out *bytes.Buffer, text []byte) {
-	s := renderIAL(options.GetAndResetIAL())
-	out.WriteString("<figure" + s + ">\n")
-	out.Write(text)
-	out.WriteString("</figure>\n")
-}
-
 func (options *Xml) BlockHtml(out *bytes.Buffer, text []byte) {
 	// not supported, don't know yet if this is useful
 	return
 }
 
-func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id string, quote bool) {
+func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id string) {
 	// set amount of open in options, so we know what to close after we finish
 	// parsing the doc.
 	//marker := out.Len()
 	//out.Truncate(marker)
-	if quote { // this is a header inside an quoted text block (figure, aside)
-		out.WriteString("<name>") // typeset this differently.
-		text()
-		out.WriteString("</name>\n")
-		return
-	}
-
 	if level <= options.sectionLevel {
 		// close previous ones
 		for i := options.sectionLevel - level + 1; i > 0; i-- {
@@ -233,10 +231,9 @@ func (options *Xml) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	out.WriteString("</li>\n")
 }
 
-func (options *Xml) Paragraph(out *bytes.Buffer, text func() bool) {
-	s := renderIAL(options.GetAndResetIAL())
+func (options *Xml) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
-	out.WriteString("<t" + s + ">")
+	out.WriteString("<t>")
 	if !text() {
 		out.Truncate(marker)
 		return
@@ -244,25 +241,19 @@ func (options *Xml) Paragraph(out *bytes.Buffer, text func() bool) {
 	out.WriteString("</t>\n")
 }
 
-func (options *Xml) Tables(out *bytes.Buffer, text []byte) {
+func (options *Xml) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, caption []byte) {
 	s := renderIAL(options.GetAndResetIAL())
 	out.WriteString("<table" + s + ">\n")
-	out.Write(text)
-	out.WriteString("</table>\n")
-}
-
-func (options *Xml) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, table bool) {
-	s := renderIAL(options.GetAndResetIAL())
-	if !table {
-		out.WriteString("<table" + s + ">")
+	if caption != nil {
+		out.WriteString("<name>")
+		out.Write(caption)
+		out.WriteString("</name>\n")
 	}
-	out.WriteString("\n<thead>\n")
+	out.WriteString("<thead>\n")
 	out.Write(header)
 	out.WriteString("</thead>\n")
 	out.Write(body)
-	if !table {
-		out.WriteString("</table>\n")
-	}
+	out.WriteString("</table>\n")
 }
 
 func (options *Xml) TableRow(out *bytes.Buffer, text []byte) {
@@ -426,7 +417,8 @@ func (options *Xml) Emphasis(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Xml) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
-	// use title as type= attribute???
+	// use title as caption is we have it
+	// check the extension of the local include to set the type of the thing.
 	s := renderIAL(options.GetAndResetIAL())
 	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
 		// link to external entity
@@ -436,7 +428,7 @@ func (options *Xml) Image(out *bytes.Buffer, link []byte, title []byte, alt []by
 		out.WriteString("\"")
 		out.WriteString(" src=\"")
 		out.Write(link)
-		out.WriteString("\">")
+		out.WriteString("\"/>")
 	} else {
 		// local file, xi:include it
 		out.WriteString("<artwork" + s)
@@ -533,6 +525,7 @@ func (options *Xml) DocumentMatter(out *bytes.Buffer, matter int) {
 	options.docLevel = matter
 }
 
+// quotes &quot;
 var entityConvert = map[byte]string{
 	'<': "&lt;",
 	'>': "&gt;",

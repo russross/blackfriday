@@ -171,7 +171,7 @@ func (options *Html) GetFlags() int {
 
 func (options *Html) TitleBlockTOML(out *bytes.Buffer, data *title) {}
 
-func (options *Html) Header(out *bytes.Buffer, text func() bool, level int, id string, quote bool) {
+func (options *Html) Header(out *bytes.Buffer, text func() bool, level int, id string) {
 	marker := out.Len()
 	doubleSpace(out)
 
@@ -214,7 +214,7 @@ func (options *Html) HRule(out *bytes.Buffer) {
 	out.WriteString(options.closeTag)
 }
 
-func (options *Html) BlockCode(out *bytes.Buffer, text []byte, lang string) {
+func (options *Html) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte) {
 	doubleSpace(out)
 
 	// parse out the language names/classes
@@ -266,13 +266,6 @@ func (options *Html) Aside(out *bytes.Buffer, text []byte) {
 	out.WriteString("</blockquote>\n")
 }
 
-func (options *Html) Figure(out *bytes.Buffer, text []byte) {
-	doubleSpace(out)
-	out.WriteString("<blockquote>\n")
-	out.Write(text)
-	out.WriteString("</blockquote>\n")
-}
-
 func (options *Html) Note(out *bytes.Buffer, text []byte) {
 	doubleSpace(out)
 	out.WriteString("<blockquote>\n")
@@ -280,9 +273,7 @@ func (options *Html) Note(out *bytes.Buffer, text []byte) {
 	out.WriteString("</blockquote>\n")
 }
 
-func (options *Html) Tables(out *bytes.Buffer, text []byte) {}
-
-func (options *Html) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, table bool) {
+func (options *Html) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, table []byte) {
 	doubleSpace(out)
 	out.WriteString("<table>\n<thead>\n")
 	out.Write(header)
@@ -391,7 +382,7 @@ func (options *Html) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	out.WriteString("</li>\n")
 }
 
-func (options *Html) Paragraph(out *bytes.Buffer, text func() bool) {
+func (options *Html) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
 	doubleSpace(out)
 

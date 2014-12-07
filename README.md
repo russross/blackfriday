@@ -188,6 +188,10 @@ Todo
 *   More unit testing
 *   pretty print XML
 *   <<{{CODE}} code include from leanpub?
+*   fenced code blocks -> source code with language etc.
+*   indentend code blocks -> artwork
+*   images -> artwork, use title for caption
+
 
 License
 -------

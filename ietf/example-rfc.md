@@ -26,8 +26,8 @@ AB> include the type of authenticated denial used in the zone.
 
 The DS Resource Record [@RFC3658,i]
 is published in parent zones to distribute a cryptographic digest of one key in a child's
-DNSKEY RRset. With the DS published, a zone sets expectations for a validator. In
-particular a digest of the DNSKEY, the algorithm used for signature of the
+DNSKEY RRset. With the DS _published_, a zone sets expectations for a validator. In
+particular a digest of the **DNSKEY**, *the* algorithm used for signature of the
 DNSKEY and the type of authenticated denial of existence used.
 
 When NSEC3 [@RFC5155,n] was ....
@@ -39,6 +39,9 @@ In this document, the key words "MUST", "MUST NOT", "REQUIRED",
 and "OPTIONAL" are to be interpreted as described in [@RFC2119,n].
 
 # DS Record Field Values
+
+A> When typesetting something in an aide
+A> you get an aside.
 
 Indicating the type of denial of existence in use at the child zone is done by
 prefixing the digest in the DS record with two octets defining
@@ -62,6 +65,10 @@ Digest:
     The Key Tag field and Algorithm fields remain unchanged by this
     document and are specified in the [@RFC4034] specification.
 
+Denial Type:
+:   An extra 16 bit integer value (see [](#iana-considerations)) encoded in the DS' digest
+    that indicates the denial of existence in use in the (child) zone.
+
 This document does *not* change the presentation format of DS records.
 
 ##  DS Record with Denial Type Wire Format
@@ -69,17 +76,16 @@ This document does *not* change the presentation format of DS records.
 The resulting on-the-wire format for the resulting DS record will be as follows:
 
 {#fig:wire}
-F> # The on-the-wire format for the DS. The length of the digest is specified in the respective RFCs defining the digest type.
-F>
-F>                          1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
-F>      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-F>     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-F>     |           Key Tag             |  Algorithm    |  DigestType   |
-F>     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-F>     |          Denial Type          |                               /
-F>     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+          Digest               /
-F>     /                                                               /
-F>     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|
+Code: The on-the-wire format for the DS. The length of the digest is specified in the respective RFCs defining the digest type.
+                         1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |           Key Tag             |  Algorithm    |  DigestType   |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |          Denial Type          |                               /
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+          Digest               /
+    /                                                               /
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|
 
 The Denial Type is a 16 bit unsigned integer value stored in network order.
 
@@ -130,20 +136,23 @@ This document creates a new IANA registry for Denial Types.  This
 registry is named "DNSSEC DENIAL TYPES".  The initial contents of this
 registry are:
 
-T> # A table caption.
-T>
-T>  VALUE   |  Denial Type
-T>  --------|-------------------
-T>     0    |  Reserved
-T>     1    |  NSEC
-T>     2    |  NSEC3 w/ SHA-1
-T>     3    |  NSEC3 w/ SHA-256
-T>     4    |  NSEC3 w/ SHA-384
-T>  5-65535 |  Unassigned
+Table: As shown here.
+VALUE   |  Denial Type
+--------|-------------------
+   0    |  Reserved
+   1    |  NSEC
+   2    |  NSEC3 w/ SHA-1
+   3    |  NSEC3 w/ SHA-256
+   4    |  NSEC3 w/ SHA-384
+5-65535 |  Unassigned
 
 # Acknowledgements
 
-...
+The people in the following list:
+
+* ...
+* And ...
+* And ...
 
 {backmatter}
 

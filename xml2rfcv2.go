@@ -35,25 +35,25 @@ type Xml2 struct {
 // satisfies the Renderer interface.
 //
 // flags is a set of XML_* options ORed together
-func Xml2Renderer(flags int) Renderer        { return &Xml{flags: flags} }
+func Xml2Renderer(flags int) Renderer        { return &Xml2{flags: flags} }
 func (options *Xml2) GetFlags() int          { return options.flags }
 func (options *Xml2) GetState() int          { return 0 }
 func (options *Xml2) SetIAL(i []*IAL)        { options.ial = append(options.ial, i...) }
 func (options *Xml2) GetAndResetIAL() []*IAL { i := options.ial; options.ial = nil; return i }
 
 // render code chunks using verbatim, or listings if we have a language
-func (options *Xml2) BlockCode(out *bytes.Buffer, text []byte, lang string) {
+func (options *Xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte) {
 	s := renderIAL(options.GetAndResetIAL())
 	if lang == "" {
-		out.WriteString("<sourcecode" + s + ">\n")
+		out.WriteString("\n<figure><artwork" + s + ">\n")
 	} else {
-		out.WriteString("\n<sourcecode" + s + "type=\"" + lang + "\">\n")
+		out.WriteString("\n<figure><artwork" + s + "type=\"" + lang + "\">\n")
 	}
 	out.Write(text)
 	if lang == "" {
-		out.WriteString("</sourcecode>\n")
+		out.WriteString("</artwork></figure>\n")
 	} else {
-		out.WriteString("</sourcecode>\n")
+		out.WriteString("</artwork></figure>\n")
 	}
 }
 
@@ -62,7 +62,7 @@ func (options *Xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 		return
 	}
 	options.titleBlock = block
-	out.WriteString("<rfc xmlns:xi=\"http://www.w3.org/2001/XInclude\" ipr=\"" +
+	out.WriteString("<rfc ipr=\"" +
 		options.titleBlock.Ipr + "\" category=\"" +
 		options.titleBlock.Category + "\" docName=\"" + options.titleBlock.DocName + "\">\n")
 	out.WriteString("<front>\n")
@@ -102,10 +102,11 @@ func (options *Xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 }
 
 func (options *Xml2) BlockQuote(out *bytes.Buffer, text []byte) {
-	s := renderIAL(options.GetAndResetIAL())
-	out.WriteString("<blockquote" + s + ">\n")
+	renderIAL(options.GetAndResetIAL())
+	// Fake a list paragraph
+	out.WriteString("<list style=\"empty\">\n")
 	out.Write(text)
-	out.WriteString("</blockquote>\n")
+	out.WriteString("</list>\n")
 }
 
 func (options *Xml2) Abstract(out *bytes.Buffer, text []byte) {
@@ -116,24 +117,11 @@ func (options *Xml2) Abstract(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Xml2) Aside(out *bytes.Buffer, text []byte) {
-	s := renderIAL(options.GetAndResetIAL())
-	out.WriteString("<aside" + s + ">\n")
-	out.Write(text)
-	out.WriteString("</aside>\n")
+	options.BlockQuote(out, text)
 }
 
 func (options *Xml2) Note(out *bytes.Buffer, text []byte) {
-	s := renderIAL(options.GetAndResetIAL())
-	out.WriteString("<note" + s + ">\n")
-	out.Write(text)
-	out.WriteString("</note>\n")
-}
-
-func (options *Xml2) Figure(out *bytes.Buffer, text []byte) {
-	s := renderIAL(options.GetAndResetIAL())
-	out.WriteString("<figure" + s + ">\n")
-	out.Write(text)
-	out.WriteString("</figure>\n")
+	options.BlockQuote(out, text)
 }
 
 func (options *Xml2) BlockHtml(out *bytes.Buffer, text []byte) {
@@ -141,18 +129,11 @@ func (options *Xml2) BlockHtml(out *bytes.Buffer, text []byte) {
 	return
 }
 
-func (options *Xml2) Header(out *bytes.Buffer, text func() bool, level int, id string, quote bool) {
+func (options *Xml2) Header(out *bytes.Buffer, text func() bool, level int, id string) {
 	// set amount of open in options, so we know what to close after we finish
 	// parsing the doc.
 	//marker := out.Len()
 	//out.Truncate(marker)
-	if quote { // this is a header inside an quoted text block (figure, aside)
-		out.WriteString("<name>") // typeset this differently.
-		text()
-		out.WriteString("</name>\n")
-		return
-	}
-
 	if level <= options.sectionLevel {
 		// close previous ones
 		for i := options.sectionLevel - level + 1; i > 0; i-- {
@@ -162,10 +143,10 @@ func (options *Xml2) Header(out *bytes.Buffer, text func() bool, level int, id s
 	// new section
 	// Clashes with IAL, need to check ID
 	renderIAL(options.GetAndResetIAL()) // Clear IAL here, so it will not pile up for following items
-	out.WriteString("\n<section anchor=\"" + id + "\">\n")
-	out.WriteString("<name>")
+	out.WriteString("\n<section anchor=\"" + id + "\"")
+	out.WriteString(" title=\"")
 	text() // check bool here
-	out.WriteString("</name>\n")
+	out.WriteString("\">\n")
 	options.sectionLevel = level
 	return
 }
@@ -180,14 +161,14 @@ func (options *Xml2) List(out *bytes.Buffer, text func() bool, flags, start int)
 	switch {
 	case flags&LIST_TYPE_ORDERED != 0:
 		if start <= 1 {
-			out.WriteString("<ol" + s + ">\n")
+			out.WriteString("<list style=\"numbers\"" + s + ">\n")
 		} else {
-			out.WriteString(fmt.Sprintf("<ol"+s+" start=\"%d\">\n", start))
+			out.WriteString(fmt.Sprintf("<list style=\"numbers\""+s+" start=\"%d\">\n", start))
 		}
 	case flags&LIST_TYPE_DEFINITION != 0:
-		out.WriteString("<dl" + s + ">\n")
+		out.WriteString("<list style=\"hanging\"" + s + ">\n")
 	default:
-		out.WriteString("<ul" + s + ">\n")
+		out.WriteString("<list style=\"symbols\"" + s + ">\n")
 	}
 
 	if !text() {
@@ -196,61 +177,62 @@ func (options *Xml2) List(out *bytes.Buffer, text func() bool, flags, start int)
 	}
 	switch {
 	case flags&LIST_TYPE_ORDERED != 0:
-		out.WriteString("</ol>\n")
+		out.WriteString("</list>\n")
 	case flags&LIST_TYPE_DEFINITION != 0:
-		out.WriteString("</dl>\n")
+		out.WriteString("</t>\n</list>\n")
 	default:
-		out.WriteString("</ul>\n")
+		out.WriteString("</list>\n")
 	}
 }
 
 func (options *Xml2) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	if flags&LIST_TYPE_DEFINITION != 0 && flags&LIST_TYPE_TERM == 0 {
-		out.WriteString("<dd>")
+		//out.WriteString("<dd>")
 		out.Write(text)
-		out.WriteString("</dd>\n")
+		//out.WriteString("</dd>\n")
 		return
 	}
 	if flags&LIST_TYPE_TERM != 0 {
-		out.WriteString("<dt>")
+		if flags&LIST_ITEM_BEGINNING_OF_LIST == 0 {
+			out.WriteString("</t>\n")
+		}
+		// close previous one?/
+		out.WriteString("<t hangText=\"")
 		out.Write(text)
-		out.WriteString("</dt>\n")
+		out.WriteString("\">\n")
 		return
 	}
-	out.WriteString("<li>")
+	out.WriteString("<t>")
 	out.Write(text)
-	out.WriteString("</li>\n")
+	out.WriteString("</t>\n")
 }
 
-func (options *Xml2) Paragraph(out *bytes.Buffer, text func() bool) {
-	s := renderIAL(options.GetAndResetIAL())
+// Needs flags int, for in-list-detection xml2rfc v2
+func (options *Xml2) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
-	out.WriteString("<t" + s + ">")
+	if flags&LIST_TYPE_DEFINITION == 0 {
+		out.WriteString("<t>")
+	}
 	if !text() {
 		out.Truncate(marker)
 		return
 	}
-	out.WriteString("</t>\n")
+	if flags&LIST_TYPE_DEFINITION == 0 {
+		out.WriteString("</t>\n")
+	}
 }
 
-func (options *Xml2) Tables(out *bytes.Buffer, text []byte) {
+func (options *Xml2) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, caption []byte) {
 	s := renderIAL(options.GetAndResetIAL())
-	s = s
-}
-
-func (options *Xml2) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, table bool) {
-	s := renderIAL(options.GetAndResetIAL())
-	out.WriteString("<table" + s + ">\n<thead>\n")
+	out.WriteString("<texttable" + s + ">\n")
 	out.Write(header)
-	out.WriteString("</thead>\n")
 	out.Write(body)
-	out.WriteString("</table>\n")
+	out.WriteString("</texttable>\n")
 }
 
 func (options *Xml2) TableRow(out *bytes.Buffer, text []byte) {
-	out.WriteString("<tr>")
 	out.Write(text)
-	out.WriteString("</tr>\n")
+	out.WriteString("\n")
 }
 
 func (options *Xml2) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
@@ -263,16 +245,16 @@ func (options *Xml2) TableHeaderCell(out *bytes.Buffer, text []byte, align int) 
 	default:
 		a = " align=\"center\""
 	}
-	out.WriteString("<th" + a + ">")
+	out.WriteString("<ttcol" + a + ">")
 	out.Write(text)
-	out.WriteString("</th>")
+	out.WriteString("</ttcol>\n")
 
 }
 
 func (options *Xml2) TableCell(out *bytes.Buffer, text []byte, align int) {
-	out.WriteString("<td>")
+	out.WriteString("<c>")
 	out.Write(text)
-	out.WriteString("</td>")
+	out.WriteString("</c>")
 }
 
 func (options *Xml2) Footnotes(out *bytes.Buffer, text func() bool) {
@@ -337,7 +319,7 @@ func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citatio
 					if f == "" {
 						f = referenceFile(c)
 					}
-					out.WriteString("\t<xi:include href=\"" + f + "\"/>\n")
+					out.WriteString("\t<?rfc include=\"" + f + "\"?>\n")
 				}
 			}
 			out.WriteString("</references>\n")
@@ -350,7 +332,7 @@ func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citatio
 					if f == "" {
 						f = referenceFile(c)
 					}
-					out.WriteString("\t<xi:include href=\"" + f + "\"/>\n")
+					out.WriteString("\t<?rfc include=\"" + f + "\"?>\n")
 				}
 			}
 			out.WriteString("</references>\n")
@@ -368,42 +350,23 @@ func (options *Xml2) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 }
 
 func (options *Xml2) CodeSpan(out *bytes.Buffer, text []byte) {
-	out.WriteString("<tt>")
+	out.WriteString("<spanx style=\"verb\">")
 	convertEntity(out, text)
-	out.WriteString("</tt>")
+	out.WriteString("</spanx>")
 }
 
 func (options *Xml2) DoubleEmphasis(out *bytes.Buffer, text []byte) {
-	// Check for 2119 Keywords
-	s := string(text)
-	if _, ok := words2119[s]; ok {
-		out.WriteString("<bcp14>")
-		out.Write(text)
-		out.WriteString("</bcp14>")
-		return
-	}
-	out.WriteString("<strong>")
+	out.WriteString("<spanx style=\"strong\">")
 	out.Write(text)
-	out.WriteString("</strong>")
+	out.WriteString("</spanx>")
 }
 
 func (options *Xml2) Emphasis(out *bytes.Buffer, text []byte) {
-	out.WriteString("<em>")
+	out.WriteString("<spanx style=\"emph\">")
 	out.Write(text)
-	out.WriteString("</em>")
+	out.WriteString("</spanx>")
 }
 
-// Inline, by including all of the SVG in the content of the element
-//      (such as "<artwork type="svg"><svg xmlns...">")
-//
-//   o  Inline, but using XInclude (see Appendix B.1 (such as "<artwork
-//      type="svg"><xi:include href=...")
-//
-//   o  As a data: URI (such as "<artwork type="svg" src="data:image/
-//      svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3...">")
-//
-//   o  As a URI to an external entity (such as "<artwork type="svg"
-//      src="http://www.example.com/...">")
 func (options *Xml2) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
 	renderIAL(options.GetAndResetIAL()) // TODO(miek): useful?
 	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
@@ -421,7 +384,7 @@ func (options *Xml2) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 }
 
 func (options *Xml2) LineBreak(out *bytes.Buffer) {
-	out.WriteString("\n<br/>\n")
+	out.WriteString("\n<vspace/>\n")
 }
 
 func (options *Xml2) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
@@ -435,9 +398,9 @@ func (options *Xml2) RawHtmlTag(out *bytes.Buffer, tag []byte) {
 }
 
 func (options *Xml2) TripleEmphasis(out *bytes.Buffer, text []byte) {
-	out.WriteString("<strong><em>")
+	out.WriteString("<spanx style=\"strong\"><spanx style=\"emph\">")
 	out.Write(text)
-	out.WriteString("</em></strong>")
+	out.WriteString("</spanx></spanx>")
 }
 
 func (options *Xml2) StrikeThrough(out *bytes.Buffer, text []byte) {

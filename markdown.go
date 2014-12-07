@@ -105,12 +105,6 @@ const (
 	DOC_BACK_MATTER
 )
 
-// Headers in figure, asides, notes and abstract(s) can be typset
-// differently. We call these quote text blocks
-const (
-	HEADER_IN_QUOTE = 1 << iota
-)
-
 // These are the tags that are recognized as HTML block tags.
 // Any of these can be included in markdown text without special escaping.
 var blockTags = map[string]bool{
@@ -166,25 +160,23 @@ var blockTags = map[string]bool{
 // Currently Html, Latex and XML2RFCv3 implementations are provided.
 type Renderer interface {
 	// block-level callbacks
-	BlockCode(out *bytes.Buffer, text []byte, lang string)
+	BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte)
 	BlockQuote(out *bytes.Buffer, text []byte)
 	BlockHtml(out *bytes.Buffer, text []byte)
-	Header(out *bytes.Buffer, text func() bool, level int, id string, quote bool)
+	Header(out *bytes.Buffer, text func() bool, level int, id string)
 	HRule(out *bytes.Buffer)
 	List(out *bytes.Buffer, text func() bool, flags, start int)
 	ListItem(out *bytes.Buffer, text []byte, flags int)
-	Paragraph(out *bytes.Buffer, text func() bool)
-	Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, table bool)
+	Paragraph(out *bytes.Buffer, text func() bool, flags int)
+	Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, caption []byte)
 	TableRow(out *bytes.Buffer, text []byte)
 	TableHeaderCell(out *bytes.Buffer, text []byte, flags int)
 	TableCell(out *bytes.Buffer, text []byte, flags int)
-	Tables(out *bytes.Buffer, text []byte)
 	Footnotes(out *bytes.Buffer, text func() bool)
 	FootnoteItem(out *bytes.Buffer, name, text []byte, flags int)
 	TitleBlockTOML(out *bytes.Buffer, data *title)
 	Abstract(out *bytes.Buffer, text []byte)
 	Aside(out *bytes.Buffer, text []byte)
-	Figure(out *bytes.Buffer, text []byte)
 	Note(out *bytes.Buffer, text []byte)
 
 	// Span-level callbacks
@@ -227,16 +219,15 @@ type inlineParser func(p *parser, out *bytes.Buffer, data []byte, offset int) in
 // Parser holds runtime state used by the parser.
 // This is constructed by the Markdown function.
 type parser struct {
-	r              Renderer
-	refs           map[string]*reference
-	citations      map[string]*citation
-	inlineCallback [256]inlineParser
-	flags          int
-	nesting        int
-	maxNesting     int
-	insideLink     bool
-	insideQuote    bool // Header inside quote (blockquote, aside, figure)
-	insideTable    bool // T> already openend table, table tag should be excluded.
+	r                    Renderer
+	refs                 map[string]*reference
+	citations            map[string]*citation
+	inlineCallback       [256]inlineParser
+	flags                int
+	nesting              int
+	maxNesting           int
+	insideLink           bool
+	insideDefinitionList bool
 
 	// Don't need to save, kill current titleblock
 	titleblock title

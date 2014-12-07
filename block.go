@@ -128,9 +128,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// AB> This is an abstract
 		// AB> I found on the web
 		if p.abstractPrefix(data) > 0 {
-			p.insideQuote = true
 			data = data[p.abstract(out, data):]
-			p.insideQuote = false
 			continue
 		}
 
@@ -139,9 +137,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// A> This is an aside
 		// A> I found on the web
 		if p.asidePrefix(data) > 0 {
-			p.insideQuote = true
 			data = data[p.aside(out, data):]
-			p.insideQuote = false
 			continue
 		}
 
@@ -150,41 +146,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// N> This is an aside
 		// N> I found on the web
 		if p.notePrefix(data) > 0 {
-			p.insideQuote = true
 			data = data[p.note(out, data):]
-			p.insideQuote = false
-			continue
-		}
-
-		// Figure quote:
-		//
-		// F> # this is a figure
-		// F>
-		// F> A little caption for this program.
-		// F>
-		// F> ``` go
-		// F> println("Golang")
-		// F> ```
-		if p.figurePrefix(data) > 0 {
-			p.insideQuote = true
-			data = data[p.figure(out, data):]
-			p.insideQuote = false
-			continue
-		}
-
-		// Table quote:
-		//
-		// T> # this is a table
-		// T>
-		// T> A little caption for this program.
-		// T>
-		// T> real table here
-		if p.tablePrefix(data) > 0 {
-			p.insideQuote = true
-			p.insideTable = true
-			data = data[p.tables(out, data):]
-			p.insideQuote = false // hmmm, will this recurse correctly..??
-			p.insideTable = false
 			continue
 		}
 
@@ -193,14 +155,13 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// > A big quote I found somewhere
 		// > on the web
 		if p.quotePrefix(data) > 0 {
-			p.insideQuote = true
 			data = data[p.quote(out, data):]
-			p.insideQuote = false
 			continue
 		}
 
 		// table:
 		//
+		// Table: this is a caption
 		// Name  | Age | Phone
 		// ------|-----|---------
 		// Bob   | 31  | 555-1234
@@ -219,7 +180,9 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// Item2
 		// :	Definition2
 		if p.dliPrefix(data) > 0 {
+			p.insideDefinitionList = true
 			data = data[p.list(out, data, LIST_TYPE_DEFINITION, 0):]
+			p.insideDefinitionList = false
 		}
 
 		// an itemized/unordered list:
@@ -323,7 +286,7 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 
 		p.r.SetIAL(p.ial)
 		p.ial = nil
-		p.r.Header(out, work, level, id, p.insideQuote)
+		p.r.Header(out, work, level, id)
 	}
 	return skip
 }
@@ -774,7 +737,7 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 	if doRender {
 		p.r.SetIAL(p.ial)
 		p.ial = nil
-		p.r.BlockCode(out, work.Bytes(), syntax)
+		p.r.BlockCode(out, work.Bytes(), syntax, nil)
 	}
 
 	return beg
@@ -782,11 +745,10 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 
 func (p *parser) table(out *bytes.Buffer, data []byte) int {
 	var header bytes.Buffer
-	i, columns := p.tableHeader(&header, data)
+	i, columns, caption := p.tableHeader(&header, data)
 	if i == 0 {
 		return 0
 	}
-
 	var body bytes.Buffer
 
 	for i < len(data) {
@@ -810,7 +772,7 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 	p.r.SetIAL(p.ial)
 	p.ial = nil
 
-	p.r.Table(out, header.Bytes(), body.Bytes(), columns, p.insideTable)
+	p.r.Table(out, header.Bytes(), body.Bytes(), columns, caption)
 
 	return i
 }
@@ -824,10 +786,18 @@ func isBackslashEscaped(data []byte, i int) bool {
 	return backslashes&1 == 1
 }
 
-func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns []int) {
+func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns []int, caption []byte) {
 	i := 0
+	j := 0
 	colCount := 1
-	for i = 0; data[i] != '\n'; i++ {
+	// Can optionally start with 'Table: '
+	if bytes.HasPrefix(data, []byte("Table: ")) {
+		for data[j] != '\n' {
+			j++
+		}
+		caption = data[7:j]
+	}
+	for i = j + 1; data[i] != '\n'; i++ {
 		if data[i] == '|' && !isBackslashEscaped(data, i) {
 			colCount++
 		}
@@ -925,7 +895,11 @@ func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns 
 	}
 
 	p.tableRow(out, header, columns, true)
-	size = i + 1
+	if len(caption) == 0 {
+		size = i + 1
+	} else {
+		size = i + 1 + len(caption) + 7
+	}
 	return
 }
 
@@ -983,6 +957,9 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 
 // returns prefix length for block code
 func (p *parser) codePrefix(data []byte) int {
+	if bytes.HasPrefix(data, []byte("Code: ")) {
+		return 4
+	}
 	if data[0] == ' ' && data[1] == ' ' && data[2] == ' ' && data[3] == ' ' {
 		return 4
 	}
@@ -991,8 +968,16 @@ func (p *parser) codePrefix(data []byte) int {
 
 func (p *parser) code(out *bytes.Buffer, data []byte) int {
 	var work bytes.Buffer
-
-	i := 0
+	// Can optionally start with 'Code: '
+	caption := make([]byte, 0)
+	j := 0
+	if bytes.HasPrefix(data, []byte("Code: ")) {
+		for data[j] != '\n' {
+			j++
+		}
+		caption = data[6:j]
+	}
+	i := j
 	for i < len(data) {
 		beg := i
 		for data[i] != '\n' {
@@ -1009,7 +994,7 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 			break
 		}
 
-		// verbatim copy to the working buffeu
+		// verbatim copy to the working buffer
 		if blankline {
 			work.WriteByte('\n')
 		} else {
@@ -1032,7 +1017,7 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 	p.r.SetIAL(p.ial)
 	p.ial = nil
 
-	p.r.BlockCode(out, work.Bytes(), "")
+	p.r.BlockCode(out, work.Bytes(), "", caption)
 
 	return i
 }
@@ -1325,7 +1310,11 @@ func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 		return true
 	}
 
-	p.r.Paragraph(out, work)
+	if p.insideDefinitionList {
+		p.r.Paragraph(out, work, LIST_TYPE_DEFINITION)
+		return
+	}
+	p.r.Paragraph(out, work, 0)
 }
 
 func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
@@ -1377,7 +1366,7 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 					id = createSanitizedAnchorName(string(data[prev:eol]))
 				}
 
-				p.r.Header(out, work, level, id, p.insideQuote)
+				p.r.Header(out, work, level, id)
 
 				// find the end of the underline
 				for data[i] != '\n' {
