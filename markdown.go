@@ -201,13 +201,15 @@ type Renderer interface {
 	// Header and footer
 	DocumentHeader(out *bytes.Buffer, start bool)
 	DocumentFooter(out *bytes.Buffer, start bool)
-	References(out *bytes.Buffer, citations map[string]*citation, start bool)
 
 	// Frontmatter, mainmatter or backmatter
 	DocumentMatter(out *bytes.Buffer, matter int)
+	References(out *bytes.Buffer, citations map[string]*citation)
 
+	// Helper functions
 	GetFlags() int
 
+	// Don't like the names... Also GetFlags() -> Flags()
 	SetIAL([]*IAL)
 	GetAndResetIAL() []*IAL
 }
@@ -228,6 +230,7 @@ type parser struct {
 	maxNesting           int
 	insideLink           bool
 	insideDefinitionList bool
+	// Add insideList to not emit <t> for xml2rfcv2 when in a list
 
 	// Don't need to save, kill current titleblock
 	titleblock title
@@ -450,8 +453,6 @@ func secondPass(p *parser, input []byte, depth int) []byte {
 			return true
 		})
 	}
-	// Set references in parser
-	p.r.References(&output, p.citations, depth == 0)
 	p.r.DocumentFooter(&output, depth == 0)
 
 	if p.nesting != 0 {

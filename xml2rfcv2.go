@@ -107,9 +107,9 @@ func (options *Xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 func (options *Xml2) BlockQuote(out *bytes.Buffer, text []byte) {
 	renderIAL(options.GetAndResetIAL())
 	// Fake a list paragraph
-	out.WriteString("<list style=\"empty\">\n")
+	out.WriteString("<t><list style=\"empty\">\n")
 	out.Write(text)
-	out.WriteString("</list>\n")
+	out.WriteString("</list></t>\n")
 }
 
 func (options *Xml2) Abstract(out *bytes.Buffer, text []byte) {
@@ -159,8 +159,11 @@ func (options *Xml2) HRule(out *bytes.Buffer) {
 }
 
 func (options *Xml2) List(out *bytes.Buffer, text func() bool, flags, start int) {
+	// list opens paragraph, unless we're already in a list - xml2rfc v2 is kinda horrible
 	marker := out.Len()
 	s := renderIAL(options.GetAndResetIAL())
+	out.WriteString("<t>\n")
+
 	switch {
 	case flags&LIST_TYPE_ORDERED != 0:
 		if start <= 1 {
@@ -186,6 +189,8 @@ func (options *Xml2) List(out *bytes.Buffer, text func() bool, flags, start int)
 	default:
 		out.WriteString("</list>\n")
 	}
+	// dont, when in a list.
+	out.WriteString("</t>\n")
 }
 
 func (options *Xml2) ListItem(out *bytes.Buffer, text []byte, flags int) {
@@ -281,8 +286,8 @@ func (options *Xml2) Citation(out *bytes.Buffer, link, title []byte) {
 	out.WriteString("<xref target=\"" + string(link) + "\" section=\"" + string(title) + "\"/>")
 }
 
-func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citation, first bool) {
-	if !first || options.flags&XML_STANDALONE == 0 {
+func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citation) {
+	if options.flags&XML_STANDALONE == 0 {
 		return
 	}
 	// close any option section tags

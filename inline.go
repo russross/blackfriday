@@ -636,6 +636,7 @@ func leftBrace(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			return len(data) + 1
 		case s == "{backmatter}":
 			p.r.DocumentMatter(out, DOC_BACK_MATTER)
+			p.r.References(out, p.citations)
 			return len(data) + 1
 		}
 	}

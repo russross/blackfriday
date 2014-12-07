@@ -309,8 +309,8 @@ func (options *Xml) Citation(out *bytes.Buffer, link, title []byte) {
 	out.WriteString("<xref target=\"" + string(link) + "\" section=\"" + string(title) + "\"/>")
 }
 
-func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation, first bool) {
-	if !first || options.flags&XML_STANDALONE == 0 {
+func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation) {
+	if options.flags&XML_STANDALONE == 0 {
 		return
 	}
 	// close any option section tags

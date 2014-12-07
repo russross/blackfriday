@@ -15,11 +15,11 @@
 % area = "Network"
 % keyword = ["DNSSEC"]
 
-AB> This document defines a transition mechanism for using new hash algorithms
-AB> when providing hashed authenticated denial of existence in a zone. The transition mechanism
-AB> defines a new digest type for Delegation Signer (DS) Resource
-AB> Records that points to extra data embedded in the digest to
-AB> include the type of authenticated denial used in the zone.
+A> This document defines a transition mechanism for using new hash algorithms
+A> when providing hashed authenticated denial of existence in a zone. The transition mechanism
+A> defines a new digest type for Delegation Signer (DS) Resource
+A> Records that points to extra data embedded in the digest to
+A> include the type of authenticated denial used in the zone.
 
 {mainmatter}
 
@@ -41,8 +41,8 @@ and "OPTIONAL" are to be interpreted as described in [@RFC2119,n].
 
 # DS Record Field Values
 
-A> When typesetting something in an aide
-A> you get an aside.
+AS> When typesetting something in an aide
+AS> you get an aside.
 
 Indicating the type of denial of existence in use at the child zone is done by
 prefixing the digest in the DS record with two octets defining

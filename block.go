@@ -125,8 +125,8 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 
 		// Abstract quote:
 		//
-		// AB> This is an abstract
-		// AB> I found on the web
+		// A> This is an abstract
+		// A> I found on the web
 		if p.abstractPrefix(data) > 0 {
 			data = data[p.abstract(out, data):]
 			continue
@@ -134,8 +134,8 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 
 		// Aside quote:
 		//
-		// A> This is an aside
-		// A> I found on the web
+		// AS> This is an aside
+		// AS> I found on the web
 		if p.asidePrefix(data) > 0 {
 			data = data[p.aside(out, data):]
 			continue

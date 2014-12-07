@@ -60,11 +60,11 @@ func (p *parser) asidePrefix(data []byte) int {
 	for i < 3 && data[i] == ' ' {
 		i++
 	}
-	if data[i] == 'A' && data[i+1] == '>' {
-		if data[i+2] == ' ' {
-			return i + 3
+	if data[i] == 'A' && data[i+1] == 'S' && data[i+2] == '>' {
+		if data[i+3] == ' ' {
+			return i + 4
 		}
-		return i + 2
+		return i + 3
 	}
 	return 0
 }
@@ -108,11 +108,11 @@ func (p *parser) abstractPrefix(data []byte) int {
 	for i < 3 && data[i] == ' ' {
 		i++
 	}
-	if data[i] == 'A' && data[i+1] == 'B' && data[i+2] == '>' {
-		if data[i+3] == ' ' {
-			return i + 4
+	if data[i] == 'A' && data[i+1] == '>' {
+		if data[i+2] == ' ' {
+			return i + 3
 		}
-		return i + 3
+		return i + 2
 	}
 	return 0
 }
