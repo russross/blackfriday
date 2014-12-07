@@ -31,7 +31,7 @@ DNSKEY RRset. With the DS _published_, a zone sets expectations for a validator.
 particular a digest of the **DNSKEY**, *the* algorithm used for signature of the
 DNSKEY and the type of authenticated denial of existence used.
 
-When NSEC3 [@RFC5155,n "5.5"] was ....
+When NSEC3 [@RFC5155,n 5.5] was ....
 
 > This transition method is best described as a hack.
 
