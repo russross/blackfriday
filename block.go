@@ -796,8 +796,9 @@ func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns 
 			j++
 		}
 		caption = data[7:j]
+		j++
 	}
-	for i = j + 1; data[i] != '\n'; i++ {
+	for i = j; data[i] != '\n'; i++ {
 		if data[i] == '|' && !isBackslashEscaped(data, i) {
 			colCount++
 		}
