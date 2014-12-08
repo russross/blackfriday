@@ -5,15 +5,16 @@
 % category = "info"
 %
 % date = 2014-12-01T00:00:00Z
+% area = "Network"
+% keyword = ["DNSSEC"]
 %
 % [[author]]
 % initials = "R."
 % surname = "Gieben"
 % fullname = "R. (Miek) Gieben"
 % organization = "Google"
-% address.email = "miek@google.com"
-% area = "Network"
-% keyword = ["DNSSEC"]
+%   [author.address]
+%   email = "miek@google.com"
 
 A> This document defines a transition mechanism for using new hash algorithms
 A> when providing hashed authenticated denial of existence in a zone. The transition mechanism
