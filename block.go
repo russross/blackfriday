@@ -203,11 +203,49 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		if i := p.oliPrefix(data); i > 0 {
 			start := 0
 			if i > 2 {
-				start, _ = strconv.Atoi(string(data[:i-2])) // this cannot fail because we just est. the thing *is* a number
+				start, _ = strconv.Atoi(string(data[:i-2])) // this cannot fail because we just est. the thing *is* a number, and if it does start is zero anyway.
 			}
 			data = data[p.list(out, data, LIST_TYPE_ORDERED, start):]
 			continue
 		}
+
+		// a numberd/ordered list:
+		//
+		// ii.  Item 1
+		// ii.  Item 2
+		if p.rliPrefix(data) > 0 {
+			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_ROMAN_LOWER, 0):]
+			continue
+		}
+
+		// a numberd/ordered list:
+		//
+		// II.  Item 1
+		// II.  Item 2
+		if p.rliPrefixU(data) > 0 {
+			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_ROMAN_UPPER, 0):]
+			continue
+		}
+
+
+		// a numberd/ordered list:
+		//
+		// a.  Item 1
+		// b.  Item 2
+		if p.aliPrefix(data) > 0 {
+			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_ALPHA_LOWER, 0):]
+			continue
+		}
+
+		// a numberd/ordered list:
+		//
+		// A.  Item 1
+		// B.  Item 2
+		if p.aliPrefixU(data) > 0 {
+			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_ALPHA_UPPER, 0):]
+			continue
+		}
+
 		// anything else must look like a normal paragraph
 		// note: this finds underlined headers, too
 		data = data[p.paragraph(out, data):]
@@ -471,7 +509,7 @@ func (p *parser) htmlComment(out *bytes.Buffer, data []byte, doRender bool) int 
 			for end > 0 && data[end-1] == '\n' {
 				end--
 			}
-			p.r.BlockHtml(out, data[:end])
+			p.r.CommentHtml(out, data[:end])
 		}
 		return size
 	}
@@ -1071,6 +1109,106 @@ func (p *parser) oliPrefix(data []byte) int {
 	return i + 2
 }
 
+// returns ordered list item prefix for alpha ordered list
+func (p *parser) aliPrefix(data []byte) int {
+	i := 0
+	if len(data) < 4 {
+		return 0
+	}
+
+	// start with up to 3 spaces
+	for i < 3 && data[i] == ' ' {
+		i++
+	}
+
+	// count the digits
+	start := i
+	for data[i] >= 'a' && data[i] <= 'z' {
+		i++
+	}
+
+	// we need >= 1 letter followed by a dot and  two spaces
+	if start == i || data[i] != '.' || data[i+1] != ' ' || data[i+2] != ' ' {
+		return 0
+	}
+	return i + 3
+}
+
+// returns ordered list item prefix for alpha uppercase ordered list
+func (p *parser) aliPrefixU(data []byte) int {
+	i := 0
+	if len(data) < 4 {
+		return 0
+	}
+
+	// start with up to 3 spaces
+	for i < 3 && data[i] == ' ' {
+		i++
+	}
+
+	// count the digits
+	start := i
+	for data[i] >= 'A' && data[i] <= 'Z' {
+		i++
+	}
+
+	// we need >= 1 letter followed by a dot and  two spaces
+	if start == i || data[i] != '.' || data[i+1] != ' ' || data[i+2] != ' ' {
+		return 0
+	}
+	return i + 3
+}
+
+// returns ordered list item prefix for roman ordered list
+func (p *parser) rliPrefix(data []byte) int {
+	i := 0
+	if len(data) < 4 {
+		return 0
+	}
+
+	// start with up to 3 spaces
+	for i < 3 && data[i] == ' ' {
+		i++
+	}
+
+	// count the digits
+	start := i
+	for isRoman(data[i], false) {
+		i++
+	}
+
+	// we need >= 1 letter followed by a dot and  two spaces
+	if start == i || data[i] != '.' || data[i+1] != ' ' || data[i+2] != ' ' {
+		return 0
+	}
+	return i + 3
+}
+
+// returns ordered list item prefix for roman uppercase ordered list
+func (p *parser) rliPrefixU(data []byte) int {
+	i := 0
+	if len(data) < 4 {
+		return 0
+	}
+
+	// start with up to 3 spaces
+	for i < 3 && data[i] == ' ' {
+		i++
+	}
+
+	// count the digits
+	start := i
+	for isRoman(data[i], true) {
+		i++
+	}
+
+	// we need >= 1 letter followed by a dot and  two spaces
+	if start == i || data[i] != '.' || data[i+1] != ' ' || data[i+2] != ' ' {
+		return 0
+	}
+	return i + 3
+}
+
 // returns definition list item prefix
 func (p *parser) dliPrefix(data []byte) int {
 	// return the index of where the term ends
@@ -1119,6 +1257,7 @@ func (p *parser) list(out *bytes.Buffer, data []byte, flags, start int) int {
 
 	p.r.SetIAL(p.ial)
 	p.ial = nil
+
 	if p.insideList > 1 {
 		flags |= LIST_INSIDE_LIST
 	}
@@ -1139,6 +1278,18 @@ func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *int) int {
 	i := p.uliPrefix(data)
 	if i == 0 {
 		i = p.oliPrefix(data)
+	}
+	if i == 0 {
+		i = p.aliPrefix(data)
+	}
+	if i == 0 {
+		i = p.aliPrefixU(data)
+	}
+	if i == 0 {
+		i = p.rliPrefix(data)
+	}
+	if i == 0 {
+		i = p.rliPrefixU(data)
 	}
 	if i == 0 {
 		i = p.dliPrefix(data)
@@ -1203,6 +1354,8 @@ gatherlines:
 		switch {
 		// is this a nested list item?
 		case (p.uliPrefix(chunk) > 0 && !p.isHRule(chunk)) ||
+			p.aliPrefix(chunk) > 0 || p.aliPrefixU(chunk) > 0 ||
+			p.rliPrefix(chunk) > 0 || p.rliPrefixU(chunk) > 0 ||
 			p.oliPrefix(chunk) > 0 || p.dliPrefix(data[line+indent:]) > 0:
 
 			if containsBlankLine {
@@ -1405,8 +1558,12 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 		// if there's a list after this, paragraph is over
 		if p.flags&EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK != 0 {
 			if p.uliPrefix(current) != 0 ||
+				p.aliPrefixU(current) != 0 ||
+				p.aliPrefix(current) != 0 ||
+				p.rliPrefixU(current) != 0 ||
+				p.rliPrefix(current) != 0 ||
 				p.oliPrefix(current) != 0 ||
-				// todo dliPrefix ??
+				p.dliPrefix(current) != 0 ||
 				p.quotePrefix(current) != 0 ||
 				p.codePrefix(current) != 0 {
 				p.renderParagraph(out, data[:i])
@@ -1453,6 +1610,21 @@ func isMatter(text []byte) bool {
 		return true
 	}
 	if string(text) == "{backmatter}\n" {
+		return true
+	}
+	return false
+}
+
+// check if the string only contains, i, v, x, c and l. If uppercase is true, check
+// uppercase version.
+func isRoman(digit byte, uppercase bool) bool {
+	if !uppercase {
+		if digit == 'i' || digit == 'v' || digit == 'x' || digit == 'c' || digit == 'l' {
+			return true
+		}
+		return false
+	}
+	if digit == 'I' || digit == 'V' || digit == 'X' || digit == 'C' || digit == 'L' {
 		return true
 	}
 	return false

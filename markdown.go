@@ -76,6 +76,10 @@ const (
 // These are mostly of interest if you are writing a new output format.
 const (
 	LIST_TYPE_ORDERED = 1 << iota
+	LIST_TYPE_ORDERED_ROMAN_UPPER
+	LIST_TYPE_ORDERED_ROMAN_LOWER
+	LIST_TYPE_ORDERED_ALPHA_UPPER
+	LIST_TYPE_ORDERED_ALPHA_LOWER
 	LIST_TYPE_DEFINITION
 	LIST_TYPE_TERM
 	LIST_ITEM_CONTAINS_BLOCK
@@ -164,6 +168,7 @@ type Renderer interface {
 	BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte)
 	BlockQuote(out *bytes.Buffer, text []byte)
 	BlockHtml(out *bytes.Buffer, text []byte)
+	CommentHtml(out *bytes.Buffer, text []byte)
 	Header(out *bytes.Buffer, text func() bool, level int, id string)
 	HRule(out *bytes.Buffer)
 	List(out *bytes.Buffer, text func() bool, flags, start int)

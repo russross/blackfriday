@@ -198,6 +198,16 @@ func (options *Html) Header(out *bytes.Buffer, text func() bool, level int, id s
 	out.WriteString(fmt.Sprintf("</h%d>\n", level))
 }
 
+func (options *Html) CommentHtml(out *bytes.Buffer, text []byte) {
+	if options.flags&HTML_SKIP_HTML != 0 {
+		return
+	}
+
+	doubleSpace(out)
+	out.Write(text)
+	out.WriteByte('\n')
+}
+
 func (options *Html) BlockHtml(out *bytes.Buffer, text []byte) {
 	if options.flags&HTML_SKIP_HTML != 0 {
 		return
@@ -358,7 +368,18 @@ func (options *Html) List(out *bytes.Buffer, text func() bool, flags, start int)
 	doubleSpace(out)
 
 	if flags&LIST_TYPE_ORDERED != 0 {
-		out.WriteString("<ol>")
+		switch {
+		case flags&LIST_TYPE_ORDERED_ALPHA_LOWER != 0:
+			out.WriteString("<ol type=\"a\">")
+		case flags&LIST_TYPE_ORDERED_ALPHA_UPPER != 0:
+			out.WriteString("<ol type=\"A\">")
+		case flags&LIST_TYPE_ORDERED_ROMAN_LOWER != 0:
+			out.WriteString("<ol type=\"i\">")
+		case flags&LIST_TYPE_ORDERED_ROMAN_UPPER != 0:
+			out.WriteString("<ol type=\"I\">")
+		default:
+			out.WriteString("<ol>")
+		}
 	} else {
 		out.WriteString("<ul>")
 	}

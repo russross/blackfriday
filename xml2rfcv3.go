@@ -156,6 +156,10 @@ func (options *Xml) Note(out *bytes.Buffer, text []byte) {
 	out.WriteString("</note>\n")
 }
 
+func (options *Xml) CommentHtml(out *bytes.Buffer, text []byte) {
+	return
+}
+
 func (options *Xml) BlockHtml(out *bytes.Buffer, text []byte) {
 	// not supported, don't know yet if this is useful
 	return

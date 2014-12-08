@@ -155,7 +155,8 @@ implements the following extensions:
 
 *   **Citations**, using the citation syntax from pandoc `[@RFC2535 p. 23]`, the citation
     can either be informative (default) or normative, this can be indicated by using
-    the `i` or `n` modifer: `[@RFC2535,n]`.
+    the `i` or `n` modifer: `[@RFC2535,n]`. Use [`-@RFC1000]` to add the cication to the references, but
+    suppress the output in the document.
 
     To make the references work you can optionally include a filename:
     `[@RFC233,n,bib/reference.RFC.2525.xml]`. If you reference an RFC or ID
@@ -199,10 +200,8 @@ Todo
             I.|| - roman
             ii.|| roman
     ```
-*  rip out html detection, possibly leave/add `<!-- -->` detection
-    or copy kramdown? Convert comments to crefs in RFC file:
-    `<!-- source="Miek Gieben" "This is the actual comment" -->`
-    (attributes are detected and copied verbatim)
+*  reduce API footprint (hide constants mainly)
+*  if some attribute is specified check if the IAL also specifies it (then overule it)
 
 License
 -------
