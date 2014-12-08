@@ -200,11 +200,8 @@ Todo
             I.|| - roman
             ii.|| roman
     ```
-*  rip out html detection, possibly leave/add `<!-- -->` detection
-    or copy kramdown? Convert comments to crefs in RFC file:
-    `<!-- source="Miek Gieben" "This is the actual comment" -->`
-    (attributes are detected and copied verbatim)
 *  reduce API footprint (hide constants mainly)
+*  if some attribute is specified check if the IAL also specifies it (then overule it)
 
 License
 -------

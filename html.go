@@ -368,7 +368,18 @@ func (options *Html) List(out *bytes.Buffer, text func() bool, flags, start int)
 	doubleSpace(out)
 
 	if flags&LIST_TYPE_ORDERED != 0 {
-		out.WriteString("<ol>")
+		switch {
+		case flags&LIST_TYPE_ORDERED_ALPHA_LOWER != 0:
+			out.WriteString("<ol type=\"a\">")
+		case flags&LIST_TYPE_ORDERED_ALPHA_UPPER != 0:
+			out.WriteString("<ol type=\"A\">")
+		case flags&LIST_TYPE_ORDERED_ROMAN_LOWER != 0:
+			out.WriteString("<ol type=\"i\">")
+		case flags&LIST_TYPE_ORDERED_ROMAN_UPPER != 0:
+			out.WriteString("<ol type=\"I\">")
+		default:
+			out.WriteString("<ol>")
+		}
 	} else {
 		out.WriteString("<ul>")
 	}

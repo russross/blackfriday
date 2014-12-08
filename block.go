@@ -203,11 +203,21 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		if i := p.oliPrefix(data); i > 0 {
 			start := 0
 			if i > 2 {
-				start, _ = strconv.Atoi(string(data[:i-2])) // this cannot fail because we just est. the thing *is* a number
+				start, _ = strconv.Atoi(string(data[:i-2])) // this cannot fail because we just est. the thing *is* a number, and if it does start is zero anyway.
 			}
 			data = data[p.list(out, data, LIST_TYPE_ORDERED, start):]
 			continue
 		}
+
+		// a numberd/ordered list:
+		//
+		// a.  Item 1
+		// b.  Item 2
+		if p.aliPrefix(data) > 0 {
+			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_ALPHA_LOWER, 0):]
+			continue
+		}
+
 		// anything else must look like a normal paragraph
 		// note: this finds underlined headers, too
 		data = data[p.paragraph(out, data):]
@@ -1071,6 +1081,31 @@ func (p *parser) oliPrefix(data []byte) int {
 	return i + 2
 }
 
+// returns ordered list item prefix for alpha ordered list
+func (p *parser) aliPrefix(data []byte) int {
+	i := 0
+	if len(data) < 4 {
+		return 0
+	}
+
+	// start with up to 3 spaces
+	for i < 3 && data[i] == ' ' {
+		i++
+	}
+
+	// count the digits
+	start := i
+	for data[i] >= 'a' && data[i] <= 'z' {
+		i++
+	}
+
+	// we need >= 1 letter followed by a dot and  two spaces
+	if start == i || data[i] != '.' || data[i+1] != ' ' || data[i+2] != ' ' {
+		return 0
+	}
+	return i + 3
+}
+
 // returns definition list item prefix
 func (p *parser) dliPrefix(data []byte) int {
 	// return the index of where the term ends
@@ -1119,6 +1154,7 @@ func (p *parser) list(out *bytes.Buffer, data []byte, flags, start int) int {
 
 	p.r.SetIAL(p.ial)
 	p.ial = nil
+
 	if p.insideList > 1 {
 		flags |= LIST_INSIDE_LIST
 	}
@@ -1139,6 +1175,9 @@ func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *int) int {
 	i := p.uliPrefix(data)
 	if i == 0 {
 		i = p.oliPrefix(data)
+	}
+	if i == 0 {
+		i = p.aliPrefix(data)
 	}
 	if i == 0 {
 		i = p.dliPrefix(data)
@@ -1203,6 +1242,7 @@ gatherlines:
 		switch {
 		// is this a nested list item?
 		case (p.uliPrefix(chunk) > 0 && !p.isHRule(chunk)) ||
+			p.aliPrefix(chunk) > 0 ||
 			p.oliPrefix(chunk) > 0 || p.dliPrefix(data[line+indent:]) > 0:
 
 			if containsBlankLine {
