@@ -211,6 +211,25 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 
 		// a numberd/ordered list:
 		//
+		// ii.  Item 1
+		// ii.  Item 2
+		if p.rliPrefix(data) > 0 {
+			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_ROMAN_LOWER, 0):]
+			continue
+		}
+
+		// a numberd/ordered list:
+		//
+		// II.  Item 1
+		// II.  Item 2
+		if p.rliPrefixU(data) > 0 {
+			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_ROMAN_UPPER, 0):]
+			continue
+		}
+
+
+		// a numberd/ordered list:
+		//
 		// a.  Item 1
 		// b.  Item 2
 		if p.aliPrefix(data) > 0 {
@@ -1140,6 +1159,56 @@ func (p *parser) aliPrefixU(data []byte) int {
 	return i + 3
 }
 
+// returns ordered list item prefix for roman ordered list
+func (p *parser) rliPrefix(data []byte) int {
+	i := 0
+	if len(data) < 4 {
+		return 0
+	}
+
+	// start with up to 3 spaces
+	for i < 3 && data[i] == ' ' {
+		i++
+	}
+
+	// count the digits
+	start := i
+	for isRoman(data[i], false) {
+		i++
+	}
+
+	// we need >= 1 letter followed by a dot and  two spaces
+	if start == i || data[i] != '.' || data[i+1] != ' ' || data[i+2] != ' ' {
+		return 0
+	}
+	return i + 3
+}
+
+// returns ordered list item prefix for roman uppercase ordered list
+func (p *parser) rliPrefixU(data []byte) int {
+	i := 0
+	if len(data) < 4 {
+		return 0
+	}
+
+	// start with up to 3 spaces
+	for i < 3 && data[i] == ' ' {
+		i++
+	}
+
+	// count the digits
+	start := i
+	for isRoman(data[i], true) {
+		i++
+	}
+
+	// we need >= 1 letter followed by a dot and  two spaces
+	if start == i || data[i] != '.' || data[i+1] != ' ' || data[i+2] != ' ' {
+		return 0
+	}
+	return i + 3
+}
+
 // returns definition list item prefix
 func (p *parser) dliPrefix(data []byte) int {
 	// return the index of where the term ends
@@ -1217,6 +1286,12 @@ func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *int) int {
 		i = p.aliPrefixU(data)
 	}
 	if i == 0 {
+		i = p.rliPrefix(data)
+	}
+	if i == 0 {
+		i = p.rliPrefixU(data)
+	}
+	if i == 0 {
 		i = p.dliPrefix(data)
 		if i > 0 {
 			var rawTerm bytes.Buffer
@@ -1280,6 +1355,7 @@ gatherlines:
 		// is this a nested list item?
 		case (p.uliPrefix(chunk) > 0 && !p.isHRule(chunk)) ||
 			p.aliPrefix(chunk) > 0 || p.aliPrefixU(chunk) > 0 ||
+			p.rliPrefix(chunk) > 0 || p.rliPrefixU(chunk) > 0 ||
 			p.oliPrefix(chunk) > 0 || p.dliPrefix(data[line+indent:]) > 0:
 
 			if containsBlankLine {
@@ -1485,6 +1561,8 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 			if p.uliPrefix(current) != 0 ||
 				p.aliPrefixU(current) != 0 ||
 				p.aliPrefix(current) != 0 ||
+				p.rliPrefixU(current) != 0 ||
+				p.rliPrefix(current) != 0 ||
 				p.oliPrefix(current) != 0 ||
 				p.dliPrefix(current) != 0 ||
 				p.quotePrefix(current) != 0 ||
@@ -1538,19 +1616,17 @@ func isMatter(text []byte) bool {
 	return false
 }
 
-// check if the string only contains, i, v, x, c and l
-func isRoman(text []byte, uppercase bool) bool {
-	for i := 0; i < len(text); i++ {
-		if !uppercase {
-			if text[i] != 'i' && text[i] != 'v' && text[i] != 'x' && text[i] != 'c' && text[i] != 'l' {
-				return false
-			}
-		} else {
-			if text[i] != 'I' && text[i] != 'V' && text[i] != 'X' && text[i] != 'C' && text[i] != 'L' {
-				return false
-			}
-
+// check if the string only contains, i, v, x, c and l. If uppercase is true, check
+// uppercase version.
+func isRoman(digit byte, uppercase bool) bool {
+	if !uppercase {
+		if digit == 'i' || digit == 'v' || digit == 'x' || digit == 'c' || digit == 'l' {
+			return true
 		}
+		return false
+	}
+	if digit == 'I' || digit == 'V' || digit == 'X' || digit == 'C' || digit == 'L' {
+		return true
 	}
 	return false
 }
