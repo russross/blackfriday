@@ -127,6 +127,43 @@ func (options *Xml2) Note(out *bytes.Buffer, text []byte) {
 	options.BlockQuote(out, text)
 }
 
+func (options *Xml2) CommentHtml(out *bytes.Buffer, text []byte) {
+	// nothing fancy any left of the first `:` will be used as the source="..."
+	i := bytes.Index(text, []byte("-->"))
+	if i > 0 {
+		println("LENGTH", i, len(text))
+		text = text[:i]
+	}
+	// strip, <!--
+	text = text[4:]
+
+	var source []byte
+	l := len(text)
+	if l > 20 {
+		l = 20
+	}
+	for i := 0; i < l; i++ {
+		if text[i] == ':' {
+			source = text[:i]
+			text = text[i+1:]
+			break
+		}
+	}
+	if len(source) != 0 {
+		if source[0] == ' ' {
+			source = source[1:]
+		}
+		out.WriteString("<cref source=\"")
+		out.Write(source)
+		out.WriteString("\">")
+	} else {
+		out.WriteString("<cref>\n")
+	}
+	out.Write(text)
+	out.WriteString("</cref>\n")
+	return
+}
+
 func (options *Xml2) BlockHtml(out *bytes.Buffer, text []byte) {
 	// not supported, don't know yet if this is useful
 	return

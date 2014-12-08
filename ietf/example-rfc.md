@@ -44,6 +44,8 @@ and "OPTIONAL" are to be interpreted as described in [@RFC2119,n].
 AS> When typesetting something in an aide
 AS> you get an aside.
 
+<!-- Miek: are you sure you want to include this stuff? -->
+
 Indicating the type of denial of existence in use at the child zone is done by
 
 Denial Type:

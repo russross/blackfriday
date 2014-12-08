@@ -198,6 +198,16 @@ func (options *Html) Header(out *bytes.Buffer, text func() bool, level int, id s
 	out.WriteString(fmt.Sprintf("</h%d>\n", level))
 }
 
+func (options *Html) CommentHtml(out *bytes.Buffer, text []byte) {
+	if options.flags&HTML_SKIP_HTML != 0 {
+		return
+	}
+
+	doubleSpace(out)
+	out.Write(text)
+	out.WriteByte('\n')
+}
+
 func (options *Html) BlockHtml(out *bytes.Buffer, text []byte) {
 	if options.flags&HTML_SKIP_HTML != 0 {
 		return

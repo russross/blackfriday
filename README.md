@@ -203,6 +203,7 @@ Todo
     or copy kramdown? Convert comments to crefs in RFC file:
     `<!-- source="Miek Gieben" "This is the actual comment" -->`
     (attributes are detected and copied verbatim)
+*  reduce API footprint (hide constants mainly)
 
 License
 -------

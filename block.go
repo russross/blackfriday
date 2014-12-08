@@ -471,7 +471,7 @@ func (p *parser) htmlComment(out *bytes.Buffer, data []byte, doRender bool) int 
 			for end > 0 && data[end-1] == '\n' {
 				end--
 			}
-			p.r.BlockHtml(out, data[:end])
+			p.r.CommentHtml(out, data[:end])
 		}
 		return size
 	}
