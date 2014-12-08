@@ -1557,7 +1557,6 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 
 		// if there's a list after this, paragraph is over
 		if p.flags&EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK != 0 {
-			println("CURRENT", string(current))
 			if p.uliPrefix(current) != 0 ||
 				p.aliPrefixU(current) != 0 ||
 				p.aliPrefix(current) != 0 ||
