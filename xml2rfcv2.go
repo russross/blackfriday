@@ -4,7 +4,6 @@ package mmark
 
 import (
 	"bytes"
-	"fmt"
 	"strconv"
 	"time"
 )
@@ -25,7 +24,7 @@ type Xml2 struct {
 	docLevel     int // frontmatter/mainmatter or backmatter
 
 	// Store the IAL we see for this block element
-	ial []*IAL
+	ial *IAL
 
 	// TitleBlock in TOML
 	titleBlock *title
@@ -35,15 +34,15 @@ type Xml2 struct {
 // satisfies the Renderer interface.
 //
 // flags is a set of XML_* options ORed together
-func Xml2Renderer(flags int) Renderer        { return &Xml2{flags: flags} }
-func (options *Xml2) GetFlags() int          { return options.flags }
-func (options *Xml2) GetState() int          { return 0 }
-func (options *Xml2) SetIAL(i []*IAL)        { options.ial = append(options.ial, i...) }
-func (options *Xml2) GetAndResetIAL() []*IAL { i := options.ial; options.ial = nil; return i }
+func Xml2Renderer(flags int) Renderer { return &Xml2{flags: flags} }
+func (options *Xml2) GetFlags() int   { return options.flags }
+func (options *Xml2) GetState() int   { return 0 }
+func (options *Xml2) SetIAL(i *IAL)   { options.ial = i }
+func (options *Xml2) IAL() *IAL       { i := options.ial; options.ial = nil; return i }
 
 // render code chunks using verbatim, or listings if we have a language
 func (options *Xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte) {
-	s := renderIAL(options.GetAndResetIAL())
+	s := options.IAL().render()
 	if lang == "" {
 		out.WriteString("\n<figure" + s + "><artwork>\n")
 	} else {
@@ -105,7 +104,7 @@ func (options *Xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 }
 
 func (options *Xml2) BlockQuote(out *bytes.Buffer, text []byte) {
-	renderIAL(options.GetAndResetIAL())
+	options.IAL().render()
 	// Fake a list paragraph
 	out.WriteString("<t><list style=\"empty\">\n")
 	out.Write(text)
@@ -113,7 +112,7 @@ func (options *Xml2) BlockQuote(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Xml2) Abstract(out *bytes.Buffer, text []byte) {
-	s := renderIAL(options.GetAndResetIAL())
+	s := options.IAL().render()
 	out.WriteString("<abstract" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</abstract>\n")
@@ -181,7 +180,7 @@ func (options *Xml2) Header(out *bytes.Buffer, text func() bool, level int, id s
 	}
 	// new section
 	// Clashes with IAL, need to check ID
-	renderIAL(options.GetAndResetIAL()) // Clear IAL here, so it will not pile up for following items
+	options.IAL().render()
 	out.WriteString("\n<section anchor=\"" + id + "\"")
 	out.WriteString(" title=\"")
 	text() // check bool here
@@ -195,9 +194,24 @@ func (options *Xml2) HRule(out *bytes.Buffer) {
 }
 
 func (options *Xml2) List(out *bytes.Buffer, text func() bool, flags, start int) {
-	marker := out.Len()
-	s := renderIAL(options.GetAndResetIAL())
+	style := ""
+	start1 := ""
+	s := ""
 
+	ial := options.IAL()
+	if ial != nil {
+		style = ial.attr["style"]
+		start1 = ial.attr["start"]
+		delete(ial.attr, "style")
+		delete(ial.attr, "start")
+		s = ial.render()
+	}
+
+	if start1 == "" {
+		start1 = strconv.Itoa(start)
+	}
+
+	marker := out.Len()
 	// inside lists we should drop the paragraph
 	if flags&LIST_INSIDE_LIST == 0 {
 		out.WriteString("<t>\n")
@@ -215,10 +229,13 @@ func (options *Xml2) List(out *bytes.Buffer, text func() bool, flags, start int)
 		case flags&LIST_TYPE_ORDERED_ROMAN_UPPER != 0:
 			out.WriteString("<list style=\"format %I\">")
 		default:
-			if start <= 1 {
-				out.WriteString("<list style=\"numbers\"" + s + ">\n")
+			if style == "" {
+				style = "numbers"
+			}
+			if start1 == "" {
+				out.WriteString("<list style=\"" + style + "\"" + s + ">\n")
 			} else {
-				out.WriteString(fmt.Sprintf("<list style=\"numbers\""+s+" start=\"%d\">\n", start))
+				out.WriteString("<list style=\"" + style + "\"" + s + " start=\"" + start1 + "\">\n")
 			}
 		}
 	case flags&LIST_TYPE_DEFINITION != 0:
@@ -282,7 +299,7 @@ func (options *Xml2) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 }
 
 func (options *Xml2) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, caption []byte) {
-	s := renderIAL(options.GetAndResetIAL())
+	s := options.IAL().render()
 	out.WriteString("<texttable" + s + ">\n")
 	out.Write(header)
 	out.Write(body)
@@ -427,7 +444,7 @@ func (options *Xml2) Emphasis(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Xml2) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
-	renderIAL(options.GetAndResetIAL()) // TODO(miek): useful?
+	options.IAL().render()
 	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
 		// treat it like a link
 		out.WriteString("\\href{")

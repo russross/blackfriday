@@ -216,8 +216,8 @@ type Renderer interface {
 	GetFlags() int
 
 	// Don't like the names... Also GetFlags() -> Flags()
-	SetIAL([]*IAL)
-	GetAndResetIAL() []*IAL
+	SetIAL(*IAL)
+	IAL() *IAL
 }
 
 // Callback functions for inline parsing. One such function is defined
@@ -236,7 +236,7 @@ type parser struct {
 	maxNesting           int
 	insideLink           bool
 	insideDefinitionList bool // when in def. list ... TODO(miek)
-	insideList	     int  // list in list counter
+	insideList           int  // list in list counter
 
 	// Don't need to save, kill current titleblock
 	titleblock title
@@ -246,8 +246,8 @@ type parser struct {
 	// in notes. Slice is nil if footnotes not enabled.
 	notes []*reference
 
-	// Placeholder for IALs that can be added to blocklevel elements.
-	ial []*IAL
+	// Placeholder IAL that can be added to blocklevel elements.
+	ial *IAL
 
 	// Prevent identical header anchors by appending -<sequence_number> starting
 	// with -1, this is the same thing that pandoc does.

@@ -1250,6 +1250,13 @@ func TestIAL(t *testing.T) {
 	var tests = []string{
 		"{attribution=\"BLA BLA\" .green}\n{bla=BLA}\n{more=\"ALB ALB\" #ref:quote .yellow}\n> Hallo2\n> Hallo3\n\nThis is no one `{source='BLEIP'}` on of them\n\n{evenmore=\"BLE BLE\"}\n> Hallo6\n> Hallo7",
 		"<blockquote anchor=\"ref:quote\" class=\"green yellow\" attribution=\"BLA BLA\" bla=\"BLA\" more=\"ALB ALB\">\n<t>Hallo2\nHallo3</t>\n</blockquote>\n<t>This is no one <tt>{source='BLEIP'}</tt> on of them</t>\n<blockquote evenmore=\"BLE BLE\">\n<t>Hallo6\nHallo7</t>\n</blockquote>\n",
+
+		"{style=\"format REQ(%c)\" start=\"4\"}\n1. Term1\n2. Term2",
+		"<ol start=\"4\" style=\"format REQ(%c)\">\n<li>Term1</li>\n<li>Term2</li>\n</ol>\n",
+
+		"    {style=\"format REQ(%c)\" start=\"4\"}\n1. Term1\n2. Term2",
+		"<artwork>\n{style=\"format REQ(%c)\" start=\"4\"}\n</artwork>\n<ol>\n<li>Term1</li>\n<li>Term2</li>\n</ol>\n",
+
 	}
 	doTestsBlockXML(t, tests, 0)
 }
