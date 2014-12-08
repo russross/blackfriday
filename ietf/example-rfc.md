@@ -148,6 +148,8 @@ VALUE   |  Denial Type
    4    |  NSEC3 w/ SHA-384
 5-65535 |  Unassigned
 
+<!--  source="Miek Gieben" This is a comment -->
+
 # Acknowledgements
 
 The people in the following list:
