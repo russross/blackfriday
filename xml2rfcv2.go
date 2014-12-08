@@ -131,7 +131,6 @@ func (options *Xml2) CommentHtml(out *bytes.Buffer, text []byte) {
 	// nothing fancy any left of the first `:` will be used as the source="..."
 	i := bytes.Index(text, []byte("-->"))
 	if i > 0 {
-		println("LENGTH", i, len(text))
 		text = text[:i]
 	}
 	// strip, <!--
@@ -153,14 +152,14 @@ func (options *Xml2) CommentHtml(out *bytes.Buffer, text []byte) {
 		if source[0] == ' ' {
 			source = source[1:]
 		}
-		out.WriteString("<cref source=\"")
+		out.WriteString("<t><cref source=\"")
 		out.Write(source)
 		out.WriteString("\">")
 	} else {
-		out.WriteString("<cref>\n")
+		out.WriteString("<t><cref>\n")
 	}
 	out.Write(text)
-	out.WriteString("</cref>\n")
+	out.WriteString("</cref></t>\n")
 	return
 }
 
