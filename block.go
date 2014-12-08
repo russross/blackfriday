@@ -218,6 +218,15 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			continue
 		}
 
+		// a numberd/ordered list:
+		//
+		// A.  Item 1
+		// B.  Item 2
+		if p.aliPrefixU(data) > 0 {
+			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_ALPHA_UPPER, 0):]
+			continue
+		}
+
 		// anything else must look like a normal paragraph
 		// note: this finds underlined headers, too
 		data = data[p.paragraph(out, data):]
@@ -1106,6 +1115,31 @@ func (p *parser) aliPrefix(data []byte) int {
 	return i + 3
 }
 
+// returns ordered list item prefix for alpha uppercase ordered list
+func (p *parser) aliPrefixU(data []byte) int {
+	i := 0
+	if len(data) < 4 {
+		return 0
+	}
+
+	// start with up to 3 spaces
+	for i < 3 && data[i] == ' ' {
+		i++
+	}
+
+	// count the digits
+	start := i
+	for data[i] >= 'A' && data[i] <= 'Z' {
+		i++
+	}
+
+	// we need >= 1 letter followed by a dot and  two spaces
+	if start == i || data[i] != '.' || data[i+1] != ' ' || data[i+2] != ' ' {
+		return 0
+	}
+	return i + 3
+}
+
 // returns definition list item prefix
 func (p *parser) dliPrefix(data []byte) int {
 	// return the index of where the term ends
@@ -1180,6 +1214,9 @@ func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *int) int {
 		i = p.aliPrefix(data)
 	}
 	if i == 0 {
+		i = p.aliPrefixU(data)
+	}
+	if i == 0 {
 		i = p.dliPrefix(data)
 		if i > 0 {
 			var rawTerm bytes.Buffer
@@ -1242,7 +1279,7 @@ gatherlines:
 		switch {
 		// is this a nested list item?
 		case (p.uliPrefix(chunk) > 0 && !p.isHRule(chunk)) ||
-			p.aliPrefix(chunk) > 0 ||
+			p.aliPrefix(chunk) > 0 || p.aliPrefixU(chunk) > 0 ||
 			p.oliPrefix(chunk) > 0 || p.dliPrefix(data[line+indent:]) > 0:
 
 			if containsBlankLine {
@@ -1446,6 +1483,8 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 		if p.flags&EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK != 0 {
 			println("CURRENT", string(current))
 			if p.uliPrefix(current) != 0 ||
+				p.aliPrefixU(current) != 0 ||
+				p.aliPrefix(current) != 0 ||
 				p.oliPrefix(current) != 0 ||
 				p.dliPrefix(current) != 0 ||
 				p.quotePrefix(current) != 0 ||
@@ -1495,6 +1534,23 @@ func isMatter(text []byte) bool {
 	}
 	if string(text) == "{backmatter}\n" {
 		return true
+	}
+	return false
+}
+
+// check if the string only contains, i, v, x, c and l
+func isRoman(text []byte, uppercase bool) bool {
+	for i := 0; i < len(text); i++ {
+		if !uppercase {
+			if text[i] != 'i' && text[i] != 'v' && text[i] != 'x' && text[i] != 'c' && text[i] != 'l' {
+				return false
+			}
+		} else {
+			if text[i] != 'I' && text[i] != 'V' && text[i] != 'X' && text[i] != 'C' && text[i] != 'L' {
+				return false
+			}
+
+		}
 	}
 	return false
 }
