@@ -159,10 +159,13 @@ func (options *Xml2) HRule(out *bytes.Buffer) {
 }
 
 func (options *Xml2) List(out *bytes.Buffer, text func() bool, flags, start int) {
-	// list opens paragraph, unless we're already in a list - xml2rfc v2 is kinda horrible
 	marker := out.Len()
 	s := renderIAL(options.GetAndResetIAL())
-	out.WriteString("<t>\n")
+
+	// inside lists we should drop the paragraph
+	if flags&LIST_INSIDE_LIST == 0 {
+		out.WriteString("<t>\n")
+	}
 
 	switch {
 	case flags&LIST_TYPE_ORDERED != 0:
@@ -189,8 +192,9 @@ func (options *Xml2) List(out *bytes.Buffer, text func() bool, flags, start int)
 	default:
 		out.WriteString("</list>\n")
 	}
-	// dont, when in a list.
-	out.WriteString("</t>\n")
+	if flags&LIST_INSIDE_LIST == 0 {
+		out.WriteString("</t>\n")
+	}
 }
 
 func (options *Xml2) ListItem(out *bytes.Buffer, text []byte, flags int) {

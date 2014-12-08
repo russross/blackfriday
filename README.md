@@ -192,13 +192,17 @@ Todo
 *   indentend code blocks -> artwork
 *   images -> artwork, use title for caption
 *   quotes in citation for the section= attribute?
-*   cleanups - and loose a bunch of extensions
+*   cleanups - and loose a bunch of extensions, turn them on per default
 *   ordered lists with a.|| (| = space here)
     ```
             A.||
             I.|| - roman
             ii.|| roman
     ```
+*  rip out html detection, possibly leave/add `<!-- -->` detection
+    or copy kramdown? Convert comments to crefs in RFC file:
+    `<!-- source="Miek Gieben" "This is the actual comment" -->`
+    (attributes are detected and copied verbatim)
 
 License
 -------

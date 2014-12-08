@@ -812,7 +812,7 @@ func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns 
 	// include the newline in the data sent to tableRow
 	header := data[:i+1]
 	if len(caption) != 0 {
-		header = data[len(caption)+7:i+1]
+		header = data[len(caption)+7 : i+1]
 	}
 
 	// column count ignores pipes at beginning or end of line
@@ -1098,6 +1098,10 @@ func (p *parser) dliPrefix(data []byte) int {
 
 // parse ordered or unordered or definition list block
 func (p *parser) list(out *bytes.Buffer, data []byte, flags, start int) int {
+	p.insideList++
+	defer func() {
+		p.insideList--
+	}()
 	i := 0
 	flags |= LIST_ITEM_BEGINNING_OF_LIST
 	work := func() bool {
@@ -1115,6 +1119,9 @@ func (p *parser) list(out *bytes.Buffer, data []byte, flags, start int) int {
 
 	p.r.SetIAL(p.ial)
 	p.ial = nil
+	if p.insideList > 1 {
+		flags |= LIST_INSIDE_LIST
+	}
 
 	p.r.List(out, work, flags, start)
 	return i

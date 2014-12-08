@@ -45,8 +45,6 @@ AS> When typesetting something in an aide
 AS> you get an aside.
 
 Indicating the type of denial of existence in use at the child zone is done by
-prefixing the digest in the DS record with two octets defining
-the Denial Type:
 
 Denial Type:
 :   An extra 16 bit integer value (see [](#iana-considerations)) encoded in the DS' digest
@@ -72,6 +70,16 @@ Denial Type:
 
 This document does *not* change the presentation format of DS records.
 
+The same list shorter typeset.
+
+Denial Type:
+:   An extra 16 bit integer value (see [](#iana-considerations)) encoded in the DS' digest
+    that indicates the denial of existence in use in the (child) zone.
+Denial Type:
+:   An extra 16 bit integer value (see [](#iana-considerations)) encoded in the DS' digest
+    that indicates the denial of existence in use in the (child) zone.
+
+
 ##  DS Record with Denial Type Wire Format
 
 The resulting on-the-wire format for the resulting DS record will be as follows:
@@ -92,11 +100,7 @@ The Denial Type is a 16 bit unsigned integer value stored in network order.
 
 ##  Example DS Record Using SHA-256 and Denial Type TBD
 
-The following is an example DNSKEY, and a matching DS record that
-includes denial type TBD that refences that NSEC3/SHA1 is in use in
-the child zone. This
-DNSKEY record comes from the example DNSKEY/DS records found in
-section 5.4 of [@RFC4034].
+DNSKEY record comes from the example DNSKEY/DS records found in section 5.4 of [@RFC4034].
 
 As you can use over at this URL <http://www.miek.nl>.
 
@@ -114,9 +118,6 @@ The DNSKEY record:
 # IANA Considerations
 
 The following action for IANA are required by this document:
-
-The Digest Types to be used for supporting Denial Type information within
-DS records has been assigned by IANA.
 
 At the time of this writing, the current digest types assigned for
 use in DS records are as follows:
@@ -153,6 +154,8 @@ The people in the following list:
 
 * ...
 * And ...
+    1. another list
+    2. another list
 * And ...
 
 {backmatter}

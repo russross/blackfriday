@@ -81,6 +81,7 @@ const (
 	LIST_ITEM_CONTAINS_BLOCK
 	LIST_ITEM_BEGINNING_OF_LIST
 	LIST_ITEM_END_OF_LIST
+	LIST_INSIDE_LIST
 )
 
 // These are the possible flag values for the table cell renderer.
@@ -229,8 +230,8 @@ type parser struct {
 	nesting              int
 	maxNesting           int
 	insideLink           bool
-	insideDefinitionList bool
-	// Add insideList to not emit <t> for xml2rfcv2 when in a list
+	insideDefinitionList bool // when in def. list ... TODO(miek)
+	insideList	     int  // list in list counter
 
 	// Don't need to save, kill current titleblock
 	titleblock title
