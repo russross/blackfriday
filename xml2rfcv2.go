@@ -205,10 +205,21 @@ func (options *Xml2) List(out *bytes.Buffer, text func() bool, flags, start int)
 
 	switch {
 	case flags&LIST_TYPE_ORDERED != 0:
-		if start <= 1 {
-			out.WriteString("<list style=\"numbers\"" + s + ">\n")
-		} else {
-			out.WriteString(fmt.Sprintf("<list style=\"numbers\""+s+" start=\"%d\">\n", start))
+		switch {
+		case flags&LIST_TYPE_ORDERED_ALPHA_LOWER != 0:
+			out.WriteString("<list style=\"format %c\">")
+		case flags&LIST_TYPE_ORDERED_ALPHA_UPPER != 0:
+			out.WriteString("<list style=\"format %C\">")
+		case flags&LIST_TYPE_ORDERED_ROMAN_LOWER != 0:
+			out.WriteString("<list style=\"format %i\">")
+		case flags&LIST_TYPE_ORDERED_ROMAN_UPPER != 0:
+			out.WriteString("<list style=\"format %I\">")
+		default:
+			if start <= 1 {
+				out.WriteString("<list style=\"numbers\"" + s + ">\n")
+			} else {
+				out.WriteString(fmt.Sprintf("<list style=\"numbers\""+s+" start=\"%d\">\n", start))
+			}
 		}
 	case flags&LIST_TYPE_DEFINITION != 0:
 		out.WriteString("<list style=\"hanging\"" + s + ">\n")
