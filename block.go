@@ -1404,9 +1404,10 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 
 		// if there's a list after this, paragraph is over
 		if p.flags&EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK != 0 {
+			println("CURRENT", string(current))
 			if p.uliPrefix(current) != 0 ||
 				p.oliPrefix(current) != 0 ||
-				// todo dliPrefix ??
+				p.dliPrefix(current) != 0 ||
 				p.quotePrefix(current) != 0 ||
 				p.codePrefix(current) != 0 {
 				p.renderParagraph(out, data[:i])
