@@ -160,6 +160,10 @@ The people in the following list:
     2. another list
 * And ...
 
+This is an citation that shows up in the references, but not in the document: [-@RFC1033].
+This needs to happen *BEFORE* the `{backmatter`} otherwise the references are outputted, but
+you use the references.
+
 {backmatter}
 
 # Other Options
@@ -173,6 +177,8 @@ The people in the following list:
 ![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Title2")
 
 ## Algorithm Aliasing
+
+Now we can use the reference to [@RFC1033] here.
 
 This is a good, or maybe the best way to deal with this transition, but
 because the algorithm namespace is only 8 bits and each aliases need to

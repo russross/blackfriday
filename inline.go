@@ -190,10 +190,13 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	// ^[text] == inline footnote
 	// [^refId] == deferred footnote
 	// [@text] == citation
+	// [-@text] == citation, add to reference, but suppress output
 	var t linkType
 	if offset > 0 && data[offset-1] == '!' {
 		t = linkImg
 	} else if offset > 0 && data[offset-1] == '@' {
+		t = linkCitation
+	} else if offset > 0 && data[offset-1] == '-' {
 		t = linkCitation
 	} else if p.flags&EXTENSION_FOOTNOTES != 0 {
 		if offset > 0 && data[offset-1] == '^' {
@@ -249,14 +252,19 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	}
 
 	// TODO(miek): parse p. 23 parts here (title)
-	// [@RFC2534(n,bib/reference.xml p. 23]
-	// [@REF,n|i,#11,file text]
-	if (t == linkCitation || data[1] == '@') && p.flags&EXTENSION_CITATION != 0 {
+	// [@RFC2534,n,bib/reference.xml p. 23]
+	// [@REF,n|i,file text]
+	// [-@RFC] : suppress output, but add to the citation list
+	if (t == linkCitation || data[1] == '@' || data[1] == '-') && p.flags&EXTENSION_CITATION != 0 {
 		var (
 			commaB, spaceB int
 			id, file       []byte
 			typ            byte
+			suppress       bool
 		)
+		if data[1] == '-' {
+			suppress = true
+		}
 		typ = 'i'
 		for j := 0; j < txtE; j++ {
 			switch {
@@ -305,6 +313,9 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		if id == nil {
 			id = data[2:txtE]
 		}
+		if suppress {
+			id = id[1:]
+		}
 		// we might be liberal and check which item we got and update if we see new ones.
 		if _, ok := p.citations[string(id)]; !ok {
 			p.citations[string(id)] = &citation{link: id, title: title, typ: typ, filename: file}
@@ -312,8 +323,9 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 		//p.r.SetIAL(p.ial)
 		//p.ial = nil
-
-		p.r.Citation(out, id, title)
+		if !suppress {
+			p.r.Citation(out, id, title)
+		}
 		return txtE + 1
 	}
 

@@ -155,7 +155,8 @@ implements the following extensions:
 
 *   **Citations**, using the citation syntax from pandoc `[@RFC2535 p. 23]`, the citation
     can either be informative (default) or normative, this can be indicated by using
-    the `i` or `n` modifer: `[@RFC2535,n]`.
+    the `i` or `n` modifer: `[@RFC2535,n]`. Use [`-@RFC1000]` to add the cication to the references, but
+    suppress the output in the document.
 
     To make the references work you can optionally include a filename:
     `[@RFC233,n,bib/reference.RFC.2525.xml]`. If you reference an RFC or ID
