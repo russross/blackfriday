@@ -175,7 +175,7 @@ type Renderer interface {
 	HRule(out *bytes.Buffer)
 	List(out *bytes.Buffer, text func() bool, flags, start int)
 	ListItem(out *bytes.Buffer, text []byte, flags int)
-//	ListExample(out *bytes.Buffer, text []byte, group []byte) // (@good) This is another list item\n(@good) another one. TODO(miek)
+	//	ListExample(out *bytes.Buffer, text []byte, group []byte) // (@good) This is another list item\n(@good) another one. TODO(miek)
 	Paragraph(out *bytes.Buffer, text func() bool, flags int)
 	Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, caption []byte)
 	TableRow(out *bytes.Buffer, text []byte)
@@ -247,7 +247,8 @@ type parser struct {
 	// Footnotes need to be ordered as well as available to quickly check for
 	// presence. If a ref is also a footnote, it's stored both in refs and here
 	// in notes. Slice is nil if footnotes not enabled.
-	notes []*reference
+	notes    []*reference
+	appendix bool // have we seen a {backmatter}?
 
 	// Placeholder IAL that can be added to blocklevel elements.
 	ial *IAL
@@ -461,6 +462,12 @@ func secondPass(p *parser, input []byte, depth int) []byte {
 
 			return true
 		})
+	}
+	if !p.appendix {
+		// appendix not started in doc, start it now and output references
+		p.r.DocumentMatter(&output, DOC_BACK_MATTER)
+		p.r.References(&output, p.citations)
+		p.appendix = true
 	}
 	p.r.DocumentFooter(&output, depth == 0)
 

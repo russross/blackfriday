@@ -351,7 +351,7 @@ func (options *Xml2) Citation(out *bytes.Buffer, link, title []byte) {
 }
 
 func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citation) {
-	if options.flags&XML_STANDALONE == 0 {
+	if options.flags&XML2_STANDALONE == 0 {
 		return
 	}
 	// close any option section tags
