@@ -1498,11 +1498,14 @@ func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 		return true
 	}
 
+	flags := 0
 	if p.insideDefinitionList {
-		p.r.Paragraph(out, work, LIST_TYPE_DEFINITION)
-		return
+		flags |= LIST_TYPE_DEFINITION
 	}
-	p.r.Paragraph(out, work, 0)
+	if p.insideList > 0 {
+		flags |= LIST_INSIDE_LIST // Not really, just in a list
+	}
+	p.r.Paragraph(out, work, flags)
 }
 
 func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {

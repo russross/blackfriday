@@ -282,14 +282,14 @@ func (options *Xml2) ListItem(out *bytes.Buffer, text []byte, flags int) {
 // Needs flags int, for in-list-detection xml2rfc v2
 func (options *Xml2) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
-	if flags&LIST_TYPE_DEFINITION == 0 {
+	if flags&LIST_TYPE_DEFINITION == 0 && flags&LIST_INSIDE_LIST == 0 {
 		out.WriteString("<t>")
 	}
 	if !text() {
 		out.Truncate(marker)
 		return
 	}
-	if flags&LIST_TYPE_DEFINITION == 0 {
+	if flags&LIST_TYPE_DEFINITION == 0 && flags&LIST_INSIDE_LIST == 0 {
 		out.WriteString("</t>\n")
 	}
 }
