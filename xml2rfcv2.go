@@ -76,8 +76,6 @@ func (options *Xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 
 		out.WriteString("<organization>" + a.Organization + "</organization>\n")
 		out.WriteString("<address>\n")
-		out.WriteString("<uri>" + a.Address.Uri + "</uri>\n")
-		out.WriteString("<email>" + a.Address.Email + "</email>\n")
 
 		out.WriteString("<postal>\n")
 		out.WriteString("<street>" + a.Address.Postal.Street + "</street>\n") // street is a list?
@@ -85,6 +83,9 @@ func (options *Xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 		out.WriteString("<code>" + a.Address.Postal.Code + "</code>\n")
 		out.WriteString("<country>" + a.Address.Postal.Country + "</country>\n")
 		out.WriteString("</postal>\n")
+
+		out.WriteString("<email>" + a.Address.Email + "</email>\n")
+		out.WriteString("<uri>" + a.Address.Uri + "</uri>\n")
 
 		out.WriteString("</address>\n")
 		out.WriteString("</author>\n")
