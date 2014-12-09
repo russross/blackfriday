@@ -429,7 +429,11 @@ func referenceFile(c *citation) string {
 	case "RFC":
 		return "reference.RFC." + string(c.link[3:]) + ".xml"
 	case "I-D":
-		return "reference.I-D.draft-" + string(c.link[4:]) + ".xml"
+		seq := ""
+		if c.seq != -1 {
+			seq = "-" + fmt.Sprintf("%02d", c.seq)
+		}
+		return "reference.I-D.draft-" + string(c.link[4:]) + seq + ".xml"
 	}
 	return ""
 }

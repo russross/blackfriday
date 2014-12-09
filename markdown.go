@@ -520,6 +520,7 @@ type citation struct {
 	title    []byte
 	filename []byte
 	typ      byte // 'i' for informal, 'n' normative (default = 'i')
+	seq	 int  // sequence number for I-Ds
 }
 
 // Check whether or not data starts with a reference link.

@@ -261,6 +261,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			id, file       []byte
 			typ            byte
 			suppress       bool
+			seq            int = -1
 		)
 		if data[1] == '-' {
 			suppress = true
@@ -302,6 +303,11 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 						if chunk[0] == 'i' || chunk[0] == 'I' {
 							typ = 'i'
 						}
+					case len(chunk) > 1 && chunk[0] == '#':
+						num, err := strconv.Atoi(string(chunk[1:]))
+						if err == nil {
+							seq = num
+						}
 					default:
 						file = chunk
 					}
@@ -318,7 +324,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		}
 		// we might be liberal and check which item we got and update if we see new ones.
 		if _, ok := p.citations[string(id)]; !ok {
-			p.citations[string(id)] = &citation{link: id, title: title, typ: typ, filename: file}
+			p.citations[string(id)] = &citation{link: id, title: title, typ: typ, filename: file, seq: seq}
 		}
 
 		//p.r.SetIAL(p.ial)
