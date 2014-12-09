@@ -732,17 +732,6 @@ func (p *parser) isFencedCode(data []byte, syntax **string, oldmarker string) (s
 
 func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 	var lang *string
-	// Can optionally start with 'Figure: '
-	caption := make([]byte, 0)
-	j := 0
-	if bytes.HasPrefix(data, []byte("Figure: ")) {
-		for data[j] != '\n' {
-			j++
-		}
-		caption = data[8:j]
-		j++ // kill the newline that would otherwise show up in the output.
-	}
-	data = data[j:]
 	beg, marker := p.isFencedCode(data, &lang, "")
 	if beg == 0 || beg >= len(data) {
 		return 0
@@ -778,6 +767,23 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 		}
 		beg = end
 	}
+	caption := make([]byte, 0)
+	line := beg
+	j := beg
+	if bytes.HasPrefix(data[j:], []byte("Figure: ")) {
+		for line < len(data) {
+			j++
+			// find the end of this line
+			for data[j-1] != '\n' {
+				j++
+			}
+			if p.isEmpty(data[line:j]) > 0 {
+				break
+			}
+			line = j
+		}
+		caption = data[beg+8:j-1] // +8 for 'Figure: '
+	}
 
 	syntax := ""
 	if lang != nil {
@@ -790,7 +796,7 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 		p.r.BlockCode(out, work.Bytes(), syntax, caption)
 	}
 
-	return beg+j
+	return j
 }
 
 func (p *parser) table(out *bytes.Buffer, data []byte) int {
@@ -1011,17 +1017,6 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 
 // returns prefix length for block code
 func (p *parser) codePrefix(data []byte) int {
-	j := 0
-	// look for Figure: look for a line indented by four spaces (optionally preceeded by an empty line)
-	if bytes.HasPrefix(data, []byte("Figure: ")) {
-		for data[j] != '\n' {
-			j++
-		}
-		if data[0+j] == ' ' && data[1+j] == ' ' && data[2+j] == ' ' && data[3+j] == ' ' {
-			return 4
-		}
-		return 0
-	}
 	if data[0] == ' ' && data[1] == ' ' && data[2] == ' ' && data[3] == ' ' {
 		return 4
 	}
@@ -1030,21 +1025,7 @@ func (p *parser) codePrefix(data []byte) int {
 
 func (p *parser) code(out *bytes.Buffer, data []byte) int {
 	var work bytes.Buffer
-	// Can optionally start with 'Figure: '
-	caption := make([]byte, 0)
-	j := 0
-	println("PREFIX", string(data[:20]))
-	if bytes.HasPrefix(data, []byte("Figure: ")) {
-		println("STARTING WITH FIGURE")
-		for data[j] != '\n' {
-			j++
-		}
-		caption = data[8:j]
-		j++ // kill the newline that would otherwise show up in the output.
-		j++; j++
-	}
-	i := j
-	println("CAPTION", string(caption))
+	i := 0
 	for i < len(data) {
 		beg := i
 		for data[i] != '\n' {
@@ -1068,6 +1049,23 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 			work.Write(data[beg:i])
 		}
 	}
+	caption := make([]byte, 0)
+	line := i
+	j := i
+	if bytes.HasPrefix(data[j:], []byte("Figure: ")) {
+		for line < len(data) {
+			j++
+			// find the end of this line
+			for data[j-1] != '\n' {
+				j++
+			}
+			if p.isEmpty(data[line:j]) > 0 {
+				break
+			}
+			line = j
+		}
+		caption = data[i+8:j-1] // +8 for 'Figure: '
+	}
 
 	// trim all the \n off the end of work
 	workbytes := work.Bytes()
@@ -1086,7 +1084,7 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 
 	p.r.BlockCode(out, work.Bytes(), "", caption)
 
-	return i
+	return j
 }
 
 // returns unordered list item prefix
