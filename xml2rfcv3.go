@@ -564,6 +564,9 @@ func (options *Xml) DocumentFooter(out *bytes.Buffer, first bool) {
 }
 
 func (options *Xml) DocumentMatter(out *bytes.Buffer, matter int) {
+	if options.flags&XML_STANDALONE == 0 {
+		return
+	}
 	// we default to frontmatter already openened in the documentHeader
 	for i := options.sectionLevel; i > 0; i-- {
 		out.WriteString("</section>\n")
