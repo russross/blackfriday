@@ -1258,8 +1258,7 @@ func TestIAL(t *testing.T) {
 		"<artwork>\n{style=\"format REQ(%c)\" start=\"4\"}\n</artwork>\n<ol>\n<li>Term1</li>\n<li>Term2</li>\n</ol>\n",
 
 		"{.green #ref1}\n# hallo\n\n{.yellow}\n# hallo {#ref2}\n\n{.blue #ref3}\n# hallo {#ref4}\n",
-		"\n<section anchor=\"ref1\"\" class=\"green\"><name>hallo</name>\n</section>\n\n<section anchor=\"ref2\"\" class=\"yellow\"><name>hallo</name>\n</section>\n\n<section anchor=\"ref3\"\" class=\"blue\"><name>hallo</name>\n",
-		"",
+		"\n<section anchor=\"ref1\" class=\"green\"><name>hallo</name>\n</section>\n\n<section anchor=\"ref2\" class=\"yellow\"><name>hallo</name>\n</section>\n\n<section anchor=\"ref3\" class=\"blue\"><name>hallo</name>\n",
 	}
 	doTestsBlockXML(t, tests, 0)
 }
