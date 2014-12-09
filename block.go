@@ -1012,13 +1012,17 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 // returns prefix length for block code
 func (p *parser) codePrefix(data []byte) int {
 	j := 0
+	// look for Figure: look for a line indented by four spaces (optionally preceeded by an empty line)
 	if bytes.HasPrefix(data, []byte("Figure: ")) {
 		for data[j] != '\n' {
 			j++
 		}
-		j++
+		if data[0+j] == ' ' && data[1+j] == ' ' && data[2+j] == ' ' && data[3+j] == ' ' {
+			return 4
+		}
+		return 0
 	}
-	if data[0+j] == ' ' && data[1+j] == ' ' && data[2+j] == ' ' && data[3+j] == ' ' {
+	if data[0] == ' ' && data[1] == ' ' && data[2] == ' ' && data[3] == ' ' {
 		return 4
 	}
 	return 0
@@ -1029,14 +1033,18 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 	// Can optionally start with 'Figure: '
 	caption := make([]byte, 0)
 	j := 0
+	println("PREFIX", string(data[:20]))
 	if bytes.HasPrefix(data, []byte("Figure: ")) {
+		println("STARTING WITH FIGURE")
 		for data[j] != '\n' {
 			j++
 		}
 		caption = data[8:j]
 		j++ // kill the newline that would otherwise show up in the output.
+		j++; j++
 	}
 	i := j
+	println("CAPTION", string(caption))
 	for i < len(data) {
 		beg := i
 		for data[i] != '\n' {
