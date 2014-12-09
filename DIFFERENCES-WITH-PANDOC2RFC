@@ -2,3 +2,16 @@
 There are some differences:
 
 * citations: use `[@citation]` instead of faking the reference.
+
+Lists;
+
+lists seperated with newlines, dont work
+
+    * djdks
+
+    * dsdsjk
+
+Must be
+    
+    * fjkfdj
+    * fjfdk

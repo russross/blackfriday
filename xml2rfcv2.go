@@ -48,7 +48,7 @@ func (options *Xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 	} else {
 		out.WriteString("\n<figure" + s + "><artwork>\n")
 	}
-	out.Write(text)
+	WriteAndConvertEntity(out, text)
 	if lang == "" {
 		out.WriteString("</artwork></figure>\n")
 	} else {
@@ -423,7 +423,7 @@ func (options *Xml2) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 
 func (options *Xml2) CodeSpan(out *bytes.Buffer, text []byte) {
 	out.WriteString("<spanx style=\"verb\">")
-	convertEntity(out, text)
+	WriteAndConvertEntity(out, text)
 	out.WriteString("</spanx>")
 }
 

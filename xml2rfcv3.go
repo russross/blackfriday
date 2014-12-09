@@ -75,7 +75,7 @@ func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string, capti
 	} else {
 		out.WriteString("\n<sourcecode" + s + " type=\"" + lang + "\">\n")
 	}
-	out.Write(text)
+	WriteAndConvertEntity(out, text)
 
 	if lang == "" {
 		out.WriteString("</artwork>\n")
@@ -445,7 +445,7 @@ func (options *Xml) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 
 func (options *Xml) CodeSpan(out *bytes.Buffer, text []byte) {
 	out.WriteString("<tt>")
-	convertEntity(out, text)
+	WriteAndConvertEntity(out, text)
 	out.WriteString("</tt>")
 }
 
@@ -592,7 +592,7 @@ var entityConvert = map[byte]string{
 	'&': "&amp;",
 }
 
-func convertEntity(out *bytes.Buffer, text []byte) {
+func WriteAndConvertEntity(out *bytes.Buffer, text []byte) {
 	for i := 0; i < len(text); i++ {
 		if s, ok := entityConvert[text[i]]; ok {
 			out.WriteString(s)

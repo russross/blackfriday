@@ -25,7 +25,7 @@ It is fast and it supports the following extensions:
 * main-, middle- and backmatter divisions
 * Table and Codeblock caption.
     After a codeblock use: Figure: fjfjkfdjkd
-
+* escaping chars (as in pandoc?)
 * citations
 * abstract
 * asides
@@ -198,9 +198,11 @@ Todo
 *   indentend code blocks -> artwork
 *   images -> artwork, use title for caption
 *   quotes in citation for the section= attribute?
+*   Need #6 for I_D refs
 *   cleanups - and loose a bunch of extensions, turn them on per default
-*  reduce API footprint (hide constants mainly)
-*  if some attribute is specified check if the IAL also specifies it (then overule it)
+*   reduce API footprint (hide constants mainly)
+*   if some attribute is specified check if the IAL also specifies it (then overule it)
+*   paragraph needs to know if it in a list
 
 License
 -------
