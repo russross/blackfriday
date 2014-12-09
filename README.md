@@ -32,7 +32,7 @@ Mmark is forked from blackfriday which started out as a translation from C of [u
 
 ## Enviroment variables?
 
-`MMARK_REFDIR`: is set prefix 
+`MMARK_REFDIR`: is set prefix
 `MMARK_REFONLINE`, use online references
 
 ## Usage
@@ -194,12 +194,6 @@ Todo
 *   images -> artwork, use title for caption
 *   quotes in citation for the section= attribute?
 *   cleanups - and loose a bunch of extensions, turn them on per default
-*   ordered lists with a.|| (| = space here)
-    ```
-            A.||
-            I.|| - roman
-            ii.|| roman
-    ```
 *  reduce API footprint (hide constants mainly)
 *  if some attribute is specified check if the IAL also specifies it (then overule it)
 

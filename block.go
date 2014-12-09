@@ -732,6 +732,17 @@ func (p *parser) isFencedCode(data []byte, syntax **string, oldmarker string) (s
 
 func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 	var lang *string
+	// Can optionally start with 'Figure: '
+	caption := make([]byte, 0)
+	j := 0
+	if bytes.HasPrefix(data, []byte("Figure: ")) {
+		for data[j] != '\n' {
+			j++
+		}
+		caption = data[8:j]
+		j++ // kill the newline that would otherwise show up in the output.
+	}
+	data = data[j:]
 	beg, marker := p.isFencedCode(data, &lang, "")
 	if beg == 0 || beg >= len(data) {
 		return 0
@@ -776,10 +787,10 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 	if doRender {
 		p.r.SetIAL(p.ial)
 		p.ial = nil
-		p.r.BlockCode(out, work.Bytes(), syntax, nil)
+		p.r.BlockCode(out, work.Bytes(), syntax, caption)
 	}
 
-	return beg
+	return beg+j
 }
 
 func (p *parser) table(out *bytes.Buffer, data []byte) int {
@@ -1000,10 +1011,14 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 
 // returns prefix length for block code
 func (p *parser) codePrefix(data []byte) int {
-	if bytes.HasPrefix(data, []byte("Code: ")) {
-		return 4
+	j := 0
+	if bytes.HasPrefix(data, []byte("Figure: ")) {
+		for data[j] != '\n' {
+			j++
+		}
+		j++
 	}
-	if data[0] == ' ' && data[1] == ' ' && data[2] == ' ' && data[3] == ' ' {
+	if data[0+j] == ' ' && data[1+j] == ' ' && data[2+j] == ' ' && data[3+j] == ' ' {
 		return 4
 	}
 	return 0
@@ -1011,14 +1026,15 @@ func (p *parser) codePrefix(data []byte) int {
 
 func (p *parser) code(out *bytes.Buffer, data []byte) int {
 	var work bytes.Buffer
-	// Can optionally start with 'Code: '
+	// Can optionally start with 'Figure: '
 	caption := make([]byte, 0)
 	j := 0
-	if bytes.HasPrefix(data, []byte("Code: ")) {
+	if bytes.HasPrefix(data, []byte("Figure: ")) {
 		for data[j] != '\n' {
 			j++
 		}
-		caption = data[6:j]
+		caption = data[8:j]
+		j++ // kill the newline that would otherwise show up in the output.
 	}
 	i := j
 	for i < len(data) {
@@ -1077,8 +1093,8 @@ func (p *parser) uliPrefix(data []byte) int {
 		i++
 	}
 
-	// need a *, +, or - followed by a space
-	if (data[i] != '*' && data[i] != '+' && data[i] != '-') ||
+	// need a *, +, #, or - followed by a space
+	if (data[i] != '*' && data[i] != '+' && data[i] != '-' && data[i] != ' ') ||
 		data[i+1] != ' ' {
 		return 0
 	}

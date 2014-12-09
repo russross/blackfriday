@@ -16,21 +16,14 @@
 %   [author.address]
 %   email = "miek@google.com"
 
-A> This document defines a transition mechanism for using new hash algorithms
-A> when providing hashed authenticated denial of existence in a zone. The transition mechanism
-A> defines a new digest type for Delegation Signer (DS) Resource
-A> Records that points to extra data embedded in the digest to
-A> include the type of authenticated denial used in the zone.
+A> This will become a paragraph in the abstract.
 
 {mainmatter}
 
 # Introduction
 
-The DS Resource Record [@RFC3658,i]
-is published in parent zones to distribute a cryptographic digest of one key in a child's
-DNSKEY RRset. With the DS _published_, a zone sets expectations for a validator. In
+The DS Resource Record [@RFC3658,i]...
 particular a digest of the **DNSKEY**, *the* algorithm used for signature of the
-DNSKEY and the type of authenticated denial of existence used.
 
 When NSEC3 [@RFC5155,n 5.5] was ....
 
@@ -73,22 +66,12 @@ Denial Type:
 
 This document does *not* change the presentation format of DS records.
 
-The same list shorter typeset.
-
-Denial Type:
-:   An extra 16 bit integer value (see [](#iana-considerations)) encoded in the DS' digest
-    that indicates the denial of existence in use in the (child) zone.
-Denial Type:
-:   An extra 16 bit integer value (see [](#iana-considerations)) encoded in the DS' digest
-    that indicates the denial of existence in use in the (child) zone.
-
-
 ##  DS Record with Denial Type Wire Format
 
 The resulting on-the-wire format for the resulting DS record will be as follows:
 
 {#fig:wire}
-Code: The on-the-wire format for the DS. The length of the digest is specified in the respective RFCs defining the digest type.
+Figure: The on-the-wire format for the DS. The length of the digest is specified in the respective RFCs defining the digest type.
                          1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -102,6 +85,12 @@ Code: The on-the-wire format for the DS. The length of the digest is specified i
 The Denial Type is a 16 bit unsigned integer value stored in network order.
 
 ##  Example DS Record Using SHA-256 and Denial Type TBD
+
+Fenced code block
+Figure: This is a fenced code block
+``` go
+println(hallo)
+```
 
 DNSKEY record comes from the example DNSKEY/DS records found in section 5.4 of [@RFC4034].
 
@@ -151,7 +140,7 @@ VALUE   |  Denial Type
    4    |  NSEC3 w/ SHA-384
 5-65535 |  Unassigned
 
-<!--  source="Miek Gieben" This is a comment -->
+<!--  Miek Gieben: This is a comment -->
 
 # Acknowledgements
 

@@ -185,7 +185,7 @@ func (options *Xml2) Header(out *bytes.Buffer, text func() bool, level int, id s
 	}
 
 	// new section
-	out.WriteString("\n<section anchor=\"" + id + "\"" + ial.String())
+	out.WriteString("\n<section anchor=\"" + id + ial.String())
 	out.WriteString(" title=\"")
 	text() // check bool here
 	out.WriteString("\">\n")

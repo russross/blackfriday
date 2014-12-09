@@ -54,8 +54,14 @@ func (options *Xml) IAL() *IAL       { i := options.ial; options.ial = nil; retu
 
 // render code chunks using verbatim, or listings if we have a language
 func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte) {
+	s := ""
 	// Tick of language for sourcecode...
-	s := options.IAL().String()
+	ial := options.IAL()
+	if ial != nil {
+		lang = ial.GetOrDefaultAttr("type", lang)
+		s = ial.String()
+	}
+
 	if len(caption) > 0 {
 		out.WriteString("<figure" + s + ">\n")
 		s = ""
@@ -67,13 +73,14 @@ func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string, capti
 	if lang == "" {
 		out.WriteString("<artwork" + s + ">\n")
 	} else {
-		out.WriteString("\n<sourcecode" + s + "type=\"" + lang + "\">\n")
+		out.WriteString("\n<sourcecode" + s + " type=\"" + lang + "\">\n")
 	}
 	out.Write(text)
+
 	if lang == "" {
 		out.WriteString("</artwork>\n")
 	} else {
-		out.WriteString("</sourcode>\n")
+		out.WriteString("</sourcecode>\n")
 	}
 	if len(caption) > 0 {
 		out.WriteString("</figure>\n")
@@ -186,7 +193,7 @@ func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id st
 	}
 
 	// new section
-	out.WriteString("\n<section" + id + "\"" + ial.String() + ">")
+	out.WriteString("\n<section" + id + ial.String() + ">")
 	out.WriteString("<name>")
 	text() // check bool here
 	out.WriteString("</name>\n")
