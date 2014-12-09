@@ -147,18 +147,16 @@ func (options *Xml2) CommentHtml(out *bytes.Buffer, text []byte) {
 			break
 		}
 	}
+	// don't output a cref if it is not name: remark
 	if len(source) != 0 {
-		if source[0] == ' ' {
-			source = source[1:]
-		}
+		source = bytes.TrimSpace(source)
+		text = bytes.TrimSpace(text)
 		out.WriteString("<t><cref source=\"")
 		out.Write(source)
 		out.WriteString("\">")
-	} else {
-		out.WriteString("<t><cref>\n")
+		out.Write(text)
+		out.WriteString("</cref></t>\n")
 	}
-	out.Write(text)
-	out.WriteString("</cref></t>\n")
 	return
 }
 

@@ -164,6 +164,37 @@ func (options *Xml) Note(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Xml) CommentHtml(out *bytes.Buffer, text []byte) {
+	// nothing fancy any left of the first `:` will be used as the source="..."
+	// if the syntax is different, don't output anything.
+	i := bytes.Index(text, []byte("-->"))
+	if i > 0 {
+		text = text[:i]
+	}
+	// strip, <!--
+	text = text[4:]
+
+	var source []byte
+	l := len(text)
+	if l > 20 {
+		l = 20
+	}
+	for i := 0; i < l; i++ {
+		if text[i] == ':' {
+			source = text[:i]
+			text = text[i+1:]
+			break
+		}
+	}
+	// don't output a cref if it is not name: remark
+	if len(source) != 0 {
+		source = bytes.TrimSpace(source)
+		text = bytes.TrimSpace(text)
+		out.WriteString("<t><cref source=\"")
+		out.Write(source)
+		out.WriteString("\">")
+		out.Write(text)
+		out.WriteString("</cref></t>\n")
+	}
 	return
 }
 

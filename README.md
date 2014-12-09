@@ -16,6 +16,7 @@ It is fast and it supports the following extensions:
 
 * tables
 * definition lists
+    lists markers: all from pandoc (roman, letters, and default list markers)
 * smart punctuation
 * substitutions
 * [TOML][3] titleblock
@@ -27,6 +28,7 @@ It is fast and it supports the following extensions:
 * asides
 * IAL, inline attribute list
 * pay attention to the first number of ordered list, `4.` start a list with 4. instead of 1.
+* EXAMPLE_LISTS (@good) (@good)
 
 Mmark is forked from blackfriday which started out as a translation from C of [upskirt][4].
 

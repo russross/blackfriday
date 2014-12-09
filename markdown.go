@@ -175,6 +175,7 @@ type Renderer interface {
 	HRule(out *bytes.Buffer)
 	List(out *bytes.Buffer, text func() bool, flags, start int)
 	ListItem(out *bytes.Buffer, text []byte, flags int)
+//	ListExample(out *bytes.Buffer, text []byte, group []byte) // (@good) This is another list item\n(@good) another one. TODO(miek)
 	Paragraph(out *bytes.Buffer, text func() bool, flags int)
 	Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, caption []byte)
 	TableRow(out *bytes.Buffer, text []byte)
