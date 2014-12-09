@@ -55,7 +55,7 @@ func (options *Xml) IAL() *IAL       { i := options.ial; options.ial = nil; retu
 // render code chunks using verbatim, or listings if we have a language
 func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte) {
 	// Tick of language for sourcecode...
-	s := options.IAL().render()
+	s := options.IAL().String()
 	if len(caption) > 0 {
 		out.WriteString("<figure" + s + ">\n")
 		s = ""
@@ -129,28 +129,28 @@ func (options *Xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 }
 
 func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte) {
-	s := options.IAL().render()
+	s := options.IAL().String()
 	out.WriteString("<blockquote" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</blockquote>\n")
 }
 
 func (options *Xml) Abstract(out *bytes.Buffer, text []byte) {
-	s := options.IAL().render()
+	s := options.IAL().String()
 	out.WriteString("<abstract" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</abstract>\n")
 }
 
 func (options *Xml) Aside(out *bytes.Buffer, text []byte) {
-	s := options.IAL().render()
+	s := options.IAL().String()
 	out.WriteString("<aside" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</aside>\n")
 }
 
 func (options *Xml) Note(out *bytes.Buffer, text []byte) {
-	s := options.IAL().render()
+	s := options.IAL().String()
 	out.WriteString("<note" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</note>\n")
@@ -176,10 +176,17 @@ func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id st
 			out.WriteString("</section>\n")
 		}
 	}
+
+	ial := options.ial
+	if ial != nil {
+		id = ial.GetOrDefaultId(id)
+	}
+	if id != "" {
+		id = " anchor=\"" + id + "\""
+	}
+
 	// new section
-	// Clashes with IAL, need to check ID
-	options.IAL().render()
-	out.WriteString("\n<section anchor=\"" + id + "\">\n")
+	out.WriteString("\n<section" + id + "\"" + ial.String() + ">")
 	out.WriteString("<name>")
 	text() // check bool here
 	out.WriteString("</name>\n")
@@ -193,7 +200,7 @@ func (options *Xml) HRule(out *bytes.Buffer) {
 
 func (options *Xml) List(out *bytes.Buffer, text func() bool, flags, start int) {
 	marker := out.Len()
-	s := options.IAL().render()
+	s := options.IAL().String()
 	switch {
 	case flags&LIST_TYPE_ORDERED != 0:
 		if start <= 1 {
@@ -250,7 +257,7 @@ func (options *Xml) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 }
 
 func (options *Xml) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, caption []byte) {
-	s := options.IAL().render()
+	s := options.IAL().String()
 	out.WriteString("<table" + s + ">\n")
 	if caption != nil {
 		out.WriteString("<name>")
@@ -427,7 +434,7 @@ func (options *Xml) Emphasis(out *bytes.Buffer, text []byte) {
 func (options *Xml) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
 	// use title as caption is we have it
 	// check the extension of the local include to set the type of the thing.
-	s := options.IAL().render()
+	s := options.IAL().String()
 	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
 		// link to external entity
 		out.WriteString("<artwork" + s)

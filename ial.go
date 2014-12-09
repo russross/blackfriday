@@ -97,6 +97,15 @@ func (p *parser) isIAL(data []byte) int {
 	return 0
 }
 
+func parseKeyValue(chunk []byte) (string, string) {
+	chunks := bytes.SplitN(chunk, []byte{'='}, 2)
+	if len(chunks) != 2 {
+		return "", ""
+	}
+	chunks[1] = bytes.Replace(chunks[1], []byte{'"'}, nil, -1)
+	return string(chunks[0]), string(chunks[1])
+}
+
 // Add IAL to another, overwriting the #id, collapsing classes and attributes
 func (i *IAL) add(j *IAL) *IAL {
 	if i == nil {
@@ -114,9 +123,9 @@ func (i *IAL) add(j *IAL) *IAL {
 	return i
 }
 
-// renderIAL renders an IAL and returns a string that can be included in the tag:
+// String renders an IAL and returns a string that can be included in the tag:
 // class="class" anchor="id" key="value". The string s has a space as the first character.k
-func (i *IAL) render() (s string) {
+func (i *IAL) String() (s string) {
 	if i == nil {
 		return ""
 	}
@@ -151,11 +160,24 @@ func (i *IAL) render() (s string) {
 	return s
 }
 
-func parseKeyValue(chunk []byte) (string, string) {
-	chunks := bytes.SplitN(chunk, []byte{'='}, 2)
-	if len(chunks) != 2 {
-		return "", ""
+// GetOrDefaultAttr return the value under key (and delete the key from the attributes) or
+// returns the default value if the key is not found.
+func (i *IAL) GetOrDefaultAttr(key, def string) string {
+	v := i.attr[key]
+	delete(i.attr, key)
+	if v != "" {
+		return v
 	}
-	chunks[1] = bytes.Replace(chunks[1], []byte{'"'}, nil, -1)
-	return string(chunks[0]), string(chunks[1])
+	return def
+}
+
+// GetOrDefaultId return the Id or
+// returns the default value if the id not empty.
+func (i *IAL) GetOrDefaultId(id string) string {
+	if i.id != "" {
+		j := i.id
+		i.id = ""
+		return j
+	}
+	return id
 }

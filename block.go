@@ -227,7 +227,6 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			continue
 		}
 
-
 		// a numberd/ordered list:
 		//
 		// a.  Item 1
@@ -314,12 +313,14 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 			p.inline(out, data[i:end])
 			return true
 		}
-		if v, ok := p.anchors[id]; ok && p.flags&EXTENSION_UNIQUE_HEADER_IDS != 0 {
-			// anchor found
-			id += "-" + strconv.Itoa(v)
-			p.anchors[id]++
-		} else {
-			p.anchors[id] = 1
+		if id != "" {
+			if v, ok := p.anchors[id]; ok && p.flags&EXTENSION_UNIQUE_HEADER_IDS != 0 {
+				// anchor found
+				id += "-" + strconv.Itoa(v)
+				p.anchors[id]++
+			} else {
+				p.anchors[id] = 1
+			}
 		}
 
 		p.r.SetIAL(p.ial)
@@ -1529,6 +1530,9 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 				if p.flags&EXTENSION_AUTO_HEADER_IDS != 0 {
 					id = createSanitizedAnchorName(string(data[prev:eol]))
 				}
+
+				p.r.SetIAL(p.ial)
+				p.ial = nil
 
 				p.r.Header(out, work, level, id)
 

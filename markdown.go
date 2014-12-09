@@ -59,7 +59,9 @@ const (
 		EXTENSION_SPACE_HEADERS |
 		EXTENSION_HEADER_IDS
 
-	commonXmlExtensions = commonExtensions | EXTENSION_UNIQUE_HEADER_IDS
+	commonXmlExtensions = commonExtensions |
+		EXTENSION_UNIQUE_HEADER_IDS |
+		EXTENSION_AUTO_HEADER_IDS
 )
 
 // These are the possible flag values for the link renderer.

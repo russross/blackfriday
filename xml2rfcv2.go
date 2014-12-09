@@ -42,7 +42,7 @@ func (options *Xml2) IAL() *IAL       { i := options.ial; options.ial = nil; ret
 
 // render code chunks using verbatim, or listings if we have a language
 func (options *Xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte) {
-	s := options.IAL().render()
+	s := options.IAL().String()
 	if lang == "" {
 		out.WriteString("\n<figure" + s + "><artwork>\n")
 	} else {
@@ -104,7 +104,7 @@ func (options *Xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 }
 
 func (options *Xml2) BlockQuote(out *bytes.Buffer, text []byte) {
-	options.IAL().render()
+	options.IAL().String()
 	// Fake a list paragraph
 	out.WriteString("<t><list style=\"empty\">\n")
 	out.Write(text)
@@ -112,7 +112,7 @@ func (options *Xml2) BlockQuote(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Xml2) Abstract(out *bytes.Buffer, text []byte) {
-	s := options.IAL().render()
+	s := options.IAL().String()
 	out.WriteString("<abstract" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</abstract>\n")
@@ -178,10 +178,14 @@ func (options *Xml2) Header(out *bytes.Buffer, text func() bool, level int, id s
 			out.WriteString("</section>\n")
 		}
 	}
+
+	ial := options.ial
+	if ial != nil {
+		id = ial.GetOrDefaultId(id)
+	}
+
 	// new section
-	// Clashes with IAL, need to check ID
-	options.IAL().render()
-	out.WriteString("\n<section anchor=\"" + id + "\"")
+	out.WriteString("\n<section anchor=\"" + id + "\"" + ial.String())
 	out.WriteString(" title=\"")
 	text() // check bool here
 	out.WriteString("\">\n")
@@ -200,19 +204,13 @@ func (options *Xml2) List(out *bytes.Buffer, text func() bool, flags, start int)
 
 	ial := options.IAL()
 	if ial != nil {
-		style = ial.attr["style"]
-		start1 = ial.attr["start"]
-		delete(ial.attr, "style")
-		delete(ial.attr, "start")
-		s = ial.render()
-	}
-
-	if start1 == "" {
-		start1 = strconv.Itoa(start)
+		style = ial.GetOrDefaultAttr("style", "")
+		start1 = ial.GetOrDefaultAttr("start", strconv.Itoa(start))
+		s = ial.String()
 	}
 
 	marker := out.Len()
-	// inside lists we should drop the paragraph
+	// inside lists we must drop the paragraph
 	if flags&LIST_INSIDE_LIST == 0 {
 		out.WriteString("<t>\n")
 	}
@@ -299,7 +297,7 @@ func (options *Xml2) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 }
 
 func (options *Xml2) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, caption []byte) {
-	s := options.IAL().render()
+	s := options.IAL().String()
 	out.WriteString("<texttable" + s + ">\n")
 	out.Write(header)
 	out.Write(body)
@@ -444,7 +442,7 @@ func (options *Xml2) Emphasis(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Xml2) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
-	options.IAL().render()
+	options.IAL().String()
 	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
 		// treat it like a link
 		out.WriteString("\\href{")
