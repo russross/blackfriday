@@ -782,7 +782,7 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 			}
 			line = j
 		}
-		caption = data[beg+8:j-1] // +8 for 'Figure: '
+		caption = data[beg+8 : j-1] // +8 for 'Figure: '
 	}
 
 	syntax := ""
@@ -801,7 +801,7 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 
 func (p *parser) table(out *bytes.Buffer, data []byte) int {
 	var header bytes.Buffer
-	i, columns, caption := p.tableHeader(&header, data)
+	i, columns := p.tableHeader(&header, data)
 	if i == 0 {
 		return 0
 	}
@@ -824,13 +824,30 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 		i++
 		p.tableRow(&body, data[rowStart:i], columns, false)
 	}
+	caption := make([]byte, 0)
+	line := i
+	j := i
+	if bytes.HasPrefix(data[j:], []byte("Table: ")) {
+		for line < len(data) {
+			j++
+			// find the end of this line
+			for data[j-1] != '\n' {
+				j++
+			}
+			if p.isEmpty(data[line:j]) > 0 {
+				break
+			}
+			line = j
+		}
+		caption = data[i+7 : j-1] // +7 for 'Table: '
+	}
 
 	p.r.SetIAL(p.ial)
 	p.ial = nil
 
 	p.r.Table(out, header.Bytes(), body.Bytes(), columns, caption)
 
-	return i
+	return j
 }
 
 // check if the specified position is preceeded by an odd number of backslashes
@@ -842,19 +859,10 @@ func isBackslashEscaped(data []byte, i int) bool {
 	return backslashes&1 == 1
 }
 
-func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns []int, caption []byte) {
+func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns []int) {
 	i := 0
-	j := 0
 	colCount := 1
-	// Can optionally start with 'Table: '
-	if bytes.HasPrefix(data, []byte("Table: ")) {
-		for data[j] != '\n' {
-			j++
-		}
-		caption = data[7:j]
-		j++
-	}
-	for i = j; data[i] != '\n'; i++ {
+	for i = 0; data[i] != '\n'; i++ {
 		if data[i] == '|' && !isBackslashEscaped(data, i) {
 			colCount++
 		}
@@ -867,9 +875,6 @@ func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns 
 
 	// include the newline in the data sent to tableRow
 	header := data[:i+1]
-	if len(caption) != 0 {
-		header = data[len(caption)+7 : i+1]
-	}
 
 	// column count ignores pipes at beginning or end of line
 	if data[0] == '|' {
@@ -955,11 +960,7 @@ func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns 
 	}
 
 	p.tableRow(out, header, columns, true)
-	if len(caption) == 0 {
-		size = i + 1
-	} else {
-		size = i + 1 + len(caption) + 7
-	}
+	size = i + 1
 	return
 }
 
@@ -1064,7 +1065,7 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 			}
 			line = j
 		}
-		caption = data[i+8:j-1] // +8 for 'Figure: '
+		caption = data[i+8 : j-1] // +8 for 'Figure: '
 	}
 
 	// trim all the \n off the end of work

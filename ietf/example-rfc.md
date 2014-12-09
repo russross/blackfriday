@@ -71,7 +71,6 @@ This document does *not* change the presentation format of DS records.
 The resulting on-the-wire format for the resulting DS record will be as follows:
 
 {#fig:wire}
-Figure: The on-the-wire format for the DS. The length of the digest is specified in the respective RFCs defining the digest type.
                          1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -81,16 +80,17 @@ Figure: The on-the-wire format for the DS. The length of the digest is specified
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+          Digest               /
     /                                                               /
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|
+Figure: The on-the-wire format for the DS. The length of the digest is specified in the respective RFCs defining the digest type.
 
 The Denial Type is a 16 bit unsigned integer value stored in network order.
 
 ##  Example DS Record Using SHA-256 and Denial Type TBD
 
 Fenced code block
-Figure: This is a fenced code block
 ``` go
 println(hallo)
 ```
+Figure: This is a fenced code block
 
 DNSKEY record comes from the example DNSKEY/DS records found in section 5.4 of [@RFC4034].
 
@@ -130,7 +130,6 @@ This document creates a new IANA registry for Denial Types.  This
 registry is named "DNSSEC DENIAL TYPES".  The initial contents of this
 registry are:
 
-Table: As shown here.
 VALUE   |  Denial Type
 --------|-------------------
    0    |  Reserved
@@ -139,6 +138,7 @@ VALUE   |  Denial Type
    3    |  NSEC3 w/ SHA-256
    4    |  NSEC3 w/ SHA-384
 5-65535 |  Unassigned
+Table: As shown here.
 
 <!--  Miek Gieben: This is a comment -->
 

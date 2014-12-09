@@ -23,6 +23,9 @@ It is fast and it supports the following extensions:
 * including other markdown files
 * indices
 * main-, middle- and backmatter divisions
+* Table and Codeblock caption.
+    After a codeblock use: Figure: fjfjkfdjkd
+
 * citations
 * abstract
 * asides
