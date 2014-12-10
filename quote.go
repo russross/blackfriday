@@ -212,7 +212,7 @@ func (p *parser) quote(out *bytes.Buffer, data []byte) int {
 			}
 			line = j
 		}
-		p.inline(&attribution, data[beg+7 : j-1]) // +7 for 'Quote: '
+		p.inline(&attribution, data[beg+7:j-1]) // +7 for 'Quote: '
 	}
 
 	var cooked bytes.Buffer

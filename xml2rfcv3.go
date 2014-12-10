@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -144,11 +145,11 @@ func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte, attribution []byt
 	if len(attribution) != 0 {
 		parts := bytes.Split(attribution, []byte(" -- "))
 		if len(parts) == 2 {
-			quotedFrom = string(bytes.TrimSpace(parts[0]))
-			cite = string(bytes.TrimSpace(parts[1]))
-			println(quotedFrom, cite)
+			cite = string(bytes.TrimSpace(parts[0]))
+			quotedFrom = string(bytes.TrimSpace(parts[1]))
 		}
 	}
+	quotedFrom = sanitizeHTML(quotedFrom)
 	ial := options.IAL()
 	if ial != nil {
 		ial.GetOrDefaultAttr("cite", cite)
@@ -625,4 +626,10 @@ func WriteAndConvertEntity(out *bytes.Buffer, text []byte) {
 		}
 		out.WriteByte(text[i])
 	}
+}
+
+func sanitizeHTML(s string) string {
+	s1 := strings.Replace(s, "<eref target=\"", "", 1)
+	s1 = strings.Replace(s1, "\"/>", "", 1)
+	return s1
 }
