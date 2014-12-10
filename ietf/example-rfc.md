@@ -28,6 +28,7 @@ particular a digest of the **DNSKEY**, *the* algorithm used for signature of the
 When NSEC3 [@RFC5155,n 5.5] was ....
 
 > This transition method is best described as a hack.
+> Quote: this is part of the quote.
 Quote: Miek Gieben -- http://miek.nl/
 
 In this document, the key words "MUST", "MUST NOT", "REQUIRED",

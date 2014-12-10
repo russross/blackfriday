@@ -183,6 +183,8 @@ func (p *parser) quote(out *bytes.Buffer, data []byte) int {
 		if pre := p.quotePrefix(data[beg:]); pre > 0 {
 			// skip the prefix
 			beg += pre
+		} else if bytes.HasPrefix(data[beg:], []byte("Quote: ")) {
+			break
 		} else if p.isEmpty(data[beg:]) > 0 &&
 			(end >= len(data) ||
 				(p.quotePrefix(data[end:]) == 0 && p.isEmpty(data[end:]) == 0)) {
