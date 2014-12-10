@@ -188,20 +188,13 @@ Todo
 *   titleblock organisation
 *   More unit testing
 *   pretty print XML
-*   <<{{CODE}} code include from leanpub?
 *   fenced code blocks -> source code with language etc.
 *   indentend code blocks -> artwork
 *   images -> artwork, use title for caption
 *   quotes in citation for the section= attribute?
 *   cleanups - and loose a bunch of extensions, turn them on per default
-*   ordered lists with a.|| (| = space here)
-    ```
-            A.||
-            I.|| - roman
-            ii.|| roman
-    ```
-*  reduce API footprint (hide constants mainly)
-*  if some attribute is specified check if the IAL also specifies it (then overule it)
+*   reduce API footprint (hide constants mainly)
+*   if some attribute is specified check if the IAL also specifies it (then overule it)
 
 License
 -------
