@@ -4,7 +4,6 @@ package mmark
 
 import (
 	"bytes"
-	"fmt"
 	"strconv"
 	"time"
 )
@@ -25,7 +24,7 @@ type Xml2 struct {
 	docLevel     int // frontmatter/mainmatter or backmatter
 
 	// Store the IAL we see for this block element
-	ial []*IAL
+	ial *IAL
 
 	// TitleBlock in TOML
 	titleBlock *title
@@ -35,21 +34,21 @@ type Xml2 struct {
 // satisfies the Renderer interface.
 //
 // flags is a set of XML_* options ORed together
-func Xml2Renderer(flags int) Renderer        { return &Xml2{flags: flags} }
-func (options *Xml2) GetFlags() int          { return options.flags }
-func (options *Xml2) GetState() int          { return 0 }
-func (options *Xml2) SetIAL(i []*IAL)        { options.ial = append(options.ial, i...) }
-func (options *Xml2) GetAndResetIAL() []*IAL { i := options.ial; options.ial = nil; return i }
+func Xml2Renderer(flags int) Renderer { return &Xml2{flags: flags} }
+func (options *Xml2) GetFlags() int   { return options.flags }
+func (options *Xml2) GetState() int   { return 0 }
+func (options *Xml2) SetIAL(i *IAL)   { options.ial = i }
+func (options *Xml2) IAL() *IAL       { i := options.ial; options.ial = nil; return i }
 
 // render code chunks using verbatim, or listings if we have a language
 func (options *Xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte) {
-	s := renderIAL(options.GetAndResetIAL())
+	s := options.IAL().String()
 	if lang == "" {
 		out.WriteString("\n<figure" + s + "><artwork>\n")
 	} else {
 		out.WriteString("\n<figure" + s + "><artwork>\n")
 	}
-	out.Write(text)
+	WriteAndConvertEntity(out, text)
 	if lang == "" {
 		out.WriteString("</artwork></figure>\n")
 	} else {
@@ -77,7 +76,17 @@ func (options *Xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 
 		out.WriteString("<organization>" + a.Organization + "</organization>\n")
 		out.WriteString("<address>\n")
+
+		out.WriteString("<postal>\n")
+		out.WriteString("<street>" + a.Address.Postal.Street + "</street>\n") // street is a list?
+		out.WriteString("<city>" + a.Address.Postal.City + "</city>\n")
+		out.WriteString("<code>" + a.Address.Postal.Code + "</code>\n")
+		out.WriteString("<country>" + a.Address.Postal.Country + "</country>\n")
+		out.WriteString("</postal>\n")
+
 		out.WriteString("<email>" + a.Address.Email + "</email>\n")
+		out.WriteString("<uri>" + a.Address.Uri + "</uri>\n")
+
 		out.WriteString("</address>\n")
 		out.WriteString("</author>\n")
 	}
@@ -105,7 +114,7 @@ func (options *Xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 }
 
 func (options *Xml2) BlockQuote(out *bytes.Buffer, text []byte) {
-	renderIAL(options.GetAndResetIAL())
+	options.IAL().String()
 	// Fake a list paragraph
 	out.WriteString("<t><list style=\"empty\">\n")
 	out.Write(text)
@@ -113,7 +122,7 @@ func (options *Xml2) BlockQuote(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Xml2) Abstract(out *bytes.Buffer, text []byte) {
-	s := renderIAL(options.GetAndResetIAL())
+	s := options.IAL().String()
 	out.WriteString("<abstract" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</abstract>\n")
@@ -148,18 +157,16 @@ func (options *Xml2) CommentHtml(out *bytes.Buffer, text []byte) {
 			break
 		}
 	}
+	// don't output a cref if it is not name: remark
 	if len(source) != 0 {
-		if source[0] == ' ' {
-			source = source[1:]
-		}
+		source = bytes.TrimSpace(source)
+		text = bytes.TrimSpace(text)
 		out.WriteString("<t><cref source=\"")
 		out.Write(source)
 		out.WriteString("\">")
-	} else {
-		out.WriteString("<t><cref>\n")
+		out.Write(text)
+		out.WriteString("</cref></t>\n")
 	}
-	out.Write(text)
-	out.WriteString("</cref></t>\n")
 	return
 }
 
@@ -179,10 +186,14 @@ func (options *Xml2) Header(out *bytes.Buffer, text func() bool, level int, id s
 			out.WriteString("</section>\n")
 		}
 	}
+
+	ial := options.ial
+	if ial != nil {
+		id = ial.GetOrDefaultId(id)
+	}
+
 	// new section
-	// Clashes with IAL, need to check ID
-	renderIAL(options.GetAndResetIAL()) // Clear IAL here, so it will not pile up for following items
-	out.WriteString("\n<section anchor=\"" + id + "\"")
+	out.WriteString("\n<section anchor=\"" + id + "\"" + ial.String())
 	out.WriteString(" title=\"")
 	text() // check bool here
 	out.WriteString("\">\n")
@@ -195,20 +206,43 @@ func (options *Xml2) HRule(out *bytes.Buffer) {
 }
 
 func (options *Xml2) List(out *bytes.Buffer, text func() bool, flags, start int) {
-	marker := out.Len()
-	s := renderIAL(options.GetAndResetIAL())
+	style := ""
+	start1 := ""
+	s := ""
 
-	// inside lists we should drop the paragraph
+	ial := options.IAL()
+	if ial != nil {
+		style = ial.GetOrDefaultAttr("style", "")
+		start1 = ial.GetOrDefaultAttr("start", strconv.Itoa(start))
+		s = ial.String()
+	}
+
+	marker := out.Len()
+	// inside lists we must drop the paragraph
 	if flags&LIST_INSIDE_LIST == 0 {
 		out.WriteString("<t>\n")
 	}
 
 	switch {
 	case flags&LIST_TYPE_ORDERED != 0:
-		if start <= 1 {
-			out.WriteString("<list style=\"numbers\"" + s + ">\n")
-		} else {
-			out.WriteString(fmt.Sprintf("<list style=\"numbers\""+s+" start=\"%d\">\n", start))
+		switch {
+		case flags&LIST_TYPE_ORDERED_ALPHA_LOWER != 0:
+			out.WriteString("<list style=\"format %c\">")
+		case flags&LIST_TYPE_ORDERED_ALPHA_UPPER != 0:
+			out.WriteString("<list style=\"format %C\">")
+		case flags&LIST_TYPE_ORDERED_ROMAN_LOWER != 0:
+			out.WriteString("<list style=\"format %i\">")
+		case flags&LIST_TYPE_ORDERED_ROMAN_UPPER != 0:
+			out.WriteString("<list style=\"format %I\">")
+		default:
+			if style == "" {
+				style = "numbers"
+			}
+			if start1 == "" {
+				out.WriteString("<list style=\"" + style + "\"" + s + ">\n")
+			} else {
+				out.WriteString("<list style=\"" + style + "\"" + s + " start=\"" + start1 + "\">\n")
+			}
 		}
 	case flags&LIST_TYPE_DEFINITION != 0:
 		out.WriteString("<list style=\"hanging\"" + s + ">\n")
@@ -258,20 +292,20 @@ func (options *Xml2) ListItem(out *bytes.Buffer, text []byte, flags int) {
 // Needs flags int, for in-list-detection xml2rfc v2
 func (options *Xml2) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
-	if flags&LIST_TYPE_DEFINITION == 0 {
+	if flags&LIST_TYPE_DEFINITION == 0 && flags&LIST_INSIDE_LIST == 0 {
 		out.WriteString("<t>")
 	}
 	if !text() {
 		out.Truncate(marker)
 		return
 	}
-	if flags&LIST_TYPE_DEFINITION == 0 {
+	if flags&LIST_TYPE_DEFINITION == 0 && flags&LIST_INSIDE_LIST == 0 {
 		out.WriteString("</t>\n")
 	}
 }
 
 func (options *Xml2) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, caption []byte) {
-	s := renderIAL(options.GetAndResetIAL())
+	s := options.IAL().String()
 	out.WriteString("<texttable" + s + ">\n")
 	out.Write(header)
 	out.Write(body)
@@ -327,7 +361,7 @@ func (options *Xml2) Citation(out *bytes.Buffer, link, title []byte) {
 }
 
 func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citation) {
-	if options.flags&XML_STANDALONE == 0 {
+	if options.flags&XML2_STANDALONE == 0 {
 		return
 	}
 	// close any option section tags
@@ -399,7 +433,7 @@ func (options *Xml2) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 
 func (options *Xml2) CodeSpan(out *bytes.Buffer, text []byte) {
 	out.WriteString("<spanx style=\"verb\">")
-	convertEntity(out, text)
+	WriteAndConvertEntity(out, text)
 	out.WriteString("</spanx>")
 }
 
@@ -416,7 +450,7 @@ func (options *Xml2) Emphasis(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Xml2) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
-	renderIAL(options.GetAndResetIAL()) // TODO(miek): useful?
+	options.IAL().String()
 	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
 		// treat it like a link
 		out.WriteString("\\href{")

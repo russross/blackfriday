@@ -2,26 +2,31 @@
 
 package mmark
 
+import "bytes"
 import (
-	"bytes"
+	"sort"
+	"strings"
 )
 
 // One or more of these can be attached to block elements
 
 type IAL struct {
 	id    string            // #id
-	class []string          // 0 or more .class
+	class map[string]bool   // 0 or more .class
 	attr  map[string]string // key=value pairs
+}
+
+func newIAL() *IAL {
+	return &IAL{class: make(map[string]bool), attr: make(map[string]string)}
 }
 
 // Parsing and thus detecting an IAL. Return a valid *IAL or nil.
 // IAL can have #id, .class or key=value element seperated by spaces, that may be escaped
-// TODO(miek): don't parse this in code blocks
 func (p *parser) isIAL(data []byte) int {
 	esc := false
 	quote := false
 	ialB := 0
-	ial := &IAL{attr: make(map[string]string)}
+	ial := newIAL()
 	for i := 0; i < len(data); i++ {
 		switch data[i] {
 		case ' ':
@@ -35,7 +40,7 @@ func (p *parser) isIAL(data []byte) int {
 			}
 			switch {
 			case chunk[0] == '.':
-				ial.class = append(ial.class, string(chunk[1:]))
+				ial.class[string(chunk[1:])] = true
 			case chunk[0] == '#':
 				ial.id = string(chunk[1:])
 			default:
@@ -70,11 +75,11 @@ func (p *parser) isIAL(data []byte) int {
 			}
 			chunk := data[ialB+1 : i]
 			if len(chunk) == 0 {
-				return i+1
+				return i + 1
 			}
 			switch {
 			case chunk[0] == '.':
-				ial.class = append(ial.class, string(chunk[1:]))
+				ial.class[string(chunk[1:])] = true
 			case chunk[0] == '#':
 				ial.id = string(chunk[1:])
 			default:
@@ -83,52 +88,13 @@ func (p *parser) isIAL(data []byte) int {
 					ial.attr[k] = v
 				}
 			}
-			p.ial = append(p.ial, ial)
+			p.ial = p.ial.add(ial)
 			return i + 1
 		default:
 			esc = false
 		}
 	}
 	return 0
-}
-
-// renderIAL renders an IAL and returns a string that can be included in the tag:
-// class="class" anchor="id" key="value"
-func renderIAL(i []*IAL) string {
-	anchor := ""
-	class := ""
-	attr := ""
-	for _, i1 := range i {
-		if i1.id != "" {
-			anchor = "anchor=\"" + i1.id + "\""
-		}
-		for _, c1 := range i1.class {
-			if class == "" {
-				class += c1
-				continue
-			}
-			class += " " + c1
-		}
-		for k, v := range i1.attr {
-			if attr == "" {
-				attr = k + "=\"" + v + "\""
-				continue
-			}
-			attr += " " + k + "=\"" + v + "\""
-
-		}
-	}
-	s := ""
-	if anchor != "" {
-		s = " " + anchor
-	}
-	if class != "" {
-		s += " class=\"" + class + "\""
-	}
-	if attr != "" {
-		s += " " + attr
-	}
-	return s
 }
 
 func parseKeyValue(chunk []byte) (string, string) {
@@ -138,4 +104,80 @@ func parseKeyValue(chunk []byte) (string, string) {
 	}
 	chunks[1] = bytes.Replace(chunks[1], []byte{'"'}, nil, -1)
 	return string(chunks[0]), string(chunks[1])
+}
+
+// Add IAL to another, overwriting the #id, collapsing classes and attributes
+func (i *IAL) add(j *IAL) *IAL {
+	if i == nil {
+		return j
+	}
+	if j.id != "" {
+		i.id = j.id
+	}
+	for k, c := range j.class {
+		i.class[k] = c
+	}
+	for k, a := range j.attr {
+		i.attr[k] = a
+	}
+	return i
+}
+
+// String renders an IAL and returns a string that can be included in the tag:
+// class="class" anchor="id" key="value". The string s has a space as the first character.k
+func (i *IAL) String() (s string) {
+	if i == nil {
+		return ""
+	}
+
+	// some fluff needed to make this all sorted.
+	if i.id != "" {
+		s = " anchor=\"" + i.id + "\""
+	}
+
+	keys := make([]string, 0, len(i.class))
+	for k, _ := range i.class {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	if len(keys) > 0 {
+		s += " class=\"" + strings.Join(keys, " ") + "\""
+	}
+
+	keys = keys[:0]
+	for k, _ := range i.attr {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	attr := make([]string, len(keys))
+	for j, k := range keys {
+		v := i.attr[k]
+		attr[j] = k + "=\"" + v + "\""
+	}
+	if len(keys) > 0 {
+		s += " " + strings.Join(attr, " ")
+	}
+	return s
+}
+
+// GetOrDefaultAttr return the value under key (and delete the key from the attributes) or
+// returns the default value if the key is not found.
+func (i *IAL) GetOrDefaultAttr(key, def string) string {
+	v := i.attr[key]
+	delete(i.attr, key)
+	if v != "" {
+		return v
+	}
+	return def
+}
+
+// GetOrDefaultId return the Id or
+// returns the default value if the id not empty.
+func (i *IAL) GetOrDefaultId(id string) string {
+	if i.id != "" {
+		j := i.id
+		i.id = ""
+		return j
+	}
+	return id
 }

@@ -36,7 +36,7 @@ type Xml struct {
 	docLevel     int // frontmatter/mainmatter or backmatter
 
 	// Store the IAL we see for this block element
-	ial []*IAL
+	ial *IAL
 
 	// TitleBlock in TOML
 	titleBlock *title
@@ -46,16 +46,22 @@ type Xml struct {
 // satisfies the Renderer interface.
 //
 // flags is a set of XML_* options ORed together
-func XmlRenderer(flags int) Renderer        { return &Xml{flags: flags} }
-func (options *Xml) GetFlags() int          { return options.flags }
-func (options *Xml) GetState() int          { return 0 }
-func (options *Xml) SetIAL(i []*IAL)        { options.ial = append(options.ial, i...) }
-func (options *Xml) GetAndResetIAL() []*IAL { i := options.ial; options.ial = nil; return i }
+func XmlRenderer(flags int) Renderer { return &Xml{flags: flags} }
+func (options *Xml) GetFlags() int   { return options.flags }
+func (options *Xml) GetState() int   { return 0 }
+func (options *Xml) SetIAL(i *IAL)   { options.ial = i }
+func (options *Xml) IAL() *IAL       { i := options.ial; options.ial = nil; return i }
 
 // render code chunks using verbatim, or listings if we have a language
 func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte) {
+	s := ""
 	// Tick of language for sourcecode...
-	s := renderIAL(options.GetAndResetIAL())
+	ial := options.IAL()
+	if ial != nil {
+		lang = ial.GetOrDefaultAttr("type", lang)
+		s = ial.String()
+	}
+
 	if len(caption) > 0 {
 		out.WriteString("<figure" + s + ">\n")
 		s = ""
@@ -67,13 +73,14 @@ func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string, capti
 	if lang == "" {
 		out.WriteString("<artwork" + s + ">\n")
 	} else {
-		out.WriteString("\n<sourcecode" + s + "type=\"" + lang + "\">\n")
+		out.WriteString("\n<sourcecode" + s + " type=\"" + lang + "\">\n")
 	}
-	out.Write(text)
+	WriteAndConvertEntity(out, text)
+
 	if lang == "" {
 		out.WriteString("</artwork>\n")
 	} else {
-		out.WriteString("</sourcode>\n")
+		out.WriteString("</sourcecode>\n")
 	}
 	if len(caption) > 0 {
 		out.WriteString("</figure>\n")
@@ -129,34 +136,65 @@ func (options *Xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 }
 
 func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte) {
-	s := renderIAL(options.GetAndResetIAL())
+	s := options.IAL().String()
 	out.WriteString("<blockquote" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</blockquote>\n")
 }
 
 func (options *Xml) Abstract(out *bytes.Buffer, text []byte) {
-	s := renderIAL(options.GetAndResetIAL())
+	s := options.IAL().String()
 	out.WriteString("<abstract" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</abstract>\n")
 }
 
 func (options *Xml) Aside(out *bytes.Buffer, text []byte) {
-	s := renderIAL(options.GetAndResetIAL())
+	s := options.IAL().String()
 	out.WriteString("<aside" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</aside>\n")
 }
 
 func (options *Xml) Note(out *bytes.Buffer, text []byte) {
-	s := renderIAL(options.GetAndResetIAL())
+	s := options.IAL().String()
 	out.WriteString("<note" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</note>\n")
 }
 
 func (options *Xml) CommentHtml(out *bytes.Buffer, text []byte) {
+	// nothing fancy any left of the first `:` will be used as the source="..."
+	// if the syntax is different, don't output anything.
+	i := bytes.Index(text, []byte("-->"))
+	if i > 0 {
+		text = text[:i]
+	}
+	// strip, <!--
+	text = text[4:]
+
+	var source []byte
+	l := len(text)
+	if l > 20 {
+		l = 20
+	}
+	for i := 0; i < l; i++ {
+		if text[i] == ':' {
+			source = text[:i]
+			text = text[i+1:]
+			break
+		}
+	}
+	// don't output a cref if it is not name: remark
+	if len(source) != 0 {
+		source = bytes.TrimSpace(source)
+		text = bytes.TrimSpace(text)
+		out.WriteString("<t><cref source=\"")
+		out.Write(source)
+		out.WriteString("\">")
+		out.Write(text)
+		out.WriteString("</cref></t>\n")
+	}
 	return
 }
 
@@ -176,10 +214,17 @@ func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id st
 			out.WriteString("</section>\n")
 		}
 	}
+
+	ial := options.ial
+	if ial != nil {
+		id = ial.GetOrDefaultId(id)
+	}
+	if id != "" {
+		id = " anchor=\"" + id + "\""
+	}
+
 	// new section
-	// Clashes with IAL, need to check ID
-	renderIAL(options.GetAndResetIAL()) // Clear IAL here, so it will not pile up for following items
-	out.WriteString("\n<section anchor=\"" + id + "\">\n")
+	out.WriteString("\n<section" + id + ial.String() + ">")
 	out.WriteString("<name>")
 	text() // check bool here
 	out.WriteString("</name>\n")
@@ -193,7 +238,7 @@ func (options *Xml) HRule(out *bytes.Buffer) {
 
 func (options *Xml) List(out *bytes.Buffer, text func() bool, flags, start int) {
 	marker := out.Len()
-	s := renderIAL(options.GetAndResetIAL())
+	s := options.IAL().String()
 	switch {
 	case flags&LIST_TYPE_ORDERED != 0:
 		if start <= 1 {
@@ -250,7 +295,7 @@ func (options *Xml) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 }
 
 func (options *Xml) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, caption []byte) {
-	s := renderIAL(options.GetAndResetIAL())
+	s := options.IAL().String()
 	out.WriteString("<table" + s + ">\n")
 	if caption != nil {
 		out.WriteString("<name>")
@@ -384,7 +429,11 @@ func referenceFile(c *citation) string {
 	case "RFC":
 		return "reference.RFC." + string(c.link[3:]) + ".xml"
 	case "I-D":
-		return "reference.I-D.draft-" + string(c.link[4:]) + ".xml"
+		seq := ""
+		if c.seq != -1 {
+			seq = "-" + fmt.Sprintf("%02d", c.seq)
+		}
+		return "reference.I-D.draft-" + string(c.link[4:]) + seq + ".xml"
 	}
 	return ""
 }
@@ -400,7 +449,7 @@ func (options *Xml) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 
 func (options *Xml) CodeSpan(out *bytes.Buffer, text []byte) {
 	out.WriteString("<tt>")
-	convertEntity(out, text)
+	WriteAndConvertEntity(out, text)
 	out.WriteString("</tt>")
 }
 
@@ -427,7 +476,7 @@ func (options *Xml) Emphasis(out *bytes.Buffer, text []byte) {
 func (options *Xml) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
 	// use title as caption is we have it
 	// check the extension of the local include to set the type of the thing.
-	s := renderIAL(options.GetAndResetIAL())
+	s := options.IAL().String()
 	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
 		// link to external entity
 		out.WriteString("<artwork" + s)
@@ -519,6 +568,9 @@ func (options *Xml) DocumentFooter(out *bytes.Buffer, first bool) {
 }
 
 func (options *Xml) DocumentMatter(out *bytes.Buffer, matter int) {
+	if options.flags&XML_STANDALONE == 0 {
+		return
+	}
 	// we default to frontmatter already openened in the documentHeader
 	for i := options.sectionLevel; i > 0; i-- {
 		out.WriteString("</section>\n")
@@ -544,7 +596,7 @@ var entityConvert = map[byte]string{
 	'&': "&amp;",
 }
 
-func convertEntity(out *bytes.Buffer, text []byte) {
+func WriteAndConvertEntity(out *bytes.Buffer, text []byte) {
 	for i := 0; i < len(text); i++ {
 		if s, ok := entityConvert[text[i]]; ok {
 			out.WriteString(s)

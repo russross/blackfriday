@@ -227,7 +227,6 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			continue
 		}
 
-
 		// a numberd/ordered list:
 		//
 		// a.  Item 1
@@ -314,12 +313,14 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 			p.inline(out, data[i:end])
 			return true
 		}
-		if v, ok := p.anchors[id]; ok && p.flags&EXTENSION_UNIQUE_HEADER_IDS != 0 {
-			// anchor found
-			id += "-" + strconv.Itoa(v)
-			p.anchors[id]++
-		} else {
-			p.anchors[id] = 1
+		if id != "" {
+			if v, ok := p.anchors[id]; ok && p.flags&EXTENSION_UNIQUE_HEADER_IDS != 0 {
+				// anchor found
+				id += "-" + strconv.Itoa(v)
+				p.anchors[id]++
+			} else {
+				p.anchors[id] = 1
+			}
 		}
 
 		p.r.SetIAL(p.ial)
@@ -766,6 +767,23 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 		}
 		beg = end
 	}
+	caption := make([]byte, 0)
+	line := beg
+	j := beg
+	if bytes.HasPrefix(data[j:], []byte("Figure: ")) {
+		for line < len(data) {
+			j++
+			// find the end of this line
+			for data[j-1] != '\n' {
+				j++
+			}
+			if p.isEmpty(data[line:j]) > 0 {
+				break
+			}
+			line = j
+		}
+		caption = data[beg+8 : j-1] // +8 for 'Figure: '
+	}
 
 	syntax := ""
 	if lang != nil {
@@ -775,15 +793,15 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 	if doRender {
 		p.r.SetIAL(p.ial)
 		p.ial = nil
-		p.r.BlockCode(out, work.Bytes(), syntax, nil)
+		p.r.BlockCode(out, work.Bytes(), syntax, caption)
 	}
 
-	return beg
+	return j
 }
 
 func (p *parser) table(out *bytes.Buffer, data []byte) int {
 	var header bytes.Buffer
-	i, columns, caption := p.tableHeader(&header, data)
+	i, columns := p.tableHeader(&header, data)
 	if i == 0 {
 		return 0
 	}
@@ -806,13 +824,30 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 		i++
 		p.tableRow(&body, data[rowStart:i], columns, false)
 	}
+	caption := make([]byte, 0)
+	line := i
+	j := i
+	if bytes.HasPrefix(data[j:], []byte("Table: ")) {
+		for line < len(data) {
+			j++
+			// find the end of this line
+			for data[j-1] != '\n' {
+				j++
+			}
+			if p.isEmpty(data[line:j]) > 0 {
+				break
+			}
+			line = j
+		}
+		caption = data[i+7 : j-1] // +7 for 'Table: '
+	}
 
 	p.r.SetIAL(p.ial)
 	p.ial = nil
 
 	p.r.Table(out, header.Bytes(), body.Bytes(), columns, caption)
 
-	return i
+	return j
 }
 
 // check if the specified position is preceeded by an odd number of backslashes
@@ -824,19 +859,10 @@ func isBackslashEscaped(data []byte, i int) bool {
 	return backslashes&1 == 1
 }
 
-func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns []int, caption []byte) {
+func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns []int) {
 	i := 0
-	j := 0
 	colCount := 1
-	// Can optionally start with 'Table: '
-	if bytes.HasPrefix(data, []byte("Table: ")) {
-		for data[j] != '\n' {
-			j++
-		}
-		caption = data[7:j]
-		j++
-	}
-	for i = j; data[i] != '\n'; i++ {
+	for i = 0; data[i] != '\n'; i++ {
 		if data[i] == '|' && !isBackslashEscaped(data, i) {
 			colCount++
 		}
@@ -849,9 +875,6 @@ func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns 
 
 	// include the newline in the data sent to tableRow
 	header := data[:i+1]
-	if len(caption) != 0 {
-		header = data[len(caption)+7 : i+1]
-	}
 
 	// column count ignores pipes at beginning or end of line
 	if data[0] == '|' {
@@ -937,11 +960,7 @@ func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns 
 	}
 
 	p.tableRow(out, header, columns, true)
-	if len(caption) == 0 {
-		size = i + 1
-	} else {
-		size = i + 1 + len(caption) + 7
-	}
+	size = i + 1
 	return
 }
 
@@ -999,9 +1018,6 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 
 // returns prefix length for block code
 func (p *parser) codePrefix(data []byte) int {
-	if bytes.HasPrefix(data, []byte("Code: ")) {
-		return 4
-	}
 	if data[0] == ' ' && data[1] == ' ' && data[2] == ' ' && data[3] == ' ' {
 		return 4
 	}
@@ -1010,16 +1026,7 @@ func (p *parser) codePrefix(data []byte) int {
 
 func (p *parser) code(out *bytes.Buffer, data []byte) int {
 	var work bytes.Buffer
-	// Can optionally start with 'Code: '
-	caption := make([]byte, 0)
-	j := 0
-	if bytes.HasPrefix(data, []byte("Code: ")) {
-		for data[j] != '\n' {
-			j++
-		}
-		caption = data[6:j]
-	}
-	i := j
+	i := 0
 	for i < len(data) {
 		beg := i
 		for data[i] != '\n' {
@@ -1043,6 +1050,23 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 			work.Write(data[beg:i])
 		}
 	}
+	caption := make([]byte, 0)
+	line := i
+	j := i
+	if bytes.HasPrefix(data[j:], []byte("Figure: ")) {
+		for line < len(data) {
+			j++
+			// find the end of this line
+			for data[j-1] != '\n' {
+				j++
+			}
+			if p.isEmpty(data[line:j]) > 0 {
+				break
+			}
+			line = j
+		}
+		caption = data[i+8 : j-1] // +8 for 'Figure: '
+	}
 
 	// trim all the \n off the end of work
 	workbytes := work.Bytes()
@@ -1061,7 +1085,7 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 
 	p.r.BlockCode(out, work.Bytes(), "", caption)
 
-	return i
+	return j
 }
 
 // returns unordered list item prefix
@@ -1076,8 +1100,8 @@ func (p *parser) uliPrefix(data []byte) int {
 		i++
 	}
 
-	// need a *, +, or - followed by a space
-	if (data[i] != '*' && data[i] != '+' && data[i] != '-') ||
+	// need a *, +, #, or - followed by a space
+	if (data[i] != '*' && data[i] != '+' && data[i] != '-' && data[i] != ' ') ||
 		data[i+1] != ' ' {
 		return 0
 	}
@@ -1474,11 +1498,14 @@ func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 		return true
 	}
 
+	flags := 0
 	if p.insideDefinitionList {
-		p.r.Paragraph(out, work, LIST_TYPE_DEFINITION)
-		return
+		flags |= LIST_TYPE_DEFINITION
 	}
-	p.r.Paragraph(out, work, 0)
+	if p.insideList > 0 {
+		flags |= LIST_INSIDE_LIST // Not really, just in a list
+	}
+	p.r.Paragraph(out, work, flags)
 }
 
 func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
@@ -1529,6 +1556,9 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 				if p.flags&EXTENSION_AUTO_HEADER_IDS != 0 {
 					id = createSanitizedAnchorName(string(data[prev:eol]))
 				}
+
+				p.r.SetIAL(p.ial)
+				p.ial = nil
 
 				p.r.Header(out, work, level, id)
 

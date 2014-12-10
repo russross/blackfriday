@@ -32,16 +32,15 @@ const (
 	EXTENSION_TAB_SIZE_EIGHT                         // expand tabs to eight spaces instead of four
 	EXTENSION_FOOTNOTES                              // Pandoc-style footnotes
 	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK             // No need to insert an empty line to start a (code, quote, order list, unorder list)block
-	EXTENSION_HEADER_IDS                             // specify header IDs  with {#id}
+	EXTENSION_HEADER_IDS                             // specify header IDs with {#id}
 	EXTENSION_UNIQUE_HEADER_IDS                      // When detecting identical anchors add a sequence number -1, -2 etc.
 	EXTENSION_TITLEBLOCK_TOML                        // Titleblock in TOML
 	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text
 	EXTENSION_INCLUDE                                // Include file with {{ syntax
 	EXTENSION_INDEX                                  // Support index with ((( syntax
 	EXTENSION_CITATION                               // Support citations via the link syntax
-	EXTENSION_QUOTES                                 // Allow AB> A> and N> to be parsed as abstract, asides and notes (and F>) (TODO(miek): use this
-	EXTENSION_TABLE_QUOTES                           // Detect T> for tables a so a name and caption can be given just like for figure (F>)
-	EXTENSION_IAL                                    // detect kramdown's IAL syntax
+	EXTENSION_QUOTES                                 // Allow A> AS> and N> to be parsed as abstract, asides and notes (and F>) (TODO(miek): use this
+	EXTENSION_IAL                                    // detect CommonMark's IAL syntax (copied from kramdown)
 	EXTENSION_MATTER                                 // use {frontmatter} {mainmatter} {backmatter}
 
 	commonHtmlFlags = 0 |
@@ -59,7 +58,9 @@ const (
 		EXTENSION_SPACE_HEADERS |
 		EXTENSION_HEADER_IDS
 
-	commonXmlExtensions = commonExtensions | EXTENSION_UNIQUE_HEADER_IDS
+	commonXmlExtensions = commonExtensions |
+		EXTENSION_UNIQUE_HEADER_IDS |
+		EXTENSION_AUTO_HEADER_IDS
 )
 
 // These are the possible flag values for the link renderer.
@@ -173,6 +174,7 @@ type Renderer interface {
 	HRule(out *bytes.Buffer)
 	List(out *bytes.Buffer, text func() bool, flags, start int)
 	ListItem(out *bytes.Buffer, text []byte, flags int)
+	//	ListExample(out *bytes.Buffer, text []byte, group []byte) // (@good) This is another list item\n(@good) another one. TODO(miek)
 	Paragraph(out *bytes.Buffer, text func() bool, flags int)
 	Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, caption []byte)
 	TableRow(out *bytes.Buffer, text []byte)
@@ -216,8 +218,8 @@ type Renderer interface {
 	GetFlags() int
 
 	// Don't like the names... Also GetFlags() -> Flags()
-	SetIAL([]*IAL)
-	GetAndResetIAL() []*IAL
+	SetIAL(*IAL)
+	IAL() *IAL
 }
 
 // Callback functions for inline parsing. One such function is defined
@@ -236,7 +238,7 @@ type parser struct {
 	maxNesting           int
 	insideLink           bool
 	insideDefinitionList bool // when in def. list ... TODO(miek)
-	insideList	     int  // list in list counter
+	insideList           int  // list in list counter
 
 	// Don't need to save, kill current titleblock
 	titleblock title
@@ -244,10 +246,11 @@ type parser struct {
 	// Footnotes need to be ordered as well as available to quickly check for
 	// presence. If a ref is also a footnote, it's stored both in refs and here
 	// in notes. Slice is nil if footnotes not enabled.
-	notes []*reference
+	notes    []*reference
+	appendix bool // have we seen a {backmatter}?
 
-	// Placeholder for IALs that can be added to blocklevel elements.
-	ial []*IAL
+	// Placeholder IAL that can be added to blocklevel elements.
+	ial *IAL
 
 	// Prevent identical header anchors by appending -<sequence_number> starting
 	// with -1, this is the same thing that pandoc does.
@@ -459,6 +462,12 @@ func secondPass(p *parser, input []byte, depth int) []byte {
 			return true
 		})
 	}
+	if !p.appendix {
+		// appendix not started in doc, start it now and output references
+		p.r.DocumentMatter(&output, DOC_BACK_MATTER)
+		p.r.References(&output, p.citations)
+		p.appendix = true
+	}
 	p.r.DocumentFooter(&output, depth == 0)
 
 	if p.nesting != 0 {
@@ -511,6 +520,7 @@ type citation struct {
 	title    []byte
 	filename []byte
 	typ      byte // 'i' for informal, 'n' normative (default = 'i')
+	seq	 int  // sequence number for I-Ds
 }
 
 // Check whether or not data starts with a reference link.

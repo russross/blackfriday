@@ -16,23 +16,28 @@ It is fast and it supports the following extensions:
 
 * tables
 * definition lists
+    lists markers: all from pandoc (roman, letters, and default list markers)
 * smart punctuation
 * substitutions
 * [TOML][3] titleblock
 * including other markdown files
 * indices
 * main-, middle- and backmatter divisions
+* Table and Codeblock caption.
+    After a codeblock use: Figure: fjfjkfdjkd
+* escaping chars (as in pandoc?)
 * citations
 * abstract
 * asides
 * IAL, inline attribute list
 * pay attention to the first number of ordered list, `4.` start a list with 4. instead of 1.
+* EXAMPLE_LISTS (@good) (@good)
 
 Mmark is forked from blackfriday which started out as a translation from C of [upskirt][4].
 
 ## Enviroment variables?
 
-`MMARK_REFDIR`: is set prefix 
+`MMARK_REFDIR`: is set prefix
 `MMARK_REFONLINE`, use online references
 
 ## Usage
@@ -185,13 +190,11 @@ Todo
 ----
 
 *   Check outputted XML for wellformedness
-*   titleblock organisation
 *   More unit testing
 *   pretty print XML
 *   fenced code blocks -> source code with language etc.
 *   indentend code blocks -> artwork
 *   images -> artwork, use title for caption
-*   quotes in citation for the section= attribute?
 *   cleanups - and loose a bunch of extensions, turn them on per default
 *   reduce API footprint (hide constants mainly)
 *   if some attribute is specified check if the IAL also specifies it (then overule it)
