@@ -215,7 +215,6 @@ func (p *parser) quote(out *bytes.Buffer, data []byte) int {
 		p.inline(&attribution, data[beg+7 : j-1]) // +7 for 'Quote: '
 	}
 
-	// TODO(inline element in attribution)
 	var cooked bytes.Buffer
 	p.block(&cooked, raw.Bytes())
 

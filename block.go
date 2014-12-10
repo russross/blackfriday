@@ -325,6 +325,7 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 
 		p.r.SetIAL(p.ial)
 		p.ial = nil
+
 		p.r.Header(out, work, level, id)
 	}
 	return skip
@@ -510,6 +511,9 @@ func (p *parser) htmlComment(out *bytes.Buffer, data []byte, doRender bool) int 
 			for end > 0 && data[end-1] == '\n' {
 				end--
 			}
+			p.r.SetIAL(p.ial)
+			p.ial = nil
+
 			p.r.CommentHtml(out, data[:end])
 		}
 		return size
@@ -793,6 +797,7 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 	if doRender {
 		p.r.SetIAL(p.ial)
 		p.ial = nil
+
 		p.r.BlockCode(out, work.Bytes(), syntax, caption.Bytes())
 	}
 

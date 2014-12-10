@@ -136,11 +136,28 @@ func (options *Xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 }
 
 func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte, attribution []byte) {
-	s := options.IAL().String()
+	// check for "person -- URI" syntax use those if found
+	// need to strip tags because these are attributes
+	quotedFrom := ""
+	cite := ""
+	s := ""
 	if len(attribution) != 0 {
-		// check s as well
-		// Person -- URI
+		parts := bytes.Split(attribution, []byte(" -- "))
+		if len(parts) == 2 {
+			quotedFrom = string(bytes.TrimSpace(parts[0]))
+			cite = string(bytes.TrimSpace(parts[1]))
+			println(quotedFrom, cite)
+		}
 	}
+	ial := options.IAL()
+	if ial != nil {
+		ial.GetOrDefaultAttr("cite", cite)
+		ial.GetOrDefaultAttr("quotedFrom", quotedFrom)
+		s = options.IAL().String()
+	} else {
+		s = " quotedFrom=\"" + quotedFrom + "\" cite=\"" + cite + "\""
+	}
+
 	out.WriteString("<blockquote" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</blockquote>\n")
