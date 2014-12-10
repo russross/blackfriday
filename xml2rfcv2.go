@@ -113,7 +113,7 @@ func (options *Xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	out.WriteString("\n")
 }
 
-func (options *Xml2) BlockQuote(out *bytes.Buffer, text []byte) {
+func (options *Xml2) BlockQuote(out *bytes.Buffer, text []byte, attribution []byte) {
 	options.IAL().String()
 	// Fake a list paragraph
 	out.WriteString("<t><list style=\"empty\">\n")
@@ -129,11 +129,11 @@ func (options *Xml2) Abstract(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Xml2) Aside(out *bytes.Buffer, text []byte) {
-	options.BlockQuote(out, text)
+	options.BlockQuote(out, text, nil)
 }
 
 func (options *Xml2) Note(out *bytes.Buffer, text []byte) {
-	options.BlockQuote(out, text)
+	options.BlockQuote(out, text, nil)
 }
 
 func (options *Xml2) CommentHtml(out *bytes.Buffer, text []byte) {

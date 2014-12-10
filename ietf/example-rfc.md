@@ -28,6 +28,7 @@ particular a digest of the **DNSKEY**, *the* algorithm used for signature of the
 When NSEC3 [@RFC5155,n 5.5] was ....
 
 > This transition method is best described as a hack.
+Quote: Miek Gieben -- http://miek.nl/
 
 In this document, the key words "MUST", "MUST NOT", "REQUIRED",
 "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY",
@@ -80,9 +81,13 @@ The resulting on-the-wire format for the resulting DS record will be as follows:
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+          Digest               /
     /                                                               /
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|
-Figure: The on-the-wire format for the DS. The length of the digest is specified in the respective RFCs defining the digest type.
+Figure: The on-the-wire format for the DS. The length of the digest is specified *in* the respective RFCs defining the digest type.
 
 The Denial Type is a 16 bit unsigned integer value stored in network order.
+
+> This is a quote
+> From me
+Quote: Miek Gieben -- http://www.miek.nl/
 
 ##  Example DS Record Using SHA-256 and Denial Type TBD
 

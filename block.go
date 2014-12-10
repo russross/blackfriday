@@ -767,7 +767,7 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 		}
 		beg = end
 	}
-	caption := make([]byte, 0)
+	var caption bytes.Buffer
 	line := beg
 	j := beg
 	if bytes.HasPrefix(data[j:], []byte("Figure: ")) {
@@ -782,7 +782,7 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 			}
 			line = j
 		}
-		caption = data[beg+8 : j-1] // +8 for 'Figure: '
+		p.inline(&caption, data[beg+8:j-1])
 	}
 
 	syntax := ""
@@ -793,7 +793,7 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 	if doRender {
 		p.r.SetIAL(p.ial)
 		p.ial = nil
-		p.r.BlockCode(out, work.Bytes(), syntax, caption)
+		p.r.BlockCode(out, work.Bytes(), syntax, caption.Bytes())
 	}
 
 	return j
@@ -824,7 +824,7 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 		i++
 		p.tableRow(&body, data[rowStart:i], columns, false)
 	}
-	caption := make([]byte, 0)
+	var caption bytes.Buffer
 	line := i
 	j := i
 	if bytes.HasPrefix(data[j:], []byte("Table: ")) {
@@ -839,13 +839,13 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 			}
 			line = j
 		}
-		caption = data[i+7 : j-1] // +7 for 'Table: '
+		p.inline(&caption, data[i+7 : j-1]) // +7 for 'Table: '
 	}
 
 	p.r.SetIAL(p.ial)
 	p.ial = nil
 
-	p.r.Table(out, header.Bytes(), body.Bytes(), columns, caption)
+	p.r.Table(out, header.Bytes(), body.Bytes(), columns, caption.Bytes())
 
 	return j
 }
@@ -1050,7 +1050,7 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 			work.Write(data[beg:i])
 		}
 	}
-	caption := make([]byte, 0)
+	var caption bytes.Buffer
 	line := i
 	j := i
 	if bytes.HasPrefix(data[j:], []byte("Figure: ")) {
@@ -1065,7 +1065,7 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 			}
 			line = j
 		}
-		caption = data[i+8 : j-1] // +8 for 'Figure: '
+		p.inline(&caption, data[i+8:j-1]) // +8 for 'Figure: '
 	}
 
 	// trim all the \n off the end of work
@@ -1083,7 +1083,7 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 	p.r.SetIAL(p.ial)
 	p.ial = nil
 
-	p.r.BlockCode(out, work.Bytes(), "", caption)
+	p.r.BlockCode(out, work.Bytes(), "", caption.Bytes())
 
 	return j
 }

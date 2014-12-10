@@ -135,8 +135,12 @@ func (options *Xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	out.WriteString("\n")
 }
 
-func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte) {
+func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte, attribution []byte) {
 	s := options.IAL().String()
+	if len(attribution) != 0 {
+		// check s as well
+		// Person -- URI
+	}
 	out.WriteString("<blockquote" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</blockquote>\n")

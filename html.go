@@ -255,7 +255,7 @@ func (options *Html) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 	out.WriteString("</code></pre>\n")
 }
 
-func (options *Html) BlockQuote(out *bytes.Buffer, text []byte) {
+func (options *Html) BlockQuote(out *bytes.Buffer, text []byte, attribution []byte) {
 	doubleSpace(out)
 	out.WriteString("<blockquote>\n")
 	out.Write(text)

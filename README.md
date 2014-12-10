@@ -198,6 +198,8 @@ Todo
 *   cleanups - and loose a bunch of extensions, turn them on per default
 *   reduce API footprint (hide constants mainly)
 *   if some attribute is specified check if the IAL also specifies it (then overule it)
+*   use a bunch of env vars to tweak aspects of the mmark binary
+*   make webservers that converts for you
 
 License
 -------

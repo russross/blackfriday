@@ -195,13 +195,31 @@ func (p *parser) quote(out *bytes.Buffer, data []byte) int {
 		raw.Write(data[beg:end])
 		beg = end
 	}
+	var attribution bytes.Buffer
+	line := beg
+	j := beg
+	if bytes.HasPrefix(data[j:], []byte("Quote: ")) {
+		for line < len(data) {
+			j++
+			// find the end of this line
+			for data[j-1] != '\n' {
+				j++
+			}
+			if p.isEmpty(data[line:j]) > 0 {
+				break
+			}
+			line = j
+		}
+		p.inline(&attribution, data[beg+7 : j-1]) // +7 for 'Quote: '
+	}
 
+	// TODO(inline element in attribution)
 	var cooked bytes.Buffer
 	p.block(&cooked, raw.Bytes())
 
 	p.r.SetIAL(p.ial)
 	p.ial = nil
 
-	p.r.BlockQuote(out, cooked.Bytes())
-	return end
+	p.r.BlockQuote(out, cooked.Bytes(), attribution.Bytes())
+	return j
 }
