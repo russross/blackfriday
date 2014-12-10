@@ -154,7 +154,7 @@ func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte, attribution []byt
 	if ial != nil {
 		ial.GetOrDefaultAttr("cite", cite)
 		ial.GetOrDefaultAttr("quotedFrom", quotedFrom)
-		s = options.IAL().String()
+		s = ial.String()
 	} else {
 		s = " quotedFrom=\"" + quotedFrom + "\" cite=\"" + cite + "\""
 	}
