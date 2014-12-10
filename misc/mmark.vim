@@ -4,6 +4,8 @@
 " Last Change:	Sun, 28 Oct 2001 21:22:24 +0100
 " Filenames:	*.md (markdown)
 
+" TODO(finish)
+
 " Quit when a syntax file was already loaded
 if exists("b:current_syntax")
     finish
