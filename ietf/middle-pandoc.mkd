@@ -712,6 +712,7 @@ the Flags field of the NEXT RR that matches the closest encloser.
 > the Wildcard Flag in the example.com NEXT (but *.example.com
 > does exist), an attacker can use the record to deny names that
 > would otherwise match the wildcard name. 
+<!-- * -->
 
 In order to find the closest encloser, the validator MUST find the longest
 name, X, such that X is an ancestor of QNAME that is matched by an NEXT RR
