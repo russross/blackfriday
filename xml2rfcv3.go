@@ -153,7 +153,7 @@ func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte, attribution []byt
 		parts := bytes.Split(attribution, []byte(" -- "))
 		if len(parts) == 2 {
 			cite := string(bytes.TrimSpace(parts[0]))
-			quotedFrom := sanitizeHTML(string(bytes.TrimSpace(parts[1])))
+			quotedFrom := sanitizeXML(string(bytes.TrimSpace(parts[1])))
 			ial.GetOrDefaultAttr("cite", cite)
 			ial.GetOrDefaultAttr("quotedFrom", quotedFrom)
 		}
@@ -624,7 +624,8 @@ func WriteAndConvertEntity(out *bytes.Buffer, text []byte) {
 	}
 }
 
-func sanitizeHTML(s string) string {
+// use to strip XML from a string... 
+func sanitizeXML(s string) string {
 	s1 := strings.Replace(s, "<eref target=\"", "", 1)
 	s1 = strings.Replace(s1, "\"/>", "", 1)
 	return s1
