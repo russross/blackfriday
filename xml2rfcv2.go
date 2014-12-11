@@ -197,12 +197,10 @@ func (options *Xml2) Header(out *bytes.Buffer, text func() bool, level int, id s
 	}
 
 	ial := options.ial
-	if ial != nil {
-		id = ial.GetOrDefaultId(id)
-	}
+	ial.GetOrDefaultId(id)
 
 	// new section
-	out.WriteString("\n<section anchor=\"" + id + "\"" + ial.String())
+	out.WriteString("\n<section" + ial.String() + ">")
 	out.WriteString(" title=\"")
 	text() // check bool here
 	out.WriteString("\">\n")
@@ -215,44 +213,38 @@ func (options *Xml2) HRule(out *bytes.Buffer) {
 }
 
 func (options *Xml2) List(out *bytes.Buffer, text func() bool, flags, start int) {
-
-	ial := options.IAL()
-	ial.GetOrDefaultAttr("style", "numbers")
-	ial.GetOrDefaultAttr("start", strconv.Itoa(start))
-	s = ial.String()
-
 	marker := out.Len()
 	// inside lists we must drop the paragraph
 	if flags&LIST_INSIDE_LIST == 0 {
 		out.WriteString("<t>\n")
 	}
 
+	ial := options.IAL()
+	if start >1 {
+		ial.GetOrDefaultAttr("start", strconv.Itoa(start))
+	}
+
 	switch {
 	case flags&LIST_TYPE_ORDERED != 0:
 		switch {
 		case flags&LIST_TYPE_ORDERED_ALPHA_LOWER != 0:
-			out.WriteString("<list style=\"format %c\">")
+			ial.GetOrDefaultAttr("style", "format %c")
 		case flags&LIST_TYPE_ORDERED_ALPHA_UPPER != 0:
-			out.WriteString("<list style=\"format %C\">")
+			ial.GetOrDefaultAttr("style", "format %C")
 		case flags&LIST_TYPE_ORDERED_ROMAN_LOWER != 0:
-			out.WriteString("<list style=\"format %i\">")
+			ial.GetOrDefaultAttr("style", "format %i")
 		case flags&LIST_TYPE_ORDERED_ROMAN_UPPER != 0:
-			out.WriteString("<list style=\"format %I\">")
+			ial.GetOrDefaultAttr("style", "format %I")
 		default:
-			if style == "" {
-				style = "numbers"
-			}
-			if start1 == "" {
-				out.WriteString("<list style=\"" + style + "\"" + s + ">\n")
-			} else {
-				out.WriteString("<list style=\"" + style + "\"" + s + " start=\"" + start1 + "\">\n")
-			}
+			ial.GetOrDefaultAttr("style", "numbers")
 		}
 	case flags&LIST_TYPE_DEFINITION != 0:
-		out.WriteString("<list style=\"hanging\"" + s + ">\n")
+		ial.GetOrDefaultAttr("style", "hanging")
 	default:
-		out.WriteString("<list style=\"symbols\"" + s + ">\n")
+		ial.GetOrDefaultAttr("style", "symbols")
 	}
+
+	out.WriteString("<list" + ial.String() + ">\n")
 
 	if !text() {
 		out.Truncate(marker)

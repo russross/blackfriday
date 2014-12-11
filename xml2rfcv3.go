@@ -51,11 +51,11 @@ func XmlRenderer(flags int) Renderer { return &Xml{flags: flags} }
 func (options *Xml) GetFlags() int   { return options.flags }
 func (options *Xml) GetState() int   { return 0 }
 
-func (options *Xml2) SetIAL(i *IAL) {
+func (options *Xml) SetIAL(i *IAL) {
 	options.ial = i
 }
 
-func (options *Xml2) IAL() *IAL {
+func (options *Xml) IAL() *IAL {
 	if options.ial == nil {
 		return newIAL()
 	}
@@ -269,14 +269,15 @@ func (options *Xml) HRule(out *bytes.Buffer) {
 
 func (options *Xml) List(out *bytes.Buffer, text func() bool, flags, start int) {
 	marker := out.Len()
-	s := options.IAL().String()
+
+	ial := options.IAL()
+	if start > 1 {
+		ial.GetOrDefaultAttr("start", strconv.Itoa(start))
+	}
+	s := ial.String()
 	switch {
 	case flags&LIST_TYPE_ORDERED != 0:
-		if start <= 1 {
-			out.WriteString("<ol" + s + ">\n")
-		} else {
-			out.WriteString(fmt.Sprintf("<ol"+s+" start=\"%d\">\n", start))
-		}
+		out.WriteString("<ol" + s + ">\n")
 	case flags&LIST_TYPE_DEFINITION != 0:
 		out.WriteString("<dl" + s + ">\n")
 	default:
