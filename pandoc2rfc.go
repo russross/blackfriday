@@ -1,4 +1,6 @@
-// XML2RFC v2 rendering backend
+// PANDOC22RFC rendering backend
+// Renders pandoc2rfc markdown to mmark markdown, which can be
+// used as an editing starting point.
 
 package mmark
 
