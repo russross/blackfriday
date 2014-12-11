@@ -246,7 +246,7 @@ func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id st
 		}
 	}
 
-	ial := options.ial
+	ial := options.IAL()
 	ial.GetOrDefaultId(id)
 
 	// new section

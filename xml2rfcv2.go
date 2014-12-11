@@ -15,6 +15,8 @@ const (
 	XML2_STANDALONE = 1 << iota // create standalone document
 )
 
+// <meta name="GENERATOR" content="Blackfriday Markdown Processor v1.0" /> 
+
 // Xml2 is a type that implements the Renderer interface for XML2RFV3 output.
 //
 // Do not create this directly, instead use the Xml2Renderer function.
@@ -196,7 +198,7 @@ func (options *Xml2) Header(out *bytes.Buffer, text func() bool, level int, id s
 		}
 	}
 
-	ial := options.ial
+	ial := options.IAL()
 	ial.GetOrDefaultId(id)
 
 	// new section
