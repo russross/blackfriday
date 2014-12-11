@@ -1,17 +1,13 @@
 //
-// Blackfriday Markdown Processor
+// Mmark Markdown Processor, based up Blackfriday Markdown Processor
 // Available at http://github.com/russross/mmark
 //
 // Copyright © 2011 Russ Ross <russ@russross.com>.
 // Distributed under the Simplified BSD License.
 // See README.md for details.
-//
+// Copyright © 2014 Miek Gieben <miek@miek.nl>.
 
-//
-//
 // Example front-end for command-line use
-//
-//
 
 package main
 
@@ -34,7 +30,7 @@ func main() {
 	var css, cpuprofile string
 	var repeat int
 	flag.BoolVar(&page, "page", false,
-		"Generate a standalone HTML page (implies -xml=false)")
+		"Generate a standalone HTML page")
 	flag.BoolVar(&toc, "toc", false,
 		"Generate a table of contents (implies -xml=false)")
 	flag.BoolVar(&toconly, "toconly", false,
