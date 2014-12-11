@@ -67,10 +67,10 @@ func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string, capti
 	s := ""
 	// Tick of language for sourcecode...
 	ial := options.IAL()
-	if ial != nil {
-		lang = ial.GetOrDefaultAttr("type", lang)
-		s = ial.String()
+	if lang != "" {
+		ial.GetOrDefaultAttr("type", lang)
 	}
+	s = ial.String()
 
 	if len(caption) > 0 {
 		out.WriteString("<figure" + s + ">\n")
@@ -80,17 +80,17 @@ func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string, capti
 		out.WriteString("</name>\n")
 	}
 
-	if lang == "" {
-		out.WriteString("<artwork" + s + ">\n")
+	if lang != "" {
+		out.WriteString("\n<sourcecode" + s + ">\n")
 	} else {
-		out.WriteString("\n<sourcecode" + s + " type=\"" + lang + "\">\n")
+		out.WriteString("<artwork" + s + ">\n")
 	}
 	WriteAndConvertEntity(out, text)
 
-	if lang == "" {
-		out.WriteString("</artwork>\n")
-	} else {
+	if lang != "" {
 		out.WriteString("</sourcecode>\n")
+	} else {
+		out.WriteString("</artwork>\n")
 	}
 	if len(caption) > 0 {
 		out.WriteString("</figure>\n")
@@ -247,15 +247,10 @@ func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id st
 	}
 
 	ial := options.ial
-	if ial != nil {
-		id = ial.GetOrDefaultId(id)
-	}
-	if id != "" {
-		id = " anchor=\"" + id + "\""
-	}
+	ial.GetOrDefaultId(id)
 
 	// new section
-	out.WriteString("\n<section" + id + ial.String() + ">")
+	out.WriteString("\n<section" + ial.String() + ">")
 	out.WriteString("<name>")
 	text() // check bool here
 	out.WriteString("</name>\n")
