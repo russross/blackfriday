@@ -168,6 +168,9 @@ func (i *IAL) GetOrDefaultAttr(key, def string) bool {
 	if v != "" {
 		return false
 	}
+	if def == "" {
+		return false
+	}
 	i.attr[key] = def
 	return true
 }
@@ -175,6 +178,9 @@ func (i *IAL) GetOrDefaultAttr(key, def string) bool {
 //
 func (i *IAL) GetOrDefaultId(id string) bool {
 	if i.id != "" {
+		return false
+	}
+	if id == "" {
 		return false
 	}
 	i.id = id
