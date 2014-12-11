@@ -26,14 +26,13 @@ const DEFAULT_TITLE = ""
 
 func main() {
 	// parse command-line options
-	var page, toc, toconly, xhtml, xml, xml2, pandoc2rfc, smartypants, fractions bool
+	var page, toc, toconly, xhtml, xml, xml2, smartypants, fractions bool
 	var css, cpuprofile string
 	var repeat int
 	flag.BoolVar(&page, "page", false, "Generate a standalone HTML page")
 	flag.BoolVar(&toc, "toc", false, "Generate a table of contents (implies -xml=false)")
 	flag.BoolVar(&toconly, "toconly", false, "Generate a table of contents only (implies -toc)")
 	flag.BoolVar(&xhtml, "xhtml", true, "Use XHTML-style tags in HTML output")
-	flag.BoolVar(&pandoc2rfc, "pandoc2rfc", false, "convert pandoc2rfc to mmark")
 	flag.BoolVar(&xml, "xml", false, "Generate XML2RFC v3 output")
 	flag.BoolVar(&xml2, "xml2", false, "Generate XML2RFC v2 output")
 	flag.BoolVar(&smartypants, "smartypants", true, "Apply smartypants-style substitutions")
@@ -125,8 +124,6 @@ func main() {
 			xmlFlags = mmark.XML2_STANDALONE
 		}
 		renderer = mmark.Xml2Renderer(xmlFlags)
-	case pandoc2rfc:
-		renderer = mmark.PandocRenderer(0)
 	default:
 		// render the data into HTML
 		htmlFlags := 0
