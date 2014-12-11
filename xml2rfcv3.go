@@ -50,8 +50,17 @@ type Xml struct {
 func XmlRenderer(flags int) Renderer { return &Xml{flags: flags} }
 func (options *Xml) GetFlags() int   { return options.flags }
 func (options *Xml) GetState() int   { return 0 }
-func (options *Xml) SetIAL(i *IAL)   { options.ial = i }
-func (options *Xml) IAL() *IAL       { i := options.ial; options.ial = nil; return i }
+
+func (options *Xml2) SetIAL(i *IAL) {
+	options.ial = i
+}
+
+func (options *Xml2) IAL() *IAL {
+	if options.ial == nil {
+		return newIAL()
+	}
+	return options.ial
+}
 
 // render code chunks using verbatim, or listings if we have a language
 func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte) {

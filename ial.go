@@ -160,24 +160,23 @@ func (i *IAL) String() (s string) {
 	return s
 }
 
-// GetOrDefaultAttr return the value under key (and delete the key from the attributes) or
-// returns the default value if the key is not found.
-func (i *IAL) GetOrDefaultAttr(key, def string) string {
+// GetOrDefaultAttr set the value under key if is is not set or
+// use the value already in there. The boolean returns indicates
+// if the value has been overwritten.
+func (i *IAL) GetOrDefaultAttr(key, def string) bool {
 	v := i.attr[key]
-	delete(i.attr, key)
 	if v != "" {
-		return v
+		return false
 	}
-	return def
+	i.attr[key] = def
+	return true
 }
 
-// GetOrDefaultId return the Id or
-// returns the default value if the id not empty.
-func (i *IAL) GetOrDefaultId(id string) string {
+//
+func (i *IAL) GetOrDefaultId(id string) bool {
 	if i.id != "" {
-		j := i.id
-		i.id = ""
-		return j
+		return false
 	}
-	return id
+	i.id = id
+	return true
 }

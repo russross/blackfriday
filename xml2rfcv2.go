@@ -37,8 +37,17 @@ type Xml2 struct {
 func Xml2Renderer(flags int) Renderer { return &Xml2{flags: flags} }
 func (options *Xml2) GetFlags() int   { return options.flags }
 func (options *Xml2) GetState() int   { return 0 }
-func (options *Xml2) SetIAL(i *IAL)   { options.ial = i }
-func (options *Xml2) IAL() *IAL       { i := options.ial; options.ial = nil; return i }
+
+func (options *Xml2) SetIAL(i *IAL) {
+	options.ial = i
+}
+
+func (options *Xml2) IAL() *IAL {
+	if options.ial == nil {
+		return newIAL()
+	}
+	return options.ial
+}
 
 // render code chunks using verbatim, or listings if we have a language
 func (options *Xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte) {
@@ -206,16 +215,11 @@ func (options *Xml2) HRule(out *bytes.Buffer) {
 }
 
 func (options *Xml2) List(out *bytes.Buffer, text func() bool, flags, start int) {
-	style := ""
-	start1 := ""
-	s := ""
 
 	ial := options.IAL()
-	if ial != nil {
-		style = ial.GetOrDefaultAttr("style", "")
-		start1 = ial.GetOrDefaultAttr("start", strconv.Itoa(start))
-		s = ial.String()
-	}
+	ial.GetOrDefaultAttr("style", "numbers")
+	ial.GetOrDefaultAttr("start", strconv.Itoa(start))
+	s = ial.String()
 
 	marker := out.Len()
 	// inside lists we must drop the paragraph
