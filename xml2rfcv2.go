@@ -21,7 +21,7 @@ const (
 //
 // Do not create this directly, instead use the Xml2Renderer function.
 type Xml2 struct {
-	flags        int // XML_* options
+	flags        int // XML2_* options
 	sectionLevel int // current section level
 	docLevel     int // frontmatter/mainmatter or backmatter
 
@@ -35,7 +35,7 @@ type Xml2 struct {
 // Xml2Renderer creates and configures a Xml object, which
 // satisfies the Renderer interface.
 //
-// flags is a set of XML_* options ORed together
+// flags is a set of XML2_* options ORed together
 func Xml2Renderer(flags int) Renderer { return &Xml2{flags: flags} }
 func (options *Xml2) GetFlags() int   { return options.flags }
 func (options *Xml2) GetState() int   { return 0 }
@@ -68,7 +68,7 @@ func (options *Xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 }
 
 func (options *Xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
-	if options.flags&XML_STANDALONE == 0 {
+	if options.flags&XML2_STANDALONE == 0 {
 		return
 	}
 	options.titleBlock = block
@@ -504,7 +504,7 @@ func (options *Xml2) NormalText(out *bytes.Buffer, text []byte) {
 
 // header and footer
 func (options *Xml2) DocumentHeader(out *bytes.Buffer, first bool) {
-	if !first || options.flags&XML_STANDALONE == 0 {
+	if !first || options.flags&XML2_STANDALONE == 0 {
 		return
 	}
 	out.WriteString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
@@ -512,7 +512,7 @@ func (options *Xml2) DocumentHeader(out *bytes.Buffer, first bool) {
 }
 
 func (options *Xml2) DocumentFooter(out *bytes.Buffer, first bool) {
-	if !first || options.flags&XML_STANDALONE == 0 {
+	if !first || options.flags&XML2_STANDALONE == 0 {
 		return
 	}
 	// close any option section tags
