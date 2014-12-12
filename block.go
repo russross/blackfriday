@@ -1631,7 +1631,7 @@ func createSanitizedAnchorName(text string) string {
 			anchorName = append(anchorName, unicode.ToLower(r))
 		}
 	}
-	if number == len(text) {
+	if number == len(anchorName) {
 		anchorName = append([]rune{'z'}, anchorName...)
 	}
 	return string(anchorName)

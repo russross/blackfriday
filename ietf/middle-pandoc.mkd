@@ -1,3 +1,7 @@
+% Title = "NSEC4: secure denial of existence"
+
+{mainmatter}
+
 # Introduction
 
 The Domain Name System Security (DNSSEC) Extensions introduced the NSEC
