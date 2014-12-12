@@ -9,29 +9,33 @@ Mmark is a fork of blackfriday which is a [Markdown][1] processor implemented in
 Asciidoc, that allows for large documents to be written. It is specifically
 designed to write internet drafts and RFCs for the IETF.
 
-It can currently output HTML5 or XML2RFC v3 XML. Other output engines could be
-easily added.
+It can currently output HTML5, XML2RFC v2 and XML2RFC v3 XML. Other output
+engines could be easily added.
+
+It adds the following syntax elements to black friday:
+
+* Definition lists;
+* Table and codeblock captions;
+* Including files;
+* [TOML][3] titleblock;
+* Inline Attribute Lists;
+* Indices;
+* Citations;
+* Abstract;
+* Asides;
+* Notes;
+* Main-, middle- and backbatter divisions.
+
+
 
 It is fast and it supports the following extensions:
 
 * tables
-* definition lists
-    lists markers: all from pandoc (roman, letters, and default list markers)
 * smart punctuation
 * substitutions
-* [TOML][3] titleblock
-* including other markdown files
-* indices
-* main-, middle- and backmatter divisions
-* Table and Codeblock caption.
-    After a codeblock use: Figure: fjfjkfdjkd
 * escaping chars (as in pandoc?)
-* citations
-* abstract
-* asides
-* IAL, inline attribute list
-* pay attention to the first number of ordered list, `4.` start a list with 4. instead of 1.
 * EXAMPLE_LISTS (@good) (@good)
+* pay attention to the first number of ordered list, `4.` start a list with 4. instead of 1.
 
 Mmark is forked from blackfriday which started out as a translation from C of [upskirt][4].
 
