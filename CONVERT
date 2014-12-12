@@ -1,4 +1,11 @@
 # Converting From Pandoc2rfc
+#
+
+
+pandoc --atx-headers middle-pandoc.mkd -t markdown_phpextra
+
+Fix citation
+Fix foonotes
 
 ## Citations
 

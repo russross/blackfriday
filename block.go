@@ -1632,7 +1632,7 @@ func createSanitizedAnchorName(text string) string {
 		}
 	}
 	if number == len(anchorName) {
-		anchorName = append([]rune{'z'}, anchorName...)
+		anchorName = append([]rune("section-"), anchorName...)
 	}
 	return string(anchorName)
 }
