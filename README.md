@@ -13,7 +13,7 @@ a single file that serves as input into the XML2RFC processor.
 It can currently output HTML5, XML2RFC v2 and XML2RFC v3 XML. Other output
 engines could be easily added.
 
-It adds the following syntax elements to [black friday][https://github.com/russross/blackfriday/blob/master/README.md]:
+It adds the following syntax elements to [black friday](https://github.com/russross/blackfriday/blob/master/README.md):
 
 * Definition lists;
 * Table and codeblock captions;
@@ -33,7 +33,7 @@ It adds the following syntax elements to [black friday][https://github.com/russr
 
 Mmark is forked from blackfriday which started out as a translation from C of [upskirt][4].
 
-A simular effort is [kramdown-rfc2629][https://github.com/cabo/kramdown-rfc2629] from Carsten Bormann.
+A simular effort is [kramdown-rfc2629](https://github.com/cabo/kramdown-rfc2629) from Carsten Bormann.
 
 ## Usage
 
