@@ -1262,3 +1262,18 @@ func TestIAL(t *testing.T) {
 	}
 	doTestsBlockXML(t, tests, 0)
 }
+
+func TestOrderedExampleListXML(t *testing.T) {
+	var tests = []string{
+		`(@good)  Example1
+
+(@good)  Example2
+
+As this illustrates
+
+(@good)  Example3
+`,
+		"<ol group=\"good\">\n<li><t>Example1</t></li>\n<li><t>Example2</t></li>\n</ol>\n<t>As this illustrates</t>\n<ol group=\"good\">\n<li>Example3</li>\n</ol>\n",
+	}
+	doTestsBlockXML(t, tests, 0)
+}

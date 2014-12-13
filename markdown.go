@@ -42,6 +42,7 @@ const (
 	EXTENSION_QUOTES                                 // Allow A> AS> and N> to be parsed as abstract, asides and notes (and F>) (TODO(miek): use this
 	EXTENSION_IAL                                    // detect CommonMark's IAL syntax (copied from kramdown)
 	EXTENSION_MATTER                                 // use {frontmatter} {mainmatter} {backmatter}
+	EXTENSION_EXAMPLE_LISTS				 // render '(@tag)  ' example lists
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML |
@@ -60,7 +61,11 @@ const (
 
 	commonXmlExtensions = commonExtensions |
 		EXTENSION_UNIQUE_HEADER_IDS |
-		EXTENSION_AUTO_HEADER_IDS
+		EXTENSION_AUTO_HEADER_IDS |
+		EXTENSION_IAL |
+		EXTENSION_QUOTES |
+		EXTENSION_MATTER |
+		EXTENSION_EXAMPLE_LISTS
 )
 
 // These are the possible flag values for the link renderer.
