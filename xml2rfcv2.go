@@ -246,7 +246,7 @@ func (options *Xml2) List(out *bytes.Buffer, text func() bool, flags, start int,
 		case flags&LIST_TYPE_ORDERED_GROUP != 0:
 			// check start as well
 			if group != nil {
-				options.group[string(group)]++	
+				options.group[string(group)]++
 				start := options.group[string(group)]
 				ial.GetOrDefaultAttr("start", strconv.Itoa(start))
 				ial.GetOrDefaultAttr("style", "format (%d)")
@@ -372,7 +372,7 @@ func (options *Xml2) Citation(out *bytes.Buffer, link, title []byte) {
 	out.WriteString("<xref target=\"" + string(link) + "\"/>")
 }
 
-func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citation) {
+func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citation, xmlCitations []*xmlCitation) {
 	if options.flags&XML2_STANDALONE == 0 {
 		return
 	}
@@ -402,6 +402,14 @@ func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citatio
 			refn++
 		}
 	}
+	for _, c := range xmlCitations {
+		if c.typ == 'i' {
+			refi++
+		}
+		if c.typ == 'n' {
+			refn++
+		}
+	}
 	// output <xi:include href="<references file>.xml"/>, we use file it its not empty, otherwise
 	// we construct one for RFCNNNN and I-D.something something.
 	if refi+refn > 0 {
@@ -416,6 +424,11 @@ func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citatio
 					out.WriteString("\t<?rfc include=\"" + f + "\"?>\n")
 				}
 			}
+			for _, c := range xmlCitations {
+				if c.typ == 'i' {
+					out.Write(c.xml)
+				}
+			}
 			out.WriteString("</references>\n")
 		}
 		if refn > 0 {
@@ -427,6 +440,11 @@ func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citatio
 						f = referenceFile(c)
 					}
 					out.WriteString("\t<?rfc include=\"" + f + "\"?>\n")
+				}
+			}
+			for _, c := range xmlCitations {
+				if c.typ == 'n' {
+					out.Write(c.xml)
 				}
 			}
 			out.WriteString("</references>\n")

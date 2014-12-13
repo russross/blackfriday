@@ -224,3 +224,56 @@ func (p *parser) quote(out *bytes.Buffer, data []byte) int {
 	p.r.BlockQuote(out, cooked.Bytes(), attribution.Bytes())
 	return j
 }
+
+// returns referencequote prefix length
+func (p *parser) referencePrefix(data []byte) int {
+	i := 0
+	for i < 3 && data[i] == ' ' {
+		i++
+	}
+	if data[i] == 'R' && (data[i+1] == '!' || data[i+1] == '?') && data[i+2] == '>' {
+		if data[i+3] == ' ' {
+			return i + 4
+		}
+		return i + 3
+	}
+	return 0
+}
+
+// parse a reference fragment
+func (p *parser) reference(out *bytes.Buffer, data []byte) int {
+	var raw bytes.Buffer
+	beg, end := 0, 0
+	typ := byte('_')
+	for beg < len(data) {
+		end = beg
+		for data[end] != '\n' {
+			end++
+		}
+		end++
+
+		if pre := p.referencePrefix(data[beg:]); pre > 0 {
+			// count back to see the type of this block
+			if typ == byte('_') {
+				typ = data[pre-3]
+			}
+			// skip the prefix
+			beg += pre
+		} else if p.isEmpty(data[beg:]) > 0 &&
+			(end >= len(data) ||
+				(p.referencePrefix(data[end:]) == 0 && p.isEmpty(data[end:]) == 0)) {
+			break
+		}
+		raw.Write(data[beg:end])
+		beg = end
+	}
+	switch typ {
+	case byte('!'):
+		p.xmlCitations = append(p.xmlCitations, &xmlCitation{'n', raw.Bytes()})
+	case byte('?'):
+		fallthrough
+	default:
+		p.xmlCitations = append(p.xmlCitations, &xmlCitation{'i', raw.Bytes()})
+	}
+	return end
+}

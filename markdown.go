@@ -42,7 +42,7 @@ const (
 	EXTENSION_QUOTES                                 // Allow A> AS> and N> to be parsed as abstract, asides and notes (and F>) (TODO(miek): use this
 	EXTENSION_IAL                                    // detect CommonMark's IAL syntax (copied from kramdown)
 	EXTENSION_MATTER                                 // use {frontmatter} {mainmatter} {backmatter}
-	EXTENSION_EXAMPLE_LISTS				 // render '(@tag)  ' example lists
+	EXTENSION_EXAMPLE_LISTS                          // render '(@tag)  ' example lists
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML |
@@ -217,7 +217,7 @@ type Renderer interface {
 
 	// Frontmatter, mainmatter or backmatter
 	DocumentMatter(out *bytes.Buffer, matter int)
-	References(out *bytes.Buffer, citations map[string]*citation)
+	References(out *bytes.Buffer, citations map[string]*citation, xmlCitations []*xmlCitation)
 
 	// Helper functions
 	GetFlags() int
@@ -237,6 +237,7 @@ type parser struct {
 	r                    Renderer
 	refs                 map[string]*reference
 	citations            map[string]*citation
+	xmlCitations         []*xmlCitation
 	inlineCallback       [256]inlineParser
 	flags                int
 	nesting              int
@@ -470,7 +471,7 @@ func secondPass(p *parser, input []byte, depth int) []byte {
 	if !p.appendix {
 		// appendix not started in doc, start it now and output references
 		p.r.DocumentMatter(&output, DOC_BACK_MATTER)
-		p.r.References(&output, p.citations)
+		p.r.References(&output, p.citations, p.xmlCitations)
 		p.appendix = true
 	}
 	p.r.DocumentFooter(&output, depth == 0)
@@ -525,7 +526,13 @@ type citation struct {
 	title    []byte
 	filename []byte
 	typ      byte // 'i' for informal, 'n' normative (default = 'i')
-	seq	 int  // sequence number for I-Ds
+	seq      int  // sequence number for I-Ds
+}
+
+// XmlCitations are stored in this struct.
+type xmlCitation struct {
+	typ byte
+	xml []byte
 }
 
 // Check whether or not data starts with a reference link.

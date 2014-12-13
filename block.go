@@ -150,6 +150,15 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			continue
 		}
 
+		// Reference quote:
+		//
+		// R?> <reference>...
+		// R?> ....
+		if p.referencePrefix(data) > 0 {
+			data = data[p.reference(out, data):]
+			continue
+		}
+
 		// block quote:
 		//
 		// > A big quote I found somewhere
@@ -523,8 +532,8 @@ func (p *parser) htmlComment(out *bytes.Buffer, data []byte, doRender bool) int 
 				end--
 			}
 			// breaks the tests if we parse this
-//			var cooked bytes.Buffer
-//			p.inline(&cooked, data[:end])
+			//			var cooked bytes.Buffer
+			//			p.inline(&cooked, data[:end])
 
 			p.r.SetIAL(p.ial)
 			p.ial = nil

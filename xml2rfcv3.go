@@ -380,7 +380,7 @@ func (options *Xml) Citation(out *bytes.Buffer, link, title []byte) {
 	out.WriteString("<xref target=\"" + string(link) + "\" section=\"" + string(title) + "\"/>")
 }
 
-func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation) {
+func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation, xmlCitations []*xmlCitation) {
 	if options.flags&XML_STANDALONE == 0 {
 		return
 	}
@@ -410,6 +410,14 @@ func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation
 			refn++
 		}
 	}
+	for _, c := range xmlCitations {
+		if c.typ == 'i' {
+			refi++
+		}
+		if c.typ == 'n' {
+			refn++
+		}
+	}
 	// output <xi:include href="<references file>.xml"/>, we use file it its not empty, otherwise
 	// we construct one for RFCNNNN and I-D.something something.
 	if refi+refn > 0 {
@@ -424,6 +432,11 @@ func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation
 					out.WriteString("\t<xi:include href=\"" + f + "\"/>\n")
 				}
 			}
+			for _, c := range xmlCitations {
+				if c.typ == 'i' {
+					out.Write(c.xml)
+				}
+			}
 			out.WriteString("</references>\n")
 		}
 		if refn > 0 {
@@ -435,6 +448,11 @@ func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation
 						f = referenceFile(c)
 					}
 					out.WriteString("\t<xi:include href=\"" + f + "\"/>\n")
+				}
+			}
+			for _, c := range xmlCitations {
+				if c.typ == 'n' {
+					out.Write(c.xml)
 				}
 			}
 			out.WriteString("</references>\n")
