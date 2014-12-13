@@ -33,6 +33,8 @@ It adds the following syntax elements to [black friday][https://github.com/russr
 
 Mmark is forked from blackfriday which started out as a translation from C of [upskirt][4].
 
+A simular effort is [kramdown-rfc2629][https://github.com/cabo/kramdown-rfc2629] from Carsten Bormann.
+
 ## Usage
 
 For basic usage, it is as simple as getting your input into a byte
@@ -115,12 +117,13 @@ implements the following extensions:
 
 *   **Citations**, using the citation syntax from pandoc `[@RFC2535 p. 23]`, the citation
     can either be informative (default) or normative, this can be indicated by using
-    the `i` or `n` modifer: `[@RFC2535,n]`. Use `[-@RFC1000]` to add the cication to the references, but
+    the `?` or `!` modifer: `[@!RFC2535]`. Use `[-@RFC1000]` to add the cication to the references, but
     suppress the output in the document.
 
     To make the references work you can optionally include a filename:
-    `[@RFC233,n,bib/reference.RFC.2525.xml]`. If you reference an RFC or ID
-    the filename will be contructed automatically.
+    `[@!RFC233,bib/reference.RFC.2525.xml]`. If you reference an RFC or I-D
+    the filename will be contructed automatically. For I-Ds you may need to add a draft sequence number, which
+    can be done as such: `[@?I-D.draft-blah,#06]`.
 
 *  **Caption**, table and figure/code block captions. For tables add the string `Table: caption text` after
     the table, this will be rendered as an caption. For code blocks you'll need to use `Figure: `
@@ -159,6 +162,7 @@ Todo
 ----
 
 *   Check outputted XML for wellformedness
+*   Check for primary item in index (((!item, subitem)))
 *   More unit testing
 *   pretty print XML
 *   fenced code blocks -> source code with language etc.

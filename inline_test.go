@@ -849,22 +849,19 @@ func testCitationXML(t *testing.T) {
 		"[@RFC2525]",
 		"",
 
-		"[@RFC1024n]",
+		"[@!RFC1024]",
 		"",
 
-		"[@RFC3024,i,]",
+		"[@?RFC3024]",
 		"",
 
-		"[@RFC3025,n]",
+		"[@?I-D.6man-udpzero]",
 		"",
 
-		"[@I-D.6man-udpzero]",
+		"[@?I-D.6man-udpzero,/bib/reference]",
 		"",
 
-		"[@I-D.6man-udpzero,i,/bib/reference]",
-		"",
-
-		"[@I-D.6man-udpzero,i,/bib/reference p. 23]",
+		"[@?I-D.6man-udpzero,/bib/reference p. 23]",
 		"",
 	}
 	doTestsInlineParamXML(t, tests, 0, XML_STANDALONE)

@@ -522,13 +522,14 @@ func (p *parser) htmlComment(out *bytes.Buffer, data []byte, doRender bool) int 
 			for end > 0 && data[end-1] == '\n' {
 				end--
 			}
-			var cooked bytes.Buffer
-			p.inline(&cooked, data[:end])
+			// breaks the tests if we parse this
+//			var cooked bytes.Buffer
+//			p.inline(&cooked, data[:end])
 
 			p.r.SetIAL(p.ial)
 			p.ial = nil
 
-			p.r.CommentHtml(out, cooked.Bytes())
+			p.r.CommentHtml(out, data[:end])
 		}
 		return size
 	}

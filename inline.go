@@ -252,8 +252,9 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	}
 
 	// TODO(miek): parse p. 23 parts here (title)
-	// [@RFC2534,n,bib/reference.xml p. 23]
-	// [@REF,n|i,file text]
+	// [@!RFC2534,bib/reference.xml p. 23], normative
+	// [@?RFC2535,bib/reference.xml p. 23], informative
+	// [@REF!|?,file text]
 	// [-@RFC] : suppress output, but add to the citation list
 	if (t == linkCitation || data[1] == '@' || data[1] == '-') && p.flags&EXTENSION_CITATION != 0 {
 		var (
@@ -263,29 +264,40 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			suppress       bool
 			seq            int = -1
 		)
-		if data[1] == '-' {
-			suppress = true
-		}
 		typ = 'i'
-		for j := 0; j < txtE; j++ {
+		k := 1
+		if data[k] == '-' {
+			suppress = true
+			k++
+		} 
+		k++
+		if data[k] == '!' {
+			typ = 'n'
+			k++
+		} else if data[k] == '?' {
+			typ = 'n'
+			k++
+		}
+
+		for j := k; j < txtE; j++ {
 			switch {
 			case data[j] == ',':
 				if commaB == 0 {
 					commaB = j
-					id = data[2:commaB]
+					id = data[k:commaB]
 				}
 			case data[j] == ' ':
 				if spaceB == 0 {
 					spaceB = j
 					title = data[j+1 : txtE]
 					if commaB == 0 {
-						id = data[2:spaceB]
+						id = data[k:spaceB]
 					}
 				}
 			}
 		}
 		if commaB == 0 && spaceB == 0 {
-			id = data[2:txtE]
+			id = data[k:txtE]
 		}
 		if commaB > 0 {
 			end := txtE + 1 // hmmm
@@ -296,13 +308,6 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 				if data[j] == ',' || j == end-1 {
 					chunk := data[commaB+1 : j]
 					switch {
-					case len(chunk) == 1:
-						if chunk[0] == 'n' || chunk[0] == 'N' {
-							typ = 'n'
-						}
-						if chunk[0] == 'i' || chunk[0] == 'I' {
-							typ = 'i'
-						}
 					case len(chunk) > 1 && chunk[0] == '#':
 						num, err := strconv.Atoi(string(chunk[1:]))
 						if err == nil {
@@ -317,10 +322,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			}
 		}
 		if id == nil {
-			id = data[2:txtE]
-		}
-		if suppress {
-			id = id[1:]
+			id = data[k:txtE]
 		}
 		// we might be liberal and check which item we got and update if we see new ones.
 		if _, ok := p.citations[string(id)]; !ok {

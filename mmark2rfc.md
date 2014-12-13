@@ -15,9 +15,8 @@
 % organization = "Google"
 %   [author.address]
 %   email = "miek@google.com"
-%
 
-A> This document describes an markdown variant called mmark [@mmark,i] that can
-A> be used to create RFC documents.
-A>
-A> ...
+A> This document describes an markdown variant called mmark [@!mmark] that can
+A> be used to create RFC documents. It's aim is to make using mmark is natural
+A> as possible, while providing a lot of power on how to structure and layout
+A> the document.
