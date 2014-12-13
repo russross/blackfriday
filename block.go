@@ -251,7 +251,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// (@good)  Item1
 		// (@good)  Item2
 		if i := p.eliPrefix(data); i > 0 {
-			group := data[2:i-2]
+			group := data[2 : i-2]
 			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_GROUP, 0, group):]
 			continue
 		}
@@ -1277,7 +1277,7 @@ func (p *parser) dliPrefix(data []byte) int {
 // returns example list item prefix
 func (p *parser) eliPrefix(data []byte) int {
 	i := 0
-	if len(data) < 3 {
+	if len(data) < 6 {
 		return 0
 	}
 
@@ -1292,13 +1292,14 @@ func (p *parser) eliPrefix(data []byte) int {
 	}
 
 	// count up until the closing )
-	start := i
 	for data[i] != ')' {
 		i++
+		if i == len(data) {
+			return 0
+		}
 	}
-
 	// now two spaces
-	if start == i || data[i+1] != ' ' || data[i+2] != ' ' {
+	if data[i] != ')' || data[i+1] != ' ' || data[i+2] != ' ' {
 		return 0
 	}
 	return i + 2
