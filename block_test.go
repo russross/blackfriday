@@ -1263,6 +1263,8 @@ func TestIAL(t *testing.T) {
 	doTestsBlockXML(t, tests, 0)
 }
 
+// test comment, markup and parsing
+
 func TestOrderedExampleListXML(t *testing.T) {
 	var tests = []string{
 		`(@good)  Example1

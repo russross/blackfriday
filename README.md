@@ -26,8 +26,10 @@ It adds the following syntax elements to [black friday][https://github.com/russr
 * Abstract;
 * Asides;
 * Notes;
-* Main-, middle- and backbatter divisions.
-* Example lists
+* Main-, middle- and backbatter divisions;
+* Example lists;
+* HTML Comment parsing;
+* BCP14 (RFC2119) keyword detection.
 
 Mmark is forked from blackfriday which started out as a translation from C of [upskirt][4].
 
@@ -146,6 +148,13 @@ implements the following extensions:
 *  **Example lists**, a list that is started with `(@good)` is subsequently numbered throughout
     the document. First use is rendered `(1)`, the second one `(2)` and so on.
 
+*  **HTML comments** An HTML comment in the form of `<!-- Miek Gieben: really -->` is detected
+    and will be converted to a `cref` with the `source` attribute set to "Miek Gieben" and the
+    comment text set to "really".
+
+*  **BCP 14** If a RFC 2119 word is found enclosed in `**` it will be rendered as an `<bcp14>`
+    element: `**MUST**` becomes `<bcp14>MUST</bcp14>`.
+
 Todo
 ----
 
@@ -158,8 +167,6 @@ Todo
     if caption is given, wrap in figure -> otherwise not.
 *   cleanups - and loose a bunch of extensions, turn them on per default
 *   reduce API footprint (hide constants mainly)
-*   if some attribute is specified check if the IAL also specifies it (then overule it)
-*   use a bunch of env vars to tweak aspects of the mmark binary
 *   make webservers that converts for you
 
 License

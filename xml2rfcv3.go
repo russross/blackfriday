@@ -209,6 +209,7 @@ func (options *Xml) CommentHtml(out *bytes.Buffer, text []byte) {
 	}
 	// don't output a cref if it is not name: remark
 	if len(source) != 0 {
+		// sanitize source here
 		source = bytes.TrimSpace(source)
 		text = bytes.TrimSpace(text)
 		out.WriteString("<t><cref source=\"")

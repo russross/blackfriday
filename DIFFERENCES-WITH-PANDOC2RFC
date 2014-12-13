@@ -1,7 +1,0 @@
-
-There are some differences:
-
-* citations: use `[@citation]` instead of faking the reference.
-* tables look different.
-* footnote with table stuff: not supported.
-* footnotes with citation: supported with extension.
