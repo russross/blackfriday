@@ -7,16 +7,18 @@ Everything that was true of [blackfriday][5], might not be true for mmark anymor
 Mmark is a fork of blackfriday which is a [Markdown][1] processor implemented in
 [Go][2]. It supports a number of extensions, inspired by Leanpub, kramdown and
 Asciidoc, that allows for large documents to be written. It is specifically
-designed to write internet drafts and RFCs for the IETF.
+designed to write internet drafts and RFCs for the IETF. With mmark you can create
+a single file that serves as input into the XML2RFC processor.
 
 It can currently output HTML5, XML2RFC v2 and XML2RFC v3 XML. Other output
 engines could be easily added.
 
-It adds the following syntax elements to black friday:
+It adds the following syntax elements to [black friday][https://github.com/russross/blackfriday/blob/master/README.md]:
 
 * Definition lists;
 * Table and codeblock captions;
-* Including files;
+* Quote attribution;
+* Including other files;
 * [TOML][3] titleblock;
 * Inline Attribute Lists;
 * Indices;
@@ -25,24 +27,9 @@ It adds the following syntax elements to black friday:
 * Asides;
 * Notes;
 * Main-, middle- and backbatter divisions.
-
-
-
-It is fast and it supports the following extensions:
-
-* tables
-* smart punctuation
-* substitutions
-* escaping chars (as in pandoc?)
-* EXAMPLE_LISTS (@good) (@good)
-* pay attention to the first number of ordered list, `4.` start a list with 4. instead of 1.
+* Example lists
 
 Mmark is forked from blackfriday which started out as a translation from C of [upskirt][4].
-
-## Enviroment variables?
-
-`MMARK_REFDIR`: is set prefix
-`MMARK_REFONLINE`, use online references
 
 ## Usage
 
@@ -55,44 +42,6 @@ This renders it with no extensions enabled. To get a more useful
 feature set, use this instead:
 
     output := mmark.MarkdownCommon(input)
-
-Features
---------
-
-All features of upskirt are supported, including:
-
-*   **Compatibility**. The Markdown v1.0.3 test suite passes with
-    the `--tidy` option.  Without `--tidy`, the differences are
-    mostly in whitespace and entity escaping, where blackfriday is
-    more consistent and cleaner.
-
-*   **Common extensions**, including table support, fenced code
-    blocks, autolinks, strikethroughs, non-strict emphasis, etc.
-
-*   **Safety**. Blackfriday is paranoid when parsing, making it safe
-    to feed untrusted user input without fear of bad things
-    happening. The test suite stress tests this and there are no
-    known inputs that make it crash.  If you find one, please let me
-    know and send me the input that does it.
-
-    NOTE: "safety" in this context means *runtime safety only*. In order to
-    protect yourself agains JavaScript injection in untrusted content, see
-    [this example](https://github.com/russross/blackfriday#sanitize-untrusted-content).
-
-*   **Fast processing**. It is fast enough to render on-demand in
-    most web applications without having to cache the output.
-
-*   **Thread safety**. You can run multiple parsers in different
-    goroutines without ill effect. There is no dependence on global
-    shared state.
-
-*   **Minimal dependencies**. Blackfriday only depends on standard
-    library packages in Go. The source code is pretty
-    self-contained, so it is easy to add to any project, including
-    Google App Engine projects. And TOML!
-
-*   **Standards compliant**. Output successfully validates using the
-    W3C validation tool for HTML 4.01 and XHTML 1.0 Transitional.
 
 
 Extensions
@@ -164,14 +113,18 @@ implements the following extensions:
 
 *   **Citations**, using the citation syntax from pandoc `[@RFC2535 p. 23]`, the citation
     can either be informative (default) or normative, this can be indicated by using
-    the `i` or `n` modifer: `[@RFC2535,n]`. Use [`-@RFC1000]` to add the cication to the references, but
+    the `i` or `n` modifer: `[@RFC2535,n]`. Use `[-@RFC1000]` to add the cication to the references, but
     suppress the output in the document.
 
     To make the references work you can optionally include a filename:
     `[@RFC233,n,bib/reference.RFC.2525.xml]`. If you reference an RFC or ID
-    the filename (or URL?) will be contructed automatically.
+    the filename will be contructed automatically.
 
-    A citation is informative by default.
+*  **Caption**, table and figure/code block captions. For tables add the string `Table: caption text` after
+    the table, this will be rendered as an caption. For code blocks you'll need to use `Figure: `
+
+*  **Quote attribution**, after a blockquote you can optionally use `Quote: John Doe -- http://example.org`, where
+    the quote will be attributed to John Doe, pointing to the URL.
 
 *  **Notes**, any parapgraph with `N>`
 
@@ -181,14 +134,17 @@ implements the following extensions:
 
 *  **{frontmatter}/{mainmatter}/{backmatter}** Create useful divisions in your document.
 
-*  **IAL**, kramdown's Inline Attribute List syntax, but took the commonMark
+*  **IAL**, kramdown's Inline Attribute List syntax, but took the CommonMark
     proposal, thus without the colon `{#id .class key=value key="value"}`.
 
-*  **Definitition lists**, the markdown extra syntax, short syntax is not supported (yet).
+*  **Definitition lists**, the markdown extra syntax.
 
-*  **TOML TitleBlock**, add an extended title block prefixed with % in TOML.
+*  **TOML TitleBlock**, add an extended title block prefixed with `%` in TOML.
 
 *  **Unique anchors**, make anchors unique by adding sequence numbers to them.
+
+*  **Example lists**, a list that is started with `(@good)` is subsequently numbered throughout
+    the document. First use is rendered `(1)`, the second one `(2)` and so on.
 
 Todo
 ----
