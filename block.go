@@ -181,7 +181,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// :	Definition2
 		if p.dliPrefix(data) > 0 {
 			p.insideDefinitionList = true
-			data = data[p.list(out, data, LIST_TYPE_DEFINITION, 0):]
+			data = data[p.list(out, data, LIST_TYPE_DEFINITION, 0, nil):]
 			p.insideDefinitionList = false
 		}
 
@@ -192,7 +192,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		//
 		// also works with + or -
 		if p.uliPrefix(data) > 0 {
-			data = data[p.list(out, data, 0, 0):]
+			data = data[p.list(out, data, 0, 0, nil):]
 			continue
 		}
 
@@ -205,7 +205,8 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			if i > 2 {
 				start, _ = strconv.Atoi(string(data[:i-2])) // this cannot fail because we just est. the thing *is* a number, and if it does start is zero anyway.
 			}
-			data = data[p.list(out, data, LIST_TYPE_ORDERED, start):]
+
+			data = data[p.list(out, data, LIST_TYPE_ORDERED, start, nil):]
 			continue
 		}
 
@@ -214,7 +215,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// ii.  Item 1
 		// ii.  Item 2
 		if p.rliPrefix(data) > 0 {
-			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_ROMAN_LOWER, 0):]
+			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_ROMAN_LOWER, 0, nil):]
 			continue
 		}
 
@@ -223,7 +224,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// II.  Item 1
 		// II.  Item 2
 		if p.rliPrefixU(data) > 0 {
-			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_ROMAN_UPPER, 0):]
+			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_ROMAN_UPPER, 0, nil):]
 			continue
 		}
 
@@ -232,7 +233,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// a.  Item 1
 		// b.  Item 2
 		if p.aliPrefix(data) > 0 {
-			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_ALPHA_LOWER, 0):]
+			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_ALPHA_LOWER, 0, nil):]
 			continue
 		}
 
@@ -241,7 +242,17 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// A.  Item 1
 		// B.  Item 2
 		if p.aliPrefixU(data) > 0 {
-			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_ALPHA_UPPER, 0):]
+			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_ALPHA_UPPER, 0, nil):]
+			continue
+		}
+
+		// an example lists:
+		//
+		// (@good)  Item1
+		// (@good)  Item2
+		if i := p.eliPrefix(data); i > 0 {
+			group := data[2:i-2]
+			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_GROUP, 0, group):]
 			continue
 		}
 
@@ -844,7 +855,7 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 			}
 			line = j
 		}
-		p.inline(&caption, data[i+7 : j-1]) // +7 for 'Table: '
+		p.inline(&caption, data[i+7:j-1]) // +7 for 'Table: '
 	}
 
 	p.r.SetIAL(p.ial)
@@ -1263,8 +1274,38 @@ func (p *parser) dliPrefix(data []byte) int {
 	return 0
 }
 
+// returns example list item prefix
+func (p *parser) eliPrefix(data []byte) int {
+	i := 0
+	if len(data) < 3 {
+		return 0
+	}
+
+	// start with up to 3 spaces
+	for i < 3 && data[i] == ' ' {
+		i++
+	}
+
+	// (@<tag>)
+	if data[i] != '(' || data[i+1] != '@' {
+		return 0
+	}
+
+	// count up until the closing )
+	start := i
+	for data[i] != ')' {
+		i++
+	}
+
+	// now two spaces
+	if start == i || data[i+1] != ' ' || data[i+2] != ' ' {
+		return 0
+	}
+	return i + 2
+}
+
 // parse ordered or unordered or definition list block
-func (p *parser) list(out *bytes.Buffer, data []byte, flags, start int) int {
+func (p *parser) list(out *bytes.Buffer, data []byte, flags, start int, group []byte) int {
 	p.insideList++
 	defer func() {
 		p.insideList--
@@ -1291,7 +1332,7 @@ func (p *parser) list(out *bytes.Buffer, data []byte, flags, start int) int {
 		flags |= LIST_INSIDE_LIST
 	}
 
-	p.r.List(out, work, flags, start)
+	p.r.List(out, work, flags, start, group)
 	return i
 }
 
@@ -1321,6 +1362,9 @@ func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *int) int {
 		i = p.rliPrefixU(data)
 	}
 	if i == 0 {
+		i = p.eliPrefix(data)
+	}
+	if i == 0 {
 		i = p.dliPrefix(data)
 		if i > 0 {
 			var rawTerm bytes.Buffer
@@ -1328,6 +1372,7 @@ func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *int) int {
 			p.r.ListItem(out, rawTerm.Bytes(), *flags|LIST_TYPE_TERM)
 		}
 	}
+
 	if i == 0 {
 		return 0
 	}
@@ -1385,7 +1430,8 @@ gatherlines:
 		case (p.uliPrefix(chunk) > 0 && !p.isHRule(chunk)) ||
 			p.aliPrefix(chunk) > 0 || p.aliPrefixU(chunk) > 0 ||
 			p.rliPrefix(chunk) > 0 || p.rliPrefixU(chunk) > 0 ||
-			p.oliPrefix(chunk) > 0 || p.dliPrefix(data[line+indent:]) > 0:
+			p.oliPrefix(chunk) > 0 || p.eliPrefix(chunk) > 0 ||
+			p.dliPrefix(data[line+indent:]) > 0:
 
 			if containsBlankLine {
 				*flags |= LIST_ITEM_CONTAINS_BLOCK
@@ -1598,6 +1644,7 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 				p.rliPrefixU(current) != 0 ||
 				p.rliPrefix(current) != 0 ||
 				p.oliPrefix(current) != 0 ||
+				p.eliPrefix(current) != 0 ||
 				p.dliPrefix(current) != 0 ||
 				p.quotePrefix(current) != 0 ||
 				p.codePrefix(current) != 0 {

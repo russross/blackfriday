@@ -15,7 +15,7 @@ const (
 	XML2_STANDALONE = 1 << iota // create standalone document
 )
 
-// <meta name="GENERATOR" content="Blackfriday Markdown Processor v1.0" /> 
+// <meta name="GENERATOR" content="Blackfriday Markdown Processor v1.0" />
 
 // Xml2 is a type that implements the Renderer interface for XML2RFV3 output.
 //
@@ -25,18 +25,21 @@ type Xml2 struct {
 	sectionLevel int // current section level
 	docLevel     int // frontmatter/mainmatter or backmatter
 
-	// Store the IAL we see for this block element
+	// store the IAL we see for this block element
 	ial *IAL
 
-	// TitleBlock in TOML
+	// titleBlock in TOML
 	titleBlock *title
+
+	// (@good) example list group counter
+	group map[string]int
 }
 
 // Xml2Renderer creates and configures a Xml object, which
 // satisfies the Renderer interface.
 //
 // flags is a set of XML2_* options ORed together
-func Xml2Renderer(flags int) Renderer { return &Xml2{flags: flags} }
+func Xml2Renderer(flags int) Renderer { return &Xml2{flags: flags, group: make(map[string]int)} }
 func (options *Xml2) GetFlags() int   { return options.flags }
 func (options *Xml2) GetState() int   { return 0 }
 
@@ -214,7 +217,7 @@ func (options *Xml2) HRule(out *bytes.Buffer) {
 	// not used
 }
 
-func (options *Xml2) List(out *bytes.Buffer, text func() bool, flags, start int) {
+func (options *Xml2) List(out *bytes.Buffer, text func() bool, flags, start int, group []byte) {
 	marker := out.Len()
 	// inside lists we must drop the paragraph
 	if flags&LIST_INSIDE_LIST == 0 {
@@ -222,9 +225,12 @@ func (options *Xml2) List(out *bytes.Buffer, text func() bool, flags, start int)
 	}
 
 	ial := options.IAL()
-	if start >1 {
+	if start > 1 {
 		ial.GetOrDefaultAttr("start", strconv.Itoa(start))
 	}
+
+	// for group, fake a numbered format (if not already given and put a
+	// group -> current number in options
 
 	switch {
 	case flags&LIST_TYPE_ORDERED != 0:
@@ -237,6 +243,14 @@ func (options *Xml2) List(out *bytes.Buffer, text func() bool, flags, start int)
 			ial.GetOrDefaultAttr("style", "format %i")
 		case flags&LIST_TYPE_ORDERED_ROMAN_UPPER != 0:
 			ial.GetOrDefaultAttr("style", "format %I")
+		case flags&LIST_TYPE_ORDERED_GROUP != 0:
+			// check start as well
+			if group != nil {
+				options.group[string(group)]++	
+				start := options.group[string(group)]
+				ial.GetOrDefaultAttr("start", strconv.Itoa(start))
+				ial.GetOrDefaultAttr("style", "format (%d)")
+			}
 		default:
 			ial.GetOrDefaultAttr("style", "numbers")
 		}
@@ -508,7 +522,7 @@ func (options *Xml2) DocumentHeader(out *bytes.Buffer, first bool) {
 		return
 	}
 	out.WriteString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
-	out.WriteString("<!DOCTYPE rfc SYSTEM 'rfc2629.dtd' [ ]>\n")
+	out.WriteString("<!DOCTYPE rfc SYSTEM 'rfc2629.dtd' []>\n")
 }
 
 func (options *Xml2) DocumentFooter(out *bytes.Buffer, first bool) {

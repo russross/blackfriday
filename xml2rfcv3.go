@@ -253,12 +253,15 @@ func (options *Xml) HRule(out *bytes.Buffer) {
 	// not used
 }
 
-func (options *Xml) List(out *bytes.Buffer, text func() bool, flags, start int) {
+func (options *Xml) List(out *bytes.Buffer, text func() bool, flags, start int, group []byte) {
 	marker := out.Len()
 
 	ial := options.IAL()
 	if start > 1 {
 		ial.GetOrDefaultAttr("start", strconv.Itoa(start))
+	}
+	if group != nil {
+		ial.GetOrDefaultAttr("group", string(group))
 	}
 	s := ial.String()
 	switch {
