@@ -26,7 +26,7 @@ It adds the following syntax elements to [black friday](https://github.com/russr
 * Abstract;
 * Asides;
 * Notes;
-* Main-, middle- and backbatter divisions;
+* Main-, middle- and backmatter divisions;
 * Example lists;
 * HTML Comment parsing;
 * BCP14 (RFC2119) keyword detection;
@@ -167,8 +167,8 @@ Todo
 ----
 
 *   Check outputted XML for wellformedness
-*   More unit testing
 *   pretty print XML
+*   More unit testing
 *   fenced code blocks -> source code with language etc.
 *   indentend code blocks -> artwork
 *   images -> artwork, use title for caption
