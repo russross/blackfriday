@@ -1,0 +1,962 @@
+# Introduction
+
+The Domain Name System Security (DNSSEC) Extensions introduced the NSEC
+resource record for authenticated denial of existence, and the NSEC3
+resource record for hashed authenticated denial of existence.  This document
+introduces an alternative resource record, NEXT, which similarly provides 
+authenticated denial of existence. It permits gradual expansion of
+delegation-centric zones, just like NSEC3 does. 
+With NEXT it is possible, but not required, to provide 
+measures against zone enumeration.
+
+NEXT reduces the size of the denial of existence response and
+adds Opt-Out to unhashed names. NEXT unifies NSEC and NSEC3.
+
+## Rationale
+
+Hashed authenticated denial of existence proofs hinge on the 
+closest encloser proof (Section 7.2.1 and 8.3 of [](#RFC5155) and [](#RFC7129)).
+When validating
+a hashed denial of existence response, a validator must deny or assert the
+presence of a next closer name and a wildcard name. A validator can derive
+these names from the closest encloser.
+
+ ^[ ^item^ subitem ]
+
+This is why most of the denial of existence responses with
+NSEC3 contain three records:
+
+1. A record which matches the closest encloser, this tells the validator
+   what the (unhashed) name of the closest encloser is;
+1. A record which covers or matches the next closer, to deny or assert the
+   existence of the next closer name;
+1. A record which covers or matches the wildcard, to deny or assert 
+   wildcard synthesis. The validator needs to know the closest encloser to 
+   construct the source of synthesis.
+
+This document presents a new record, NEXT, that is similar to NSEC3,
+but differs in the following ways:
+
+* It provides a new way to deny the existence of the wildcard,
+  by introducing the Wildcard flag (described in [](#wildcard-flag)). This
+  bit makes the third record (and its RRSIG), from the list above, redundant;
+* It allows for unhashed records, by introducing an Identity function
+  (described in [](#hash-algorithm)).
+
+With NEXT you will get a maximum of two records for any denial
+of existence response, saving one record and accompanying signature(s) compared
+to NSEC3.
+
+By defining an Identity function, we also fold back NSEC into NEXT and
+add Opt-out to unhashed names. With this change we collapse NSEC
+and NSEC3 into one new record to leave only one form of authenticated
+denial of existence in the DNS.
+
+## Requirements
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL
+NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and
+"OPTIONAL" in this document are to be interpreted as described in [](#RFC2119).
+
+## Terminology
+
+The reader is assumed to be familiar with the basic DNS and DNSSEC
+concepts described in [](#RFC1034), [](#RFC1035), [](#RFC4033), [](#RFC4034),
+[](#RFC4035), and subsequent RFCs that update them: [](#RFC2136),
+[](#RFC2181), [](#RFC2308) and [](#RFC5155). A good explanation on how authenticated
+denial of existence works can be found in [](#RFC7129).
+
+Furthermore, the same terminology is used throughout this document as is
+described in Section 1.3 from [](#RFC5155), with the following changes:
+
+Original owner name:
+
+:   the owner name corresponding to a hashed owner name if hashing is used. Or
+    the owner name as-is if no hashing is used.
+
+Opt-Out NEXT RR:
+
+:   an NEXT RR that has the Opt-Out flag set to 1.
+
+Wildcard NEXT RR:
+
+:   an NEXT RR that has the Wildcard flag set to 1.
+
+Opt-Out zone:
+
+:   a zone with at least one Opt-Out NEXT RR.
+
+Base32:
+
+:   the "Base 32 Encoding with Extended Hex Alphabet" as specified
+    in [](#RFC4648). Note that trailing padding characters ("=") are
+    not used in the NEXT specification.
+
+To cover:
+
+:   an NEXT RR is said to "cover" a name if the (hashed) name or (hashed) next closer name falls between
+    the owner name of the NEXT RR and the next (hashed) owner name of the NEXT. In other words, if
+    it proves the nonexistence of the name, either directly or by proving the
+    nonexistence of an ancestor of the name.
+
+To match:
+
+:   When a hash algorithm is defined, an NEXT RR is said to "match" a name
+    if the owner name of the NEXT RR is the same as the hashed owner name
+    of that name. When no hash algorithm (Identity function) is defined, an NEXT RR is said to
+    "match" a name if the name and the owner name of the NEXT RR are equal.
+
+Identity function:
+
+:   Perform no hashing. Leave the name as-is.
+
+# Experimental Status
+
+This document describes an EXPERIMENTAL extension to DNSSEC.
+It interoperates with non-experimental DNSSEC using the technique
+described in [](#RFC4955).  This experiment is identified with the
+following private algorithm (using algorithm PRIVATEDNS):
+
+* Algorithm `5.next.nlnetlabs.nl.`, is an alias for algorithm 5, RSASHA1.
+
+Servers wishing to sign and serve zones that utilize NEXT MUST sign
+the zone with this private algorithm and MUST NOT use any other algorithms.
+
+Resolvers MUST NOT apply NEXT validation described in this document
+unless a response contains RRSIGs created with this private algorithm.
+
+# The NEXT Resource Record
+
+The NEXT RR provides authenticated denial of existence for DNS RRsets.
+
+The NEXT RR lists RR types present at the original owner name of the NEXT RR.
+It includes the next (hashed) owner name in the canonical order of the zone.
+The complete set of NEXT RRs in a zone indicates which RRSets exist for the
+original owner name of the RR and form a chain. This information is used to
+provide authenticated denial of existence for DNS data. To provide protection
+against zone enumeration, the owner names used in the NEXT RR can be
+cryptographic hashes of the original owner name prepended as a single label
+to the name of the zone. The NEXT RR indicates which
+hash function (if any) is used to construct the hash, which salt is used, and how many
+iterations of the hash function are performed over the original owner name.
+
+The hashing technique is the same as with NSEC3 and is described in
+Section 5 of [](#RFC5155). NSEC3 creates hashes for empty non-terminals, NEXT
+does the same, even when the Identity function is in use.
+
+(Hashed) owner names of unsigned delegations may be excluded from the chain.
+An NEXT RR whose span covers an owner name or next closer name of an
+unsigned delegation is referred to as an Opt-Out NEXT RR and is indicated by
+the presence of a flag.
+
+If hashing is in use, the owner name for the NEXT RR is the base32 encoding
+of the hashed owner name prepended as a single label to the name of the zone.
+If hashing is not in use, the other name of the NEXT RR is the unmodified domain
+name.
+
+The type value for the NEXT RR is [TBD].
+
+The NEXT RR RDATA format is class independent and is described below.
+
+The class MUST be the same as the class of the original owner name, in case the
+original owner name is being hashed.
+
+The NEXT RR SHOULD have the same TTL value as the SOA minimum TTL field.
+This is in the spirit of negative caching [](#RFC2136).
+
+## RDATA Fields
+
+The NEXT RDATA has many similarities with the NSEC3 RDATA, but there are
+differences:
+
+* There is an extra flag bit reserved to indicate whether wildcard synthesis
+  is possible (e.g. does a wildcard domain name exist that is immediately
+  descending from the original owner name?);
+* The hash length does not need to be stored, as all domain names are 
+  stored as domain names, not raw hashes. [MG: this limits the hash to 63 octects..]
+
+### Hash Algorithm
+
+[](#RFC5155) defines the NSEC3 hash algorithm registry. Hash algorithm
+0 is reserved. For NEXT we define hash algorithm 0 to be the Identity function,
+meaning that no hashing is used.
+
+### Flags
+
+The Flags field is identical to the Flags field as defined in [](#RFC5155).
+This specification adds a new flag, the Wildcard Flag.
+
+#### Opt-Out Flag
+
+Like the Opt-Out Flag defined in Section 3.1.2.1 of [](#RFC5155).
+
+#### Wildcard Flag
+
+The Wildcard Flag indicates whether there is wildcard synthesis possible
+(e.g. does a wildcard domain name exist that is immediately descending from
+the original owner name of the NEXT?).
+
+If the Wildcard flag is set, wildcard synthesis is possible.
+
+If the Wildcard flag is clear, wildcard synthesis is not possible.
+
+### Iterations
+
+The Iterations field defines the number of additional times the hash
+function has been performed.  More iterations result in greater
+resiliency of the hash value against dictionary attacks, but at a
+higher computational cost for both the server and resolver, therefor this field
+has been limited to one octet.
+
+### Salt Length
+
+Like the Salt Length field defined in Section 3.1.4 of [](#RFC5155).
+
+### Salt
+
+Like the Salt field defined in Section 3.1.5 of [](#RFC5155).
+
+### Next (Hashed) Owner Name
+
+The Next Owner Name field contains the next owner name that exists in the
+definition of Section 2.2.3 of [](#RFC4592).
+
+The field contains the next owner name in the
+canonical ordering of the zone, as explained in Section 6.1 of [](#RFC4034).
+
+A sender MUST NOT use DNS name compression on the Next Owner Name field when
+transmitting an NEXT RR.
+
+Owner names of RRsets for which the given zone is not authoritative
+(such as glue records) MUST NOT be listed in the Next Owner Name,
+unless at least one authoritative RRset exists at the same owner name.
+
+### Type Bit Maps
+
+Like the Type Bit Maps field defined in Section 3.1.8 of [](#RFC5155).
+
+## NEXT RDATA Wire Format
+
+The RDATA of the NEXT RR is as shown below.
+
+                         1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |   Hash Alg.   |     Flags     |  Iterations   | Salt Length   |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    /                            Salt                               /
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    /                 Next (Hashed) Owner Name                      /
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    /                         Type Bit Maps                         /
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+^[fig:next-wire::The NEXT on-the-wire format.]
+
+Hash Algorithm is a single octet. 
+If Hash Algorithm is zero (Identity function), the Iterations field,
+the Salt Length field and the Salt field MUST be ignored.
+
+Flags field is a single octet. The following one-bit flags are defined:
+
+     0 1 2 3 4 5 6 7
+    +-+-+-+-+-+-+-+-+
+    |           |W|O|
+    +-+-+-+-+-+-+-+-+
+
+* O - Opt-Out flag
+* W - Wildcard flag
+
+Iterations is represented as a unsigned octet.
+
+Salt Length is represented as an unsigned octet.  Salt Length
+represents the length of the Salt field in octets.  If the value is
+zero, the following Salt field is omitted.
+
+Salt, if present, is encoded as a sequence of binary octets.  The
+length of this field is determined by the preceding Salt Length
+field.
+
+If Hash Algorithm is not zero, the Next (Hashed) Owner Name is a base32
+encoded domain name of the hashed next owner name prepended as a single
+label to the name of the zone. 
+If Hash Algorithm is zero it is a plain domain name.
+
+The Type Bit Maps encode the existing types at the original owner name
+that matches the NEXT RR.
+
+### Type Bit Maps Encoding
+
+The encoding of the Type Bit Maps field is the same as that used by the
+NSEC and NSEC3 RR, described in [](#RFC4034), as well as in [](#RFC5155).
+
+## Presentation Format
+
+The presentation format of the RDATA portion is as follows:
+
+* The Hash Algorithm field is represented as an unsigned decimal
+    integer. The value has a maximum of 255.
+
+* The Flags field is represented as an unsigned decimal integer.
+    The value has a maximum of 255.
+
+* The Iterations field is represented as an unsigned decimal
+    integer. The value is between 0 and 255, inclusive.
+
+* The Salt Length field is not represented.
+
+* The Salt field is represented as a sequence of case-insensitive
+  hexadecimal digits.  Whitespace is not allowed within the
+  sequence.  The Salt field is represented as "-" (without the
+  quotes) when the Salt Length field has a value of 0.
+
+* The Next (Hashed) Owner Name field is represented as a domain name.
+
+* The Type Bit Maps field is represented as a sequence of RR type
+  mnemonics.  When the mnemonic is not known, the TYPE
+  representation as described in Section 5 of [](#RFC3597) MUST be
+  used.
+
+### Examples
+
+NSEC record:
+
+    example. NSEC a.example NS SOA RRSIG DNSKEY NSEC
+
+The same data shown as an NSEC3 record:
+
+    3msev9usmd4br9s97v51r2tdvmr9iqo1.example. NSEC3 1 0 0 - (
+                        6cd522290vma0nr8lqu1ivtcofj94rga 
+                        NS SOA RRSIG DNSKEY NSEC3PARAM )
+
+As an NEXT record with Identity function:
+
+    example. NEXT 0 0 0 - a.example. NS SOA RRSIG DNSKEY NEXT NEXTPARAM
+
+And as an NEXT record with SHA1 hashing:
+
+    3msev9usmd4br9s97v51r2tdvmr9iqo1.example. NEXT 1 0 0 - (
+                 6cd522290vma0nr8lqu1ivtcofj94rga.example. 
+                 NS SOA RRSIG DNSKEY NEXTPARAM )
+
+# The NEXTPARAM Resource Record
+
+NEXTPARAM is almost identical to NSEC3PARAM described in Section 5 of [](#RFC5155),
+except the type code used [TBD] is that of NEXTPARAM and the Iteration field is an
+octet.
+
+## NEXTPARAM RDATA Wire Format
+
+The RDATA of the NEXTPARAM RR is as shown below:
+
+                        1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |   Hash Alg.   |     Flags     |  Iterations   | Salt Length   |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                             Salt                              /
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+^[fig:nextparam-wire::The NEXTPARAM on-the-wire format.]
+
+Hash Algorithm is a single octet.
+
+Flags field is a single octet.
+
+Iterations is a single octet.
+
+Salt Length is represented as an unsigned octet.  Salt Length
+represents the length of the following Salt field in octets.  If the
+value is zero, the Salt field is omitted.
+
+Salt, if present, is encoded as a sequence of binary octets.  The
+length of this field is determined by the preceding Salt Length
+field.
+
+##  Presentation Format
+
+The presentation format of the RDATA portion is as follows:
+
+The Hash Algorithm field is represented as an unsigned decimal
+integer.  The value has a maximum of 255.
+
+The Flags field is represented as an unsigned decimal integer.
+The value has a maximum value of 255.
+
+The Iterations field is represented as an unsigned decimal
+integer.  The value is between 0 and 255, inclusive.
+
+The Salt Length field is not represented.
+
+The Salt field is represented as a sequence of case-insensitive
+hexadecimal digits.  Whitespace is not allowed within the
+sequence.  This field is represented as "-" (without the quotes)
+when the Salt Length field is zero.
+
+# Opt-Out
+
+This specification adds Opt-Out as described in Section 6 of [](#RFC5155).
+Because of the Identity function, this allows for Opt-Out being used with
+unhashed names. A similar method is described in [](#RFC4956), but with
+NEXT we can reuse the Opt-Out bit from the Flags field. 
+
+
+# Empty non-terminals
+
+With NSEC3, every empty non-terminal will have a NSEC3 record. This
+is mentioned in [](#RFC5155), for instance in
+section 7.1, the second bullet point:
+
+> Each empty non-terminal MUST have a corresponding NSEC3 RR, unless
+> the empty non-terminal is only derived from an insecure delegation
+> covered by an Opt-Out NSEC3 RR.
+
+This is a crucial difference with respect to NSEC, where no such provision
+exists.
+
+With NEXT we unify NSEC and NSEC3 and consequently, each empty non-terminal
+will get an NEXT record (see [](#zone-signing), the 6th bullet). Furthermore,
+NEXT represents the next owner name as a domain name, like NSEC, while
+NSEC3 represents the next name as an unmodified binary hash value.
+
+Due to these changes, we can revert back to canonical ordering for NEXT.
+This greatly simplifies the comparison code, because there is only one ordering mechanism.
+
+# Authoritative Server Considerations
+
+## Zone Signing
+
+Zones using NEXT must satisfy the same properties as described in 
+Section 7.1 of [](#RFC5155), with NSEC3 replaced by NEXT.
+
+In addition, for each original owner name that has a wildcard domain name
+immediately descending from the original owner name,
+the corresponding NEXT RR MUST have the Wildcard bit set in the Flags field.
+
+The following steps describe one possible method of proper construction of
+NEXT RRs.
+
+1.  Select the hash algorithm and the values for salt and iterations;
+
+2.  For each unique original owner name in the zone add an NEXT RR;
+    * If Opt-Out is being used, owner names of unsigned delegations MAY be excluded;
+    * The owner name of the NEXT RR is either the hash of the original owner name, prepended as a single label to the zone name, or is equal to the original owner name if Identity function is used;
+    * The Next Owner Name field is left blank for the moment;
+    * If Opt-Out is being used, set the Opt-Out bit to one.
+
+3.  For collision detection purposes, if hashing is used, optionally keep
+    track of the original owner name with the NEXT RR. Create an additional
+    NEXT RR corresponding to the original owner name with the asterisk label
+    prepended. Mark this NEXT RR as temporary;
+
+4.  If the original owner name is a wildcard domain name (Section 2.1.1. of [](#RFC4592)), 
+    mark the NEXT to be an NEXT RR that is matching a wildcard; 
+
+4.  For each RRSet at the original owner name, set the corresponding
+    bit in the Type Bit Maps field;
+
+5.  Additional NEXT RRs need to be added for every empty non-terminal
+    between the apex and the original owner name. If hashing is used,
+    optionally keep track of the original owner names of these NEXT RRs and
+    create temporary NEXT RRs for wildcard collisions in a similar fashion
+    to step 3;
+
+6.  Sort the set of NEXT RRs into canonical order.
+
+7.  Combine NEXT RRs with identical owner names by replacing
+    them with a single NEXT RR with the Type Bit Maps field
+    consisting of the union of the types represented by the set of NEXT RRs. 
+    If hashing is used and the original owner name was tracked, then collisions
+    may be detected when combining, as all of the matching NEXT RRs should
+    have the same original owner name. If a hash collision is detected, then a 
+    new salt has to be chosen, and the signing process is restarted.
+    Discard any possible temporary NEXT RRs;
+
+8.  In each NEXT RR, insert the next (hashed) owner name by using the
+    domain name of the next NEXT RR in
+    canonical order. The next (hashed) owner
+    name of the last NEXT RR in the zone contains the value of the
+    (hashed) owner name of the first NEXT RR in canonical order.
+
+    If the NEXT is marked to be matching a wildcard, find the NEXT that
+    matches the closest encloser. Set the Wildcard bit in the Flags field
+    of that NEXT;
+
+9.  Finally, add an NEXTPARAM RR with the same Hash Algorithm,
+    Iterations, and Salt fields to the zone apex.
+
+## Zone Serving
+
+This specification modifies DNSSEC-enabled DNS responses generated by
+authoritative servers. In particular, it replaces the use of NSEC or
+NSEC3 RRs in such responses with NEXT RRs.
+
+### Denial of Wildcard Synthesis Proof
+
+Instead of wasting a whole denial of existence RR to deny a wildcard, we have
+introduced a bit in the Flags field of the NEXT RR that indicates whether
+wildcard synthesis was possible because there exists a wildcard domain name
+immediately descending from the original owner name.
+
+The Denial of Wildcard Synthesis proof consists of one NEXT RR, that
+matches some domain name, and that has the Wildcard bit clear.
+
+Note that without much knowledge of the original owner name, this proof is not really
+useful. In particular, we don't know if this is the wildcard synthesis that
+we are looking for. This changes if we combine this proof with the
+closest encloser proof.
+
+### Closest Encloser Proof
+
+For some NEXT responses, namely Name Error Response ([](#name-error-responses))
+and Referrals to Unsigned Subzones ([](#referrals-to-unsigned-subzones)),
+a proof of the closest encloser is required.
+This is a proof that some ancestor of the QNAME is the closest encloser of QNAME.
+The proof is described in Section 7.2.1 of [](#RFC5155), and is the same
+for NEXT.
+
+### Denial of Source of Synthesis Proof
+
+The denial of wildcard synthesis proof combined with the closest encloser proof
+results in a denial of source of synthesis proof. The source of synthesis is
+defined in [](#RFC4592) as the wildcard domain name immediately descending from
+the closest encloser.
+
+The Denial of Source of Synthesis proof consists of (up to) two NEXT RRs,
+the same that constructed the closest encloser proof:
+
+* an NEXT RR that matches the closest encloser, and that has the Wildcard bit
+  clear in the Flags field;
+* an NEXT RR that covers the next closer name to the closest encloser.
+
+The first NEXT RR essentially proves that the encloser exists, and that no
+wildcard synthesis at the encloser is possible.
+The second NEXT RR proves that the encloser is the closest, thus the
+denial of the wildcard synthesis is the denial of the source of synthesis.
+
+### Name Error Responses
+
+If the zone does not contain any RRsets matching QNAME either exactly or
+via wildcard name expansion, then the name server must include proof that:
+
+* there is no exact match for QNAME;
+* the zone contains no RRsets that would match QNAME via wildcard name
+  expansion.
+
+With NSEC, the server includes in the response an NSEC RR that covers QNAME,
+and an NSEC RR that covers the wildcard RR at the closest encloser.
+
+With NSEC3, the server includes in the response an NSEC3 RR that covers the
+next closer, an NSEC3 RR that covers the wildcard RR at the closest
+encloser, and an NSEC3 RR that matches the closest encloser.
+
+To prove the nonexistence of QNAME with NEXT, the server MUST include a
+denial of source of synthesis proof. This collection of (up to) two NEXT RRs
+proves both that QNAME does not exist and that a wildcard that could have
+matched QNAME also does not exist.
+
+### No Data Responses
+
+#### QTYPE is not DS
+
+When a NODATA response needs to be returned, it is safe to say that QNAME
+exists. Similar to NSEC and NSEC3, server MUST include the NEXT RR that
+matches QNAME. This NEXT RR MUST NOT have the bits corresponding to either
+the QTYPE or CNAME set in its Type Bit Maps field.
+
+#### QTYPE is DS
+
+Because of Opt-Out, the response can be different when QTYPE is DS. If no
+NEXT RR matches QNAME, the server MUST return a closest provable encloser
+proof for QNAME. The NEXT RR that covers the next closer name MUST have
+the Opt-Out bit set.
+
+Note that we do not need to ensure the denial of source of synthesis proof,
+because a DS RRset next to a wildcard is meaningless (Section 4.6, [](#RFC4592)).
+
+### Wildcard Answer Responses
+
+If the zone does not contain any RRsets matching QNAME, but there is
+wildcard name expansion possible then the name server must include proof
+that the wildcard match was valid. This proof is accomplished by proving
+that QNAME does not exist and that the closest encloser of QNAME and the
+immediate ancestor of the wildcard are equal.
+
+Both with NSEC and NSEC3, the server includes in the response an NSEC RR
+that covers the next closer. It is not necessary to return a RR that
+matches the closest encloser, as the existence of this closest encloser
+is proven by the presence of the expanded wildcard in the response.
+
+To prove that the wildcard name expansion was valid with NEXT,
+the server MUST include in the response an NEXT RR that covers the
+next closer. For the same reasons as with NSEC and NSEC3, it is not necessary
+to return a RR that matches the closest encloser.
+
+### Wildcard No Data Responses
+
+With NSEC, the server includes in the response an NSEC RR that matches the
+wildcard, in addition to the NSEC RR that covers the next closer. The
+NSEC RR does not have the bits corresponding to QTYPE or CNAME set in its
+Type Bit Maps field.
+
+Again, with NSEC3, the server includes in the response an NSEC3 RR that
+matches the wildcard, in addition to the NSEC3 RR that covers the next
+closer. The NSEC3 RR does not have the bits corresponding to QTYPE or
+CNAME set in its Type Bit Maps field. Besides that, an NSEC3 RR that
+matches the closest encloser is included, because there was no expanded
+wildcard in the response that can be used to determine the closest
+encloser.
+
+[](#RFC5155) already notes that the closest encloser to QNAME must be the
+immediate ancestor of the wildcard RR, which is also defined in [](#RFC4592).
+A closest encloser proof is not necessitated.
+
+To prove the wildcard no data response with NEXT, the server MUST include
+in the response an NEXT RR that matches the wildcard, and an NEXT RR that
+covers the next closer. The closest encloser can be derived from the NEXT RR
+that matches the wildcard. From that, the next closer can be derived.
+
+### Referrals to Unsigned Subzones
+
+If there is an NEXT RR that matches the delegation name, then that
+NEXT RR MUST be included in the response. The DS and CNAME bit in the type
+bit maps of the NEXT RR must not be set (by definition).
+
+If the zone is Opt-Out, then there may not be an NEXT RR corresponding to
+the delegation. In this case, the closest provable encloser proof MUST be
+included in the response. The included NEXT RR that covers the next closer
+name for the delegation MUST have the Opt-Out flag set to one.
+
+Note that with the Identity function, the NEXT RR that matches the closest provable
+encloser does not need to be included in the response, as it can be
+derived from the NEXT that covers the next closer name.
+
+### Responding to Queries for NEXT Only Owner Names
+
+When NEXT hashing is in effect the paradox (NEXT records
+deny their own existence) described in Section 7.2.8 of [](#RFC5155)
+is back. When the Identity function is used, there is no paradox. 
+In light of this, queries for the NEXT resource type are handled in the
+same way as normal queries. Resolvers initiating these queries
+SHOULD disregard any information learned from the returned NEXT records.
+
+### Server Response to a Run-Time Collision
+
+The same considerations as described in Section 7.2.9 of [](#RFC5155) for
+NSEC3 apply to NEXT.
+
+## Secondary Servers
+
+The same considerations as described in Section 7.3 of [](#RFC5155) for
+NSEC3 and NSEC3PARAM apply to NEXT and NEXTPARAM.
+
+## Zones Using Unknown Hash Algorithms
+
+The same considerations as described in Section 7.4 of [](#RFC5155) for
+NSEC3 apply to NEXT.
+
+## Dynamic Update
+
+A zone signed using NEXT may accept dynamic updates [](#RFC2136).
+However, NEXT introduces some special considerations for dynamic updates.
+
+Adding and removing names in a zone MUST account for the creation or
+removal of empty non-terminals, similar to [](#RFC5155), Section 7.5.
+
+The presence of Opt-Out in a zone means that some additions or removals of
+unsigned delegations of names will not require changes to the NEXT RRs in a
+zone. The same considerations as in [](#RFC5155), Section 7.5 for NSEC3 apply
+for NEXT.
+
+The presence of Opt-Out in a zone means that when adding or removing
+NEXT RRs, the value of the Opt-Out flag that should be set in new or
+modified NEXT RRs is ambiguous. Servers SHOULD follow the set of
+basic rules to resolve the ambiguity, as described in [](#RFC5155),
+Section 7.5.
+
+Adding and removing wildcard names in a zone MUST account for the setting
+or clearing of the Wildcard bit in the Flags field:
+
+* When adding a wildcard name, the NEXT RR that matches the immediate
+  parent of the wildcard MUST set the Wildcard bit in the Flags field;
+
+* When deleting a wildcard name, the NEXT RR that matches the immediate
+  parent of the wildcard MUST clear the Wildcard bit in the Flags field.
+
+# Validator Considerations
+
+## Responses with Unknown Hash Types
+
+A validator MUST ignore NEXT RRs with unknown hash types.  The
+practical result of this is that responses containing only such NEXT
+RRs will generally be considered bogus.
+
+## Verifying NEXT RRs
+
+A validator MUST ignore the undefined bits (0-5) in the Flags field of
+NEXT RRs.
+
+A validator MAY treat a response as bogus if the response contains
+NEXT RRs that contain different values for hash algorithm,
+iterations, or salt from each other for that zone.
+
+## Validating Name Error Responses
+
+A validator MUST verify that there is a closest encloser for QNAME present
+in the response. A validator MUST verify that the Wildcard bit is clear in
+the Flags field of the NEXT RR that matches the closest encloser.
+
+> Note: In denial of existence responses, the Wildcard flag
+> will never be set. Setting the bit indicated that wildcard
+> synthesis is possible at the closest encloser. Obviously,
+> that contradicts with the denial of existence of the query
+> name. Nevertheless, a validator must verify that the Wildcard
+> bit is clear. If a validator fails to check the bit, it is
+> vulnerable to replay attacks. For example, if you do not check
+> the Wildcard Flag in the example.com NEXT (but *.example.com
+> does exist), an attacker can use the record to deny names that
+> would otherwise match the wildcard name.  <!-- * -->
+
+In order to find the closest encloser, the validator MUST find the longest
+name, X, such that X is an ancestor of QNAME that is matched by an NEXT RR
+present in the response.
+
+One possible algorithm for finding the closest encloser is as follows:
+
+1. Set SNAME=QNAME;
+2. If there is an NEXT RR in the response that matches SNAME, then we have found the closest encloser;
+3. Truncate SNAME by one label from the left, go to step 2.
+
+Once the closest encloser has been discovered, the validator MUST
+check that the NEXT RR that has the closest encloser as the original
+owner name is from the proper zone. The DNAME type bit MUST NOT be set and
+the NS type bit MUST be clear if the SOA type bit is clear.
+
+If this is not the case, it would be an indication that an attacker is
+using them to falsely deny the existence of RRs for which the server is
+not authoritative.
+
+In addition, the validator MUST verify that there is an NEXT RR that covers
+the next closer name.
+
+## Validating No Data Responses
+
+If QTYPE is not DS, a validator MUST verify that an NEXT RR that matches
+QNAME is present and that both the QTYPE and the CNAME type are not set in
+its Type Bit Maps field.
+
+Note that this test also covers the case where the NEXT RR exists because
+it corresponds to an empty non-terminal, in which case the NEXT RR will
+have an empty Type Bit Maps field.
+
+If QTYPE is DS, and there is an NEXT RR that matches QNAME present in the
+response, then that NEXT RR MUST NOT have the bits corresponding to DS and
+CNAME set in its Type Bit Maps field.
+
+If there is no such NEXT RR, then the validator MUST verify that there is
+a closest provable encloser for QNAME present in the response. The closest
+provable encloser is found in a similar way as the closest encloser.
+In addition, the validator MUST verify that there is an NEXT RR that covers
+the next closer name and has the Opt-Out bit set.
+
+## Validating Wildcard Answer Responses
+
+The verified wildcard answer RRSet in the response provides the validator
+with a closest encloser for QNAME. The validator can do so by checking the
+label count in the RRSIG and the number of labels in the answer's owner name.
+
+The validator MUST verify that there is an NEXT RR that covers the
+next closer name to QNAME is present in the response. This proves that QNAME
+itself did not exist and that the correct wildcard was used to generate the
+response.
+
+## Validating Wildcard No Data Responses
+
+The validator MUST verify that there is an NEXT RR present in the response
+that matches the source of synthesis. 
+
+In order to find the source of synthesis, the validator MUST find the longest
+name, X, such that X is an ancestor of QNAME and that *.X is matched by a
+NEXT RR present in the response.
+
+One possible algorithm for finding the source of synthesis is as follows:
+
+1.  Set SNAME=QNAME;
+2.  Truncate SNAME by one label from the left. This is a candidate for the
+    closest encloser;
+3.  Set WNAME to be SNAME with the asterisk label prepended: WNAME=*.SNAME;
+4.  If there is an NEXT RR in the response that matches WNAME, then we have
+    found the source of synthesis, with SNAME being the closest encloser;
+5.  Go to step 2.
+
+The validator does not need to check that the closest encloser is from the
+proper zone. The authoritative server returned an NEXT that matches the
+source of synthesis. According to [](#RFC6672), this proves that
+the server did not encounter a referral (step 3b of the server algorithm [](#RFC1035)),
+nor did it encounter a DNAME (step 3c of the server algorithm [](#RFC1035)).
+
+Now that the validator knows the source of synthesis and thus the closest
+encloser, it can derive the next closer name. The validator MUST verify
+that there is an NEXT RR that covers the next closer name to QNAME, is
+present in the response.
+
+Note that, because the response included an NEXT that matches the source
+of synthesis, we know that there exists data in the zone below the closest
+encloser. Therefore, the closest encloser cannot be a delegation, nor can there
+exists a DNAME RRset at the closest encloser.
+
+[MM: As an additional check, the validator can verify if the NEXT matching
+the closest encloser has the Wildcard Flag set.]
+
+## Validating Referrals to Unsigned Subzones
+
+The delegation name in a referral is the owner name of the NS RRSet
+present in the authority section of the referral response.
+
+If there is an NEXT RR present in the response that matches the
+delegation name, then the validator MUST ensure that the NS bit is
+set and that the DS bit is not set in the Type Bit Maps field of the
+NEXT RR. The validator MUST also ensure that the NEXT RR is from
+the correct (i.e., parent) zone. This is done by ensuring that the
+SOA bit is not set in the Type Bit Maps field of this NEXT RR.
+
+Note that the presence of an NS bit implies the absence of a DNAME
+bit, so there is no need to check for the DNAME bit in the Type Bit
+Maps field of the NEXT RR.
+
+If there is no NEXT RR present that matches the delegation name,
+then the validator MUST verify that there is a closest provable encloser 
+for the delegation name. In addition, the validator MUST verify that
+there is an NEXT RR that covers the next closer name and has the
+Opt-Out bit set.
+
+## NEXT Resource Record Caching
+
+The same considerations as described in Section 9.1 of [](#RFC5155) for
+NSEC3 apply to NEXT.
+
+## Use of the AD Bit
+
+The same considerations as described in Section 9.2 of [](#RFC5155) for
+NSEC3 apply to NEXT.
+
+# Special Considerations
+
+## Domain Name Length Restrictions
+
+The same considerations as described in Section 10.1 of [](#RFC5155) apply.
+
+## DNAME at the Zone Apex
+
+The DNAME specification in Section 3 of [](#RFC6672) has a
+'no-descendants' limitation. If a DNAME RR is present at node N,
+there MUST be no data at any descendant of N.
+
+[](#RFC5155) updates the DNAME specification to allow NSEC3 and RRSIG types
+at descendants of the apex regardless of the existence of DNAME at the apex.
+
+This document updates the DNAME specification to also allow NEXT types
+at descendants of the apex regardless of the existence of DNAME at the apex.
+
+## More Special Considerations
+
+Appendix C of [](#RFC5155) clarifies specific behavior and explains
+more special considerations for implementations, regarding salting and
+hash collisions. These considerations for NSEC3 also apply to NEXT.
+
+# IANA Considerations
+
+Although the NEXT and NEXTPARAM RR formats include a hash algorithm
+parameter, this document does not define a particular mechanism for
+safely transitioning from one NEXT hash algorithm to another. When
+specifying a new hash algorithm for use with NEXT, a transition
+mechanism MUST also be defined.
+
+This document updates the IANA registry "DOMAIN NAME SYSTEM PARAMETERS"
+(http://www.iana.org/assignments/dns-parameters) in sub-registry "TYPES",
+by defining two new types. [](#the-next-resource-record) defines the
+NEXT RR type [TBD]. [](#the-nextparam-resource-record) defines the
+NEXTPARAM RR type [TBD].
+
+This document creates a new IANA registry for NEXT flags. This
+registry is named "DNSSEC NEXT Flags". The initial contents of this
+registry are:
+
+      0    1    2    3    4    5    6    7
+    +----+----+----+----+----+----+----+----+
+    |    |    |    |    |    |    |Wild|Opt-|
+    |    |    |    |    |    |    |card|Out |
+    +----+----+----+----+----+----+----+----+
+
+    bit 6 is the Wildcard flag.
+
+    bit 7 is the Opt-Out flag.
+
+    bits 0 - 5 are available for assignment.
+
+Assignment of additional NEXT Flags in this registry requires IETF
+Standards Action [](#RFC5226).
+
+This document creates a new IANA registry for NEXTPARAM flags. This
+registry is named "DNSSEC NEXTPARAM Flags". The initial contents of
+this registry are:
+
+      0   1   2   3   4   5   6   7
+    +---+---+---+---+---+---+---+---+
+    |   |   |   |   |   |   |   | 0 |
+    +---+---+---+---+---+---+---+---+
+
+    bit 7 is reserved and must be 0.
+
+    bits 0 - 6 are available for assignment.
+
+Assignment of additional NEXTPARAM Flags in this registry requires IETF
+Standards Action [](#RFC5226).
+
+Finally, this document creates a new IANA registry for NEXT hash
+algorithms. This registry is named "DNSSEC NEXT Hash Algorithms".
+The initial contents of this registry are:
+
+    0 is the Identity function.
+
+    1 is SHA-1.
+
+    2-255 Available for assignment.
+
+Assignment of additional NEXT hash algorithms in this registry requires IETF
+Standards Action [](#RFC5226).
+
+# Security Considerations
+
+This document does not introduce any new security issues beyond those
+already discussed in [](#RFC4033), [](#RFC4034), [](#RFC4035) and [](#RFC5155).
+
+# Acknowledgements
+This document would not be possible without the help of Ed Lewis, Roy Arends, 
+Wouter Wijngaards, 
+Karst Koymans, 
+Mohan Parthasarathy,
+Marco Davids,
+Esther Makaay
+and Antoin Verschuren.
+
+# Changelog
+
+## 01
+
+[ To be removed to the RFC editor before publication. ]
+
+## -02
+
+* Rename to NEXT and NEXTPARAM;
+* Make Iterations an octet, instead of uin16.
+
+## -01
+
+* Clarification throughout the text (Mohan Parthasarathy);
+* Add section about empty non-terminals in NSEC, NSEC3 and NEXT;
+* Rename Zero hashing to Identity function.
+* No need for different ordering mechanisms: canonical ordering only.
+* Remove section on validator algorithm (already explained in RFC4035).
+
+## -00
+
+* Initial document.
