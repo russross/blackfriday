@@ -16,37 +16,25 @@
 %   [author.address]
 %   email = "miek@google.com"
 
-A> This document describes an markdown variant called mmark [@!mmark] that can
-A> be used to create RFC documents. It's aim is to make using mmark is natural
+A> This document describes an markdown variant called mmark [@?mmark] that can
+A> be used to create RFC documents. The aim of mmark is to make writing document
+A> as natural
 A> as possible, while providing a lot of power on how to structure and layout
 A> the document.
+
 
 {mainmatter}
 
 # Introduction
 
+<reference anchor='mmark' target="http://github.com/miekg/mmark">
+    <front>
+        <title abbrev='mmark'>Mmark git repository</title>
+        <author initials='R.' surname='Gieben' fullname='R. (Miek) Gieben'>
+            <address>
+                <email>miek@miek.nl</email></address></author>
+        <date year='2014' month='December' />
+    </front>
+</reference>
 
 {backmatter}
-
-
-# Raw references?
-
-R!> <reference anchor='mmark' target="http://github.com/miekg/mmark">
-R!>     <front>
-R!>         <title abbrev='mmark'>Mmark git repository</title>
-R!>         <author initials='R.' surname='Gieben' fullname='R. (Miek) Gieben'>
-R!>             <address>
-R!>                 <email>miek@miek.nl</email></address></author>
-R!>         <date year='2014' month='December' />
-R!>     </front>
-R!> </reference>
-
-R?> <reference anchor='mmark' target="http://github.com/miekg/mmark">
-R?>     <front>
-R?>         <title abbrev='mmark'>Mmark git repository</title>
-R?>         <author initials='R.' surname='Gieben' fullname='R. (Miek) Gieben'>
-R?>             <address>
-R?>                 <email>miek@miek.nl</email></address></author>
-R?>         <date year='2014' month='December' />
-R?>     </front>
-R?> </reference>

@@ -254,12 +254,12 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	// TODO(miek): parse p. 23 parts here (title)
 	// [@!RFC2534,bib/reference.xml p. 23], normative
 	// [@?RFC2535,bib/reference.xml p. 23], informative
-	// [@REF!|?,file text]
+	// [@[!|?]REF,#1 text]
 	// [-@RFC] : suppress output, but add to the citation list
 	if (t == linkCitation || data[1] == '@' || data[1] == '-') && p.flags&EXTENSION_CITATION != 0 {
 		var (
 			commaB, spaceB int
-			id, file       []byte
+			id             []byte
 			typ            byte
 			suppress       bool
 			seq            int = -1
@@ -269,13 +269,13 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		if data[k] == '-' {
 			suppress = true
 			k++
-		} 
+		}
 		k++
 		if data[k] == '!' {
 			typ = 'n'
 			k++
 		} else if data[k] == '?' {
-			typ = 'n'
+			typ = 'i'
 			k++
 		}
 
@@ -307,14 +307,11 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			for j := commaB + 1; j < end; j++ {
 				if data[j] == ',' || j == end-1 {
 					chunk := data[commaB+1 : j]
-					switch {
-					case len(chunk) > 1 && chunk[0] == '#':
+					if len(chunk) > 1 && chunk[0] == '#' {
 						num, err := strconv.Atoi(string(chunk[1:]))
 						if err == nil {
 							seq = num
 						}
-					default:
-						file = chunk
 					}
 					commaB = j
 				}
@@ -325,8 +322,21 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			id = data[k:txtE]
 		}
 		// we might be liberal and check which item we got and update if we see new ones.
-		if _, ok := p.citations[string(id)]; !ok {
-			p.citations[string(id)] = &citation{link: id, title: title, typ: typ, filename: file, seq: seq}
+		if c, ok := p.citations[string(id)]; !ok {
+			p.citations[string(id)] = &citation{link: id, title: title, typ: typ, seq: seq}
+		} else {
+			if c.link != nil {
+				c.link = id
+			}
+			if c.title != nil {
+				c.title = title
+			}
+			if c.seq == -1 && seq != -1 {
+				c.seq = seq
+			}
+			if c.typ == 0 {
+				c.typ = typ
+			}
 		}
 
 		//p.r.SetIAL(p.ial)
@@ -656,7 +666,7 @@ func leftBrace(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			return len(data) + 1
 		case s == "{backmatter}":
 			p.r.DocumentMatter(out, DOC_BACK_MATTER)
-			p.r.References(out, p.citations, p.xmlCitations)
+			p.r.References(out, p.citations)
 			p.appendix = true
 			return len(data) + 1
 		}
@@ -812,25 +822,25 @@ func autoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 		openDelim := 1
 
-		/* Try to close the final punctuation sign in this same line;
-		* if we managed to close it outside of the URL, that means that it's
-		* not part of the URL. If it closes inside the URL, that means it
-		* is part of the URL.
-		*
-		* Examples:
-		*
-		*      foo http://www.pokemon.com/Pikachu_(Electric) bar
-		*              => http://www.pokemon.com/Pikachu_(Electric)
-		*
-		*      foo (http://www.pokemon.com/Pikachu_(Electric)) bar
-		*              => http://www.pokemon.com/Pikachu_(Electric)
-		*
-		*      foo http://www.pokemon.com/Pikachu_(Electric)) bar
-		*              => http://www.pokemon.com/Pikachu_(Electric))
-		*
-		*      (foo http://www.pokemon.com/Pikachu_(Electric)) bar
-		*              => foo http://www.pokemon.com/Pikachu_(Electric)
-		 */
+		// Try to close the final punctuation sign in this same line;
+		// if we managed to close it outside of the URL, that means that it's
+		// not part of the URL. If it closes inside the URL, that means it
+		// is part of the URL.
+
+		//	 Examples:
+		//
+		//	      foo http://www.pokemon.com/Pikachu_(Electric) bar
+		//	              => http://www.pokemon.com/Pikachu_(Electric)
+		//
+		//	      foo (http://www.pokemon.com/Pikachu_(Electric)) bar
+		//	              => http://www.pokemon.com/Pikachu_(Electric)
+		//
+		//	      foo http://www.pokemon.com/Pikachu_(Electric)) bar
+		//	              => http://www.pokemon.com/Pikachu_(Electric))
+		//
+		//	      (foo http://www.pokemon.com/Pikachu_(Electric)) bar
+		//	              => foo http://www.pokemon.com/Pikachu_(Electric)
+		//
 
 		for bufEnd >= 0 && origData[bufEnd] != '\n' && openDelim != 0 {
 			if origData[bufEnd] == data[linkEnd-1] {

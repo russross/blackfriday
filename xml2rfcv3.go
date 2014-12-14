@@ -380,7 +380,7 @@ func (options *Xml) Citation(out *bytes.Buffer, link, title []byte) {
 	out.WriteString("<xref target=\"" + string(link) + "\" section=\"" + string(title) + "\"/>")
 }
 
-func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation, xmlCitations []*xmlCitation) {
+func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation) {
 	if options.flags&XML_STANDALONE == 0 {
 		return
 	}
@@ -410,14 +410,6 @@ func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation
 			refn++
 		}
 	}
-	for _, c := range xmlCitations {
-		if c.typ == 'i' {
-			refi++
-		}
-		if c.typ == 'n' {
-			refn++
-		}
-	}
 	// output <xi:include href="<references file>.xml"/>, we use file it its not empty, otherwise
 	// we construct one for RFCNNNN and I-D.something something.
 	if refi+refn > 0 {
@@ -425,34 +417,17 @@ func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation
 			out.WriteString("<references title=\"Informative References\">\n")
 			for _, c := range citations {
 				if c.typ == 'i' {
-					f := string(c.filename)
-					if f == "" {
-						f = referenceFile(c)
-					}
+					f := referenceFile(c)
 					out.WriteString("\t<xi:include href=\"" + f + "\"/>\n")
 				}
 			}
-			for _, c := range xmlCitations {
-				if c.typ == 'i' {
-					out.Write(c.xml)
-				}
-			}
-			out.WriteString("</references>\n")
 		}
 		if refn > 0 {
 			out.WriteString("<references title=\"Normative References\">\n")
 			for _, c := range citations {
 				if c.typ == 'n' {
-					f := string(c.filename)
-					if f == "" {
-						f = referenceFile(c)
-					}
+					f := referenceFile(c)
 					out.WriteString("\t<xi:include href=\"" + f + "\"/>\n")
-				}
-			}
-			for _, c := range xmlCitations {
-				if c.typ == 'n' {
-					out.Write(c.xml)
 				}
 			}
 			out.WriteString("</references>\n")
@@ -646,7 +621,7 @@ func WriteAndConvertEntity(out *bytes.Buffer, text []byte) {
 	}
 }
 
-// use to strip XML from a string... 
+// use to strip XML from a string...
 func sanitizeXML(s string) string {
 	s1 := strings.Replace(s, "<eref target=\"", "", 1)
 	s1 = strings.Replace(s1, "\"/>", "", 1)

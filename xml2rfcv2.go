@@ -372,7 +372,7 @@ func (options *Xml2) Citation(out *bytes.Buffer, link, title []byte) {
 	out.WriteString("<xref target=\"" + string(link) + "\"/>")
 }
 
-func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citation, xmlCitations []*xmlCitation) {
+func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citation) {
 	if options.flags&XML2_STANDALONE == 0 {
 		return
 	}
@@ -392,17 +392,9 @@ func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citatio
 		// nothing to do
 	}
 	options.docLevel = DOC_BACK_MATTER
-	// count the references
+
 	refi, refn := 0, 0
 	for _, c := range citations {
-		if c.typ == 'i' {
-			refi++
-		}
-		if c.typ == 'n' {
-			refn++
-		}
-	}
-	for _, c := range xmlCitations {
 		if c.typ == 'i' {
 			refi++
 		}
@@ -417,16 +409,13 @@ func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citatio
 			out.WriteString("<references title=\"Informative References\">\n")
 			for _, c := range citations {
 				if c.typ == 'i' {
-					f := string(c.filename)
-					if f == "" {
-						f = referenceFile(c)
+					// if we have raw xml, output that
+					if c.xml != nil {
+						out.Write(c.xml)
+						continue
 					}
+					f := referenceFile(c)
 					out.WriteString("\t<?rfc include=\"" + f + "\"?>\n")
-				}
-			}
-			for _, c := range xmlCitations {
-				if c.typ == 'i' {
-					out.Write(c.xml)
 				}
 			}
 			out.WriteString("</references>\n")
@@ -435,16 +424,12 @@ func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citatio
 			out.WriteString("<references title=\"Normative References\">\n")
 			for _, c := range citations {
 				if c.typ == 'n' {
-					f := string(c.filename)
-					if f == "" {
-						f = referenceFile(c)
+					if c.xml != nil {
+						out.Write(c.xml)
+						continue
 					}
+					f := referenceFile(c)
 					out.WriteString("\t<?rfc include=\"" + f + "\"?>\n")
-				}
-			}
-			for _, c := range xmlCitations {
-				if c.typ == 'n' {
-					out.Write(c.xml)
 				}
 			}
 			out.WriteString("</references>\n")

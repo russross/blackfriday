@@ -217,7 +217,7 @@ type Renderer interface {
 
 	// Frontmatter, mainmatter or backmatter
 	DocumentMatter(out *bytes.Buffer, matter int)
-	References(out *bytes.Buffer, citations map[string]*citation, xmlCitations []*xmlCitation)
+	References(out *bytes.Buffer, citations map[string]*citation)
 
 	// Helper functions
 	GetFlags() int
@@ -237,7 +237,6 @@ type parser struct {
 	r                    Renderer
 	refs                 map[string]*reference
 	citations            map[string]*citation
-	xmlCitations         []*xmlCitation
 	inlineCallback       [256]inlineParser
 	flags                int
 	nesting              int
@@ -471,7 +470,7 @@ func secondPass(p *parser, input []byte, depth int) []byte {
 	if !p.appendix {
 		// appendix not started in doc, start it now and output references
 		p.r.DocumentMatter(&output, DOC_BACK_MATTER)
-		p.r.References(&output, p.citations, p.xmlCitations)
+		p.r.References(&output, p.citations)
 		p.appendix = true
 	}
 	p.r.DocumentFooter(&output, depth == 0)
@@ -522,17 +521,11 @@ type reference struct {
 
 // Citations are parsed and stored in this struct.
 type citation struct {
-	link     []byte
-	title    []byte
-	filename []byte
-	typ      byte // 'i' for informal, 'n' normative (default = 'i')
-	seq      int  // sequence number for I-Ds
-}
-
-// XmlCitations are stored in this struct.
-type xmlCitation struct {
-	typ byte
-	xml []byte
+	link  []byte
+	title []byte
+	xml   []byte // raw include of reference XML
+	typ   byte   // 'i' for informal, 'n' normative (default = 'i')
+	seq   int    // sequence number for I-Ds
 }
 
 // Check whether or not data starts with a reference link.

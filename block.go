@@ -150,15 +150,6 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			continue
 		}
 
-		// Reference quote:
-		//
-		// R?> <reference>...
-		// R?> ....
-		if p.referencePrefix(data) > 0 {
-			data = data[p.reference(out, data):]
-			continue
-		}
-
 		// block quote:
 		//
 		// > A big quote I found somewhere
@@ -425,6 +416,9 @@ func (p *parser) html(out *bytes.Buffer, data []byte, doRender bool) int {
 		if size := p.htmlHr(out, data, doRender); size > 0 {
 			return size
 		}
+		if size := p.htmlReference(out, data, doRender); size > 0 {
+			return size
+		}
 
 		// no special case recognized
 		return 0
@@ -575,6 +569,64 @@ func (p *parser) htmlHr(out *bytes.Buffer, data []byte, doRender bool) int {
 			}
 			return size
 		}
+	}
+
+	return 0
+}
+
+// HTML reference, actually xml, but keep in the spirit use call it html
+func (p *parser) htmlReference(out *bytes.Buffer, data []byte, doRender bool) int {
+	if !bytes.HasPrefix(data, []byte("<reference ")) {
+		return 0
+	}
+
+	i := 10
+	// scan for an end-of-reference marker, across lines if necessary
+	for i < len(data) &&
+		!(data[i-10] == 'r' && data[i-9] == 'e' && data[i-8] == 'f' &&
+			data[i-7] == 'e' && data[i-6] == 'r' && data[i-5] == 'e' &&
+			data[i-4] == 'n' && data[i-3] == 'c' && data[i-2] == 'e' &&
+			data[i-1] == '>') {
+		i++
+	}
+	i++
+
+	// no end-of-reference marker
+	if i >= len(data) {
+		return 0
+	}
+
+	// needs to end with a blank line
+	if j := p.isEmpty(data[i:]); j > 0 {
+		size := i + j
+		if doRender {
+			// trim trailing newlines
+			end := size
+			for end > 0 && data[end-1] == '\n' {
+				end--
+			}
+			anchor := bytes.Index(data[:end], []byte("anchor="))
+			if anchor == -1 {
+				// nothing found, not a real reference
+				return 0
+			}
+			// look for the some tag after anchor=
+			open := data[anchor+7]
+			i := anchor + 7 + 2
+			for i < end && data[i-1] != open {
+				i++
+			}
+			if i >= end {
+				return 0
+			}
+			anchorStr := string(data[anchor+7+1 : i-1])
+			if c, ok := p.citations[anchorStr]; !ok {
+				p.citations[anchorStr] = &citation{xml: data[:end]}
+			} else {
+				c.xml = data[:end]
+			}
+		}
+		return size
 	}
 
 	return 0

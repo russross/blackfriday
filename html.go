@@ -599,7 +599,7 @@ func (options *Html) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
 
 func (options *Html) Index(out *bytes.Buffer, primary, secondary []byte)           {}
 func (options *Html) Citation(out *bytes.Buffer, link, title []byte)               {}
-func (options *Html) References(out *bytes.Buffer, citations map[string]*citation, xmlCitations []*xmlCitation) {}
+func (options *Html) References(out *bytes.Buffer, citations map[string]*citation) {}
 func (options *Html) Entity(out *bytes.Buffer, entity []byte)                      { out.Write(entity) }
 
 func (options *Html) NormalText(out *bytes.Buffer, text []byte) {

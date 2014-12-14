@@ -29,7 +29,8 @@ It adds the following syntax elements to [black friday](https://github.com/russr
 * Main-, middle- and backbatter divisions;
 * Example lists;
 * HTML Comment parsing;
-* BCP14 (RFC2119) keyword detection.
+* BCP14 (RFC2119) keyword detection;
+* Include raw XML references.
 
 Mmark is forked from blackfriday which started out as a translation from C of [upskirt][4].
 
@@ -154,6 +155,9 @@ implements the following extensions:
 *  **HTML comments** An HTML comment in the form of `<!-- Miek Gieben: really -->` is detected
     and will be converted to a `cref` with the `source` attribute set to "Miek Gieben" and the
     comment text set to "really".
+
+*  **XML references** Any XML reference fragment included *before* the back matter, can be used
+    as a citation reference.
 
 *  **BCP 14** If a RFC 2119 word is found enclosed in `**` it will be rendered as an `<bcp14>`
     element: `**MUST**` becomes `<bcp14>MUST</bcp14>`.
