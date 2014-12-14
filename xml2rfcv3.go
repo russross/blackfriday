@@ -201,9 +201,9 @@ func (options *Xml) CommentHtml(out *bytes.Buffer, text []byte) {
 		l = 20
 	}
 	for i := 0; i < l; i++ {
-		if text[i] == ':' {
+		if text[i] == '-' && text[i+1] == '-' {
 			source = text[:i]
-			text = text[i+1:]
+			text = text[i+2:]
 			break
 		}
 	}

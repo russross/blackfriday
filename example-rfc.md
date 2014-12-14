@@ -22,10 +22,10 @@ A> This will become a paragraph in the abstract.
 
 # Introduction
 
-The DS Resource Record [@RFC3658,i]...
+The DS Resource Record [@RFC3658]...
 particular a digest of the **DNSKEY**, *the* algorithm used for signature of the
 
-When NSEC3 [@RFC5155,n 5.5] was ....
+When NSEC3 [@!RFC5155 5.5] was ....
 
 > This transition method is best described as a hack.
 > Quote: this is part of the quote.
@@ -33,13 +33,13 @@ Quote: Miek Gieben -- http://miek.nl/
 
 In this document, the key words "MUST", "MUST NOT", "REQUIRED",
 "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY",
-and "OPTIONAL" are to be interpreted as described in [@RFC2119,n].
+and "OPTIONAL" are to be interpreted as described in [@!RFC2119].
 
 # DS Record Field Values
 
 AS> When typesetting something in an aide
 AS> you get an aside.
- 
+
 {#cref:miek1}
 <!-- Miek: are you sure you want to include this stuff? -->
 
@@ -56,7 +56,7 @@ Digest:
 
             digest = Denial Type | HASH(DNSKEY owner name | DNSKEY RDATA)
 
-    where DNSKEY RDATA is defined by [@RFC4034,n] as:
+    where DNSKEY RDATA is defined by [@!RFC4034] as:
 
             DNSKEY RDATA = Flags | Protocol | Algorithm | Public Key
 
@@ -147,7 +147,7 @@ VALUE   |  Denial Type
 5-65535 |  Unassigned
 Table: As shown here.
 
-<!--  Miek Gieben: This is a comment -->
+<!--  Miek Gieben -- This is a comment -->
 
 # Acknowledgements
 

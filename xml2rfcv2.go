@@ -165,9 +165,9 @@ func (options *Xml2) CommentHtml(out *bytes.Buffer, text []byte) {
 		l = 20
 	}
 	for i := 0; i < l; i++ {
-		if text[i] == ':' {
+		if text[i] == '-' && text[i+1] == '-' {
 			source = text[:i]
-			text = text[i+1:]
+			text = text[i+2:]
 			break
 		}
 	}
@@ -412,6 +412,7 @@ func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citatio
 					// if we have raw xml, output that
 					if c.xml != nil {
 						out.Write(c.xml)
+						out.WriteByte('\n')
 						continue
 					}
 					f := referenceFile(c)
@@ -426,6 +427,7 @@ func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citatio
 				if c.typ == 'n' {
 					if c.xml != nil {
 						out.Write(c.xml)
+						out.WriteByte('\n')
 						continue
 					}
 					f := referenceFile(c)
