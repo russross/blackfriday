@@ -372,7 +372,7 @@ func (options *Xml) Index(out *bytes.Buffer, primary, secondary []byte, prim boo
 	if prim {
 		p = " primary=\"true\""
 	}
-	out.WriteString("<iref item=\"" + string(primary) + "\""+ p)
+	out.WriteString("<iref item=\"" + string(primary) + "\"" + p)
 	out.WriteString(" subitem=\"" + string(secondary) + "\"" + "/>")
 }
 
@@ -523,14 +523,16 @@ func (options *Xml) LineBreak(out *bytes.Buffer) {
 }
 
 func (options *Xml) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
-	// kill # in the link name
 	if link[0] == '#' {
-		link = link[1:]
+		out.WriteString("<xref target=\"")
+		out.Write(link[1:])
+		out.WriteString("\"/>")
 	}
-	out.WriteString("<xref target=\"")
+	out.WriteString("<eref target=\"")
 	out.Write(link)
-	out.WriteString("\"/>")
-	//	out.Write(content)
+	out.WriteString("\">")
+	out.Write(content)
+	out.WriteString("</eref>")
 }
 
 func (options *Xml) RawHtmlTag(out *bytes.Buffer, tag []byte) {

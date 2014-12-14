@@ -492,12 +492,15 @@ func (options *Xml2) LineBreak(out *bytes.Buffer) {
 
 func (options *Xml2) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
 	if link[0] == '#' {
-		link = link[1:]
+		out.WriteString("<xref target=\"")
+		out.Write(link[1:])
+		out.WriteString("\"/>")
 	}
-	out.WriteString("<xref target=\"")
+	out.WriteString("<eref target=\"")
 	out.Write(link)
-	out.WriteString("\"/>")
-	//	out.Write(content)
+	out.WriteString("\">")
+	out.Write(content)
+	out.WriteString("</eref>")
 }
 
 func (options *Xml2) RawHtmlTag(out *bytes.Buffer, tag []byte) {

@@ -20,6 +20,10 @@ A> This document describes an markdown variant called mmark [@?mmark] that can
 A> be used to create RFC documents. The aim of mmark is to make writing document
 A> as natural as possible, while providing a lot of power on how to structure and layout
 A> the document.
+A>
+A> Of course the
+A> [source of this document](https://raw.githubusercontent.com/miekg/mmark/master/mmark2rfc.md)
+A> provides an excellent example.
 
 {mainmatter}
 
