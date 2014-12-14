@@ -190,14 +190,14 @@ Pandoc allows an empty line between the term and the definition:
 
     Original owner name:
 
-    :   the owner name corresponding to a hashed owner name if hashing is used. Or
-        the owner name as-is if no hashing is used.
+    :   the owner name corresponding to a hashed owner name if hashing is
+        used. Or the owner name as-is if no hashing is used.
 
 Mmark does not, use:
 
     Original owner name:
-    :   the owner name corresponding to a hashed owner name if hashing is used. Or
-        the owner name as-is if no hashing is used.
+    :   the owner name corresponding to a hashed owner name if hashing is
+        used. Or the owner name as-is if no hashing is used.
 
 ## Figure Captions
 
