@@ -166,7 +166,6 @@ Todo
 ----
 
 *   Check outputted XML for wellformedness
-*   Check for primary item in index (((!item, subitem)))
 *   More unit testing
 *   pretty print XML
 *   fenced code blocks -> source code with language etc.

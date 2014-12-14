@@ -204,7 +204,7 @@ type Renderer interface {
 	TripleEmphasis(out *bytes.Buffer, text []byte)
 	StrikeThrough(out *bytes.Buffer, text []byte)
 	FootnoteRef(out *bytes.Buffer, ref []byte, id int)
-	Index(out *bytes.Buffer, primary, secondary []byte)
+	Index(out *bytes.Buffer, primary, secondary []byte, prim bool)
 	Citation(out *bytes.Buffer, link, title []byte)
 
 	// Low-level callbacks

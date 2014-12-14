@@ -1055,7 +1055,15 @@ func index(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		}
 	}
 
-	p.r.Index(out, data[3:primary+1], data[secondary:end-3])
+	i = 3
+	prim := false
+	if data[i] == '!' {
+		// mark is primary
+		prim = false
+		i++
+	}
+
+	p.r.Index(out, data[i:primary+1], data[secondary:end-3], prim)
 	return ret
 }
 

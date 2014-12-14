@@ -359,8 +359,12 @@ func (options *Xml2) FootnoteItem(out *bytes.Buffer, name, text []byte, flags in
 	// not used
 }
 
-func (options *Xml2) Index(out *bytes.Buffer, primary, secondary []byte) {
-	out.WriteString("<iref item=\"" + string(primary) + "\"")
+func (options *Xml2) Index(out *bytes.Buffer, primary, secondary []byte, prim bool) {
+	p := ""
+	if prim {
+		p = " primary=\"true\""
+	}
+	out.WriteString("<iref item=\"" + string(primary) + "\"" + p)
 	out.WriteString(" subitem=\"" + string(secondary) + "\"" + "/>")
 }
 
