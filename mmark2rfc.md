@@ -18,10 +18,8 @@
 
 A> This document describes an markdown variant called mmark [@?mmark] that can
 A> be used to create RFC documents. The aim of mmark is to make writing document
-A> as natural
-A> as possible, while providing a lot of power on how to structure and layout
+A> as natural as possible, while providin  a lot of power on how to structure and layout
 A> the document.
-
 
 {mainmatter}
 
