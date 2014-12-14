@@ -527,6 +527,7 @@ func (options *Xml) Link(out *bytes.Buffer, link []byte, title []byte, content [
 		out.WriteString("<xref target=\"")
 		out.Write(link[1:])
 		out.WriteString("\"/>")
+		return
 	}
 	out.WriteString("<eref target=\"")
 	out.Write(link)

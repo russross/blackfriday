@@ -141,13 +141,14 @@ implements the following extensions:
 *  **{frontmatter}/{mainmatter}/{backmatter}** Create useful divisions in your document.
 
 *  **IAL**, kramdown's Inline Attribute List syntax, but took the CommonMark
-    proposal, thus without the colon `{#id .class key=value key="value"}`.
+    proposal, thus without the colon after the brace `{#id .class key=value key="value"}`.
 
 *  **Definitition lists**, the markdown extra syntax.
 
 *  **TOML TitleBlock**, add an extended title block prefixed with `%` in TOML.
 
-*  **Unique anchors**, make anchors unique by adding sequence numbers to them.
+*  **Unique anchors**, make anchors unique by adding sequence numbers (-1, -2, etc.) to them.
+    All numeric section get an anchor prefixed with `section-`.
 
 *  **Example lists**, a list that is started with `(@good)` is subsequently numbered throughout
     the document. First use is rendered `(1)`, the second one `(2)` and so on.
@@ -176,6 +177,7 @@ Todo
 *   reduce API footprint (hide constants mainly)
 *   make webservers that converts for you
 *   save original IAL for example lists?
+*   add ULink?
 
 License
 -------

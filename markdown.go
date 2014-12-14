@@ -242,7 +242,7 @@ type parser struct {
 	nesting              int
 	maxNesting           int
 	insideLink           bool
-	insideDefinitionList bool // when in def. list ... TODO(miek)
+	insideDefinitionList bool // when in def. list ... TODO(miek):doc
 	insideList           int  // list in list counter
 
 	// Don't need to save, kill current titleblock
