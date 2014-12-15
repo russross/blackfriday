@@ -5,6 +5,8 @@ use Switch;
 use XML::Parser;
 use Data::Dumper;
 
+$PREF = "% ";
+
 sub ext { return 'perl-unhandled-extern-ref' }
 
 sub start {
@@ -13,34 +15,34 @@ sub start {
     switch ($e) {
         case "title" {
             for ($i = 0; $i < scalar @_ - 1; $i++) {
-                print $_[$i] . " = " . '"' . $_[$i+1] . '"' . "\n";
+                print $PREF . $_[$i] . " = " . '"' . $_[$i+1] . '"' . "\n";
             }
-            print "title = \"";
+            print "${PREF}title = \"";
         }
         case "rfc" {
             for ($i = 0; $i < scalar @_ - 1; $i++) {
-                print $_[$i] . " = " . '"' . $_[$i+1] . '"' . "\n";
+                print $PREF . $_[$i] . " = " . '"' . $_[$i+1] . '"' . "\n";
                 $i++;
             }
         }
         case "author" {
-            print "\n[[author]]\n";
+            print "$PREF\n${PREF}[[author]]\n";
             for ($i = 0; $i < scalar @_ - 1; $i++) {
-                print $_[$i] . " = " . '"' . $_[$i+1] . '"' . "\n";
+                print $PREF . $_[$i] . " = " . '"' . $_[$i+1] . '"' . "\n";
                 $i++;
             }
         }
-        case "address"      { print "[author.address]\n" }
-        case "postal"       { print "[author.address.postal]\n" }
+        case "address"      { print $PREF . "[author.address]\n" }
+        case "postal"       { print $PREF . "[author.address.postal]\n" }
         # todo street code country
         # todo date
-        case "keyword"      { print "keyword = [" }
-        case "area"         { print "area = \"" }
-        case "workgroup"    { print "workgroup = \"" }
-        case "organization" { print "organization = \"" }
-        case "email"        { print "email = \"" }
-        case "uri"          { print "uri = \"" }
-        case "phone"        { print "phone = \"" }
+        case "keyword"      { print $PREF . "keyword = [" }
+        case "area"         { print $PREF . "area = \"" }
+        case "workgroup"    { print $PREF . "workgroup = \"" }
+        case "organization" { print $PREF . "organization = \"" }
+        case "email"        { print $PREF . "email = \"" }
+        case "uri"          { print $PREF . "uri = \"" }
+        case "phone"        { print $PREF . "phone = \"" }
     }
 }
 
@@ -52,7 +54,7 @@ sub end {
         case "rfc"          { }
         case "address"      { }
         case "keyword"      { print "]\n"; }
-        case "author"       { print "\n"; }
+#        case "author"       { print "$PREF\n"; }
         case "email"        { print "\"\n"; }
         case "uri"          { print "\"\n"; }
         case "phone"        { print "\"\n"; }
