@@ -34,6 +34,28 @@ NSEC3 contain three records:
    wildcard synthesis. The validator needs to know the closest encloser to 
    construct the source of synthesis.
 
+This is a table:
+
+textuall construct         Syntax               Text output
+-------------------       --------------       ------------
+Section Header            `# Section`          1. Section
+Unordered List            `* item`             o \ item
+Unordered List            `#. item`            item
+Ordered List              `1. item`            1. \ item
+
+This is anothe one:
+
+textuall construct         Syntax               Text output
+-------------------       --------------       ------------
+Section Header            `# Section`          1. Section
+Unordered List            `* item`             o \ item
+Unordered List            `#. item`            item
+Ordered List              `1. item`            1. \ item
+
+^[tab:table::A sample table.]
+
+
+
 This document presents a new record, NEXT, that is similar to NSEC3,
 but differs in the following ways:
 

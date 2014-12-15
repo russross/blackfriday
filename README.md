@@ -168,13 +168,14 @@ Todo
 
 *   Add automatic pandoc2rfc conversion
 *   Extension to recognize pandoc2rfc indices?
-*   Table colspan + rawspan, php markdown extra has syntax
-*   make webservers that converts for you
-*   More unit testing
+*   Check if table content has inline markup
 *   fenced code blocks -> source code with language etc.
 *   indentend code blocks -> artwork
 *   images -> artwork, use title for caption
     if caption is given, wrap in figure -> otherwise not.
+*   Table colspan + rawspan, php markdown extra has syntax
+*   make webservers that converts for you
+*   More unit testing
 *   cleanups - and loose a bunch of extensions, turn them on per default
 *   reduce API footprint (hide constants mainly)
 *   save original IAL for example lists?

@@ -493,8 +493,9 @@ func (options *Xml) Emphasis(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Xml) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
-	// use title as caption is we have it
+	// use title as caption is we have it and wrap everything in a figure
 	// check the extension of the local include to set the type of the thing.
+
 	s := options.IAL().String()
 	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
 		// link to external entity

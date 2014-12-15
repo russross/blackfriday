@@ -91,6 +91,9 @@ Any paragraph prefix with `A> ` is an abstract. This is similar to asides and no
 
 # Captions
 
+Whenever an blockquote, fenced codeblock or image has caption text, the entire block is wrapped
+in a `<figure>` and the caption text is put in a `<name>` tag for v3.
+
 Captions for tables are supported in pandoc, but not for code block. In mmark you can put a
 caption under either (even after a fenced code block). Referencing these element (and thus
 creating an document `id` for them), is done with an IAL ([](#inline-attribute-lists):
@@ -120,6 +123,9 @@ After a quote (a paragraph prefixed with `> `) you can add a caption:
     Quote: Name -- URI for attribution
 
 In v3 this is used in the block quote attributes, for v2 it is discarded.
+
+## Images
+
 
 # Inline Attribute Lists
 
