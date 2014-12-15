@@ -5,7 +5,7 @@
 # makes RFC references proper citations and uses the new index syntax.
 #
 # BUGS: makes all references normative
-# pandoc --atx-headers middle.mkd -t markdown_phpextra  |./convert.pl | less
+# pandoc --atx-headers middle.mkd -t markdown_phpextra | ./convert.pl | tee part.md
 
 @doc = <>;
 
