@@ -166,8 +166,9 @@ implements the following extensions:
 Todo
 ----
 
-*   Check outputted XML for wellformedness
-*   pretty print XML
+*   Add automatic pandoc2rfc conversion
+*   Extension to recognize pandoc2rfc indeces
+*   make webservers that converts for you
 *   More unit testing
 *   fenced code blocks -> source code with language etc.
 *   indentend code blocks -> artwork
@@ -175,9 +176,11 @@ Todo
     if caption is given, wrap in figure -> otherwise not.
 *   cleanups - and loose a bunch of extensions, turn them on per default
 *   reduce API footprint (hide constants mainly)
-*   make webservers that converts for you
 *   save original IAL for example lists?
 *   add ULink?
+*   Check outputted XML for wellformedness
+*   pretty print XML
+
 
 License
 -------
