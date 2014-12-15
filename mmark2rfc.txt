@@ -1,0 +1,392 @@
+
+
+
+
+Network Working Group                                          R. Gieben
+Internet-Draft                                                    Google
+Intended status: Informational                         December 10, 2014
+Expires: June 13, 2015
+
+
+                  Using mmark to create I-Ds and RFCs
+                       draft-gieben-mmark2rfc-00
+
+Abstract
+
+   This document describes an markdown variant called mmark [mmark] that
+   can be used to create RFC documents.  The aim of mmark is to make
+   writing document as natural as possible, while providing a lot of
+   power on how to structure and layout the document.
+
+   Of course the source of this document [1] provides an excellent
+   example.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at http://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on June 13, 2015.
+
+Copyright Notice
+
+   Copyright (c) 2014 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 1]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+1.  Introduction
+
+   Mmark [mmark] is a markdown processor.  It supports the basic
+   markdown syntax and has been extended to support more (syntax)
+   features needed to write larger, structured documents such as RFC and
+   I-Ds.  The extra syntax elements have been copied from kramdown,
+   leanpub, markdown extra and Asciidoc.
+
+   The goals of mmark can be stated as:
+
+   (I)    Self contained: a single file can be converted to XML2RFC v2
+          or (v3);
+
+   (II)   Make the markdown source code look as natural as possible.
+
+   Mmark is a fork of blackfriday [blackfriday] written in Golang.
+
+   Using Figure 1 from [RFC7328], mmark can be positioned as follows:
+
+    +-------------------+   pandoc   +---------+
+    | ALMOST PLAIN TEXT |   ------>  | DOCBOOK |
+    +-------------------+            +---------+
+                  |      \                 |
+    non-existent  |       \_________       | xsltproc
+      faster way  |         mmark   \      |
+                  v                  v     v
+          +------------+    xml2rfc  +---------+
+          | PLAIN TEXT |  <--------  |   XML   |
+          +------------+             +---------+
+
+                                 Figure 1
+
+   Note that kramdown-2629 [2] fills the same niche as mmark.
+
+2.  TOML header
+
+   Mmark uses TOML [toml] document header to specify the document's meta
+   data.  Each line of this header must start with an "%".
+
+3.  Citations
+
+   A citation can be entered by using the syntax from pandoc [pandoc]:
+   "[@reference]", such a reference is "informative" by default.  Making
+   a reference informative or normative can be done with a "?" and "!"
+   respectively: "[@!reference]" is a normative reference.
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 2]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
+   For RFC and I-Ds the references are generated automatically, although
+   for I-Ds you might need to include a draft version in the reference
+   "[@?I-D.draft-blah,#06]", creates an informative reference to the
+   sixth version of draft-blah.
+
+   If the need arises an XML reference fragment can be included, not
+   that this needs to happen before the back matter is started, because
+   that is the point when the references are outputted.
+
+4.  Document divisions
+
+   Using "{mainmatter}" on a line by itself starts the main matter
+   (middle) of the document, "{backmatter}" starts the appendix.  There
+   is also a "{frontmatter}" that starts the front matter (front) of the
+   document, but is normally not need because the TOML header
+   (Section 2) starts that by default.
+
+5.  Abstract
+
+   Any paragraph prefix with "A>" is an abstract.  This is similar to
+   asides and notes (Section 9.1 , Section 9.2) work.
+
+6.  Captions
+
+   Captions for tables are supported in pandoc, but not for code block.
+   In mmark you can put a caption under either (even after a fenced code
+   block).  Referencing these element (and thus creating an document
+   "id" for them), is done with an IAL (Section 7:
+
+   {#identifier}
+   Name    | Age
+   --------|-----:
+   Bob     | 27
+   Alice   | 23
+
+   An empty line between the IAL and the table of indented code block is
+   allowed.
+
+6.1.  Figures
+
+   Any text directly after the figure starting with "Figure:" is used as
+   the caption.
+
+6.2.  Table
+
+   A table caption is signalled by using "Table:" directly after the
+   table.  The table syntax used that one of Markdown Extra [3].
+
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 3]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
+6.3.  Quotes
+
+   After a quote (a paragraph prefixed with ">") you can add a caption:
+
+   Quote: Name -- URI for attribution
+
+   In v3 this is used in the block quote attributes, for v2 it is
+   discarded.
+
+7.  Inline Attribute Lists
+
+   This borrows from [kramdown][[4]], which the difference that the
+   colon is dropped and each IAL must be typeset _before_ the block
+   element.  Added an anchor to blockquote can be done like so:
+
+   {#quote:ref1}
+   > A block quote
+
+   You can specify classes with ".class" (although these are not used
+   when converting to XML2RFC), and arbitrary key value pairs where each
+   key becomes an attribute.
+
+8.  Miscellaneous
+
+8.1.  Example Lists
+
+   This is the example list syntax from pandoc [5].
+
+   The reference syntax "(@list-id)" is _not_ supported.
+
+8.2.  HTML Comment
+
+   If a HTML comment contains "--", it will be rendered as a "cref"
+   comment in the resulting XML file.  Typically "<!-- Miek Gieben --
+   you want to include the next paragraph? -->".
+
+8.3.  RFC 2119 Keywords
+
+   Any [RFC2119] keyword used with strong emphasis _and_ in uppercase
+   will be typeset within "bcp14" tags, that is "**MUST**" becomes
+   "<bcp14>MUST</bcp14", but "**must**" will not.
+
+8.4.  Including Files
+
+   Files can be included using "{{filename}}", "filename" is relative to
+   the current working directory it not absolute.
+
+
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 4]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
+9.  XML2RFC V3 features
+
+   The v3 syntax adds some new features, those can already be used in
+   mmark (even for documents targetting v2 -- but there they will be
+   faked with the limited constructs of v2 syntax).
+
+9.1.  Asides
+
+   Any paragraph prefixed with "AS>".
+
+9.2.  Notes
+
+   Any paragraph prefixed with "N>".
+
+9.3.  Images
+
+10.  Converting from RFC 7328 Syntax
+
+      The author is pondering an automated conversion mechanism.
+
+   The markdown syntax in [RFC7328] is slightly more liberal than the
+   one from mmark.
+
+10.1.  Citations
+
+   Citations in [RFC7238] are done by using references: "[](#RFC5155)"
+   in mmark you use a proper citation "[@RFC5155]" (with possibly some
+   metadata).
+
+10.2.  Definition Lists
+
+   Pandoc allows an empty line between the term and the definition:
+
+   Original owner name:
+
+   :   the owner name corresponding to a hashed owner name if hashing is
+       used. Or the owner name as-is if no hashing is used.
+
+   Mmark does not, use:
+
+   Original owner name:
+   :   the owner name corresponding to a hashed owner name if hashing is
+       used. Or the owner name as-is if no hashing is used.
+
+
+
+
+
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 5]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
+10.3.  Figure Captions
+
+   Instead of using the footnote syntax below a figure, in mmark you can
+   just use 'Figure: '.
+
+                        1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |   Hash Alg.   |     Flags     |  Iterations   | Salt Length   |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                             Salt                              /
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   ^[fig:dnsnxtparam-wire::The NEXTPARAM on-the-wire format.]
+
+   And use an IAL to define an anchor:
+
+   {#fig:dnsnxtparam-wire}
+
+                           1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |   Hash Alg.   |     Flags     |  Iterations   | Salt Length   |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |                             Salt                              /
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   Figure: The NEXTPARAM on-the-wire format.
+
+10.4.  Table Caption
+
+   Table captions work identically to figure captions, except that you
+   use: "Table: Caption text."
+
+10.5.  Indicess
+
+   Use "(((term, subterm)))" instead of using footnotes.  Making "term"
+   a primary term, is done with "(((!term, subterm)))".
+
+10.6.  Ordered Lists with Custom Counters
+
+   Use an IAL for that:
+
+   {format="REQ(%c)"}
+   1. Term1
+   1. Term2
+
+
+
+
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 6]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
+11.  References
+
+11.1.  Informative References
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119, March 1997.
+
+   [RFC7238]  Reschke, J., "The Hypertext Transfer Protocol Status Code
+              308 (Permanent Redirect)", RFC 7238, June 2014.
+
+   [mmark]    Gieben, R., "Mmark git repository", December 2014,
+              <http://github.com/miekg/mmark>.
+
+   [blackfriday]
+              "Blackfriday git repository", November 2011,
+              <http://github.com/russross/blackfriday>.
+
+   [pandoc]   MacFarlane, J., "Pandoc, a universal document converter",
+              2006, <http://johnmacfarlane.net/pandoc/>.
+
+11.2.  Normative References
+
+   [RFC7328]  Gieben, R., "Writing I-Ds and RFCs Using Pandoc and a Bit
+              of XML", RFC 7328, August 2014.
+
+   [toml]     Preston-Werner, T., "TOML git repository", March 2013,
+              <https://github.com/toml-lang/toml>.
+
+11.3.  URIs
+
+   [1] https://github.com/cabo/kramdown-rfc2629
+
+   [2] https://michelf.ca/projects/php-markdown/extra/#table
+
+   [3] http://kramdown.gettalong.org/syntax.html#block-ials
+
+   [4] http://johnmacfarlane.net/pandoc/README.html#extension-
+       example_lists
+
+Author's Address
+
+   R. (Miek) Gieben
+   Google
+
+   Email: miek@google.com
+
+
+
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 7]
