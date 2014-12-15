@@ -19,9 +19,7 @@ closest encloser proof (Section 7.2.1 and 8.3 of [](#RFC5155) and [](#RFC7129)).
 When validating
 a hashed denial of existence response, a validator must deny or assert the
 presence of a next closer name and a wildcard name. A validator can derive
-these names from the closest encloser.
-
- ^[ ^item^ subitem ]
+these names from the ^[ ^item^ subitem ] closest encloser.
 
 This is why most of the denial of existence responses with
 NSEC3 contain three records:

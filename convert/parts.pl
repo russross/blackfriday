@@ -111,11 +111,16 @@ foreach $k (keys %footnote) {
         }
         # caption can not be empty
         $doc[$end] = $doc[$end] . $type . $caption;
+        delete $footnote{$k};
     }
 }
 
 foreach (@doc) {
     # [](#RFC5155) -> [@!RFC5155]
     s/\[\]\(\#RFC(\d+)\)/[@!RFC\1]/g;
+    # any footnotes left are indices
     print;
 }
+
+print STDERR keys %footnote;
+print STDERR @{$footnote{"1"}}, "\n";
