@@ -5,7 +5,7 @@
 # makes RFC references proper citations and uses the new index syntax.
 #
 # BUGS: makes all references normative
-# pandoc --atx-headers middle.mkd -t markdown_phpextra  |./convert.pl | less
+# pandoc --atx-headers middle.mkd -t markdown_phpextra | ./convert.pl | tee part.md
 
 @doc = <>;
 
@@ -13,26 +13,25 @@
 #
 # Look for code blocks, mark them and see if there is an footnote (=caption)
 # after them
-# 
+#
 # Input looks like:
 #
 # The RDATA of the NEXT RR is as shown below.
-# 
+#
 #                          1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
 #      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 #     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 #     /                         Type Bit Maps                         /
 #     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-# 
+#
 # [^2]
 
-# Fix tables
-
 # %footnote holds the information:
-# key is the footnote ID and a starting line for the code block, see we can
+# key is the footnote ID and a starting line for the code block or table, see we can
 # insert the reference. We also keep track when the figure ends, because that
 # is where we need to insert the code.
-# $footnote{"1"} -> [startline, stopline, reference and caption text]
+# $footnote{"1"} -> [type, startline, stopline, reference and caption text]
+# where type is "Figure: '  or "Table: "
 
 for ( $i = 0; $i < scalar @doc; $i++) {
     if ( $doc[$i] =~ /^$/ ) {
@@ -50,7 +49,7 @@ for ( $i = 0; $i < scalar @doc; $i++) {
             if ( $doc[$i] =~ /^\[\^(\d+)\]/ ) {
                 $doc[$i] = "";
                 $note = $1;
-                $footnote{$note} = [ $blockStart, $blockEnd ];
+                $footnote{$note} = [ "Figure: ", $blockStart, $blockEnd ];
             }
         }
     }
@@ -74,11 +73,34 @@ for ( $i = 0; $i < scalar @doc; $i++) {
 
 # the above loop takes care of the code blocks caption, the ones that are left *must* be
 # table caption. Loop through it can and perform the same trick, but this for tables.
+for ( $i = 0; $i < scalar @doc; $i++) {
+    if ( $doc[$i] =~ /^$/ ) {
+        # if the next line starts with a pipe - it's a code table
+        if ( $doc[$i+1] =~ /^\|/ ) {
+            $blockStart = $i;
+            $i++;
+            while ( $doc[$i] =~ /^\|/ ) {
+                    $i++;
+            }
+            # table blocks has stopped, this must be an empty line, the *next* line after
+            # that *may* have an footnote
+            $blockEnd = $i-1;
+            $i++;
+            if ( $doc[$i] =~ /^\[\^(\d+)\]/ ) {
+                $doc[$i] = "";
+                $note = $1;
+                $notetext = @{$footnote{$note}}[0];
+                $footnote{$note} = [ "Table: ", $blockStart, $blockEnd, $notetext ];
+            }
+        }
+    }
+}
 
 foreach $k (keys %footnote) {
-    $begin =  ${$footnote{$k}}[0];
-    $end =  ${$footnote{$k}}[1];
-    $text = ${$footnote{$k}}[2];
+    $type =  ${$footnote{$k}}[0];
+    $begin =  ${$footnote{$k}}[1];
+    $end =  ${$footnote{$k}}[2];
+    $text = ${$footnote{$k}}[3];
     if ( $begin > 0 ) {
         ($anchor, $caption) = split /::/, $text;
         # strip anchor of the footnote prefix
@@ -88,7 +110,7 @@ foreach $k (keys %footnote) {
             $doc[$begin] = $doc[$begin] . "{#$anchor}\n\n";
         }
         # caption can not be empty
-        $doc[$end] = $doc[$end] . "Figure: " . $caption;
+        $doc[$end] = $doc[$end] . $type . $caption;
     }
 }
 
