@@ -167,7 +167,8 @@ Todo
 ----
 
 *   Add automatic pandoc2rfc conversion
-*   Extension to recognize pandoc2rfc indeces
+*   Extension to recognize pandoc2rfc indices?
+*   Table colspan + rawspan, php markdown extra has syntax
 *   make webservers that converts for you
 *   More unit testing
 *   fenced code blocks -> source code with language etc.
