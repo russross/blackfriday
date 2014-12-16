@@ -16,7 +16,7 @@
 %   [author.address]
 %   email = "miek@google.com"
 %   [author.address.postal]
-%   street = "blaah"
+%   street = "Buckingham Palace Road"
 
 A> This document describes an markdown variant called mmark [@?mmark] that can
 A> be used to create RFC documents. The aim of mmark is to make writing document
@@ -183,74 +183,28 @@ Any paragraph prefixed with `N> `.
 
 # Converting from RFC 7328 Syntax
 
-> The author is pondering an automated conversion mechanism.
+Converting from an RFC 7328 ([@!RFC7328]) document can be done using the quick
+and dirty [Perl script](https://raw.githubusercontent.com/miekg/mmark/master/convert/parts.pl),
+which uses pandoc to output markdown PHP extra and converts that into proper mmark:
+(mmark is more like markdown PHP extra, than like pandoc).
 
-The markdown syntax in [@!RFC7328] is slightly more liberal than the one from mmark.
+    for i in middle.mkd back.mkd; do \
+        pandoc --atx-headers -t markdown_phpextra < $i |
+        ./parts.pl
+    done
 
-## Citations
+Note this:
 
-Citations in [@RFC7238] are done by using references: `[](#RFC5155)` in mmark you use
-a proper citation `[@RFC5155]` (with possibly some metadata).
+* Does not convert the abstract to a prefixed paragraph;
+* Makes all RFC references normative;
+* Handles all figure and table captions and adds references (if appropriate);
+* And probably has some other bugs, so a manual review should be in order.
 
-## Definition Lists
+There is also [titleblock.pl](https://raw.githubusercontent.com/miekg/mmark/master/convert/titleblock.pl)
+which can be given an [@RFC7328] `template.xml` file and will output a TOML titleblock, that can
+be used as a starting point.
 
-Pandoc allows an empty line between the term and the definition:
-
-    Original owner name:
-
-    :   the owner name corresponding to a hashed owner name if hashing is
-        used. Or the owner name as-is if no hashing is used.
-
-Mmark does not, use:
-
-    Original owner name:
-    :   the owner name corresponding to a hashed owner name if hashing is
-        used. Or the owner name as-is if no hashing is used.
-
-## Figure Captions
-
-Instead of using the footnote syntax below a figure, in mmark you can just use 'Figure: '.
-
-                         1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
-     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |   Hash Alg.   |     Flags     |  Iterations   | Salt Length   |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                             Salt                              /
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    ^[fig:dnsnxtparam-wire::The NEXTPARAM on-the-wire format.]
-
-And use an IAL to define an anchor:
-
-    {#fig:dnsnxtparam-wire}
-
-                            1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
-        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-        |   Hash Alg.   |     Flags     |  Iterations   | Salt Length   |
-        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-        |                             Salt                              /
-        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    Figure: The NEXTPARAM on-the-wire format.
-
-## Table Caption
-
-Table captions work identically to figure captions, except that you use: `Table: Caption text.`
-
-## Indicess
-
-Use `(((term, subterm)))` instead of using footnotes. Making `term` a primary term, is done
-with `(((!term, subterm)))`.
-
-## Ordered Lists with Custom Counters
-
-Use an IAL for that:
-
-    {format="REQ(%c)"}
-    1. Term1
-    1. Term2
-
-
+For now the mmark parser will not get any features that makes it backwards compatible with pandoc2rfc.
 
 <!-- reference we need to include -->
 
