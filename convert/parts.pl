@@ -115,12 +115,19 @@ foreach $k (keys %footnote) {
     }
 }
 
+sub foot2index(@) {
+    # [^1]: <sup>item</sup> subitem -> (((item, subtitem))
+    if ( $_[0] =~ m|<sup>(.*)</sup>(.*)| ) {
+        return "((($1,$2)))";
+    }
+    $_[0] =~ s/^\[\^\d+\]\: //;
+    return $_[0];
+}
+
 foreach (@doc) {
     # [](#RFC5155) -> [@!RFC5155]
     s/\[\]\(\#RFC(\d+)\)/[@!RFC\1]/g;
     # any footnotes left are indices
+    s/\[\^(\d+)\]/ foot2index @{$footnote{$1}} /eg;
     print;
 }
-
-print STDERR keys %footnote;
-print STDERR @{$footnote{"1"}}, "\n";

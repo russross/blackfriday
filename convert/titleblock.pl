@@ -5,6 +5,9 @@ use Switch;
 use XML::Parser;
 use Data::Dumper;
 
+# TODO: save to some strcuture, output that in one go
+# output is only correct if the XML is in the correct form.
+
 $PREF = "% ";
 
 sub ext { return 'perl-unhandled-extern-ref' }
