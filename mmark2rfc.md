@@ -40,9 +40,10 @@ The goals of mmark can be stated as:
 
 {style="format (%I)"}
 1. Self contained: a single file can be converted to XML2RFC v2 or (v3);
-2. Make the markdown source code look as natural as possible.
+2. Make the markdown source code look as natural as possible;
+3. Provide seemless upgrade path to XML2RFC v3.
 
-Mmark is a fork of blackfriday [@blackfriday] written in Golang.
+Mmark is a fork of blackfriday [@blackfriday] written in Golang, as such it is very fast.
 
 Using Figure 1 from [@!RFC7328], mmark can be positioned as follows:
 

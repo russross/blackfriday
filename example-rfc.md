@@ -121,6 +121,7 @@ The following action for IANA are required by this document:
 At the time of this writing, the current digest types assigned for
 use in DS records are as follows:
 
+{align="left"}
 VALUE  |  Digest Type     |   Status
 ------:|:-----------------|-------------
  0     | Reserved         |      -
