@@ -384,9 +384,8 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			id = data[linkB:linkE]
 		}
 
-		// find the reference with matching id (ids are case-insensitive)
-		key := string(bytes.ToLower(id))
-		lr, ok := p.refs[key]
+		// find the reference with matching id
+		lr, ok := p.getRef(string(id))
 		if !ok {
 			return 0
 
@@ -423,7 +422,6 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			}
 		}
 
-		key := string(bytes.ToLower(id))
 		if t == linkInlineFootnote {
 			// create a new reference
 			noteId = len(p.notes) + 1
@@ -453,7 +451,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			title = ref.title
 		} else {
 			// find the reference with matching id
-			lr, ok := p.refs[key]
+			lr, ok := p.getRef(string(id))
 			if !ok {
 				return 0
 			}
