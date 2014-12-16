@@ -150,6 +150,11 @@ Table: As shown here.
 
 <!--  Miek Gieben -- This is a comment -->
 
+| Function name | Description                    |
+| ------------- | ------------------------------ |
+| `help()`      | Display the help window.       |
+| `destroy()`   | **Destroy your computer!**     |
+
 # Acknowledgements
 
 The people in the following list:

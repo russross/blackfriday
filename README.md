@@ -168,7 +168,9 @@ Todo
 
 *   Add automatic pandoc2rfc conversion
 *   Extension to recognize pandoc2rfc indices?
-*   Check if table content has inline markup
+*   PHP Extra: abbreviation (kramdown has them too)
+    <https://michelf.ca/projects/php-markdown/extra/#abbr>
+    note used in xml2rfc (but might be useful)
 *   fenced code blocks -> source code with language etc.
 *   indentend code blocks -> artwork
 *   images -> artwork, use title for caption
