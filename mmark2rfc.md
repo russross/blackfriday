@@ -65,7 +65,7 @@ Note that [kramdown-2629](https://github.com/cabo/kramdown-rfc2629) fills the sa
 # TOML header
 
 Mmark uses TOML [@!toml] document header to specify the document's meta data. Each line of this
-header must start with an `%`.
+header must start with an `% `.
 
 # Citations
 
@@ -125,9 +125,6 @@ After a quote (a paragraph prefixed with `> `) you can add a caption:
     Quote: Name -- URI for attribution
 
 In v3 this is used in the block quote attributes, for v2 it is discarded.
-
-## Images
-
 
 # Inline Attribute Lists
 
@@ -203,6 +200,10 @@ Note this:
 There is also [titleblock.pl](https://raw.githubusercontent.com/miekg/mmark/master/convert/titleblock.pl)
 which can be given an [@RFC7328] `template.xml` file and will output a TOML titleblock, that can
 be used as a starting point.
+
+AS> Yes, this uses pandoc and Perl.. why? Becasue if mmark could parse the file by itself, there wasn't much
+AS> of problem. Two things are holding this back: mmark cannot parse definition lists with empty spaces and
+AS> there isn't renderer that can output markdown syntax.
 
 For now the mmark parser will not get any features that makes it backwards compatible with pandoc2rfc.
 
