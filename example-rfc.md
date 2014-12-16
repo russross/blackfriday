@@ -150,10 +150,11 @@ Table: As shown here.
 
 <!--  Miek Gieben -- This is a comment -->
 
-| Function name | Description                    |
-| ------------- | ------------------------------ |
-| `help()`      | Display the help window.       |
-| `destroy()`   | **Destroy your computer!**     |
+| Function name | Description                    | more   |
+| ------------- | ------------------------------ |------- |
+| `help()`      | Display the help window.       |  dsds  |
+| `help()`      |                                |        |
+| `destroy()`   | **Destroy your computer!**     |  dsd   |
 
 # Acknowledgements
 
@@ -166,7 +167,7 @@ The people in the following list:
 * And ...
 
 This is an citation that shows up in the references, but not in the document: [-@RFC1033].
-This needs to happen *BEFORE* the `{backmatter`} otherwise the references are outputted, but
+This needs to happen *BEFORE* the `{backmatter}` otherwise the references are outputted, but
 you use the references.
 
 {backmatter}
