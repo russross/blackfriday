@@ -621,7 +621,6 @@ func isReference(p *parser, data []byte, tabSize int) int {
 		lineEnd = linkEnd
 	} else if abbrId != "" {
 		titleOffset, titleEnd, lineEnd = scanAbbreviation(p, data, idEnd)
-		println("ABBT FOUND", abbrId, string(data[titleOffset:titleEnd]))
 		p.abbreviations[abbrId] = &abbreviation{title: data[titleOffset:titleEnd]}
 		return lineEnd
 	} else {
@@ -804,26 +803,24 @@ gatherLines:
 }
 
 func scanAbbreviation(p *parser, data []byte, i int) (titleOffset, titleEnd, lineEnd int) {
-	println(string(data[i:]))
-	// im on ]:
-	for i < len(data) && data[i] != '\n' {
-		i++
+	lineEnd = i
+	for lineEnd < len(data) && data[lineEnd] != '\n' {
+		lineEnd++
 	}
 
-	if data[i] == '\n' {
-		return i, i, i
+	if len(data[i+2:lineEnd]) == 0 || p.isEmpty(data[i+2:lineEnd]) > 0  {
+		return i+2, i+2, lineEnd
 	}
-	titleOffset = i
-	// everything on this line is part of the abbr
-	for i < len(data) && data[i] != '\n' {
-		i++
+
+	titleOffset = i+2
+	for data[titleOffset] == ' ' {
+		titleOffset++
 	}
-	lineEnd = i - 1
-	// go back and trim spaces
-	for i-1 > titleOffset && data[i-1] == ' ' {
-		i--
+	titleEnd = lineEnd
+	for data[titleEnd-1] == ' ' {
+		titleEnd--
 	}
-	titleEnd = i
+
 	return
 }
 

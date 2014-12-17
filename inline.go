@@ -169,7 +169,7 @@ func normalText(p *parser, out *bytes.Buffer, data []byte) {
 					p.r.Abbreviation(out, data[wordBeg:wordEnd+k], t.title)
 				} else {
 					// original spaces and such
-					p.r.NormalText(out, data[origBeg:j+k])
+					p.r.NormalText(out, data[origBeg+k:j+k])
 				}
 				wordBeg = j
 				origBeg = save
