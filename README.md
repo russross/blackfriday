@@ -184,6 +184,8 @@ Todo
 *   add ULink?
 *   Check outputted XML for wellformedness
 *   pretty print XML
+*   kramdown table footer |====| everything below is a footer
+*   colspan 
 
 
 License

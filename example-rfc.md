@@ -155,6 +155,8 @@ Table: As shown here.
 | `help()`      | Display the help window.       |  dsds  |
 | `help()`      |                                         ||
 | `destroy()`   | **Destroy your computer!**     |  dsd   |
+| ============= | =============================  | =====  |
+| djdsk         | djdskjdk
 
 # Acknowledgements
 
