@@ -206,6 +206,7 @@ type Renderer interface {
 	FootnoteRef(out *bytes.Buffer, ref []byte, id int)
 	Index(out *bytes.Buffer, primary, secondary []byte, prim bool)
 	Citation(out *bytes.Buffer, link, title []byte)
+	//	Abbreviation(out *bytes.Buffer, abbr, title []byte)
 
 	// Low-level callbacks
 	Entity(out *bytes.Buffer, entity []byte)
@@ -237,6 +238,7 @@ type parser struct {
 	r                    Renderer
 	refs                 map[string]*reference
 	citations            map[string]*citation
+	abbreviations        map[string]*abbreviation
 	inlineCallback       [256]inlineParser
 	flags                int
 	nesting              int
@@ -324,6 +326,7 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	p.r = renderer
 	p.flags = extensions
 	p.refs = make(map[string]*reference)
+	p.abbreviations = make(map[string]*abbreviation)
 	p.anchors = make(map[string]int)
 	p.maxNesting = 16
 	p.insideLink = false
@@ -365,6 +368,7 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 
 // first pass:
 // - extract references
+// - extract abbreviations
 // - expand tabs
 // - normalize newlines
 // - copy everything else
@@ -519,6 +523,10 @@ type reference struct {
 	hasBlock bool
 }
 
+type abbreviation struct {
+	title []byte
+}
+
 // Citations are parsed and stored in this struct.
 type citation struct {
 	link  []byte
@@ -544,10 +552,18 @@ func isReference(p *parser, data []byte, tabSize int) int {
 	}
 
 	noteId := 0
+	abbrId := ""
 
 	// id part: anything but a newline between brackets
-	if data[i] != '[' {
+	// abbreviations start with *[
+	if data[i] != '[' && data[i] != '*' {
 		return 0
+	}
+	if data[i] == '*' && data[i+1] != '[' {
+		return 0
+	}
+	if data[i] == '*' {
+		abbrId = "yes" // any non empty
 	}
 	i++
 	if p.flags&EXTENSION_FOOTNOTES != 0 {
@@ -566,6 +582,9 @@ func isReference(p *parser, data []byte, tabSize int) int {
 		return 0
 	}
 	idEnd := i
+	if abbrId != "" {
+		abbrId = string(data[2:idEnd])
+	}
 
 	// spacer: colon (space | tab)* newline? (space | tab)*
 	i++
@@ -600,6 +619,10 @@ func isReference(p *parser, data []byte, tabSize int) int {
 	if p.flags&EXTENSION_FOOTNOTES != 0 && noteId != 0 {
 		linkOffset, linkEnd, raw, hasBlock = scanFootnote(p, data, i, tabSize)
 		lineEnd = linkEnd
+	} else if abbrId != "" {
+		titleOffset, titleEnd, lineEnd = scanAbbreviation(p, data, i)
+		p.abbreviations[abbrId] = &abbreviation{title: data[titleOffset:titleEnd]}
+		return lineEnd
 	} else {
 		linkOffset, linkEnd, titleOffset, titleEnd, lineEnd = scanLinkRef(p, data, i)
 	}
@@ -776,6 +799,21 @@ gatherLines:
 
 	contents = raw.Bytes()
 
+	return
+}
+
+func scanAbbreviation(p *parser, data []byte, i int) (titleOffset, titleEnd, lineEnd int) {
+	titleOffset = i
+	// everything on this line is part of the abbreviatoon
+	for i < len(data) && data[i] != '\n' {
+		i++
+	}
+	lineEnd = i
+	// go back and trim spaces
+	for i > titleOffset && data[i] == ' ' {
+		i--
+	}
+	titleEnd = i
 	return
 }
 

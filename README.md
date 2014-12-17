@@ -163,6 +163,14 @@ implements the following extensions:
 *  **BCP 14** If a RFC 2119 word is found enclosed in `**` it will be rendered as an `<bcp14>`
     element: `**MUST**` becomes `<bcp14>MUST</bcp14>`.
 
+*  **Abbreviations**: See <https://michelf.ca/projects/php-markdown/extra/#abbr>, any text
+    defined by:
+
+        *[HTML]: Hyper Text Markup Language
+        *[W3C]:  World Wide Web Consortium
+
+    Allow you to use HTML in the document and it will be expanded to "Hyper Text Markup Language".
+
 Todo
 ----
 
