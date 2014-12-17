@@ -78,8 +78,9 @@ For RFC and I-Ds the references are generated automatically, although for I-Ds y
 need to include a draft version in the reference `[@?I-D.draft-blah,#06]`, creates an
 informative reference to the sixth version of draft-blah.
 
-If the need arises an XML reference fragment can be included, not that this needs to happen
-before the back matter is started, because that is the point when the references are outputted.
+If the need arises an XML reference fragment can be included, note that this needs to happen
+*before* the back matter is started, because that is the point when the references are outputted
+(right now the implementation does not scan the entire file for citations).
 
 # Document divisions
 
@@ -146,22 +147,17 @@ arbitrary key value pairs where each key becomes an attribute.
 This is the example list syntax
 [from pandoc](http://johnmacfarlane.net/pandoc/README.html#extension-example_lists).
 
-The reference syntax `(@list-id)` is *not* supported.
+The reference syntax `(@list-id)` is *not* (yet?) supported.
 
 ## HTML Comment
 
 If a HTML comment contains `--`, it will be rendered as a `cref` comment in the resulting
 XML file. Typically `<!-- Miek Gieben -- you want to include the next paragraph? -->`.
 
-## RFC 2119 Keywords
-
-Any [@?RFC2119] keyword used with strong emphasis *and* in uppercase  will be typeset
-within `bcp14` tags, that is `**MUST**` becomes `<bcp14>MUST</bcp14`, but `**must**` will not.
-
 ## Including Files
 
 Files can be included using ``{{filename}}``, `filename` is relative to the current working
-directory it not absolute.
+directory if it is not absolute.
 
 # XML2RFC V3 features
 
@@ -170,11 +166,16 @@ v2 -- but there they will be faked with the limited constructs of v2 syntax).
 
 ## Asides
 
-Any paragraph prefixed with `AS> `.
+Any paragraph prefixed with `AS> `. For v2 this becomes a indentend paragraph.
 
 ## Notes
 
-Any paragraph prefixed with `N> `.
+Any paragraph prefixed with `N> `. For v2 this becomes a indentend paragraph.
+
+## RFC 2119 Keywords
+
+Any [@?RFC2119] keyword used with strong emphasis *and* in uppercase  will be typeset
+within `bcp14` tags, that is `**MUST**` becomes `<bcp14>MUST</bcp14`, but `**must**` will not.
 
 ## Images
 
@@ -196,7 +197,7 @@ Note this:
 * Does not convert the abstract to a prefixed paragraph;
 * Makes all RFC references normative;
 * Handles all figure and table captions and adds references (if appropriate);
-* And probably has some other bugs, so a manual review should be in order.
+* Probably has bugs, so a manual review should be in order.
 
 There is also [titleblock.pl](https://raw.githubusercontent.com/miekg/mmark/master/convert/titleblock.pl)
 which can be given an [@RFC7328] `template.xml` file and will output a TOML titleblock, that can
