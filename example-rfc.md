@@ -150,10 +150,10 @@ Table: As shown here.
 
 <!--  Miek Gieben -- This is a comment -->
 
-| Function name | Description                    | more   |
+| Function name | Description                      more   ||
 | ------------- | ------------------------------ |------- |
 | `help()`      | Display the help window.       |  dsds  |
-| `help()`      |                                |        |
+| `help()`      |                                         ||
 | `destroy()`   | **Destroy your computer!**     |  dsd   |
 
 # Acknowledgements
