@@ -805,6 +805,11 @@ gatherLines:
 
 func scanAbbreviation(p *parser, data []byte, i int) (titleOffset, titleEnd, lineEnd int) {
 	println(string(data[i:]))
+	// im on ]:
+	for i < len(data) && data[i] != '\n' {
+		i++
+	}
+
 	if data[i] == '\n' {
 		return i, i, i
 	}
