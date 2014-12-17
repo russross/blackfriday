@@ -152,6 +152,10 @@ Table: As shown here.
 
 # Acknowledgements
 
+*[HTML]: Hyper Text Markup Language
+
+What HTML says could not be denied.
+
 The people in the following list:
 
 * ...
