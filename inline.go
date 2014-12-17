@@ -34,7 +34,7 @@ func (p *parser) inline(out *bytes.Buffer, data []byte) {
 			end++
 		}
 
-		p.r.NormalText(out, data[i:end])
+		normalText(p, out, data[i:end])
 
 		if end >= len(data) {
 			break
@@ -44,7 +44,6 @@ func (p *parser) inline(out *bytes.Buffer, data []byte) {
 		// call the trigger
 		handler := p.inlineCallback[data[end]]
 		if consumed := handler(p, out, data, i); consumed == 0 {
-			// no action from the callback; buffer the byte for later
 			end = i + 1
 		} else {
 			// skip past whatever the callback used
@@ -143,6 +142,40 @@ func codeSpan(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 	return end
 
+}
+
+// loop over the words, while stripping spaces, and check if we have
+// an abbreviation for them. If nothing is found give the original text
+// (with spaces, to NormalText for output.
+func normalText(p *parser, out *bytes.Buffer, data []byte) {
+	if len(p.abbreviations) == 0 {
+		p.r.NormalText(out, data)
+	} else {
+		wordBeg, wordEnd := 0, 0
+		origBeg := 0
+		end := len(data)
+		for j := 0; j < end; j++ {
+			if data[j] == ' ' || j+1 == end {
+				wordEnd = j
+				k := 0
+				if j+1 == end {
+					k++
+				}
+				save := j
+				for j < len(data) && data[j] == ' ' {
+					j++
+				}
+				if t, ok := p.abbreviations[string(data[wordBeg:wordEnd+k])]; ok {
+					p.r.Abbreviation(out, data[wordBeg:wordEnd+k], t.title)
+				} else {
+					// original spaces and such
+					p.r.NormalText(out, data[origBeg:j+k])
+				}
+				wordBeg = j
+				origBeg = save
+			}
+		}
+	}
 }
 
 // newline preceded by two spaces becomes <br>

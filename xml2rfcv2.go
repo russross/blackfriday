@@ -504,8 +504,11 @@ func (options *Xml2) Link(out *bytes.Buffer, link []byte, title []byte, content 
 	out.WriteString("</eref>")
 }
 
-func (options *Xml2) RawHtmlTag(out *bytes.Buffer, tag []byte) {
+func (options *Xml2) Abbreviation(out *bytes.Buffer, abbr, title []byte) {
+	out.Write(abbr)
 }
+
+func (options *Xml2) RawHtmlTag(out *bytes.Buffer, tag []byte) {}
 
 func (options *Xml2) TripleEmphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("<spanx style=\"strong\"><spanx style=\"emph\">")

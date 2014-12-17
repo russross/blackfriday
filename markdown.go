@@ -206,7 +206,7 @@ type Renderer interface {
 	FootnoteRef(out *bytes.Buffer, ref []byte, id int)
 	Index(out *bytes.Buffer, primary, secondary []byte, prim bool)
 	Citation(out *bytes.Buffer, link, title []byte)
-	//	Abbreviation(out *bytes.Buffer, abbr, title []byte)
+	Abbreviation(out *bytes.Buffer, abbr, title []byte)
 
 	// Low-level callbacks
 	Entity(out *bytes.Buffer, entity []byte)
@@ -583,7 +583,7 @@ func isReference(p *parser, data []byte, tabSize int) int {
 	}
 	idEnd := i
 	if abbrId != "" {
-		abbrId = string(data[2:idEnd])
+		abbrId = string(data[idOffset+1:idEnd])
 	}
 
 	// spacer: colon (space | tab)* newline? (space | tab)*
@@ -620,7 +620,8 @@ func isReference(p *parser, data []byte, tabSize int) int {
 		linkOffset, linkEnd, raw, hasBlock = scanFootnote(p, data, i, tabSize)
 		lineEnd = linkEnd
 	} else if abbrId != "" {
-		titleOffset, titleEnd, lineEnd = scanAbbreviation(p, data, i)
+		titleOffset, titleEnd, lineEnd = scanAbbreviation(p, data, idEnd)
+		println("ABBT FOUND", abbrId, string(data[titleOffset:titleEnd]))
 		p.abbreviations[abbrId] = &abbreviation{title: data[titleOffset:titleEnd]}
 		return lineEnd
 	} else {
@@ -803,14 +804,18 @@ gatherLines:
 }
 
 func scanAbbreviation(p *parser, data []byte, i int) (titleOffset, titleEnd, lineEnd int) {
+	println(string(data[i:]))
+	if data[i] == '\n' {
+		return i, i, i
+	}
 	titleOffset = i
-	// everything on this line is part of the abbreviatoon
+	// everything on this line is part of the abbr
 	for i < len(data) && data[i] != '\n' {
 		i++
 	}
-	lineEnd = i
+	lineEnd = i - 1
 	// go back and trim spaces
-	for i > titleOffset && data[i] == ' ' {
+	for i-1 > titleOffset && data[i-1] == ' ' {
 		i--
 	}
 	titleEnd = i

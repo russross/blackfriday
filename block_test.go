@@ -676,6 +676,23 @@ func TestOrderedList(t *testing.T) {
 	doTestsBlock(t, tests, 0)
 }
 
+func TestAbbreviation(t *testing.T) {
+        var tests = []string{
+                "*[HTML]: Hyper Text Markup Language\nHTML is cool",
+                "",
+
+                "*[HTML]:\nHTML is cool",
+                "",
+
+                " *[H]:\n cool    H is",
+                "",
+
+                " *[H]:\n cool    H is   ",
+                "",
+        }
+        doTestsBlock(t, tests, 0)
+}
+
 func TestPreformattedHtml(t *testing.T) {
 	var tests = []string{
 		"<div></div>\n",
