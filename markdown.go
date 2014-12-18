@@ -559,7 +559,7 @@ func isReference(p *parser, data []byte, tabSize int) int {
 	if data[i] != '[' && data[i] != '*' {
 		return 0
 	}
-	if data[i] == '*' && data[i+1] != '[' {
+	if data[i] == '*' && (i < len(data)-1 && data[i+1] != '[') {
 		return 0
 	}
 	if data[i] == '*' {
