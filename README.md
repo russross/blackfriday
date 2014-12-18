@@ -17,6 +17,7 @@ It adds the following syntax elements to [black friday](https://github.com/russr
 
 * Definition lists;
 * Table and codeblock captions;
+* Table footer;
 * Quote attribution;
 * Including other files;
 * [TOML][3] titleblock;
@@ -132,18 +133,21 @@ implements the following extensions:
 
 *   **Citations**, using the citation syntax from pandoc `[@RFC2535 p. 23]`, the citation
     can either be informative (default) or normative, this can be indicated by using
-    the `?` or `!` modifer: `[@!RFC2535]`. Use `[-@RFC1000]` to add the cication to the references, but
-    suppress the output in the document.
+    the `?` or `!` modifer: `[@!RFC2535]`. Use `[-@RFC1000]` to add the cication
+    to the references, but suppress the output in the document.
 
     To make the references work you can optionally include a filename:
     `[@!RFC233,bib/reference.RFC.2525.xml]`. If you reference an RFC or I-D
-    the filename will be contructed automatically. For I-Ds you may need to add a draft sequence number, which
-    can be done as such: `[@?I-D.draft-blah,#06]`.
+    the filename will be contructed automatically. For I-Ds you may need to add
+    a draft sequence number, which can be done as such:
+    `[@?I-D.draft-blah,#06]`.
 
-*  **Caption**, table and figure/code block captions. For tables add the string `Table: caption text` after
-    the table, this will be rendered as an caption. For code blocks you'll need to use `Figure: `
+*  **Caption**, table and figure/code block captions. For tables add the string `Table: caption text`
+    after the table, this will be rendered as an caption. For code blocks you'll
+    need to use `Figure: `
 
-*  **Quote attribution**, after a blockquote you can optionally use `Quote: John Doe -- http://example.org`, where
+*  **Quote attribution**, after a blockquote you can optionally use 
+    `Quote: John Doe -- http://example.org`, where
     the quote will be attributed to John Doe, pointing to the URL.
 
 *  **Notes**, any parapgraph with `N>`
@@ -193,8 +197,6 @@ Todo
 *   indentend code blocks -> artwork
 *   images -> artwork, use title for caption
     if caption is given, wrap in figure -> otherwise not.
-*   Table colspan + rawspan, php markdown extra has syntax also for tablefooter
-*   Add automatic pandoc2rfc conversion
 *   make webservers that converts for you
 *   More unit testing
 *   cleanups - and loose a bunch of extensions, turn them on per default
@@ -203,8 +205,6 @@ Todo
 *   add ULink?
 *   Check outputted XML for wellformedness
 *   pretty print XML
-*   kramdown table footer |====| everything below is a footer
-*   colspan 
 
 
 License
