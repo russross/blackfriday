@@ -554,6 +554,18 @@ func (options *Html) Link(out *bytes.Buffer, link []byte, title []byte, content 
 	return
 }
 
+func (options *Html) Abbreviation(out *bytes.Buffer, abbr, title []byte) {
+	if len(title) == 0 {
+		out.WriteString("<abbr>")
+	} else {
+		out.WriteString("<abbr title=\"")
+		out.Write(title)
+		out.WriteString("\">")
+	}
+	out.Write(abbr)
+	out.WriteString("</abbr>")
+}
+
 func (options *Html) RawHtmlTag(out *bytes.Buffer, text []byte) {
 	if options.flags&HTML_SKIP_HTML != 0 {
 		return

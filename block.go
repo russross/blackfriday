@@ -1609,7 +1609,6 @@ func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 		p.inline(out, data[beg:end])
 		return
 	}
-
 	work := func() bool {
 		p.inline(out, data[beg:end])
 		return true

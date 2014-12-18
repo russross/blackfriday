@@ -39,10 +39,11 @@ const (
 	EXTENSION_INCLUDE                                // Include file with {{ syntax
 	EXTENSION_INDEX                                  // Support index with ((( syntax
 	EXTENSION_CITATION                               // Support citations via the link syntax
-	EXTENSION_QUOTES                                 // Allow A> AS> and N> to be parsed as abstract, asides and notes (and F>) (TODO(miek): use this
+	EXTENSION_QUOTES                                 // Allow A> AS> and N> to be parsed as abstract, asides and notes
 	EXTENSION_IAL                                    // detect CommonMark's IAL syntax (copied from kramdown)
 	EXTENSION_MATTER                                 // use {frontmatter} {mainmatter} {backmatter}
 	EXTENSION_EXAMPLE_LISTS                          // render '(@tag)  ' example lists
+	EXTENSION_ABBREVIATIONS				 // render abbreviations `*[HTML]: Hyper Text Markup Language`
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML |
@@ -57,7 +58,8 @@ const (
 		EXTENSION_AUTOLINK |
 		EXTENSION_STRIKETHROUGH |
 		EXTENSION_SPACE_HEADERS |
-		EXTENSION_HEADER_IDS
+		EXTENSION_HEADER_IDS |
+		EXTENSION_ABBREVIATIONS
 
 	commonXmlExtensions = commonExtensions |
 		EXTENSION_UNIQUE_HEADER_IDS |
@@ -65,7 +67,8 @@ const (
 		EXTENSION_IAL |
 		EXTENSION_QUOTES |
 		EXTENSION_MATTER |
-		EXTENSION_EXAMPLE_LISTS
+		EXTENSION_EXAMPLE_LISTS |
+		EXTENSION_ABBREVIATIONS
 )
 
 // These are the possible flag values for the link renderer.
@@ -206,6 +209,7 @@ type Renderer interface {
 	FootnoteRef(out *bytes.Buffer, ref []byte, id int)
 	Index(out *bytes.Buffer, primary, secondary []byte, prim bool)
 	Citation(out *bytes.Buffer, link, title []byte)
+	Abbreviation(out *bytes.Buffer, abbr, title []byte)
 
 	// Low-level callbacks
 	Entity(out *bytes.Buffer, entity []byte)
@@ -237,6 +241,7 @@ type parser struct {
 	r                    Renderer
 	refs                 map[string]*reference
 	citations            map[string]*citation
+	abbreviations        map[string]*abbreviation
 	inlineCallback       [256]inlineParser
 	flags                int
 	nesting              int
@@ -324,6 +329,7 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	p.r = renderer
 	p.flags = extensions
 	p.refs = make(map[string]*reference)
+	p.abbreviations = make(map[string]*abbreviation)
 	p.anchors = make(map[string]int)
 	p.maxNesting = 16
 	p.insideLink = false
@@ -365,6 +371,7 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 
 // first pass:
 // - extract references
+// - extract abbreviations
 // - expand tabs
 // - normalize newlines
 // - copy everything else
@@ -519,6 +526,10 @@ type reference struct {
 	hasBlock bool
 }
 
+type abbreviation struct {
+	title []byte
+}
+
 // Citations are parsed and stored in this struct.
 type citation struct {
 	link  []byte
@@ -544,10 +555,18 @@ func isReference(p *parser, data []byte, tabSize int) int {
 	}
 
 	noteId := 0
+	abbrId := ""
 
 	// id part: anything but a newline between brackets
-	if data[i] != '[' {
+	// abbreviations start with *[
+	if data[i] != '[' && data[i] != '*' {
 		return 0
+	}
+	if data[i] == '*' && (i < len(data)-1 && data[i+1] != '[') {
+		return 0
+	}
+	if data[i] == '*' && p.flags&EXTENSION_ABBREVIATIONS != 0 {
+		abbrId = "yes" // any non empty
 	}
 	i++
 	if p.flags&EXTENSION_FOOTNOTES != 0 {
@@ -566,6 +585,9 @@ func isReference(p *parser, data []byte, tabSize int) int {
 		return 0
 	}
 	idEnd := i
+	if abbrId != "" {
+		abbrId = string(data[idOffset+1 : idEnd])
+	}
 
 	// spacer: colon (space | tab)* newline? (space | tab)*
 	i++
@@ -600,6 +622,10 @@ func isReference(p *parser, data []byte, tabSize int) int {
 	if p.flags&EXTENSION_FOOTNOTES != 0 && noteId != 0 {
 		linkOffset, linkEnd, raw, hasBlock = scanFootnote(p, data, i, tabSize)
 		lineEnd = linkEnd
+	} else if abbrId != "" {
+		titleOffset, titleEnd, lineEnd = scanAbbreviation(p, data, idEnd)
+		p.abbreviations[abbrId] = &abbreviation{title: data[titleOffset:titleEnd]}
+		return lineEnd
 	} else {
 		linkOffset, linkEnd, titleOffset, titleEnd, lineEnd = scanLinkRef(p, data, i)
 	}
@@ -775,6 +801,28 @@ gatherLines:
 	}
 
 	contents = raw.Bytes()
+
+	return
+}
+
+func scanAbbreviation(p *parser, data []byte, i int) (titleOffset, titleEnd, lineEnd int) {
+	lineEnd = i
+	for lineEnd < len(data) && data[lineEnd] != '\n' {
+		lineEnd++
+	}
+
+	if len(data[i+2:lineEnd]) == 0 || p.isEmpty(data[i+2:lineEnd]) > 0 {
+		return i + 2, i + 2, lineEnd
+	}
+
+	titleOffset = i + 2
+	for data[titleOffset] == ' ' {
+		titleOffset++
+	}
+	titleEnd = lineEnd
+	for data[titleEnd-1] == ' ' {
+		titleEnd--
+	}
 
 	return
 }
