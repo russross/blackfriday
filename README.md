@@ -30,7 +30,8 @@ It adds the following syntax elements to [black friday](https://github.com/russr
 * Example lists;
 * HTML Comment parsing;
 * BCP14 (RFC2119) keyword detection;
-* Include raw XML references.
+* Include raw XML references;
+* Abbreviations.
 
 Mmark is forked from blackfriday which started out as a translation from C of [upskirt][4].
 
@@ -175,16 +176,13 @@ implements the following extensions:
 Todo
 ----
 
-*   Add automatic pandoc2rfc conversion
 *   Extension to recognize pandoc2rfc indices?
-*   PHP Extra: abbreviation (kramdown has them too)
-    <https://michelf.ca/projects/php-markdown/extra/#abbr>
-    note used in xml2rfc (but might be useful)
 *   fenced code blocks -> source code with language etc.
 *   indentend code blocks -> artwork
 *   images -> artwork, use title for caption
     if caption is given, wrap in figure -> otherwise not.
-*   Table colspan + rawspan, php markdown extra has syntax
+*   Table colspan + rawspan, php markdown extra has syntax also for tablefooter
+*   Add automatic pandoc2rfc conversion
 *   make webservers that converts for you
 *   More unit testing
 *   cleanups - and loose a bunch of extensions, turn them on per default
