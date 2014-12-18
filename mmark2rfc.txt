@@ -71,12 +71,15 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    The goals of mmark can be stated as:
 
-   (I)    Self contained: a single file can be converted to XML2RFC v2
-          or (v3);
+   (I)     Self contained: a single file can be converted to XML2RFC v2
+           or (v3);
 
-   (II)   Make the markdown source code look as natural as possible.
+   (II)    Make the markdown source code look as natural as possible;
 
-   Mmark is a fork of blackfriday [blackfriday] written in Golang.
+   (III)   Provide seemless upgrade path to XML2RFC v3.
+
+   Mmark is a fork of blackfriday [blackfriday] written in Golang, as
+   such it is very fast.
 
    Using Figure 1 from [RFC7328], mmark can be positioned as follows:
 
@@ -100,12 +103,9 @@ Internet-Draft                  mmark2rfc                  December 2014
    Mmark uses TOML [toml] document header to specify the document's meta
    data.  Each line of this header must start with an "%".
 
-3.  Citations
 
-   A citation can be entered by using the syntax from pandoc [pandoc]:
-   "[@reference]", such a reference is "informative" by default.  Making
-   a reference informative or normative can be done with a "?" and "!"
-   respectively: "[@!reference]" is a normative reference.
+
+
 
 
 
@@ -114,14 +114,22 @@ Gieben                    Expires June 13, 2015                 [Page 2]
 Internet-Draft                  mmark2rfc                  December 2014
 
 
+3.  Citations
+
+   A citation can be entered by using the syntax from pandoc [pandoc]:
+   "[@reference]", such a reference is "informative" by default.  Making
+   a reference informative or normative can be done with a "?" and "!"
+   respectively: "[@!reference]" is a normative reference.
+
    For RFC and I-Ds the references are generated automatically, although
    for I-Ds you might need to include a draft version in the reference
    "[@?I-D.draft-blah,#06]", creates an informative reference to the
    sixth version of draft-blah.
 
-   If the need arises an XML reference fragment can be included, not
-   that this needs to happen before the back matter is started, because
-   that is the point when the references are outputted.
+   If the need arises an XML reference fragment can be included, note
+   that this needs to happen _before_ the back matter is started,
+   because that is the point when the references are outputted (right
+   now the implementation does not scan the entire file for citations).
 
 4.  Document divisions
 
@@ -138,6 +146,10 @@ Internet-Draft                  mmark2rfc                  December 2014
 
 6.  Captions
 
+   Whenever an blockquote, fenced codeblock or image has caption text,
+   the entire block is wrapped in a "<figure>" and the caption text is
+   put in a "<name>" tag for v3.
+
    Captions for tables are supported in pandoc, but not for code block.
    In mmark you can put a caption under either (even after a fenced code
    block).  Referencing these element (and thus creating an document
@@ -148,6 +160,15 @@ Internet-Draft                  mmark2rfc                  December 2014
    --------|-----:
    Bob     | 27
    Alice   | 23
+
+
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 3]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
 
    An empty line between the IAL and the table of indented code block is
    allowed.
@@ -161,14 +182,6 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    A table caption is signalled by using "Table:" directly after the
    table.  The table syntax used that one of Markdown Extra [3].
-
-
-
-
-Gieben                    Expires June 13, 2015                 [Page 3]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
 
 6.3.  Quotes
 
@@ -198,7 +211,7 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    This is the example list syntax from pandoc [5].
 
-   The reference syntax "(@list-id)" is _not_ supported.
+   The reference syntax "(@list-id)" is _not_ (yet?) supported.
 
 8.2.  HTML Comment
 
@@ -206,25 +219,17 @@ Internet-Draft                  mmark2rfc                  December 2014
    comment in the resulting XML file.  Typically "<!-- Miek Gieben --
    you want to include the next paragraph? -->".
 
-8.3.  RFC 2119 Keywords
-
-   Any [RFC2119] keyword used with strong emphasis _and_ in uppercase
-   will be typeset within "bcp14" tags, that is "**MUST**" becomes
-   "<bcp14>MUST</bcp14", but "**must**" will not.
-
-8.4.  Including Files
-
-   Files can be included using "{{filename}}", "filename" is relative to
-   the current working directory it not absolute.
-
-
-
 
 
 Gieben                    Expires June 13, 2015                 [Page 4]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
+
+8.3.  Including Files
+
+   Files can be included using "{{filename}}", "filename" is relative to
+   the current working directory if it is not absolute.
 
 9.  XML2RFC V3 features
 
@@ -234,44 +239,39 @@ Internet-Draft                  mmark2rfc                  December 2014
 
 9.1.  Asides
 
-   Any paragraph prefixed with "AS>".
+   Any paragraph prefixed with "AS>".  For v2 this becomes a indentend
+   paragraph.
 
 9.2.  Notes
 
-   Any paragraph prefixed with "N>".
+   Any paragraph prefixed with "N>".  For v2 this becomes a indentend
+   paragraph.
 
-9.3.  Images
+9.3.  RFC 2119 Keywords
+
+   Any [RFC2119] keyword used with strong emphasis _and_ in uppercase
+   will be typeset within "bcp14" tags, that is "**MUST**" becomes
+   "<bcp14>MUST</bcp14", but "**must**" will not.
+
+9.4.  Images
 
 10.  Converting from RFC 7328 Syntax
 
-      The author is pondering an automated conversion mechanism.
+   Converting from an RFC 7328 ([RFC7328]) document can be done using
+   the quick and dirty Perl script [6], which uses pandoc to output
+   markdown PHP extra and converts that into proper mmark: (mmark is
+   more like markdown PHP extra, than like pandoc).
 
-   The markdown syntax in [RFC7328] is slightly more liberal than the
-   one from mmark.
+   for i in middle.mkd back.mkd; do \
+       pandoc --atx-headers -t markdown_phpextra < $i |
+       ./parts.pl
+   done
 
-10.1.  Citations
+   Note this:
 
-   Citations in [RFC7238] are done by using references: "[](#RFC5155)"
-   in mmark you use a proper citation "[@RFC5155]" (with possibly some
-   metadata).
+   o  Does not convert the abstract to a prefixed paragraph;
 
-10.2.  Definition Lists
-
-   Pandoc allows an empty line between the term and the definition:
-
-   Original owner name:
-
-   :   the owner name corresponding to a hashed owner name if hashing is
-       used. Or the owner name as-is if no hashing is used.
-
-   Mmark does not, use:
-
-   Original owner name:
-   :   the owner name corresponding to a hashed owner name if hashing is
-       used. Or the owner name as-is if no hashing is used.
-
-
-
+   o  Makes all RFC references normative;
 
 
 
@@ -282,71 +282,33 @@ Gieben                    Expires June 13, 2015                 [Page 5]
 Internet-Draft                  mmark2rfc                  December 2014
 
 
-10.3.  Figure Captions
+   o  Handles all figure and table captions and adds references (if
+      appropriate);
 
-   Instead of using the footnote syntax below a figure, in mmark you can
-   just use 'Figure: '.
+   o  Probably has bugs, so a manual review should be in order.
 
-                        1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |   Hash Alg.   |     Flags     |  Iterations   | Salt Length   |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                             Salt                              /
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   ^[fig:dnsnxtparam-wire::The NEXTPARAM on-the-wire format.]
+   There is also titleblock.pl [7] which can be given an [RFC7328]
+   "template.xml" file and will output a TOML titleblock, that can be
+   used as a starting point.
 
-   And use an IAL to define an anchor:
+      Yes, this uses pandoc and Perl.. why?  Becasue if mmark could
+      parse the file by itself, there wasn't much of problem.  Two
+      things are holding this back: mmark cannot parse definition lists
+      with empty spaces and there isn't renderer that can output
+      markdown syntax.
 
-   {#fig:dnsnxtparam-wire}
-
-                           1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
-       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |   Hash Alg.   |     Flags     |  Iterations   | Salt Length   |
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |                             Salt                              /
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   Figure: The NEXTPARAM on-the-wire format.
-
-10.4.  Table Caption
-
-   Table captions work identically to figure captions, except that you
-   use: "Table: Caption text."
-
-10.5.  Indicess
-
-   Use "(((term, subterm)))" instead of using footnotes.  Making "term"
-   a primary term, is done with "(((!term, subterm)))".
-
-10.6.  Ordered Lists with Custom Counters
-
-   Use an IAL for that:
-
-   {format="REQ(%c)"}
-   1. Term1
-   1. Term2
-
-
-
-
-
-
-
-Gieben                    Expires June 13, 2015                 [Page 6]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
+   For now the mmark parser will not get any features that makes it
+   backwards compatible with pandoc2rfc.
 
 11.  References
 
 11.1.  Informative References
 
+   [pandoc]   MacFarlane, J., "Pandoc, a universal document converter",
+              2006, <http://johnmacfarlane.net/pandoc/>.
+
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119, March 1997.
-
-   [RFC7238]  Reschke, J., "The Hypertext Transfer Protocol Status Code
-              308 (Permanent Redirect)", RFC 7238, June 2014.
 
    [mmark]    Gieben, R., "Mmark git repository", December 2014,
               <http://github.com/miekg/mmark>.
@@ -354,9 +316,6 @@ Internet-Draft                  mmark2rfc                  December 2014
    [blackfriday]
               "Blackfriday git repository", November 2011,
               <http://github.com/russross/blackfriday>.
-
-   [pandoc]   MacFarlane, J., "Pandoc, a universal document converter",
-              2006, <http://johnmacfarlane.net/pandoc/>.
 
 11.2.  Normative References
 
@@ -372,17 +331,58 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    [2] https://michelf.ca/projects/php-markdown/extra/#table
 
+
+
+Gieben                    Expires June 13, 2015                 [Page 6]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
    [3] http://kramdown.gettalong.org/syntax.html#block-ials
 
    [4] http://johnmacfarlane.net/pandoc/README.html#extension-
        example_lists
 
+   [5] https://raw.githubusercontent.com/miekg/mmark/master/convert/
+       parts.pl
+
+   [6] https://raw.githubusercontent.com/miekg/mmark/master/convert/
+       titleblock.pl
+
 Author's Address
 
    R. (Miek) Gieben
    Google
+   Buckingham Palace Road
 
    Email: miek@google.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
