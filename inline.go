@@ -144,35 +144,31 @@ func codeSpan(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 }
 
-// loop over the words, while stripping spaces, and check if we have
-// an abbreviation for them. If nothing is found give the original text
-// (with spaces, to NormalText for output.
 func normalText(p *parser, out *bytes.Buffer, data []byte) {
 	if len(p.abbreviations) == 0 {
 		p.r.NormalText(out, data)
 	} else {
-		wordBeg, wordEnd := 0, 0
-		origBeg := 0
 		end := len(data)
+		wordBeg := 0
 		for j := 0; j < end; j++ {
-			if data[j] == ' ' || j+1 == end {
-				wordEnd = j
-				k := 0
-				if j+1 == end {
-					k++
-				}
-				save := j
-				for j < len(data) && data[j] == ' ' {
-					j++
-				}
-				if t, ok := p.abbreviations[string(data[wordBeg:wordEnd+k])]; ok {
-					p.r.Abbreviation(out, data[wordBeg:wordEnd+k], t.title)
+			switch {
+			case data[j] == ' ':
+				// is the previous word an abbreviation?
+				println("dsd", string(data[wordBeg:j]), "ssa")
+				if t, ok := p.abbreviations[string(data[wordBeg:j])]; ok {
+					p.r.Abbreviation(out, data[wordBeg:j], t.title)
 				} else {
-					// original spaces and such
-					p.r.NormalText(out, data[origBeg+k:j+k])
+					p.r.NormalText(out, data[wordBeg:j])
 				}
+				p.r.NormalText(out, data[j:j])
 				wordBeg = j
-				origBeg = save
+			case j == end-1: // remainder of the line
+				if t, ok := p.abbreviations[string(data[wordBeg:end])]; ok {
+					p.r.Abbreviation(out, data[wordBeg:end], t.title)
+				} else {
+					p.r.NormalText(out, data[wordBeg:end])
+				}
+				p.r.NormalText(out, data[j:j])
 			}
 		}
 	}
