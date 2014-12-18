@@ -169,7 +169,8 @@ implements the following extensions:
         *[HTML]: Hyper Text Markup Language
         *[W3C]:  World Wide Web Consortium
 
-    Allow you to use HTML in the document and it will be expanded to "Hyper Text Markup Language".
+    Allow you to use HTML in the document and it will be expanded to 
+    `<abbr title="Hyper Text Markup Language">HTML</abbr>` in HTML
 
 Todo
 ----
