@@ -39,10 +39,11 @@ const (
 	EXTENSION_INCLUDE                                // Include file with {{ syntax
 	EXTENSION_INDEX                                  // Support index with ((( syntax
 	EXTENSION_CITATION                               // Support citations via the link syntax
-	EXTENSION_QUOTES                                 // Allow A> AS> and N> to be parsed as abstract, asides and notes (and F>) (TODO(miek): use this
+	EXTENSION_QUOTES                                 // Allow A> AS> and N> to be parsed as abstract, asides and notes
 	EXTENSION_IAL                                    // detect CommonMark's IAL syntax (copied from kramdown)
 	EXTENSION_MATTER                                 // use {frontmatter} {mainmatter} {backmatter}
 	EXTENSION_EXAMPLE_LISTS                          // render '(@tag)  ' example lists
+	EXTENSION_ABBREVIATIONS				 // render abbreviations `*[HTML]: Hyper Text Markup Language`
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML |
@@ -57,7 +58,8 @@ const (
 		EXTENSION_AUTOLINK |
 		EXTENSION_STRIKETHROUGH |
 		EXTENSION_SPACE_HEADERS |
-		EXTENSION_HEADER_IDS
+		EXTENSION_HEADER_IDS |
+		EXTENSION_ABBREVIATIONS
 
 	commonXmlExtensions = commonExtensions |
 		EXTENSION_UNIQUE_HEADER_IDS |
@@ -65,7 +67,8 @@ const (
 		EXTENSION_IAL |
 		EXTENSION_QUOTES |
 		EXTENSION_MATTER |
-		EXTENSION_EXAMPLE_LISTS
+		EXTENSION_EXAMPLE_LISTS |
+		EXTENSION_ABBREVIATIONS
 )
 
 // These are the possible flag values for the link renderer.
@@ -562,7 +565,7 @@ func isReference(p *parser, data []byte, tabSize int) int {
 	if data[i] == '*' && (i < len(data)-1 && data[i+1] != '[') {
 		return 0
 	}
-	if data[i] == '*' {
+	if data[i] == '*' && p.flags&EXTENSION_ABBREVIATIONS != 0 {
 		abbrId = "yes" // any non empty
 	}
 	i++

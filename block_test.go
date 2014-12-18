@@ -702,7 +702,7 @@ func TestAbbreviation(t *testing.T) {
 		"*[HTML]: \"Hyper Text Markup Language\"\nHTML is cool",
 		"<p><abbr title=\"\"Hyper Text Markup Language\"\">HTML</abbr> is cool</p>\n",
 	}
-	doTestsBlock(t, tests, 0)
+	doTestsBlock(t, tests, EXTENSION_ABBREVIATIONS)
 }
 
 func TestPreformattedHtml(t *testing.T) {
