@@ -122,15 +122,16 @@ At the time of this writing, the current digest types assigned for
 use in DS records are as follows:
 
 {align="left"}
-VALUE  |  Digest Type     |   Status
-------:|:-----------------|-------------
- 0     | Reserved         |      -
- 1     | SHA-1            |   MANDATORY
- 2     | SHA-256          |   MANDATORY
- 3     | GOST R 34.11-94  |   OPTIONAL
- 4     | SHA-384          |   OPTIONAL
- TBD   | DT-SHA-256       |   OPTIONAL
-TDB-255| Unassigned       |      -
+VALUE   | Digest Type        | Status
+------: | :----------------- | -------------
+ 0      | Reserved           | -
+ 1      | SHA-1              | MANDATORY
+ 2      | SHA-256            | MANDATORY
+ 3      | GOST R 34.11-94    | OPTIONAL
+ 4      | SHA-384            | OPTIONAL
+=====   | ======             | ====
+ TBD    | DT-SHA-256         | OPTIONAL
+TDB-255 | Unassigned         | -
 
 All future assigned Digest Types MUST assume that there is a Denial Type incorporated in the Digest.
 
@@ -154,14 +155,8 @@ Table: As shown here.
 | ------------- | ------------------------------ | ------- |
 | `help()`      | Display the help window.       | dsds    |
 | `help()`      |                                |         |
+| =====         | =====                          | ===     |
 | `destroy()`   | **Destroy your computer!**     | dsd     |
-| ============  | ============================== | ======  |
-| footer1       | footer2                        | footer3 |
-| Function name | Description                    | more   |
-| ------------- | ------------------------------ |------- |
-| `help()`      | Display the help window.       |  dsds  |
-| `help()`      |                                |        |
-| `destroy()`   | **Destroy your computer!**     |  dsd   |
 
 # Acknowledgements
 
