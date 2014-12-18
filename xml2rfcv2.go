@@ -316,11 +316,12 @@ func (options *Xml2) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	}
 }
 
-func (options *Xml2) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, caption []byte) {
+func (options *Xml2) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
 	s := options.IAL().String()
 	out.WriteString("<texttable" + s + ">\n")
 	out.Write(header)
 	out.Write(body)
+	out.Write(footer)
 	out.WriteString("</texttable>\n")
 }
 
@@ -562,6 +563,9 @@ func (options *Xml2) DocumentFooter(out *bytes.Buffer, first bool) {
 }
 
 func (options *Xml2) DocumentMatter(out *bytes.Buffer, matter int) {
+	if options.flags&XML2_STANDALONE == 0 {
+		return
+	}
 	// we default to frontmatter already openened in the documentHeader
 	for i := options.sectionLevel; i > 0; i-- {
 		out.WriteString("</section>\n")

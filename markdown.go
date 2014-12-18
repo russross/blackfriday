@@ -184,7 +184,7 @@ type Renderer interface {
 	List(out *bytes.Buffer, text func() bool, flags, start int, group []byte)
 	ListItem(out *bytes.Buffer, text []byte, flags int)
 	Paragraph(out *bytes.Buffer, text func() bool, flags int)
-	Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, caption []byte)
+	Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte)
 	TableRow(out *bytes.Buffer, text []byte)
 	TableHeaderCell(out *bytes.Buffer, text []byte, flags int)
 	TableCell(out *bytes.Buffer, text []byte, flags int)

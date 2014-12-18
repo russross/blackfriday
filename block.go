@@ -10,12 +10,6 @@ import (
 	"unicode"
 )
 
-const (
-	_TABLE_HEADER = 1 << iota
-	_TABLE_BODY
-	_TABLE_FOOTER
-)
-
 // Parse block-level data.
 // Note: this function and many that it calls assume that
 // the input buffer ends with a newline.
@@ -917,10 +911,10 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 			continue
 		}
 		if foot {
-			p.tableRow(&footer, data[rowStart:i], columns, _TABLE_FOOTER)
+			p.tableRow(&footer, data[rowStart:i], columns, false)
 			continue
 		}
-		p.tableRow(&body, data[rowStart:i], columns, _TABLE_BODY)
+		p.tableRow(&body, data[rowStart:i], columns, false)
 	}
 	var caption bytes.Buffer
 	line := i
@@ -943,7 +937,7 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 	p.r.SetIAL(p.ial)
 	p.ial = nil
 
-	p.r.Table(out, header.Bytes(), body.Bytes(), columns, caption.Bytes())
+	p.r.Table(out, header.Bytes(), body.Bytes(), footer.Bytes(), columns, caption.Bytes())
 
 	return j
 }
@@ -1057,12 +1051,12 @@ func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns 
 		return
 	}
 
-	p.tableRow(out, header, columns, _TABLE_HEADER)
+	p.tableRow(out, header, columns, true)
 	size = i + 1
 	return
 }
 
-func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, what int) {
+func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header bool) {
 	i, col := 0, 0
 	var rowWork bytes.Buffer
 
@@ -1093,7 +1087,7 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, what in
 		var cellWork bytes.Buffer
 		p.inline(&cellWork, data[cellStart:cellEnd])
 
-		if what == _TABLE_HEADER {
+		if header {
 			p.r.TableHeaderCell(&rowWork, cellWork.Bytes(), columns[col])
 		} else {
 			p.r.TableCell(&rowWork, cellWork.Bytes(), columns[col])
@@ -1102,7 +1096,7 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, what in
 
 	// pad it out with empty columns to get the right number
 	for ; col < len(columns); col++ {
-		if what == _TABLE_HEADER {
+		if header {
 			p.r.TableHeaderCell(&rowWork, nil, columns[col])
 		} else {
 			p.r.TableCell(&rowWork, nil, columns[col])

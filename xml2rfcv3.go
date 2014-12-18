@@ -316,7 +316,7 @@ func (options *Xml) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	out.WriteString("</t>\n")
 }
 
-func (options *Xml) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int, caption []byte) {
+func (options *Xml) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
 	s := options.IAL().String()
 	out.WriteString("<table" + s + ">\n")
 	if caption != nil {
@@ -328,6 +328,9 @@ func (options *Xml) Table(out *bytes.Buffer, header []byte, body []byte, columnD
 	out.Write(header)
 	out.WriteString("</thead>\n")
 	out.Write(body)
+	out.WriteString("<tfoot>\n")
+	out.Write(header)
+	out.WriteString("</tfoot>\n")
 	out.WriteString("</table>\n")
 }
 
@@ -350,7 +353,6 @@ func (options *Xml) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
 	out.WriteString("<th" + a + ">")
 	out.Write(text)
 	out.WriteString("</th>")
-
 }
 
 func (options *Xml) TableCell(out *bytes.Buffer, text []byte, align int) {

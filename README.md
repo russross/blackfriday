@@ -76,6 +76,15 @@ implements the following extensions:
     If there are multiple footer line, the first one is used as a
     starting point for the table footer.
 
+    ```
+    Name    | Age
+    --------|-----:
+    Bob     | 27
+    Alice   | 23
+    ======= | ====
+    Charlie | 4
+    ```
+
 *   **Fenced code blocks**. In addition to the normal 4-space
     indentation to mark code blocks, you can explicitly mark them
     and supply a language (to make syntax highlighting simple). Just
@@ -172,10 +181,9 @@ implements the following extensions:
     defined by:
 
         *[HTML]: Hyper Text Markup Language
-        *[W3C]:  World Wide Web Consortium
 
-    Allow you to use HTML in the document and it will be expanded to 
-    `<abbr title="Hyper Text Markup Language">HTML</abbr>` in HTML
+    Allows you to use HTML in the document and it will be expanded to 
+    `<abbr title="Hyper Text Markup Language">HTML</abbr>`.
 
 Todo
 ----

@@ -910,6 +910,12 @@ func TestTable(t *testing.T) {
 
 		"a|b\\|c|d\n---|---|---\nf|g\\|h|i\n",
 		"<table>\n<thead>\n<tr>\n<th>a</th>\n<th>b|c</th>\n<th>d</th>\n</tr>\n</thead>\n\n<tbody>\n<tr>\n<td>f</td>\n<td>g|h</td>\n<td>i</td>\n</tr>\n</tbody>\n</table>\n",
+
+		"a   | c\n--- | ---:\nd   | e\nf   | g\n==  | =\nh   | j\n",
+		"<table>\n<thead>\n<tr>\n<th>a</th>\n<th align=\"right\">c</th>\n</tr>\n</thead>\n\n<tbody>\n<tr>\n<td>d</td>\n<td align=\"right\">e</td>\n</tr>\n\n<tr>\n<td>f</td>\n<td align=\"right\">g</td>\n</tr>\n</tbody>\n<tfoot>\n<tr>\n<td>h</td>\n<td align=\"right\">j</td>\n</tr>\n</tfoot>\n</table>\n",
+
+		"a   | c\n--- | --:\nd   | e\nf   | g\n==  | =\n==  | =\nh   | j\n",
+		"<table>\n<thead>\n<tr>\n<th>a</th>\n<th align=\"right\">c</th>\n</tr>\n</thead>\n\n<tbody>\n<tr>\n<td>d</td>\n<td align=\"right\">e</td>\n</tr>\n\n<tr>\n<td>f</td>\n<td align=\"right\">g</td>\n</tr>\n</tbody>\n<tfoot>\n<tr>\n<td>==</td>\n<td align=\"right\">=</td>\n</tr>\n\n<tr>\n<td>h</td>\n<td align=\"right\">j</td>\n</tr>\n</tfoot>\n</table>\n",
 	}
 	doTestsBlock(t, tests, EXTENSION_TABLES)
 }
