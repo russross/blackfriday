@@ -583,7 +583,7 @@ func isReference(p *parser, data []byte, tabSize int) int {
 	}
 	idEnd := i
 	if abbrId != "" {
-		abbrId = string(data[idOffset+1:idEnd])
+		abbrId = string(data[idOffset+1 : idEnd])
 	}
 
 	// spacer: colon (space | tab)* newline? (space | tab)*
@@ -808,11 +808,11 @@ func scanAbbreviation(p *parser, data []byte, i int) (titleOffset, titleEnd, lin
 		lineEnd++
 	}
 
-	if len(data[i+2:lineEnd]) == 0 || p.isEmpty(data[i+2:lineEnd]) > 0  {
-		return i+2, i+2, lineEnd
+	if len(data[i+2:lineEnd]) == 0 || p.isEmpty(data[i+2:lineEnd]) > 0 {
+		return i + 2, i + 2, lineEnd
 	}
 
-	titleOffset = i+2
+	titleOffset = i + 2
 	for data[titleOffset] == ' ' {
 		titleOffset++
 	}

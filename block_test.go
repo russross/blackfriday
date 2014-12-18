@@ -677,33 +677,32 @@ func TestOrderedList(t *testing.T) {
 }
 
 func TestAbbreviation(t *testing.T) {
-        var tests = []string{
-                "*[HTML]: Hyper Text Markup Language\nHTML is cool",
+	var tests = []string{
+		"*[HTML]: Hyper Text Markup Language\nHTML is cool",
 		"<p><abbr title=\"Hyper Text Markup Language\">HTML</abbr> is cool</p>\n",
 
-                "*[HTML]:\nHTML is cool",
+		"*[HTML]:\nHTML is cool",
 		"<p><abbr>HTML</abbr> is cool</p>\n",
 
-                "*[H]:\n cool    H is",
-		"<p>cool    <abbr>H</abbr>is</p>\n",
+		"*[H]:\n cool    H is",
+		"<p>cool    <abbr>H</abbr> is</p>\n",
 
-                "*[H]:\n cool    H is   ",
-		"<p>cool    <abbr>H</abbr>is</p>\n",
+		"*[H]:\n cool    H is   ",
+		"<p>cool    <abbr>H</abbr> is</p>\n",
 
-                "*[H]:   \n cool    H is   ",
-		"<p>cool    <abbr>H</abbr>is</p>\n",
+		"*[H]:   \n cool    H is   ",
+		"<p>cool    <abbr>H</abbr> is</p>\n",
 
-                "*[H]: aa  \n cool    H is   ",
-		"<p>cool    <abbr title=\"aa\">H</abbr>is</p>\n",
+		"*[H]: aa  \n cool    H is better yet some more words  ",
+		"<p>cool    <abbr title=\"aa\">H</abbr> is better yet some more words</p>\n",
 
-                "*[H] aa  \n cool    H is   ",
+		"*[H] aa  \n cool    H is   ",
 		"<p>*[H] aa<br />\n cool    H is</p>\n",
 
-                "*[HTML]: \"Hyper Text Markup Language\"\nHTML is cool",
+		"*[HTML]: \"Hyper Text Markup Language\"\nHTML is cool",
 		"<p><abbr title=\"\"Hyper Text Markup Language\"\">HTML</abbr> is cool</p>\n",
-
-        }
-        doTestsBlock(t, tests, 0)
+	}
+	doTestsBlock(t, tests, 0)
 }
 
 func TestPreformattedHtml(t *testing.T) {

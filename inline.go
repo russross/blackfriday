@@ -141,7 +141,6 @@ func codeSpan(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	}
 
 	return end
-
 }
 
 func normalText(p *parser, out *bytes.Buffer, data []byte) {
@@ -150,25 +149,31 @@ func normalText(p *parser, out *bytes.Buffer, data []byte) {
 	} else {
 		end := len(data)
 		wordBeg := 0
+		inWord := false
 		for j := 0; j < end; j++ {
 			switch {
-			case data[j] == ' ':
-				// is the previous word an abbreviation?
-				println("dsd", string(data[wordBeg:j]), "ssa")
+			case data[j] != ' ' && !inWord:
+				inWord = true
+				wordBeg = j
+			case data[j] == ' ' && inWord:
+				// first space after coming out of a word, output
 				if t, ok := p.abbreviations[string(data[wordBeg:j])]; ok {
 					p.r.Abbreviation(out, data[wordBeg:j], t.title)
 				} else {
 					p.r.NormalText(out, data[wordBeg:j])
 				}
-				p.r.NormalText(out, data[j:j])
-				wordBeg = j
-			case j == end-1: // remainder of the line
-				if t, ok := p.abbreviations[string(data[wordBeg:end])]; ok {
-					p.r.Abbreviation(out, data[wordBeg:end], t.title)
-				} else {
-					p.r.NormalText(out, data[wordBeg:end])
-				}
-				p.r.NormalText(out, data[j:j])
+				p.r.NormalText(out, data[j:j+1])
+				inWord = false
+			case data[j] == ' ' && !inWord:
+				p.r.NormalText(out, data[j:j+1])
+			}
+		}
+		// if inWord == true, we haven't outputted the last word
+		if inWord {
+			if t, ok := p.abbreviations[string(data[wordBeg:end])]; ok {
+				p.r.Abbreviation(out, data[wordBeg:end], t.title)
+			} else {
+				p.r.NormalText(out, data[wordBeg:end])
 			}
 		}
 	}
