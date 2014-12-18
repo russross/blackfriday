@@ -10,6 +10,12 @@ import (
 	"unicode"
 )
 
+const (
+	_TABLE_HEADER = 1 << iota
+	_TABLE_BODY
+	_TABLE_FOOTER
+)
+
 // Parse block-level data.
 // Note: this function and many that it calls assume that
 // the input buffer ends with a newline.
@@ -887,6 +893,9 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 		return 0
 	}
 	var body bytes.Buffer
+	var footer bytes.Buffer
+
+	foot := false
 
 	for i < len(data) {
 		pipes, rowStart := 0, i
@@ -903,7 +912,15 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 
 		// include the newline in data sent to tableRow
 		i++
-		p.tableRow(&body, data[rowStart:i], columns, false)
+		if !foot && p.isTableFooter(out, data[rowStart:i], columns) > 0 {
+			foot = true
+			continue
+		}
+		if foot {
+			p.tableRow(&footer, data[rowStart:i], columns, _TABLE_FOOTER)
+			continue
+		}
+		p.tableRow(&body, data[rowStart:i], columns, _TABLE_BODY)
 	}
 	var caption bytes.Buffer
 	line := i
@@ -1040,12 +1057,12 @@ func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns 
 		return
 	}
 
-	p.tableRow(out, header, columns, true)
+	p.tableRow(out, header, columns, _TABLE_HEADER)
 	size = i + 1
 	return
 }
 
-func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header bool) {
+func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, what int) {
 	i, col := 0, 0
 	var rowWork bytes.Buffer
 
@@ -1076,7 +1093,7 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 		var cellWork bytes.Buffer
 		p.inline(&cellWork, data[cellStart:cellEnd])
 
-		if header {
+		if what == _TABLE_HEADER {
 			p.r.TableHeaderCell(&rowWork, cellWork.Bytes(), columns[col])
 		} else {
 			p.r.TableCell(&rowWork, cellWork.Bytes(), columns[col])
@@ -1085,7 +1102,7 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 
 	// pad it out with empty columns to get the right number
 	for ; col < len(columns); col++ {
-		if header {
+		if what == _TABLE_HEADER {
 			p.r.TableHeaderCell(&rowWork, nil, columns[col])
 		} else {
 			p.r.TableCell(&rowWork, nil, columns[col])
@@ -1095,6 +1112,68 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 	// silently ignore rows with too many cells
 
 	p.r.TableRow(out, rowWork.Bytes())
+}
+
+func (p *parser) isTableFooter(out *bytes.Buffer, data []byte, columns []int) int {
+	// a column footer is of form: / *=+ *|/ with # equals >= 1 and not other characters
+	// and trailing | optional on last column
+	i, col := 0, 0
+
+	if data[i] == '|' && !isBackslashEscaped(data, i) {
+		i++
+	}
+	for data[i] == ' ' {
+		i++
+	}
+
+	for data[i] != '\n' {
+		equals := 0
+
+		for data[i] == '=' {
+			i++
+			equals++
+		}
+		for data[i] == ' ' {
+			i++
+		}
+
+		// end of column test is messy
+		switch {
+		case equals < 1:
+			// not a valid column
+			return 0
+
+		case data[i] == '|' && !isBackslashEscaped(data, i):
+			// marker found, now skip past trailing whitespace
+			col++
+			i++
+			for data[i] == ' ' {
+				i++
+			}
+
+			// trailing junk found after last column
+			if col >= len(columns) && data[i] != '\n' {
+				return 0
+			}
+
+		case (data[i] != '|' || isBackslashEscaped(data, i)) && col+1 < len(columns):
+			// something else found where marker was required
+			return 0
+
+		case data[i] == '\n':
+			// marker is optional for the last column
+			col++
+
+		default:
+			// trailing junk found after last column
+			return 0
+		}
+	}
+
+	if col != len(columns) {
+		return 0
+	}
+	return i
 }
 
 // returns prefix length for block code

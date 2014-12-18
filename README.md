@@ -72,6 +72,10 @@ implements the following extensions:
     Alice   | 23
     ```
 
+    Tables can also have a footer, use equal signs instead of dashes.
+    If there are multiple footer line, the first one is used as a
+    starting point for the table footer.
+
 *   **Fenced code blocks**. In addition to the normal 4-space
     indentation to mark code blocks, you can explicitly mark them
     and supply a language (to make syntax highlighting simple). Just
