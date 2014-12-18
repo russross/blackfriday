@@ -157,6 +157,11 @@ Table: As shown here.
 | `destroy()`   | **Destroy your computer!**     | dsd     |
 | ============  | ============================== | ======  |
 | footer1       | footer2                        | footer3 |
+| Function name | Description                    | more   |
+| ------------- | ------------------------------ |------- |
+| `help()`      | Display the help window.       |  dsds  |
+| `help()`      |                                |        |
+| `destroy()`   | **Destroy your computer!**     |  dsd   |
 
 # Acknowledgements
 
