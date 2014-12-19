@@ -26,11 +26,10 @@ const DEFAULT_TITLE = ""
 
 func main() {
 	// parse command-line options
-	var page, pretty, toc, toconly, xhtml, xml, xml2, smartypants, fractions bool
+	var page, toc, toconly, xhtml, xml, xml2, smartypants, fractions bool
 	var css, cpuprofile string
 	var repeat int
 	flag.BoolVar(&page, "page", false, "generate a standalone HTML page")
-	flag.BoolVar(&pretty, "pretty", false, "pretty print output")
 	flag.BoolVar(&toc, "toc", false, "generate a table of contents (implies -xml=false)")
 	flag.BoolVar(&toconly, "toconly", false, "generate a table of contents only (implies -toc)")
 	flag.BoolVar(&xhtml, "xhtml", true, "use XHTML-style tags in HTML output")
@@ -119,16 +118,10 @@ func main() {
 		if page {
 			xmlFlags = mmark.XML_STANDALONE
 		}
-		if pretty {
-			xmlFlags |= mmark.XML_PRETTY_PRINT
-		}
 		renderer = mmark.XmlRenderer(xmlFlags)
 	case xml2:
 		if page {
 			xmlFlags = mmark.XML2_STANDALONE
-		}
-		if pretty {
-			xmlFlags |= mmark.XML2_PRETTY_PRINT
 		}
 		renderer = mmark.Xml2Renderer(xmlFlags)
 	default:

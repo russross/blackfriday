@@ -34,11 +34,11 @@ It adds the following syntax elements to [black friday](https://github.com/russr
 * Include raw XML references;
 * Abbreviations.
 
-And the ability to pretty print the XML output.
-
 Mmark is forked from blackfriday which started out as a translation from C of [upskirt][4].
 
 A simular effort is [kramdown-rfc2629](https://github.com/cabo/kramdown-rfc2629) from Carsten Bormann.
+
+There is no pretty printed out if you need that pipe the output through `xmllint --format -`.
 
 ## Usage
 

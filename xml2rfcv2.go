@@ -13,7 +13,6 @@ import (
 // XML renderer configuration options.
 const (
 	XML2_STANDALONE   = 1 << iota // create standalone document
-	XML2_PRETTY_PRINT             // pretty print output
 )
 
 // <meta name="GENERATOR" content="Blackfriday Markdown Processor v1.0" />
