@@ -472,19 +472,13 @@ func (options *Xml2) Emphasis(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Xml2) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
+	// convert to url
 	options.IAL().String()
-	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
-		// treat it like a link
-		out.WriteString("\\href{")
-		out.Write(link)
-		out.WriteString("}{")
-		out.Write(alt)
-		out.WriteString("}")
-	} else {
-		out.WriteString("\\includegraphics{")
-		out.Write(link)
-		out.WriteString("}")
-	}
+	out.WriteString("<eref target=\"")
+	out.Write(link)
+	out.WriteString("\">")
+	out.Write(alt) // or title
+	out.WriteString("</eref>")
 }
 
 func (options *Xml2) LineBreak(out *bytes.Buffer) {

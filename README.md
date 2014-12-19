@@ -53,8 +53,7 @@ feature set, use this instead:
     output := mmark.MarkdownCommon(input)
 
 
-Extensions
-----------
+# Extensions
 
 In addition to the standard markdown syntax, this package
 implements the following extensions:
@@ -134,20 +133,28 @@ implements the following extensions:
 *   **Indices**, using `(((item, subitem)))` syntax. To make `item` primary, use
     an `!`: `(((!item, subitem)))`.
 
-*   **Citations**, using the citation syntax from pandoc `[@RFC2535 p. 23]`, the citation
-    can either be informative (default) or normative, this can be indicated by using
-    the `?` or `!` modifer: `[@!RFC2535]`. Use `[-@RFC1000]` to add the cication
-    to the references, but suppress the output in the document.
+*   **Citations**, using the citation syntax from pandoc `[@RFC2535 p. 23]`, the
+    citation can either be informative (default) or normative, this can be indicated
+    by using the `?` or `!` modifer: `[@!RFC2535]`. Use `[-@RFC1000]` to add the
+    cication to the references, but suppress the output in the document.
 
-    If you reference an RFC or I-D
-    the reference will be contructed automatically. For I-Ds you may need to add
-    a draft sequence number, which can be done as such:
-    `[@?I-D.draft-blah,#06]`. If you have other references you can include the raw
-    XML in the document (before the `{backmatter}`). Also see **XML references**.
+    If you reference an RFC or I-D the reference will be contructed
+    automatically. For I-Ds you may need to add a draft sequence number, which
+    can be done as such: `[@?I-D.draft-blah,#06]`. If you have other references
+    you can include the raw XML in the document (before the `{backmatter}`).
+    Also see **XML references**.
 
-*  **Captions**, table and figure/code block captions. For tables add the string `Table: caption text`
-    after the table, this will be rendered as an caption. For code blocks you'll
-    need to use `Figure: `
+*  **Captions**, table and figure/code block captions. For tables add the string
+    `Table: caption text` after the table, this will be rendered as an caption. For
+    code blocks you'll need to use `Figure: `
+
+    ```
+    Name    | Age
+    --------|-----:
+    Bob     | 27
+    Alice   | 23
+    Table: This is a table.
+    ```
 
 *  **Quote attribution**, after a blockquote you can optionally use
     `Quote: John Doe -- http://example.org`, where
@@ -192,8 +199,7 @@ implements the following extensions:
     Allows you to use HTML in the document and it will be expanded to
     `<abbr title="Hyper Text Markup Language">HTML</abbr>`.
 
-Todo
-----
+# Todo
 
 *   fenced code blocks -> source code with language etc.
 *   indentend code blocks -> artwork
@@ -209,8 +215,8 @@ Todo
 *   add ULink?
 
 
+# :w
 License
--------
 
 Mmark is a fork of blackfriday, hence is shares it's license.
 
