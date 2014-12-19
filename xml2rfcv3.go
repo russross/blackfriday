@@ -617,13 +617,12 @@ func (options *Xml) DocumentMatter(out *bytes.Buffer, matter int) {
 	options.docLevel = matter
 }
 
-// quotes &quot;
 var entityConvert = map[byte][]byte{
 	'<': []byte("&lt;"),
 	'>': []byte("&gt;"),
 	'&': []byte("&amp;"),
-	'\'': []byte("&apos;"),
-	'"': []byte("&quot;"),
+//	'\'': []byte("&apos;"),
+//	'"': []byte("&quot;"),
 }
 
 func WriteEntity(out *bytes.Buffer, text []byte) {
