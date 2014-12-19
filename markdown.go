@@ -222,7 +222,8 @@ func (p *parser) getRef(refid string) (ref *reference, found bool) {
 				link:     []byte(r.Link),
 				title:    []byte(r.Title),
 				noteId:   0,
-				hasBlock: false}, true
+				hasBlock: false,
+				text:     []byte(r.Text)}, true
 		}
 	}
 	// refs are case insensitive
@@ -243,6 +244,9 @@ type Reference struct {
 	Link string
 	// Title is the alternate text describing the link in more detail.
 	Title string
+	// Text is the optional text to override the ref with if the syntax used was
+	// [refid][]
+	Text string
 }
 
 // ReferenceOverrideFunc is expected to be called with a reference string and
@@ -508,6 +512,7 @@ type reference struct {
 	title    []byte
 	noteId   int // 0 if not a footnote ref
 	hasBlock bool
+	text     []byte
 }
 
 // Check whether or not data starts with a reference link.
