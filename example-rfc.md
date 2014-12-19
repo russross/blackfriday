@@ -54,11 +54,11 @@ Digest:
     formula ("|" denotes concatenation, HASH denotes that
     hash algorithm in use).
 
-            digest = Denial Type | HASH(DNSKEY owner name | DNSKEY RDATA)
+        digest = Denial Type | HASH(DNSKEY owner name | DNSKEY RDATA)
 
     where DNSKEY RDATA is defined by [@!RFC4034] as:
 
-            DNSKEY RDATA = Flags | Protocol | Algorithm | Public Key
+        DNSKEY RDATA = Flags | Protocol | Algorithm | Public Key
 
     The Key Tag field and Algorithm fields remain unchanged by this
     document and are specified in the [@RFC4034] specification.
@@ -76,7 +76,7 @@ The resulting on-the-wire format for the resulting DS record will be as follows:
 {#fig:wire}
                          1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    <-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     |           Key Tag             |  Algorithm    |  DigestType   |
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     |          Denial Type          |                               /

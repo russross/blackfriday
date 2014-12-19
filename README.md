@@ -38,6 +38,8 @@ Mmark is forked from blackfriday which started out as a translation from C of [u
 
 A simular effort is [kramdown-rfc2629](https://github.com/cabo/kramdown-rfc2629) from Carsten Bormann.
 
+There is no pretty printed out if you need that pipe the output through `xmllint --format -`.
+
 ## Usage
 
 For basic usage, it is as simple as getting your input into a byte
@@ -205,8 +207,6 @@ Todo
 *   reduce API footprint (hide constants mainly)
 *   save original IAL for example lists?
 *   add ULink?
-*   Check outputted XML for wellformedness
-*   pretty print XML
 
 
 License

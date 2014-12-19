@@ -43,7 +43,7 @@ const (
 	EXTENSION_IAL                                    // detect CommonMark's IAL syntax (copied from kramdown)
 	EXTENSION_MATTER                                 // use {frontmatter} {mainmatter} {backmatter}
 	EXTENSION_EXAMPLE_LISTS                          // render '(@tag)  ' example lists
-	EXTENSION_ABBREVIATIONS				 // render abbreviations `*[HTML]: Hyper Text Markup Language`
+	EXTENSION_ABBREVIATIONS                          // render abbreviations `*[HTML]: Hyper Text Markup Language`
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML |
@@ -224,9 +224,8 @@ type Renderer interface {
 	References(out *bytes.Buffer, citations map[string]*citation)
 
 	// Helper functions
-	GetFlags() int
+	Flags() int
 
-	// Don't like the names... Also GetFlags() -> Flags()
 	SetIAL(*IAL)
 	IAL() *IAL
 }

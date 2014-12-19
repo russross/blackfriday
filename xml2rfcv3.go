@@ -12,7 +12,7 @@ import (
 
 // XML renderer configuration options.
 const (
-	XML_STANDALONE = 1 << iota // create standalone document
+	XML_STANDALONE   = 1 << iota // create standalone document
 )
 
 var words2119 = map[string]bool{
@@ -48,8 +48,8 @@ type Xml struct {
 //
 // flags is a set of XML_* options ORed together
 func XmlRenderer(flags int) Renderer { return &Xml{flags: flags} }
-func (options *Xml) GetFlags() int   { return options.flags }
-func (options *Xml) GetState() int   { return 0 }
+func (options *Xml) Flags() int      { return options.flags }
+func (options *Xml) State() int      { return 0 }
 
 func (options *Xml) SetIAL(i *IAL) {
 	options.ial = i
@@ -85,7 +85,7 @@ func (options *Xml) BlockCode(out *bytes.Buffer, text []byte, lang string, capti
 	} else {
 		out.WriteString("<artwork" + s + ">\n")
 	}
-	WriteAndConvertEntity(out, text)
+	WriteEntity(out, text)
 
 	if lang != "" {
 		out.WriteString("</sourcecode>\n")
@@ -424,7 +424,7 @@ func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation
 			for _, c := range citations {
 				if c.typ == 'i' {
 					f := referenceFile(c)
-					out.WriteString("\t<xi:include href=\"" + f + "\"/>\n")
+					out.WriteString("<xi:include href=\"" + f + "\"/>\n")
 				}
 			}
 		}
@@ -433,7 +433,7 @@ func (options *Xml) References(out *bytes.Buffer, citations map[string]*citation
 			for _, c := range citations {
 				if c.typ == 'n' {
 					f := referenceFile(c)
-					out.WriteString("\t<xi:include href=\"" + f + "\"/>\n")
+					out.WriteString("<xi:include href=\"" + f + "\"/>\n")
 				}
 			}
 			out.WriteString("</references>\n")
@@ -470,7 +470,7 @@ func (options *Xml) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 
 func (options *Xml) CodeSpan(out *bytes.Buffer, text []byte) {
 	out.WriteString("<tt>")
-	WriteAndConvertEntity(out, text)
+	WriteEntity(out, text)
 	out.WriteString("</tt>")
 }
 
@@ -617,17 +617,18 @@ func (options *Xml) DocumentMatter(out *bytes.Buffer, matter int) {
 	options.docLevel = matter
 }
 
-// quotes &quot;
-var entityConvert = map[byte]string{
-	'<': "&lt;",
-	'>': "&gt;",
-	'&': "&amp;",
+var entityConvert = map[byte][]byte{
+	'<': []byte("&lt;"),
+	'>': []byte("&gt;"),
+	'&': []byte("&amp;"),
+//	'\'': []byte("&apos;"),
+//	'"': []byte("&quot;"),
 }
 
-func WriteAndConvertEntity(out *bytes.Buffer, text []byte) {
+func WriteEntity(out *bytes.Buffer, text []byte) {
 	for i := 0; i < len(text); i++ {
 		if s, ok := entityConvert[text[i]]; ok {
-			out.WriteString(s)
+			out.Write(s)
 			continue
 		}
 		out.WriteByte(text[i])
