@@ -6,7 +6,8 @@
 #
 # BUGS: makes all references normative
 # Does not handle I-D references.
-# pandoc --atx-headers middle.mkd -t markdown_phpextra | ./convert.pl | tee part.md
+#
+# pandoc --atx-headers middle.mkd -t markdown_phpextra | ./part.pl | tee part.md
 
 @doc = <>;
 
