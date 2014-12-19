@@ -37,7 +37,7 @@ func prettyPass(p *parser, input []byte) ([]byte, error) {
 			i.WriteString(x.Name.Local)
 			i.WriteString(">")
 		case xml.CharData:
-			i.Write(x)
+			i.WriteEntity(x)
 		case xml.Attr:
 			i.WriteString(x.Name.Local)
 			i.WriteString(x.Value)
@@ -104,5 +104,14 @@ func (i *indentWriter) Write(b []byte) {
 		return
 	}
 	i.b.Write(b)
+	i.last = b[len(b)-1]
+}
+
+
+func (i *indentWriter) WriteEntity(b []byte) {
+	if len(b) == 0 {
+		return
+	}
+	WriteEntity(i.b, b)
 	i.last = b[len(b)-1]
 }

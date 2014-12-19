@@ -42,7 +42,7 @@ type Xml2 struct {
 // flags is a set of XML2_* options ORed together
 func Xml2Renderer(flags int) Renderer { return &Xml2{flags: flags, group: make(map[string]int)} }
 func (options *Xml2) Flags() int      { return options.flags }
-func (options *Xml2) GetState() int   { return 0 }
+func (options *Xml2) State() int      { return 0 }
 
 func (options *Xml2) SetIAL(i *IAL) {
 	options.ial = i
@@ -63,7 +63,7 @@ func (options *Xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 	} else {
 		out.WriteString("\n<figure" + s + "><artwork>\n")
 	}
-	WriteAndConvertEntity(out, text)
+	WriteEntity(out, text)
 	if lang == "" {
 		out.WriteString("</artwork></figure>\n")
 	} else {
@@ -422,7 +422,7 @@ func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citatio
 						continue
 					}
 					f := referenceFile(c)
-					out.WriteString("\t<?rfc include=\"" + f + "\"?>\n")
+					out.WriteString("<?rfc include=\"" + f + "\"?>\n")
 				}
 			}
 			out.WriteString("</references>\n")
@@ -437,7 +437,7 @@ func (options *Xml2) References(out *bytes.Buffer, citations map[string]*citatio
 						continue
 					}
 					f := referenceFile(c)
-					out.WriteString("\t<?rfc include=\"" + f + "\"?>\n")
+					out.WriteString("<?rfc include=\"" + f + "\"?>\n")
 				}
 			}
 			out.WriteString("</references>\n")
@@ -456,7 +456,7 @@ func (options *Xml2) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 
 func (options *Xml2) CodeSpan(out *bytes.Buffer, text []byte) {
 	out.WriteString("<spanx style=\"verb\">")
-	WriteAndConvertEntity(out, text)
+	WriteEntity(out, text)
 	out.WriteString("</spanx>")
 }
 

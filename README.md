@@ -34,6 +34,8 @@ It adds the following syntax elements to [black friday](https://github.com/russr
 * Include raw XML references;
 * Abbreviations.
 
+And the ability to pretty print the XML output.
+
 Mmark is forked from blackfriday which started out as a translation from C of [upskirt][4].
 
 A simular effort is [kramdown-rfc2629](https://github.com/cabo/kramdown-rfc2629) from Carsten Bormann.
@@ -205,8 +207,6 @@ Todo
 *   reduce API footprint (hide constants mainly)
 *   save original IAL for example lists?
 *   add ULink?
-*   Check outputted XML for wellformedness
-*   pretty print XML
 
 
 License

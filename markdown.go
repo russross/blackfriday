@@ -365,7 +365,10 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 
 	first := firstPass(p, input, 0)
 	second := secondPass(p, first, 0)
-	prettyPass(p, second)
+	if p.r.Flags()&XML_PRETTY_PRINT != 0 || p.r.Flags()&XML2_PRETTY_PRINT != 0 {
+		third, _ := prettyPass(p, second) // discarding error
+		return third
+	}
 	return second
 }
 
