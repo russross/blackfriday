@@ -165,7 +165,7 @@ func entityEscapeWithSkip(out *bytes.Buffer, src []byte, skipRanges [][]int) {
 	attrEscape(out, src[end:])
 }
 
-func (options *Html) GetFlags() int {
+func (options *Html) Flags() int {
 	return options.flags
 }
 

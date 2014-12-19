@@ -49,7 +49,7 @@ type Xml struct {
 //
 // flags is a set of XML_* options ORed together
 func XmlRenderer(flags int) Renderer { return &Xml{flags: flags} }
-func (options *Xml) GetFlags() int   { return options.flags }
+func (options *Xml) Flags() int      { return options.flags }
 func (options *Xml) GetState() int   { return 0 }
 
 func (options *Xml) SetIAL(i *IAL) {

@@ -224,9 +224,8 @@ type Renderer interface {
 	References(out *bytes.Buffer, citations map[string]*citation)
 
 	// Helper functions
-	GetFlags() int
+	Flags() int
 
-	// Don't like the names... Also GetFlags() -> Flags()
 	SetIAL(*IAL)
 	IAL() *IAL
 }

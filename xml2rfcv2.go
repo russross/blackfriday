@@ -12,8 +12,8 @@ import (
 
 // XML renderer configuration options.
 const (
-	XML2_STANDALONE = 1 << iota // create standalone document
-	XML2_PRETTY_PRINT	// pretty print output
+	XML2_STANDALONE   = 1 << iota // create standalone document
+	XML2_PRETTY_PRINT             // pretty print output
 )
 
 // <meta name="GENERATOR" content="Blackfriday Markdown Processor v1.0" />
@@ -41,7 +41,7 @@ type Xml2 struct {
 //
 // flags is a set of XML2_* options ORed together
 func Xml2Renderer(flags int) Renderer { return &Xml2{flags: flags, group: make(map[string]int)} }
-func (options *Xml2) GetFlags() int   { return options.flags }
+func (options *Xml2) Flags() int      { return options.flags }
 func (options *Xml2) GetState() int   { return 0 }
 
 func (options *Xml2) SetIAL(i *IAL) {
