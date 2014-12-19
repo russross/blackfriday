@@ -26,20 +26,21 @@ const DEFAULT_TITLE = ""
 
 func main() {
 	// parse command-line options
-	var page, toc, toconly, xhtml, xml, xml2, smartypants, fractions bool
+	var page, pretty, toc, toconly, xhtml, xml, xml2, smartypants, fractions bool
 	var css, cpuprofile string
 	var repeat int
-	flag.BoolVar(&page, "page", false, "Generate a standalone HTML page")
-	flag.BoolVar(&toc, "toc", false, "Generate a table of contents (implies -xml=false)")
-	flag.BoolVar(&toconly, "toconly", false, "Generate a table of contents only (implies -toc)")
-	flag.BoolVar(&xhtml, "xhtml", true, "Use XHTML-style tags in HTML output")
-	flag.BoolVar(&xml, "xml", false, "Generate XML2RFC v3 output")
-	flag.BoolVar(&xml2, "xml2", false, "Generate XML2RFC v2 output")
-	flag.BoolVar(&smartypants, "smartypants", true, "Apply smartypants-style substitutions")
-	flag.BoolVar(&fractions, "fractions", true, "Use improved fraction rules for smartypants")
-	flag.StringVar(&css, "css", "", "Link to a CSS stylesheet (implies -page)")
-	flag.StringVar(&cpuprofile, "cpuprofile", "", "Write cpu profile to a file")
-	flag.IntVar(&repeat, "repeat", 1, "Process the input multiple times (for benchmarking)")
+	flag.BoolVar(&page, "page", false, "generate a standalone HTML page")
+	flag.BoolVar(&pretty, "pretty", false, "pretty print output")
+	flag.BoolVar(&toc, "toc", false, "generate a table of contents (implies -xml=false)")
+	flag.BoolVar(&toconly, "toconly", false, "generate a table of contents only (implies -toc)")
+	flag.BoolVar(&xhtml, "xhtml", true, "use XHTML-style tags in HTML output")
+	flag.BoolVar(&xml, "xml", false, "generate XML2RFC v3 output")
+	flag.BoolVar(&xml2, "xml2", false, "generate XML2RFC v2 output")
+	flag.BoolVar(&smartypants, "smartypants", true, "apply smartypants-style substitutions")
+	flag.BoolVar(&fractions, "fractions", true, "use improved fraction rules for smartypants")
+	flag.StringVar(&css, "css", "", "link to a CSS stylesheet (implies -page)")
+	flag.StringVar(&cpuprofile, "cpuprofile", "", "write cpu profile to a file")
+	flag.IntVar(&repeat, "repeat", 1, "process the input multiple times (for benchmarking)")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Mmark Markdown Processor v"+mmark.VERSION+
 			"\nAvailable at http://github.com/miekg/mmark\n\n"+
@@ -83,12 +84,12 @@ func main() {
 	switch len(args) {
 	case 0:
 		if input, err = ioutil.ReadAll(os.Stdin); err != nil {
-			fmt.Fprintln(os.Stderr, "Error reading from Stdin:", err)
+			fmt.Fprintln(os.Stderr, "error reading from Stdin:", err)
 			os.Exit(-1)
 		}
 	case 1, 2:
 		if input, err = ioutil.ReadFile(args[0]); err != nil {
-			fmt.Fprintln(os.Stderr, "Error reading from", args[0], ":", err)
+			fmt.Fprintln(os.Stderr, "error reading from", args[0], ":", err)
 			os.Exit(-1)
 		}
 	default:
@@ -118,10 +119,16 @@ func main() {
 		if page {
 			xmlFlags = mmark.XML_STANDALONE
 		}
+		if pretty {
+			xmlFlags |= mmark.XML_PRETTY_PRINT
+		}
 		renderer = mmark.XmlRenderer(xmlFlags)
 	case xml2:
 		if page {
 			xmlFlags = mmark.XML2_STANDALONE
+		}
+		if pretty {
+			xmlFlags |= mmark.XML2_PRETTY_PRINT
 		}
 		renderer = mmark.Xml2Renderer(xmlFlags)
 	default:
@@ -160,7 +167,7 @@ func main() {
 	var out *os.File
 	if len(args) == 2 {
 		if out, err = os.Create(args[1]); err != nil {
-			fmt.Fprintf(os.Stderr, "Error creating %s: %v", args[1], err)
+			fmt.Fprintf(os.Stderr, "error creating %s: %v", args[1], err)
 			os.Exit(-1)
 		}
 		defer out.Close()
@@ -169,7 +176,7 @@ func main() {
 	}
 
 	if _, err = out.Write(output); err != nil {
-		fmt.Fprintln(os.Stderr, "Error writing output:", err)
+		fmt.Fprintln(os.Stderr, "error writing output:", err)
 		os.Exit(-1)
 	}
 }

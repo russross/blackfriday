@@ -43,7 +43,7 @@ const (
 	EXTENSION_IAL                                    // detect CommonMark's IAL syntax (copied from kramdown)
 	EXTENSION_MATTER                                 // use {frontmatter} {mainmatter} {backmatter}
 	EXTENSION_EXAMPLE_LISTS                          // render '(@tag)  ' example lists
-	EXTENSION_ABBREVIATIONS				 // render abbreviations `*[HTML]: Hyper Text Markup Language`
+	EXTENSION_ABBREVIATIONS                          // render abbreviations `*[HTML]: Hyper Text Markup Language`
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML |
@@ -366,6 +366,7 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 
 	first := firstPass(p, input, 0)
 	second := secondPass(p, first, 0)
+	prettyPass(p, second)
 	return second
 }
 

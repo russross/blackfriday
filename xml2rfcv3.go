@@ -12,7 +12,8 @@ import (
 
 // XML renderer configuration options.
 const (
-	XML_STANDALONE = 1 << iota // create standalone document
+	XML_STANDALONE   = 1 << iota // create standalone document
+	XML_PRETTY_PRINT             // pretty print output
 )
 
 var words2119 = map[string]bool{
