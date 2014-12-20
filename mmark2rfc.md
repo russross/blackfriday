@@ -177,6 +177,10 @@ Any paragraph prefixed with `N> `. For v2 this becomes a indentend paragraph.
 Any [@?RFC2119] keyword used with strong emphasis *and* in uppercase  will be typeset
 within `bcp14` tags, that is `**MUST**` becomes `<bcp14>MUST</bcp14`, but `**must**` will not.
 
+## Super- and Subscripts
+
+Use H~2~O and 2^10^ is 1024.
+
 ## Images
 
 

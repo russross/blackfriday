@@ -473,16 +473,16 @@ func (options *Xml2) Emphasis(out *bytes.Buffer, text []byte) {
 
 func (options *Xml2) Subscript(out *bytes.Buffer, text []byte) {
 	// There is no subscript
-	out.WriteString("<spanx style=\"emph\">")
+	out.WriteByte('~')
 	out.Write(text)
-	out.WriteString("</spanx>")
+	out.WriteByte('~')
 }
 
 func (options *Xml2) Superscript(out *bytes.Buffer, text []byte) {
 	// There is no superscript
-	out.WriteString("<spanx style=\"emph\">")
+	out.WriteByte('^')
 	out.Write(text)
-	out.WriteString("</spanx>")
+	out.WriteByte('^')
 }
 
 func (options *Xml2) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
