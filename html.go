@@ -478,12 +478,19 @@ func (options *Html) DoubleEmphasis(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Html) Emphasis(out *bytes.Buffer, text []byte) {
+	// TODO(miek): why is this check here?
 	if len(text) == 0 {
 		return
 	}
 	out.WriteString("<em>")
 	out.Write(text)
 	out.WriteString("</em>")
+}
+
+func (options *Html) Subscript(out *bytes.Buffer, text []byte) {
+	out.WriteString("<sub>")
+	out.Write(text)
+	out.WriteString("</sub>")
 }
 
 func (options *Html) maybeWriteAbsolutePrefix(out *bytes.Buffer, link []byte) {

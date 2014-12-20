@@ -102,7 +102,6 @@ func main() {
 	extensions |= mmark.EXTENSION_TABLES
 	extensions |= mmark.EXTENSION_FENCED_CODE
 	extensions |= mmark.EXTENSION_AUTOLINK
-	extensions |= mmark.EXTENSION_STRIKETHROUGH
 	extensions |= mmark.EXTENSION_SPACE_HEADERS
 	extensions |= mmark.EXTENSION_INDEX
 	extensions |= mmark.EXTENSION_CITATION

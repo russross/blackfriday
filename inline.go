@@ -64,13 +64,19 @@ func emphasis(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	if len(data) > 2 && data[1] != c {
 		// whitespace cannot follow an opening emphasis;
 		// strikethrough only takes two characters '~~'
-		if c == '~' || isspace(data[1]) {
+		if c == '~' && isspace(data[1]) {
 			return 0
 		}
-		if ret = helperEmphasis(p, out, data[1:], c); ret == 0 {
-			return 0
+		switch c {
+		case '~':
+			if ret = helperSubscript(p, out, data[1:], c); ret == 0 {
+				return 0
+			}
+		default:
+			if ret = helperEmphasis(p, out, data[1:], c); ret == 0 {
+				return 0
+			}
 		}
-
 		return ret + 1
 	}
 
@@ -1292,5 +1298,33 @@ func helperTripleEmphasis(p *parser, out *bytes.Buffer, data []byte, offset int,
 			}
 		}
 	}
+	return 0
+}
+
+func helperSubscript(p *parser, out *bytes.Buffer, data []byte, c byte) int {
+	i := 0
+
+	for i < len(data) {
+		length := helperFindEmphChar(data[i:], c)
+		if length == 0 {
+			return 0
+		}
+		i += length
+		if i >= len(data) {
+			return 0
+		}
+		if i+1 < len(data) && data[i+1] == c {
+			i++
+			continue
+		}
+
+		if data[i] == c && !isspace(data[i-1]) {
+			var work bytes.Buffer
+			p.inline(&work, data[:i])
+			p.r.Subscript(out, work.Bytes())
+			return i + 1
+		}
+	}
+
 	return 0
 }

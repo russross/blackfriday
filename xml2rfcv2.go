@@ -471,6 +471,13 @@ func (options *Xml2) Emphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("</spanx>")
 }
 
+func (options *Xml2) Subscript(out *bytes.Buffer, text []byte) {
+	// There is no subscript
+	out.WriteString("<spanx style=\"emph\">")
+	out.Write(text)
+	out.WriteString("</spanx>")
+}
+
 func (options *Xml2) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
 	// convert to url
 	options.IAL().String()

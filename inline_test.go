@@ -13,7 +13,6 @@ import (
 
 func runMarkdownInline(input string, extensions, htmlFlags int, params HtmlRendererParameters) string {
 	extensions |= EXTENSION_AUTOLINK
-	extensions |= EXTENSION_STRIKETHROUGH
 
 	htmlFlags |= HTML_USE_XHTML
 
@@ -255,6 +254,32 @@ func TestStrikeThrough(t *testing.T) {
 
 		"odd ~~number\nof~~ markers~~ here\n",
 		"<p>odd <del>number\nof</del> markers~~ here</p>\n",
+	}
+	doTestsInline(t, tests)
+}
+
+func TestSubscript(t *testing.T) {
+	var tests = []string{
+		"H~2~O is a liquid. is 1024. but this is ~~strikethrough~~ text\n",
+		"<p>H<sub>2</sub>O is a liquid. is 1024. but this is <del>strikethrough</del> text</p>\n",
+
+		"~[hallo](http:/ddssd)~",
+		"<p><sub><a href=\"http:/ddssd\">hallo</a></sub></p>\n",
+
+		"nothing inline\n",
+		"<p>nothing inline</p>\n",
+
+		"no~thing inline\n",
+		"<p>no~thing inline</p>\n",
+
+		"simple ~~in~l~ine~~ test\n",
+		"<p>simple <del>in<sub>l</sub>ine</del> test</p>\n",
+
+		"~odd ~~number o~~ markers~~ here\n",
+		"<p>~odd <del>number o</del> markers~~ here</p>\n",
+
+		"odd ~~number\nof~~ ma~~rkers~ her~e~\n",
+		"<p>odd <del>number\nof</del> ma~<sub>rkers</sub> her<sub>e</sub></p>\n",
 	}
 	doTestsInline(t, tests)
 }
@@ -792,7 +817,6 @@ func TestFootnotesWithParameters(t *testing.T) {
 
 func runMarkdownInlineXML(input string, extensions, xmlFlags int) string {
 	extensions |= EXTENSION_AUTOLINK
-	extensions |= EXTENSION_STRIKETHROUGH
 	extensions |= EXTENSION_INDEX
 	extensions |= EXTENSION_CITATION
 

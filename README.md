@@ -32,7 +32,8 @@ It adds the following syntax elements to [black friday](https://github.com/russr
 * HTML Comment parsing;
 * BCP14 (RFC2119) keyword detection;
 * Include raw XML references;
-* Abbreviations.
+* Abbreviations;
+* Super- and subscript.
 
 Mmark is forked from blackfriday which started out as a translation from C of [upskirt][4].
 
@@ -208,9 +209,8 @@ implements the following extensions:
 *   Extension to recognize pandoc2rfc indices?
 
 *   make webservers that converts for you
-*   More unit testing
 *   cleanups - and loose a bunch of extensions, turn them on per default
-*   reduce API footprint (hide constants mainly)
+    reduce API footprint (hide constants mainly)
 *   save original IAL for example lists?
 *   add ULink?
 

@@ -25,7 +25,6 @@ const (
 	EXTENSION_TABLES                                 // render tables
 	EXTENSION_FENCED_CODE                            // render fenced code blocks
 	EXTENSION_AUTOLINK                               // detect embedded URLs that are not explicitly marked
-	EXTENSION_STRIKETHROUGH                          // strikethrough text using ~~test~~
 	EXTENSION_LAX_HTML_BLOCKS                        // loosen up HTML block parsing rules
 	EXTENSION_SPACE_HEADERS                          // be strict about prefix header rules
 	EXTENSION_HARD_LINE_BREAK                        // translate newlines into line breaks
@@ -56,7 +55,6 @@ const (
 		EXTENSION_TABLES |
 		EXTENSION_FENCED_CODE |
 		EXTENSION_AUTOLINK |
-		EXTENSION_STRIKETHROUGH |
 		EXTENSION_SPACE_HEADERS |
 		EXTENSION_HEADER_IDS |
 		EXTENSION_ABBREVIATIONS
@@ -200,6 +198,8 @@ type Renderer interface {
 	CodeSpan(out *bytes.Buffer, text []byte)
 	DoubleEmphasis(out *bytes.Buffer, text []byte)
 	Emphasis(out *bytes.Buffer, text []byte)
+	Subscript(out *bytes.Buffer, text []byte)
+//	Superscript(out *bytes.Buffer, text []byte)
 	Image(out *bytes.Buffer, link []byte, title []byte, alt []byte)
 	LineBreak(out *bytes.Buffer)
 	Link(out *bytes.Buffer, link []byte, title []byte, content []byte)
@@ -336,9 +336,7 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	// register inline parsers
 	p.inlineCallback['*'] = emphasis
 	p.inlineCallback['_'] = emphasis
-	if extensions&EXTENSION_STRIKETHROUGH != 0 {
-		p.inlineCallback['~'] = emphasis
-	}
+	p.inlineCallback['~'] = emphasis
 	p.inlineCallback['`'] = codeSpan
 	p.inlineCallback['\n'] = lineBreak
 	p.inlineCallback['['] = link
