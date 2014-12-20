@@ -182,9 +182,9 @@ implements the following extensions:
 *  **Example lists**, a list that is started with `(@good)` is subsequently numbered throughout
     the document. First use is rendered `(1)`, the second one `(2)` and so on.
 
-*  **HTML comments** An HTML comment in the form of `<!-- Miek Gieben: really -->` is detected
-    and will be converted to a `cref` with the `source` attribute set to "Miek Gieben" and the
-    comment text set to "really".
+*  **HTML comments** An HTML comment in the form of `<!-- Miek Gieben: really
+    -->` is detected and will be converted to a `cref` with the `source` attribute
+    set to "Miek Gieben" and the comment text set to "really".
 
 *  **XML references** Any XML reference fragment included *before* the back matter, can be used
     as a citation reference.
@@ -199,6 +199,12 @@ implements the following extensions:
 
     Allows you to use HTML in the document and it will be expanded to
     `<abbr title="Hyper Text Markup Language">HTML</abbr>`.
+
+* **Super and subscripts**, for superscripts use '^' and for subscripts use '~'. For example:
+    H~2~O is a liquid. 2^10^ is 1024.
+
+    Inside a sub/superscript you must escape spaces.
+    Thus, if you want the letter P with 'a cat' in subscripts, use P~a\ cat~, not P~a cat~.
 
 # Todo
 

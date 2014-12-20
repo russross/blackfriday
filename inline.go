@@ -55,38 +55,6 @@ func (p *parser) inline(out *bytes.Buffer, data []byte) {
 	p.nesting--
 }
 
-func superscript(p *parser, out *bytes.Buffer, data []byte, offset int) int {
-	data = data[offset:]
-	if len(data) < 2 {
-		return 0
-	}
-	i := 1
-	c := data[0]
-
-	for i < len(data) {
-		length := helperFindEmphChar(data[i:], c)
-		if length == 0 {
-			return 0
-		}
-		i += length
-		if i >= len(data) {
-			return 0
-		}
-		if i+1 < len(data) && data[i+1] == c {
-			i++
-			continue
-		}
-
-		if data[i] == c && !isspace(data[i-1]) {
-			var work bytes.Buffer
-			p.inline(&work, data[1:i])
-			p.r.Superscript(out, work.Bytes())
-			return i + 1
-		}
-	}
-	return 0
-}
-
 // single and double emphasis parsing
 func emphasis(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
@@ -101,7 +69,7 @@ func emphasis(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		}
 		switch c {
 		case '~':
-			if ret = helperSubscript(p, out, data[1:], c); ret == 0 {
+			if ret = subscript(p, out, data[1:], 0); ret == 0 {
 				return 0
 			}
 		default:
@@ -1333,30 +1301,47 @@ func helperTripleEmphasis(p *parser, out *bytes.Buffer, data []byte, offset int,
 	return 0
 }
 
-func helperSubscript(p *parser, out *bytes.Buffer, data []byte, c byte) int {
+func subscript(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+	ret := helperScript(p, out, data[offset:], '~')
+	return ret
+}
+
+func superscript(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+	// superscript is called from the inline call, so we are positioned
+	// on the '^'
+	ret := helperScript(p, out, data[offset+1:], '^')
+	return ret
+}
+
+func helperScript(p *parser, out *bytes.Buffer, data []byte, c byte) int {
 	i := 0
-
+	// write too much
+	var raw bytes.Buffer
 	for i < len(data) {
-		length := helperFindEmphChar(data[i:], c)
-		if length == 0 {
+		if data[i] == ' ' {
+			if i > 0 && data[i-1] == '\\' {
+				// just written the '\', truncate to length-1 and write the space
+				raw.Truncate(raw.Len() - 1)
+				raw.WriteByte(data[i])
+				i++
+				continue
+			}
 			return 0
 		}
-		i += length
-		if i >= len(data) {
-			return 0
-		}
-		if i+1 < len(data) && data[i+1] == c {
-			i++
-			continue
-		}
-
-		if data[i] == c && !isspace(data[i-1]) {
+		if data[i] == c {
 			var work bytes.Buffer
-			p.inline(&work, data[:i])
-			p.r.Subscript(out, work.Bytes())
-			return i + 1
+			p.inline(&work, raw.Bytes())
+			switch c {
+			case '~':
+				p.r.Subscript(out, work.Bytes())
+				return i + 1 // differences in how subscript is called ...
+			case '^':
+				p.r.Superscript(out, work.Bytes())
+				return i + 2 // ... compated to superscript
+			}
 		}
+		raw.WriteByte(data[i])
+		i++
 	}
-
 	return 0
 }

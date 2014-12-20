@@ -12,7 +12,7 @@ import (
 
 // XML renderer configuration options.
 const (
-	XML_STANDALONE   = 1 << iota // create standalone document
+	XML_STANDALONE = 1 << iota // create standalone document
 )
 
 var words2119 = map[string]bool{
@@ -633,8 +633,8 @@ var entityConvert = map[byte][]byte{
 	'<': []byte("&lt;"),
 	'>': []byte("&gt;"),
 	'&': []byte("&amp;"),
-//	'\'': []byte("&apos;"),
-//	'"': []byte("&quot;"),
+	//	'\'': []byte("&apos;"),
+	//	'"': []byte("&quot;"),
 }
 
 func WriteEntity(out *bytes.Buffer, text []byte) {

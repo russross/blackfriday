@@ -266,8 +266,8 @@ func TestSubscript(t *testing.T) {
 		"~[hallo](http:/ddssd)~",
 		"<p><sub><a href=\"http:/ddssd\">hallo</a></sub></p>\n",
 
-		"nothing inline\n",
-		"<p>nothing inline</p>\n",
+		"~subtext~ and some other ~subtext~",
+		"<p><sub>subtext</sub> and some other <sub>subtext</sub></p>\n",
 
 		"no~thing inline\n",
 		"<p>no~thing inline</p>\n",
@@ -286,6 +286,12 @@ func TestSubscript(t *testing.T) {
 
 		"odd ~~number\nof~~ ma~~rkers~ her~e~\n",
 		"<p>odd <del>number\nof</del> ma~<sub>rkers</sub> her<sub>e</sub></p>\n",
+
+		"~boo ~bla",
+		"<p>~boo ~bla</p>\n",
+
+		"~boo\\ ~bla",
+		"<p><sub>boo </sub>bla</p>\n",
 	}
 	doTestsInline(t, tests)
 }
@@ -300,6 +306,30 @@ func TestSuperscript(t *testing.T) {
 
 		"^[hallo]^ is superscript, not a footnote.",
 		"<p><sup>[hallo]</sup> is superscript, not a footnote.</p>\n",
+
+		"^[^]",
+		"<p><sup>[</sup>]</p>\n",
+
+		"^[a^]",
+		"<p><sup>[a</sup>]</p>\n",
+
+		"types ^inlinenote  and [^2] footnote",
+		"<p>types ^inlinenote  and [^2] footnote</p>\n",
+
+		"types ^[inlinenote] of ^[other inline with a [hallo](http://miek.nl) notes]",
+		"<p>types ^[inlinenote] of ^[other inline with a <a href=\"http://miek.nl\">hallo</a> notes]</p>\n",
+
+		"^[hallo](http://miek.nl)^",
+		"<p><sup><a href=\"http://miek.nl\">hallo</a></sup></p>\n",
+
+		"^boo ^bla",
+		"<p>^boo ^bla</p>\n",
+
+		"^boo\\ ^bla",
+		"<p><sup>boo </sup>bla</p>\n",
+
+		"P~a\\ cat~",
+		"<p>P<sub>a cat</sub></p>\n",
 	}
 	doTestsInline(t, tests)
 }
