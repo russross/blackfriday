@@ -278,8 +278,28 @@ func TestSubscript(t *testing.T) {
 		"~odd ~~number o~~ markers~~ here\n",
 		"<p>~odd <del>number o</del> markers~~ here</p>\n",
 
+		"~subtext~ and some other ~subtext~",
+		"<p><sub>subtext</sub> and some other <sub>subtext</sub></p>\n",
+
+		" ~subtext~ and some other ~subtext~ ",
+		"<p><sub>subtext</sub> and some other <sub>subtext</sub></p>\n",
+
 		"odd ~~number\nof~~ ma~~rkers~ her~e~\n",
 		"<p>odd <del>number\nof</del> ma~<sub>rkers</sub> her<sub>e</sub></p>\n",
+	}
+	doTestsInline(t, tests)
+}
+
+func TestSuperscript(t *testing.T) {
+	var tests = []string{
+		"H~2~O is a liquid. 2^10^ is 1024. but this is ~~strikethrough~~ text\n",
+		"<p>H<sub>2</sub>O is a liquid. 2<sup>10</sup> is 1024. but this is <del>strikethrough</del> text</p>\n",
+
+		"^[hallo](http:/ddssd)^",
+		"<p><sup><a href=\"http:/ddssd\">hallo</a></sup></p>\n",
+
+		"^[hallo]^ is superscript, not a footnote.",
+		"<p><sup>[hallo]</sup> is superscript, not a footnote.</p>\n",
 	}
 	doTestsInline(t, tests)
 }

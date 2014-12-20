@@ -199,7 +199,7 @@ type Renderer interface {
 	DoubleEmphasis(out *bytes.Buffer, text []byte)
 	Emphasis(out *bytes.Buffer, text []byte)
 	Subscript(out *bytes.Buffer, text []byte)
-//	Superscript(out *bytes.Buffer, text []byte)
+	Superscript(out *bytes.Buffer, text []byte)
 	Image(out *bytes.Buffer, link []byte, title []byte, alt []byte)
 	LineBreak(out *bytes.Buffer)
 	Link(out *bytes.Buffer, link []byte, title []byte, content []byte)
@@ -344,6 +344,7 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	p.inlineCallback['\\'] = escape
 	p.inlineCallback['&'] = entity
 	p.inlineCallback['{'] = leftBrace
+	p.inlineCallback['^'] = superscript // subscript is handled in emphasis
 
 	if extensions&EXTENSION_AUTOLINK != 0 {
 		p.inlineCallback[':'] = autoLink

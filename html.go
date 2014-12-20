@@ -493,6 +493,12 @@ func (options *Html) Subscript(out *bytes.Buffer, text []byte) {
 	out.WriteString("</sub>")
 }
 
+func (options *Html) Superscript(out *bytes.Buffer, text []byte) {
+	out.WriteString("<sup>")
+	out.Write(text)
+	out.WriteString("</sup>")
+}
+
 func (options *Html) maybeWriteAbsolutePrefix(out *bytes.Buffer, link []byte) {
 	if options.parameters.AbsolutePrefix != "" && isRelativeLink(link) {
 		out.WriteString(options.parameters.AbsolutePrefix)

@@ -55,6 +55,38 @@ func (p *parser) inline(out *bytes.Buffer, data []byte) {
 	p.nesting--
 }
 
+func superscript(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+	data = data[offset:]
+	if len(data) < 2 {
+		return 0
+	}
+	i := 1
+	c := data[0]
+
+	for i < len(data) {
+		length := helperFindEmphChar(data[i:], c)
+		if length == 0 {
+			return 0
+		}
+		i += length
+		if i >= len(data) {
+			return 0
+		}
+		if i+1 < len(data) && data[i+1] == c {
+			i++
+			continue
+		}
+
+		if data[i] == c && !isspace(data[i-1]) {
+			var work bytes.Buffer
+			p.inline(&work, data[1:i])
+			p.r.Superscript(out, work.Bytes())
+			return i + 1
+		}
+	}
+	return 0
+}
+
 // single and double emphasis parsing
 func emphasis(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]

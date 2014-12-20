@@ -500,6 +500,12 @@ func (options *Xml) Subscript(out *bytes.Buffer, text []byte) {
 	out.WriteString("</sub>")
 }
 
+func (options *Xml) Superscript(out *bytes.Buffer, text []byte) {
+	out.WriteString("<sup>")
+	out.Write(text)
+	out.WriteString("</sup>")
+}
+
 func (options *Xml) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
 	// use title as caption is we have it and wrap everything in a figure
 	// check the extension of the local include to set the type of the thing.

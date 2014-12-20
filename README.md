@@ -214,9 +214,7 @@ implements the following extensions:
 *   save original IAL for example lists?
 *   add ULink?
 
-
-# :w
-License
+# License
 
 Mmark is a fork of blackfriday, hence is shares it's license.
 
