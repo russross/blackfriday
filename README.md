@@ -39,7 +39,7 @@ Mmark is forked from blackfriday which started out as a translation from C of [u
 
 A simular effort is [kramdown-rfc2629](https://github.com/cabo/kramdown-rfc2629) from Carsten Bormann.
 
-There is no pretty printed out if you need that pipe the output through `xmllint --format -`.
+There is no pretty printed output if you need that pipe the output through `xmllint --format -`.
 
 ## Usage
 
