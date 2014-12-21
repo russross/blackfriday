@@ -1,4 +1,4 @@
-// // Unit tests for complete doc parsing
+// Unit tests for complete doc parsing
 
 package mmark
 

@@ -1,8 +1,4 @@
-//
-//
 // Markdown parsing and processing
-//
-//
 
 // Mmark markdown processor.
 //

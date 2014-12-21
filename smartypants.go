@@ -1,8 +1,4 @@
-//
-//
 // SmartyPants rendering
-//
-//
 
 package mmark
 

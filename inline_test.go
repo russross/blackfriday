@@ -1,6 +1,4 @@
-//
 // Unit tests for inline parsing
-//
 
 package mmark
 

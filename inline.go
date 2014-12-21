@@ -1,6 +1,4 @@
-//
 // Functions to parse inline elements.
-//
 
 package mmark
 

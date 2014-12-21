@@ -1,6 +1,4 @@
-//
 // Functions to parse block-level elements.
-//
 
 package mmark
 

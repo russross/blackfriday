@@ -1,5 +1,4 @@
-// // Unit tests for block parsing
-//
+// Unit tests for block parsing
 
 package mmark
 

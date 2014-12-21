@@ -1,6 +1,4 @@
-//
 // Functions to parse quote-like elements.
-//
 
 package mmark
 

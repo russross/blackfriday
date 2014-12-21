@@ -1,8 +1,4 @@
-//
-//
 // HTML rendering backend
-//
-//
 
 package mmark
 
