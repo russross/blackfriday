@@ -1303,7 +1303,6 @@ As this illustrates
 }
 
 // TODO:
-// TOMLblock test
 // Roman lists
 // Letter prefix
 // xml references
