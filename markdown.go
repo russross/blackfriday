@@ -65,8 +65,7 @@ const (
 		EXTENSION_INLINE_ATTR |
 		EXTENSION_QUOTES |
 		EXTENSION_MATTER |
-		EXTENSION_EXAMPLE_LISTS |
-		EXTENSION_ABBREVIATIONS
+		EXTENSION_EXAMPLE_LISTS
 )
 
 // These are the possible flag values for the link renderer.
@@ -264,50 +263,6 @@ type parser struct {
 	// Prevent identical header anchors by appending -<sequence_number> starting
 	// with -1, this is the same thing that pandoc does.
 	anchors map[string]int
-}
-
-//
-//
-// Public interface
-//
-//
-
-// MarkdownBasic is a convenience function for simple rendering.
-// It processes markdown input with no extensions enabled.
-func MarkdownBasic(input []byte) []byte {
-	// set up the HTML renderer
-	htmlFlags := HTML_USE_XHTML
-	renderer := HtmlRenderer(htmlFlags, "", "")
-
-	// set up the parser
-	extensions := 0
-
-	return Markdown(input, renderer, extensions)
-}
-
-// Call Markdown with most useful extensions enabled
-// MarkdownCommon is a convenience function for simple rendering.
-// It processes markdown input with common extensions enabled, including:
-//
-// * Smartypants processing with smart fractions and LaTeX dashes
-//
-// * Intra-word emphasis suppression
-//
-// * Tables
-//
-// * Fenced code blocks
-//
-// * Autolinking
-//
-// * Strikethrough support
-//
-// * Strict header parsing
-//
-// * Custom Header IDs
-func MarkdownCommon(input []byte) []byte {
-	// set up the HTML renderer
-	renderer := HtmlRenderer(commonHtmlFlags, "", "")
-	return Markdown(input, renderer, commonExtensions)
 }
 
 // Markdown is the main rendering function.
