@@ -29,7 +29,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// IAL:
 		// {....}
 		if data[0] == '{' {
-			if j := p.isIAL(data); j > 0 {
+			if j := p.isInlineAttr(data); j > 0 {
 				data = data[j:]
 				continue
 			}
@@ -334,7 +334,7 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 			}
 		}
 
-		p.r.SetIAL(p.ial)
+		p.r.SetInlineAttr(p.ial)
 		p.ial = nil
 
 		p.r.Header(out, work, level, id)
@@ -529,7 +529,7 @@ func (p *parser) htmlComment(out *bytes.Buffer, data []byte, doRender bool) int 
 			//			var cooked bytes.Buffer
 			//			p.inline(&cooked, data[:end])
 
-			p.r.SetIAL(p.ial)
+			p.r.SetInlineAttr(p.ial)
 			p.ial = nil
 
 			p.r.CommentHtml(out, data[:end])
@@ -871,7 +871,7 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 	}
 
 	if doRender {
-		p.r.SetIAL(p.ial)
+		p.r.SetInlineAttr(p.ial)
 		p.ial = nil
 
 		p.r.BlockCode(out, work.Bytes(), syntax, caption.Bytes())
@@ -934,7 +934,7 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 		p.inline(&caption, data[i+7:j-1]) // +7 for 'Table: '
 	}
 
-	p.r.SetIAL(p.ial)
+	p.r.SetInlineAttr(p.ial)
 	p.ial = nil
 
 	p.r.Table(out, header.Bytes(), body.Bytes(), footer.Bytes(), columns, caption.Bytes())
@@ -1234,7 +1234,7 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 
 	work.WriteByte('\n')
 
-	p.r.SetIAL(p.ial)
+	p.r.SetInlineAttr(p.ial)
 	p.ial = nil
 
 	p.r.BlockCode(out, work.Bytes(), "", caption.Bytes())
@@ -1464,7 +1464,7 @@ func (p *parser) list(out *bytes.Buffer, data []byte, flags, start int, group []
 		return true
 	}
 
-	p.r.SetIAL(p.ial)
+	p.r.SetInlineAttr(p.ial)
 	p.ial = nil
 
 	if p.insideList > 1 {
@@ -1746,7 +1746,7 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 					id = createSanitizedAnchorName(string(data[prev:eol]))
 				}
 
-				p.r.SetIAL(p.ial)
+				p.r.SetInlineAttr(p.ial)
 				p.ial = nil
 
 				p.r.Header(out, work, level, id)

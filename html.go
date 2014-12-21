@@ -817,8 +817,8 @@ func (options *Html) TocFinalize() {
 	}
 }
 
-func (options *Html) SetIAL(*IAL) {}
-func (options *Html) IAL() *IAL   { return nil }
+func (options *Html) SetInlineAttr(*InlineAttr) {}
+func (options *Html) InlineAttr() *InlineAttr   { return nil }
 
 func isHtmlTag(tag []byte, tagname string) bool {
 	found, _ := findHtmlTagPos(tag, tagname)

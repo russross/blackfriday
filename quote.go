@@ -47,7 +47,7 @@ func (p *parser) note(out *bytes.Buffer, data []byte) int {
 	var cooked bytes.Buffer
 	p.block(&cooked, raw.Bytes())
 
-	p.r.SetIAL(p.ial)
+	p.r.SetInlineAttr(p.ial)
 	p.ial = nil
 
 	p.r.Note(out, cooked.Bytes())
@@ -95,7 +95,7 @@ func (p *parser) aside(out *bytes.Buffer, data []byte) int {
 	var cooked bytes.Buffer
 	p.block(&cooked, raw.Bytes())
 
-	p.r.SetIAL(p.ial)
+	p.r.SetInlineAttr(p.ial)
 	p.ial = nil
 
 	p.r.Aside(out, cooked.Bytes())
@@ -147,7 +147,7 @@ func (p *parser) abstract(out *bytes.Buffer, data []byte) int {
 	var cooked bytes.Buffer
 	p.block(&cooked, raw.Bytes())
 
-	p.r.SetIAL(p.ial)
+	p.r.SetInlineAttr(p.ial)
 	p.ial = nil
 
 	p.r.Abstract(out, cooked.Bytes())
@@ -218,7 +218,7 @@ func (p *parser) quote(out *bytes.Buffer, data []byte) int {
 	var cooked bytes.Buffer
 	p.block(&cooked, raw.Bytes())
 
-	p.r.SetIAL(p.ial)
+	p.r.SetInlineAttr(p.ial)
 	p.ial = nil
 
 	p.r.BlockQuote(out, cooked.Bytes(), attribution.Bytes())

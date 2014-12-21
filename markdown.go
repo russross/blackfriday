@@ -39,7 +39,7 @@ const (
 	EXTENSION_INDEX                                  // Support index with ((( syntax
 	EXTENSION_CITATION                               // Support citations via the link syntax
 	EXTENSION_QUOTES                                 // Allow A> AS> and N> to be parsed as abstract, asides and notes
-	EXTENSION_IAL                                    // detect CommonMark's IAL syntax (copied from kramdown)
+	EXTENSION_INLINE_ATTR                            // detect CommonMark's IAL syntax (copied from kramdown)
 	EXTENSION_MATTER                                 // use {frontmatter} {mainmatter} {backmatter}
 	EXTENSION_EXAMPLE_LISTS                          // render '(@tag)  ' example lists
 	EXTENSION_ABBREVIATIONS                          // render abbreviations `*[HTML]: Hyper Text Markup Language`
@@ -62,7 +62,7 @@ const (
 	commonXmlExtensions = commonExtensions |
 		EXTENSION_UNIQUE_HEADER_IDS |
 		EXTENSION_AUTO_HEADER_IDS |
-		EXTENSION_IAL |
+		EXTENSION_INLINE_ATTR |
 		EXTENSION_QUOTES |
 		EXTENSION_MATTER |
 		EXTENSION_EXAMPLE_LISTS |
@@ -226,8 +226,8 @@ type Renderer interface {
 	// Helper functions
 	Flags() int
 
-	SetIAL(*IAL)
-	IAL() *IAL
+	SetInlineAttr(*InlineAttr)
+	InlineAttr() *InlineAttr
 }
 
 // Callback functions for inline parsing. One such function is defined
@@ -259,7 +259,7 @@ type parser struct {
 	appendix bool // have we seen a {backmatter}?
 
 	// Placeholder IAL that can be added to blocklevel elements.
-	ial *IAL
+	ial *InlineAttr
 
 	// Prevent identical header anchors by appending -<sequence_number> starting
 	// with -1, this is the same thing that pandoc does.

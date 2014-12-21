@@ -26,7 +26,7 @@ type Xml2 struct {
 	docLevel     int // frontmatter/mainmatter or backmatter
 
 	// store the IAL we see for this block element
-	ial *IAL
+	ial *InlineAttr
 
 	// titleBlock in TOML
 	titleBlock *title
@@ -43,20 +43,20 @@ func Xml2Renderer(flags int) Renderer { return &Xml2{flags: flags, group: make(m
 func (options *Xml2) Flags() int      { return options.flags }
 func (options *Xml2) State() int      { return 0 }
 
-func (options *Xml2) SetIAL(i *IAL) {
+func (options *Xml2) SetInlineAttr(i *InlineAttr) {
 	options.ial = i
 }
 
-func (options *Xml2) IAL() *IAL {
+func (options *Xml2) InlineAttr() *InlineAttr {
 	if options.ial == nil {
-		return newIAL()
+		return newInlineAttr()
 	}
 	return options.ial
 }
 
 // render code chunks using verbatim, or listings if we have a language
 func (options *Xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte) {
-	s := options.IAL().String()
+	s := options.InlineAttr().String()
 	if lang == "" {
 		out.WriteString("\n<figure" + s + "><artwork>\n")
 	} else {
@@ -128,7 +128,7 @@ func (options *Xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 }
 
 func (options *Xml2) BlockQuote(out *bytes.Buffer, text []byte, attribution []byte) {
-	options.IAL().String()
+	options.InlineAttr().String()
 	// Fake a list paragraph
 	out.WriteString("<t><list style=\"empty\">\n")
 	out.Write(text)
@@ -136,7 +136,7 @@ func (options *Xml2) BlockQuote(out *bytes.Buffer, text []byte, attribution []by
 }
 
 func (options *Xml2) Abstract(out *bytes.Buffer, text []byte) {
-	s := options.IAL().String()
+	s := options.InlineAttr().String()
 	out.WriteString("<abstract" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</abstract>\n")
@@ -201,7 +201,7 @@ func (options *Xml2) Header(out *bytes.Buffer, text func() bool, level int, id s
 		}
 	}
 
-	ial := options.IAL()
+	ial := options.InlineAttr()
 	ial.GetOrDefaultId(id)
 
 	// new section
@@ -224,7 +224,7 @@ func (options *Xml2) List(out *bytes.Buffer, text func() bool, flags, start int,
 		out.WriteString("<t>\n")
 	}
 
-	ial := options.IAL()
+	ial := options.InlineAttr()
 	if start > 1 {
 		ial.GetOrDefaultAttr("start", strconv.Itoa(start))
 	}
@@ -317,7 +317,7 @@ func (options *Xml2) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 }
 
 func (options *Xml2) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
-	s := options.IAL().String()
+	s := options.InlineAttr().String()
 	out.WriteString("<texttable" + s + ">\n")
 	out.Write(header)
 	out.Write(body)
@@ -487,7 +487,7 @@ func (options *Xml2) Superscript(out *bytes.Buffer, text []byte) {
 
 func (options *Xml2) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
 	// convert to url
-	options.IAL().String()
+	options.InlineAttr().String()
 	out.WriteString("<eref target=\"")
 	out.Write(link)
 	out.WriteString("\">")

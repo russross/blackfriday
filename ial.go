@@ -10,23 +10,23 @@ import (
 
 // One or more of these can be attached to block elements
 
-type IAL struct {
+type InlineAttr struct {
 	id    string            // #id
 	class map[string]bool   // 0 or more .class
 	attr  map[string]string // key=value pairs
 }
 
-func newIAL() *IAL {
-	return &IAL{class: make(map[string]bool), attr: make(map[string]string)}
+func newInlineAttr() *InlineAttr {
+	return &InlineAttr{class: make(map[string]bool), attr: make(map[string]string)}
 }
 
 // Parsing and thus detecting an IAL. Return a valid *IAL or nil.
 // IAL can have #id, .class or key=value element seperated by spaces, that may be escaped
-func (p *parser) isIAL(data []byte) int {
+func (p *parser) isInlineAttr(data []byte) int {
 	esc := false
 	quote := false
 	ialB := 0
-	ial := newIAL()
+	ial := newInlineAttr()
 	for i := 0; i < len(data); i++ {
 		switch data[i] {
 		case ' ':
@@ -107,7 +107,7 @@ func parseKeyValue(chunk []byte) (string, string) {
 }
 
 // Add IAL to another, overwriting the #id, collapsing classes and attributes
-func (i *IAL) add(j *IAL) *IAL {
+func (i *InlineAttr) add(j *InlineAttr) *InlineAttr {
 	if i == nil {
 		return j
 	}
@@ -125,7 +125,7 @@ func (i *IAL) add(j *IAL) *IAL {
 
 // String renders an IAL and returns a string that can be included in the tag:
 // class="class" anchor="id" key="value". The string s has a space as the first character.k
-func (i *IAL) String() (s string) {
+func (i *InlineAttr) String() (s string) {
 	if i == nil {
 		return ""
 	}
@@ -163,7 +163,7 @@ func (i *IAL) String() (s string) {
 // GetOrDefaultAttr set the value under key if is is not set or
 // use the value already in there. The boolean returns indicates
 // if the value has been overwritten.
-func (i *IAL) GetOrDefaultAttr(key, def string) bool {
+func (i *InlineAttr) GetOrDefaultAttr(key, def string) bool {
 	v := i.attr[key]
 	if v != "" {
 		return false
@@ -176,7 +176,7 @@ func (i *IAL) GetOrDefaultAttr(key, def string) bool {
 }
 
 //
-func (i *IAL) GetOrDefaultId(id string) bool {
+func (i *InlineAttr) GetOrDefaultId(id string) bool {
 	if i.id != "" {
 		return false
 	}

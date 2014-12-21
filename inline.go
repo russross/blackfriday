@@ -647,7 +647,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			out.Truncate(outSize - 1)
 		}
 
-		p.r.SetIAL(p.ial)
+		p.r.SetInlineAttr(p.ial)
 		p.ial = nil
 
 		p.r.Image(out, uLink, title, content.Bytes())
@@ -711,7 +711,7 @@ func leftBrace(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			return len(data) + 1
 		}
 	}
-	if j := p.isIAL(data); j > 0 {
+	if j := p.isInlineAttr(data); j > 0 {
 		return j
 	}
 	return 0
