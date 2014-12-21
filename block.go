@@ -1463,6 +1463,14 @@ func (p *parser) list(out *bytes.Buffer, data []byte, flags, start int, group []
 		}
 		return true
 	}
+	if group != nil {
+		gr := string(group)
+		if _, ok := p.examples[gr]; ok {
+			p.examples[gr].last++
+		} else {
+			p.examples[gr] = &example{1}
+		}
+	}
 
 	p.r.SetInlineAttr(p.ial)
 	p.ial = nil

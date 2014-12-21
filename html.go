@@ -409,6 +409,12 @@ func (options *Html) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	out.WriteString("</li>\n")
 }
 
+func (options *Html) Example(out *bytes.Buffer, index int) {
+	out.WriteByte('(')
+	out.WriteString(strconv.Itoa(index))
+	out.WriteByte(')')
+}
+
 func (options *Html) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
 	doubleSpace(out)

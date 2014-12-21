@@ -306,6 +306,12 @@ func (options *Xml) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	out.WriteString("</li>\n")
 }
 
+func (options *Xml) Example(out *bytes.Buffer, index int) {
+	out.WriteByte('(')
+	out.WriteString(strconv.Itoa(index))
+	out.WriteByte(')')
+}
+
 func (options *Xml) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
 	out.WriteString("<t>")

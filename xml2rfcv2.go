@@ -301,6 +301,12 @@ func (options *Xml2) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	out.WriteString("</t>\n")
 }
 
+func (options *Xml2) Example(out *bytes.Buffer, index int) {
+	out.WriteByte('(')
+	out.WriteString(strconv.Itoa(index))
+	out.WriteByte(')')
+}
+
 // Needs flags int, for in-list-detection xml2rfc v2
 func (options *Xml2) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()

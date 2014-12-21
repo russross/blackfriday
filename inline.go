@@ -1053,7 +1053,7 @@ func index(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	if len(data) > 3 && data[1] != c && data[2] != c {
 		// might be example list reference
 		if data[1] == '@' {
-			ret = example(p, out, data, 0)
+			ret = exampleReference(p, out, data, 0)
 			if ret > 0 {
 				return ret
 			}
@@ -1354,7 +1354,7 @@ func helperScript(p *parser, out *bytes.Buffer, data []byte, c byte) int {
 }
 
 // (@r), ref is alfanumeric, underscores or hyphens
-func example(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+func exampleReference(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
 	i := 0
 	if len(data) < 4 {
@@ -1384,6 +1384,9 @@ func example(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		}
 		return 0
 	}
-	println("example seen", string(data))
+	if e, ok := p.examples[string(data[2:i])]; ok {
+		p.r.Example(out, e.last)
+		return i+1
+	}
 	return 0
 }

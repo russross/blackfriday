@@ -209,6 +209,7 @@ type Renderer interface {
 	Index(out *bytes.Buffer, primary, secondary []byte, prim bool)
 	Citation(out *bytes.Buffer, link, title []byte)
 	Abbreviation(out *bytes.Buffer, abbr, title []byte)
+	Example(out *bytes.Buffer, index int)
 
 	// Low-level callbacks
 	Entity(out *bytes.Buffer, entity []byte)
@@ -240,7 +241,7 @@ type parser struct {
 	refs                 map[string]*reference
 	citations            map[string]*citation
 	abbreviations        map[string]*abbreviation
-	examples             map[string]bool
+	examples             map[string]*example
 	inlineCallback       [256]inlineParser
 	flags                int
 	nesting              int
@@ -283,7 +284,7 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	p.refs = make(map[string]*reference)
 	p.abbreviations = make(map[string]*abbreviation)
 	p.anchors = make(map[string]int)
-	p.examples = make(map[string]bool)
+	p.examples = make(map[string]*example)
 	p.maxNesting = 16
 	p.insideLink = false
 
@@ -486,6 +487,11 @@ type citation struct {
 	xml   []byte // raw include of reference XML
 	typ   byte   // 'i' for informal, 'n' normative (default = 'i')
 	seq   int    // sequence number for I-Ds
+}
+
+type example struct {
+	last int
+	//attr *InlineAttr
 }
 
 // Check whether or not data starts with a reference link.

@@ -1285,8 +1285,6 @@ func TestInlineAttr(t *testing.T) {
 	doTestsBlockXML(t, tests, 0)
 }
 
-// test comment, markup and parsing
-
 func TestOrderedExampleListXML(t *testing.T) {
 	var tests = []string{
 		`(@good)  Example1
@@ -1296,8 +1294,10 @@ func TestOrderedExampleListXML(t *testing.T) {
 As this illustrates
 
 (@good)  Example3
+
+As we can see from (@good) some things never change. Some we do not when we reference (@good1).
 `,
-		"<ol group=\"good\">\n<li><t>Example1</t></li>\n<li><t>Example2</t></li>\n</ol>\n<t>As this illustrates</t>\n<ol group=\"good\">\n<li>Example3</li>\n</ol>\n",
+		"<ol group=\"good\">\n<li><t>Example1</t></li>\n<li><t>Example2</t></li>\n</ol>\n<t>As this illustrates</t>\n<ol group=\"good\">\n<li>Example3</li>\n</ol>\n<t>As we can see from (2) some things never change. Some we do not when we reference (@good1).</t>\n",
 	}
 	doTestsBlockXML(t, tests, 0)
 }
@@ -1305,7 +1305,6 @@ As this illustrates
 // TODO:
 // Roman lists
 // Letter prefix
-// xml references
 // figure caption
 // table caption
 // frontmatter

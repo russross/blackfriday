@@ -183,7 +183,8 @@ implements the following extensions:
     All numeric section get an anchor prefixed with `section-`.
 
 *  **Example lists**, a list that is started with `(@good)` is subsequently numbered throughout
-    the document. First use is rendered `(1)`, the second one `(2)` and so on.
+    the document. First use is rendered `(1)`, the second one `(2)` and so on. You can reference
+    the last item of the list with `(@good)`.
 
 *  **HTML comments** An HTML comment in the form of `<!-- Miek Gieben: really
     -->` is detected and will be converted to a `cref` with the `source` attribute
