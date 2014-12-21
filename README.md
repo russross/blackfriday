@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/miekg/mmark.svg?branch=master)](https://travis-ci.org/miekg/mmark)
-
+[![Test Coverage](https://img.shields.io/coveralls/miekg/mmark.svg)](https://coveralls.io/r/miekg/mmark)
 [![GoDoc](https://godoc.org/github.com/miekg/mmark?status.svg)](https://godoc.org/github.com/miekg/mmark)  
 
 Everything that was true of [blackfriday][5], might not be true for mmark anymore.
