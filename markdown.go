@@ -36,7 +36,6 @@ const (
 	EXTENSION_TITLEBLOCK_TOML                        // Titleblock in TOML
 	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text
 	EXTENSION_INCLUDE                                // Include file with {{ syntax
-	EXTENSION_INDEX                                  // Support index with ((( syntax
 	EXTENSION_CITATION                               // Support citations via the link syntax
 	EXTENSION_QUOTES                                 // Allow A> AS> and N> to be parsed as abstract, asides and notes
 	EXTENSION_INLINE_ATTR                            // detect CommonMark's IAL syntax (copied from kramdown)
@@ -241,6 +240,7 @@ type parser struct {
 	refs                 map[string]*reference
 	citations            map[string]*citation
 	abbreviations        map[string]*abbreviation
+	examples             map[string]bool
 	inlineCallback       [256]inlineParser
 	flags                int
 	nesting              int
@@ -248,9 +248,6 @@ type parser struct {
 	insideLink           bool
 	insideDefinitionList bool // when in def. list ... TODO(miek):doc
 	insideList           int  // list in list counter
-
-	// Don't need to save, kill current titleblock
-	titleblock title
 
 	// Footnotes need to be ordered as well as available to quickly check for
 	// presence. If a ref is also a footnote, it's stored both in refs and here
@@ -286,6 +283,7 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	p.refs = make(map[string]*reference)
 	p.abbreviations = make(map[string]*abbreviation)
 	p.anchors = make(map[string]int)
+	p.examples = make(map[string]bool)
 	p.maxNesting = 16
 	p.insideLink = false
 
@@ -301,6 +299,7 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	p.inlineCallback['&'] = entity
 	p.inlineCallback['{'] = leftBrace
 	p.inlineCallback['^'] = superscript // subscript is handled in emphasis
+	p.inlineCallback['('] = index       // also find example references
 
 	if extensions&EXTENSION_AUTOLINK != 0 {
 		p.inlineCallback[':'] = autoLink
@@ -312,10 +311,6 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 
 	if extensions&EXTENSION_CITATION != 0 {
 		p.citations = make(map[string]*citation)
-	}
-
-	if extensions&EXTENSION_INDEX != 0 {
-		p.inlineCallback['('] = index
 	}
 
 	first := firstPass(p, input, 0)

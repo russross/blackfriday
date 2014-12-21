@@ -718,7 +718,7 @@ func leftBrace(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 }
 
 // '\\' backslash escape
-var escapeChars = []byte("\\`*_{}[]()#+-.!:|&<>~")
+var escapeChars = []byte("\\`*_{}[]()#+-.!:|&<>~^")
 
 func escape(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
@@ -1051,6 +1051,13 @@ func index(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	c := data[0]
 	ret := 0
 	if len(data) > 3 && data[1] != c && data[2] != c {
+		// might be example list reference
+		if data[1] == '@' {
+			ret = example(p, out, data, 0)
+			if ret > 0 {
+				return ret
+			}
+		}
 		// no three (((
 		return 0
 	}
@@ -1343,5 +1350,40 @@ func helperScript(p *parser, out *bytes.Buffer, data []byte, c byte) int {
 		raw.WriteByte(data[i])
 		i++
 	}
+	return 0
+}
+
+// (@r), ref is alfanumeric, underscores or hyphens
+func example(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+	data = data[offset:]
+	i := 0
+	if len(data) < 4 {
+		return 0
+	}
+	i++
+	if data[i] != '@' {
+		return 0
+	}
+	i++
+	for i < len(data) && data[i] != ')' {
+		if data[i] >= 'a' && data[i] <= 'z' {
+			i++
+			continue
+		}
+		if data[i] >= 'A' && data[i] <= 'Z' {
+			i++
+			continue
+		}
+		if data[i] >= '0' && data[i] <= '9' {
+			i++
+			continue
+		}
+		if data[i] == '_' || data[i] == '-' {
+			i++
+			continue
+		}
+		return 0
+	}
+	println("example seen", string(data))
 	return 0
 }

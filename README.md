@@ -113,7 +113,8 @@ implements the following extensions:
 *   **Hard line breaks**. With this extension enabled (it is off by
     default in the `MarkdownBasic` and `MarkdownCommon` convenience
     functions), newlines in the input translate into line breaks in
-    the output.
+    the output. This is activate by using two trailing spaces before
+    a new line.
 
 *   **Smart quotes**. Smartypants-style punctuation substitution is
     supported, turning normal double- and single-quote marks into
@@ -216,6 +217,7 @@ implements the following extensions:
 *   images -> artwork, use title for caption
     if caption is given, wrap in figure -> otherwise not.
 *   Extension to recognize pandoc2rfc indices?
+*   Extend table syntax to support multi line tables?
 
 *   make webservers that converts for you
 *   cleanups - and loose a bunch of extensions, turn them on per default

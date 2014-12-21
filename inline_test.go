@@ -292,6 +292,9 @@ func TestSubscript(t *testing.T) {
 
 		"~boo\\ ~bla",
 		"<p><sub>boo </sub>bla</p>\n",
+
+		"\\^not sub\\^",
+		"<p>^not sub^</p>\n",
 	}
 	doTestsInline(t, tests)
 }
@@ -330,6 +333,9 @@ func TestSuperscript(t *testing.T) {
 
 		"P~a\\ cat~",
 		"<p>P<sub>a cat</sub></p>\n",
+
+		"\\^not sup\\^",
+		"<p>^not sup^</p>\n",
 	}
 	doTestsInline(t, tests)
 }
@@ -867,7 +873,6 @@ func TestFootnotesWithParameters(t *testing.T) {
 
 func runMarkdownInlineXML(input string, extensions, xmlFlags int) string {
 	extensions |= EXTENSION_AUTOLINK
-	extensions |= EXTENSION_INDEX
 	extensions |= EXTENSION_CITATION
 
 	renderer := XmlRenderer(xmlFlags)
