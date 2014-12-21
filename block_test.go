@@ -1251,19 +1251,6 @@ func TestAbstractNoteAsideXML(t *testing.T) {
 	doTestsBlockXML(t, tests, 0)
 }
 
-// does not work, yet.
-func testTitleBlockTOMLXML(t *testing.T) {
-	var tests = []string{
-		`% title = "Example"
-% abbrev = "ex"
-% category = "info"
-% docname = "draft-example-rfc-markdown-00"
-% ipr = "trust200902"`,
-		"",
-	}
-	doTestsBlockXML(t, tests, 0)
-}
-
 func TestOrderedListStartXML(t *testing.T) {
 	var tests = []string{
 		"1. hello\n1. hello\n\ndivide\n\n4. hello\n5. hello\n\ndivide\n\n 7. hello\n5. hello\n",
@@ -1314,3 +1301,13 @@ As this illustrates
 	}
 	doTestsBlockXML(t, tests, 0)
 }
+
+// TODO:
+// TOMLblock test
+// Roman lists
+// Letter prefix
+// xml references
+// figure caption
+// table caption
+// frontmatter
+// broken IALs

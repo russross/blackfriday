@@ -955,3 +955,5 @@ func TestRFC2119XML(t *testing.T) {
 	doTestsInlineXML(t, tests)
 
 }
+
+// citation
