@@ -33,8 +33,10 @@ A> provides an excellent example.
 
 Mmark [@mmark] is a markdown processor. It supports the basic markdown syntax and has been
 extended to support more (syntax) features needed to write larger, structured documents
-such as RFC and I-Ds. The extra syntax elements have been copied from kramdown, leanpub,
-markdown extra and Asciidoc.
+such as RFC and I-Ds.
+The mmark syntax is based on the Markdown syntax and has been enhanced with features that are
+found in other Markdown implementations like [kramdown], [PHP markdown extra], [pandoc], [leanpub] and
+[asciidoc]. 
 
 The goals of mmark can be stated as:
 
@@ -44,6 +46,7 @@ The goals of mmark can be stated as:
 3. Provide seemless upgrade path to XML2RFC v3.
 
 Mmark is a fork of blackfriday [@blackfriday] written in Golang and it is very fast.
+Input to mmark must be UTF-8, the output is also UTF-8. Mmark converts tabs to 4 spaces.
 
 Using Figure 1 from [@!RFC7328], mmark can be positioned as follows:
 
@@ -272,3 +275,9 @@ For now the mmark parser will not get any features that makes it backwards compa
 </reference>
 
 {backmatter}
+
+[kramdown]: http://http://kramdown.gettalong.org/
+[leanpub]: https://leanpub.com/help/manual
+[asciidoc]: http://www.methods.co.nz/asciidoc/
+[PHP markdown extra]: http://michelf.com/projects/php-markdown/extra/
+[pandoc]: http://johnmacfarlane.net/pandoc/
