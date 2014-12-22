@@ -159,13 +159,30 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 
 		// table:
 		//
-		// Table: this is a caption
 		// Name  | Age | Phone
 		// ------|-----|---------
 		// Bob   | 31  | 555-1234
 		// Alice | 27  | 555-4321
+		// Table: this is a caption
 		if p.flags&EXTENSION_TABLES != 0 {
 			if i := p.table(out, data); i > 0 {
+				data = data[i:]
+				continue
+			}
+		}
+
+		// multilinetable:
+		//
+		// |-------|-----|---------
+		// | Name  | Age | Phone
+		// | ------|-----|---------
+		// | Bob   | 31  | 555-1234
+		// | Alice | 27  | 555-4321
+		// |-------|-----|---------
+		// | Bob   | 31  | 555-1234
+		// | Alice | 27  | 555-4321
+		if p.flags&EXTENSION_TABLES != 0 {
+			if i := p.multilineTable(out, data); i > 0 {
 				data = data[i:]
 				continue
 			}

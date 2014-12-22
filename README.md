@@ -79,7 +79,7 @@ implements the following extensions:
     ```
 
     Tables can also have a footer, use equal signs instead of dashes.
-    If there are multiple footer line, the first one is used as a
+    If there are multiple footer lines, the first one is used as a
     starting point for the table footer.
 
     ```
@@ -89,6 +89,27 @@ implements the following extensions:
     Alice   | 23
     ======= | ====
     Charlie | 4
+    ```
+
+    If a table is started with a *multiline table header*, which starts
+    with a pipe and a number of dashes (may also include plus signs, or
+    colons (but does are ignored): `|--+---`. Only when another header
+    line as seen a new row is started, allow tables to have block level
+    elements. The tables stops on the first line that does not start with a
+    pipe symbol.
+
+    ```
+    |-----------------+------------+-----------------|
+    | Default aligned |Left aligned| Center aligned  |
+    |-----------------|:-----------|:---------------:|
+    | First body part |Second cell | Third cell      |
+    | Second line     |foo         | **strong**      |
+    | Third line      |quux        | baz             |
+    |-----------------+------------+-----------------|
+    | Second body     |            |                 |
+    | 2 line          |            |                 |
+    |=================+============+=================|
+    | Footer row      |            |                 |
     ```
 
 *   **Fenced code blocks**. In addition to the normal 4-space
