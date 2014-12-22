@@ -493,6 +493,14 @@ func TestInlineLink(t *testing.T) {
 
 		"[[t]](/t)\n",
 		"<p><a href=\"/t\">[t]</a></p>\n",
+
+		// Issue #126 on blackfriday
+		"[Chef](https://en.wikipedia.org/wiki/Chef_(film))\n",
+		"<p><a href=\"https://en.wikipedia.org/wiki/Chef_(film)\">Chef</a></p>\n",
+
+		"[Chef](https://en.wikipedia.org/wiki/Chef_(film)_moretext)\n",
+		"<p><a href=\"https://en.wikipedia.org/wiki/Chef_(film)_moretext\">Chef</a></p>\n",
+
 	}
 	doLinkTestsInline(t, tests)
 

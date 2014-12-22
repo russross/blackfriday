@@ -377,8 +377,6 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			}
 		}
 
-		//p.r.SetIAL(p.ial)
-		//p.ial = nil
 		if !suppress {
 			p.r.Citation(out, id, title)
 		}
@@ -399,10 +397,13 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 		// look for link end: ' " )
 	findlinkend:
+		brace := 0
 		for i < len(data) {
 			switch {
 			case data[i] == '\\':
 				i += 2
+
+			case data
 
 			case data[i] == ')' || data[i] == '\'' || data[i] == '"':
 				break findlinkend
