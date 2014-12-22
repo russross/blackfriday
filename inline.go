@@ -395,17 +395,29 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 		linkB := i
 
-		// look for link end: ' " )
-	findlinkend:
+		// look for link end: ' " ), check for new openning
+		// braces and take this into account, this may lead
+		// for overshooting and probably will require some
+		// finetuning.
 		brace := 0
+	findlinkend:
 		for i < len(data) {
 			switch {
 			case data[i] == '\\':
 				i += 2
 
-			case data
+			case data[i] == '(':
+				brace++
+				i++
 
-			case data[i] == ')' || data[i] == '\'' || data[i] == '"':
+			case data[i] == ')':
+				if brace <= 0 {
+					break findlinkend
+				}
+				brace--
+				i++
+
+			case data[i] == '\'' || data[i] == '"':
 				break findlinkend
 
 			default:
@@ -413,7 +425,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			}
 		}
 
-		if i >= len(data) {
+		if i >= len(data) || brace > 0 {
 			return 0
 		}
 		linkE := i
