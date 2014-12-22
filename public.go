@@ -19,8 +19,6 @@ func MarkdownBasic(input []byte) []byte {
 // MarkdownCommon is a convenience function for simple rendering.
 // It processes markdown input with common extensions enabled, including:
 //
-// * Smartypants processing with smart fractions and LaTeX dashes
-//
 // * Intra-word emphasis suppression
 //
 // * Tables

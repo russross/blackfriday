@@ -34,7 +34,12 @@ It adds the following syntax elements to [black friday](https://github.com/russr
 * BCP14 (RFC2119) keyword detection;
 * Include raw XML references;
 * Abbreviations;
-* Super- and subscript.
+* Super- and subscript;
+* HTML renderer uses HTML5 (TODO).
+
+It removes the following:
+
+* Smartypants support.
 
 Mmark is forked from blackfriday which started out as a translation from C of [upskirt][4].
 
@@ -115,21 +120,11 @@ implements the following extensions:
     the output. This is activate by using two trailing spaces before
     a new line.
 
-*   **Smart quotes**. Smartypants-style punctuation substitution is
-    supported, turning normal double- and single-quote marks into
-    curly quotes, etc.
-
 *   **LaTeX-style dash parsing** is an additional option, where `--`
     is translated into `&ndash;`, and `---` is translated into
     `&mdash;`. This differs from most smartypants processors, which
     turn a single hyphen into an ndash and a double hyphen into an
     mdash.
-
-*   **Smart fractions**, where anything that looks like a fraction
-    is translated into suitable HTML (instead of just a few special
-    cases like most smartypant processors). For example, `4/5`
-    becomes `<sup>4</sup>&frasl;<sub>5</sub>`, which renders as
-    <sup>4</sup>&frasl;<sub>5</sub>.
 
 *   **Includes**, support including files with `{{filename}}` syntax.
 
