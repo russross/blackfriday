@@ -109,7 +109,6 @@ The table syntax used that one of
 [Markdown Extra](https://michelf.ca/projects/php-markdown/extra/#table).
 
 
-
 # Captions
 
 Whenever an blockquote, fenced codeblock or image has caption text, the entire block is wrapped
