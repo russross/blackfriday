@@ -40,10 +40,7 @@ const (
 	EXTENSION_ABBREVIATIONS                          // render abbreviations `*[HTML]: Hyper Text Markup Language`
 
 	commonHtmlFlags = 0 |
-		HTML_USE_XHTML |
-		HTML_USE_SMARTYPANTS |
-		HTML_SMARTYPANTS_FRACTIONS |
-		HTML_SMARTYPANTS_LATEX_DASHES
+		HTML_USE_XHTML
 
 	commonExtensions = 0 |
 		EXTENSION_NO_INTRA_EMPHASIS |

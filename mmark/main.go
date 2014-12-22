@@ -26,7 +26,7 @@ const DEFAULT_TITLE = ""
 
 func main() {
 	// parse command-line options
-	var page, toc, toconly, xhtml, xml, xml2, smartypants, fractions bool
+	var page, toc, toconly, xhtml, xml, xml2 bool
 	var css, cpuprofile string
 	var repeat int
 	flag.BoolVar(&page, "page", false, "generate a standalone HTML page")
@@ -35,8 +35,6 @@ func main() {
 	flag.BoolVar(&xhtml, "xhtml", true, "use XHTML-style tags in HTML output")
 	flag.BoolVar(&xml, "xml", false, "generate XML2RFC v3 output")
 	flag.BoolVar(&xml2, "xml2", false, "generate XML2RFC v2 output")
-	flag.BoolVar(&smartypants, "smartypants", true, "apply smartypants-style substitutions")
-	flag.BoolVar(&fractions, "fractions", true, "use improved fraction rules for smartypants")
 	flag.StringVar(&css, "css", "", "link to a CSS stylesheet (implies -page)")
 	flag.StringVar(&cpuprofile, "cpuprofile", "", "write cpu profile to a file")
 	flag.IntVar(&repeat, "repeat", 1, "process the input multiple times (for benchmarking)")
@@ -128,12 +126,6 @@ func main() {
 		htmlFlags := 0
 		if xhtml {
 			htmlFlags |= mmark.HTML_USE_XHTML
-		}
-		if smartypants {
-			htmlFlags |= mmark.HTML_USE_SMARTYPANTS
-		}
-		if fractions {
-			htmlFlags |= mmark.HTML_SMARTYPANTS_FRACTIONS
 		}
 		title := ""
 		if page {

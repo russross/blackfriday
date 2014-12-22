@@ -43,7 +43,7 @@ The goals of mmark can be stated as:
 2. Make the markdown source code look as natural as possible;
 3. Provide seemless upgrade path to XML2RFC v3.
 
-Mmark is a fork of blackfriday [@blackfriday] written in Golang, as such it is very fast.
+Mmark is a fork of blackfriday [@blackfriday] written in Golang and it is very fast.
 
 Using Figure 1 from [@!RFC7328], mmark can be positioned as follows:
 
@@ -62,6 +62,12 @@ Using Figure 1 from [@!RFC7328], mmark can be positioned as follows:
 Figure: Mmark skips the conversion to DOCBOOK and directly outputs XML2RFC XML.
 
 Note that [kramdown-2629](https://github.com/cabo/kramdown-rfc2629) fills the same niche as mmark.
+
+# Mmark Syntax
+
+
+
+
 
 # TOML header
 

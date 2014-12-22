@@ -23,9 +23,6 @@ const (
 	HTML_OMIT_CONTENTS                        // skip the main contents (for a standalone table of contents)
 	HTML_COMPLETE_PAGE                        // generate a complete HTML page
 	HTML_USE_XHTML                            // generate XHTML output instead of HTML
-	HTML_USE_SMARTYPANTS                      // enable smart punctuation substitutions
-	HTML_SMARTYPANTS_FRACTIONS                // enable smart fractions (with HTML_USE_SMARTYPANTS)
-	HTML_SMARTYPANTS_LATEX_DASHES             // enable LaTeX-style dashes (with HTML_USE_SMARTYPANTS)
 	HTML_FOOTNOTE_RETURN_LINKS                // generate a link at the end of a footnote to return to the source
 )
 
@@ -67,8 +64,6 @@ type Html struct {
 	headerCount  int
 	currentLevel int
 	toc          *bytes.Buffer
-
-	smartypants *smartypantsRenderer
 }
 
 const (
@@ -109,8 +104,6 @@ func HtmlRendererWithParameters(flags int, title string,
 		headerCount:  0,
 		currentLevel: 0,
 		toc:          new(bytes.Buffer),
-
-		smartypants: smartypants(flags),
 	}
 }
 
@@ -426,7 +419,7 @@ func (options *Html) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	skipRanges := htmlEntity.FindAllIndex(link, -1)
 	if options.flags&HTML_SAFELINK != 0 && !isSafeLink(link) && kind != LINK_TYPE_EMAIL {
-		// mark it but don't link it if it is not a safe link: no smartypants
+		// mark it but don't link it if it is not a safe link
 		out.WriteString("<tt>")
 		entityEscapeWithSkip(out, link, skipRanges)
 		out.WriteString("</tt>")
@@ -636,40 +629,7 @@ func (options *Html) References(out *bytes.Buffer, citations map[string]*citatio
 func (options *Html) Entity(out *bytes.Buffer, entity []byte)                       { out.Write(entity) }
 
 func (options *Html) NormalText(out *bytes.Buffer, text []byte) {
-	if options.flags&HTML_USE_SMARTYPANTS != 0 {
-		options.Smartypants(out, text)
-	} else {
-		attrEscape(out, text)
-	}
-}
-
-func (options *Html) Smartypants(out *bytes.Buffer, text []byte) {
-	smrt := smartypantsData{false, false}
-
-	// first do normal entity escaping
-	var escaped bytes.Buffer
-	attrEscape(&escaped, text)
-	text = escaped.Bytes()
-
-	mark := 0
-	for i := 0; i < len(text); i++ {
-		if action := options.smartypants[text[i]]; action != nil {
-			if i > mark {
-				out.Write(text[mark:i])
-			}
-
-			previousChar := byte(0)
-			if i > 0 {
-				previousChar = text[i-1]
-			}
-			i += action(out, &smrt, previousChar, text[i:])
-			mark = i + 1
-		}
-	}
-
-	if mark < len(text) {
-		out.Write(text[mark:])
-	}
+	attrEscape(out, text)
 }
 
 func (options *Html) DocumentHeader(out *bytes.Buffer, first bool) {
