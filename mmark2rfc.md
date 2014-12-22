@@ -39,12 +39,11 @@ markdown extra and Asciidoc.
 The goals of mmark can be stated as:
 
 {style="format (%I)"}
-1. Self contained: a single file can be converted to XML2RFC v2 or (v3);
-2. Make the markdown source code look as natural as possible;
+1. Self contained: a single file can be converted to XML2RFC v2 or (v3) or HTML5;
+2. Make the markdown "source code" look as natural as possible;
 3. Provide seemless upgrade path to XML2RFC v3.
 
 Mmark is a fork of blackfriday [@blackfriday] written in Golang and it is very fast.
-
 Using Figure 1 from [@!RFC7328], mmark can be positioned as follows:
 
 {#fig:mmark}
@@ -218,6 +217,10 @@ AS> of problem. Two things are holding this back: mmark cannot parse definition 
 AS> there isn't renderer that can output markdown syntax.
 
 For now the mmark parser will not get any features that makes it backwards compatible with pandoc2rfc.
+
+# Acknowledgements
+
+This documents has been modeled after the excellent [kramdown syntax page](http://kramdown.gettalong.org/syntax.html).
 
 <!-- reference we need to include -->
 

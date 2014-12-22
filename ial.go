@@ -1,4 +1,4 @@
-// IAL implements ...
+// IAL implements inline attributes.
 
 package mmark
 
