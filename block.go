@@ -5,6 +5,7 @@ package mmark
 import (
 	"bytes"
 	"strconv"
+	"strings"
 	"unicode"
 )
 
@@ -747,8 +748,9 @@ func (p *parser) isFencedCode(data []byte, syntax **string, oldmarker string) (s
 	}
 	marker = string(data[i-size : i])
 
-	// if this is the end marker, it must match the beginning marker
-	if oldmarker != "" && marker != oldmarker {
+	// if this is the end marker, it must be at least as long as the
+	// original marker we have
+	if oldmarker != "" && !strings.HasPrefix(marker, oldmarker) {
 		return
 	}
 
