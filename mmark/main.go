@@ -96,7 +96,6 @@ func main() {
 
 	// set up options
 	extensions := 0
-	extensions |= mmark.EXTENSION_NO_INTRA_EMPHASIS
 	extensions |= mmark.EXTENSION_TABLES
 	extensions |= mmark.EXTENSION_FENCED_CODE
 	extensions |= mmark.EXTENSION_AUTOLINK

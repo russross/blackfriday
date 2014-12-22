@@ -141,6 +141,15 @@ func TestEmphasis(t *testing.T) {
 
 		"mix of *markers_\n",
 		"<p>mix of *markers_</p>\n",
+
+		"This is un*believe*able! This d_oe_s not work!\n",
+		"<p>This is un<em>believe</em>able! This d_oe_s not work!</p>\n",
+
+		"This is un**believe**able! This d_oe_s not work!\n",
+		"<p>This is un<strong>believe</strong>able! This d_oe_s not work!</p>\n",
+
+		"_does_ work\n",
+		"<p><em>does</em> work</p>\n",
 	}
 	doTestsInline(t, tests)
 }
