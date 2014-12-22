@@ -816,7 +816,7 @@ func TestFencedCodeBlock(t *testing.T) {
 		"<pre><code class=\"language-perl\">three to start, four to end\n</code></pre>\n",
 
 		"~~~~ perl\nfour to start, three to end\n~~~\n",
-		"<pre><code class=\"language-perl\">three to start, four to end\n</code></pre>\n",
+		"<p>~~~~ perl\nfour to start, three to end\n~~~</p>\n",
 
 		"~~~ bash\ntildes\n~~~\n",
 		"<pre><code class=\"language-bash\">tildes\n</code></pre>\n",
@@ -1159,7 +1159,7 @@ func TestFencedCodeBlock_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
 		"<pre><code class=\"language-python\">extra\n</code></pre>\n",
 
 		"~~~ perl\nthree to start, four to end\n~~~~\n",
-		"<p>~~~ perl\nthree to start, four to end\n~~~~</p>\n",
+		"<pre><code class=\"language-perl\">three to start, four to end\n</code></pre>\n",
 
 		"~~~~ perl\nfour to start, three to end\n~~~\n",
 		"<p>~~~~ perl\nfour to start, three to end\n~~~</p>\n",
