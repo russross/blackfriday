@@ -9,7 +9,8 @@ Mmark is a fork of blackfriday which is a [Markdown][1] processor implemented in
 [Go][2]. It supports a number of extensions, inspired by Leanpub, kramdown and
 Asciidoc, that allows for large documents to be written. It is specifically
 designed to write internet drafts and RFCs for the IETF. With mmark you can create
-a single file that serves as input into the XML2RFC processor.
+a single file that serves as input into the XML2RFC processor. But is also allows
+for writing large documents such as technical books.
 
 It can currently output HTML5, XML2RFC v2 and XML2RFC v3 XML. Other output
 engines could be easily added.
@@ -209,6 +210,10 @@ implements the following extensions:
     if caption is given, wrap in figure -> otherwise not.
 *   Extension to recognize pandoc2rfc indices?
 *   Extend table syntax to support multi line tables?
+
+*   pandoc line_blocks
+*   pandoc multi_line_tables
+*   escaping chars
 
 *   make webservers that converts for you
 *   cleanups - and loose a bunch of extensions, turn them on per default

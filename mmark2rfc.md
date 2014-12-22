@@ -168,6 +168,10 @@ XML file. Typically `<!-- Miek Gieben -- you want to include the next paragraph?
 Files can be included using ``{{filename}}``, `filename` is relative to the current working
 directory if it is not absolute.
 
+## Ordered lists
+
+mmark pays attention ot the starting number of a list and will ...
+
 # XML2RFC V3 features
 
 The v3 syntax adds some new features, those can already be used in mmark (even for documents targetting
