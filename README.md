@@ -37,10 +37,6 @@ It adds the following syntax elements to [black friday](https://github.com/russr
 * Super- and subscript;
 * HTML renderer uses HTML5 (TODO).
 
-It removes the following:
-
-* Smartypants support.
-
 Mmark is forked from blackfriday which started out as a translation from C of [upskirt][4].
 
 A simular effort is [kramdown-rfc2629](https://github.com/cabo/kramdown-rfc2629) from Carsten Bormann.

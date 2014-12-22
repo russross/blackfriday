@@ -102,6 +102,14 @@ but is normally not need because the TOML header ([](#toml-header)) starts that 
 Any paragraph prefix with `A> ` is an abstract. This is similar to asides and notes
 ([](#asides) , [](#notes)) work.
 
+# Tables
+
+A table caption is signalled by using `Table: ` directly after the table.
+The table syntax used that one of
+[Markdown Extra](https://michelf.ca/projects/php-markdown/extra/#table).
+
+
+
 # Captions
 
 Whenever an blockquote, fenced codeblock or image has caption text, the entire block is wrapped
@@ -122,12 +130,6 @@ An empty line between the IAL and the table of indented code block is allowed.
 ## Figures
 
 Any text directly after the figure starting with `Figure: ` is used as the caption.
-
-## Table
-
-A table caption is signalled by using `Table: ` directly after the table.
-The table syntax used that one of
-[Markdown Extra](https://michelf.ca/projects/php-markdown/extra/#table).
 
 ## Quotes
 
@@ -156,7 +158,6 @@ arbitrary key value pairs where each key becomes an attribute.
 This is the example list syntax
 [from pandoc](http://johnmacfarlane.net/pandoc/README.html#extension-example_lists).
 
-The reference syntax `(@list-id)` is *not* (yet?) supported.
 
 ## HTML Comment
 

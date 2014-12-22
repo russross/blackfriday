@@ -168,202 +168,11 @@ of the code block to the end of the starting line:
 kramdown provides syntax elements for creating ordered and unordered lists as well as definition
 lists.
 
-### Ordered and Unordered lists
+### Example Lists
+
+### Ordered and Unordered Lists
 
 Both ordered and unordered lists follow the same rules.
-
-A list is started with a list marker (in case of unordered lists one of `+`, `-` or `*` -- you can
-mix them -- and in case of ordered lists a number followed by a period) followed by one tab or at
-least one space, optionally followed by an [IAL](#inline-attribute-lists) that should be applied to
-the list item and then the first part of the content of the list item. The leading tabs or spaces
-are stripped away from this first line of content to allow for a nice alignment with the following
-content of a list item (see below). All following list items with the same marker type (unordered or
-ordered) are put into the same list. The numbers used for ordered lists are irrelevant, an ordered
-list always starts at 1.
-
-The following gives you an unordered list and an ordered list:
-
-    * kram
-    + down
-    - now
-
-    1. kram
-    2. down
-    3. now
-
-> The original Markdown syntax allows the markers of ordered and unordered lists to be mixed, the
-> first marker specifying the list type (ordered or unordered). This is not allowed in kramdown. As
-> stated, the above example will give you two lists (an unordered and an ordered) in kramdown and
-> only one unordered list in Markdown.
-{: .markdown-difference}
-
-The first list marker in a list may be indented up to three spaces. The column number of the first
-non-space character which appears after the list item marker on the same line specifies the
-indentation that has to be used for the following lines of content of the list item. If there is no
-such character, the indentation that needs to be used is four spaces or one tab. Indented lines may
-be followed by lines containing text with any amount of indentation due to [line
-wrapping](#line-wrapping). Note, however, that in addition to the rules outlined in the section
-about line wrapping, a list item also ends when a line with another list item marker is encountered
--- see the next paragraph.
-
-The indentation is stripped from the content and the content (note that the content naturally also
-contains the content of the line with the item marker) is processed as text containing block-level
-elements. All other list markers in the list may be indented up to three spaces or the number of
-spaces used for the indentation of the last list item minus one, whichever number is smaller. For
-example:
-
-    * This is the first line. Since the first non-space characters appears in
-      column 3, all other indented lines have to be indented 2 spaces.
-    However, one could be lazy and not indent a line but this is not
-    recommended.
-    *       This is the another item of the list. It uses a different number
-       of spaces for indentation which is okay but should generally be avoided.
-       * The list item marker is indented 3 spaces which is allowed but should
-         also be avoided and starts the third list item. Note that the lazy
-         line in the second list item may make you believe that this is a
-         sub-list which it isn't! So avoid being lazy!
-
-So, while the above is possible and creates one list with three items, it is not advised to use
-different (marker and list content) indents for same level list items as well as lazy indentation!
-It is much better to write such a list in the following way:
-
-    * This is the first list item bla blabla blabla blabla blabla blabla
-      blabla blabla blabla blabla blabla blabla blabla blabla blabla blabla
-      blabla blabla blabla bla
-    * This is the another item of the list. bla blabla blabla blabla blabla
-      blabla blabla blabla blabla blabla blabla blabla blabla blabla blabla
-
-> The original Markdown syntax also allows you to indent the marker, however, the behaviour of what
-> happens with the list items is not clearly specified and may surprise you.
->
-> Also, Markdown uses a fixed number of spaces/tabs to indent the lines that belong to a list item!
-{: .markdown-difference}
-
-When using tabs for indenting the content of a list item, remember that tab stops occur at multiples
-of four for kramdown. Tabs are correctly converted to spaces for calculating the indentation. For
-example:
-
-    *   Using a tab to indent this line, the tab only counts as three spaces
-        and therefore the overall indentation is four spaces.
-
-       1.   The tab after the marker counts here as three spaces. Since the
-            indentation of the marker is three spaces and the marker itself
-            takes two characters, the overall indentation needed for the
-            following lines is eight spaces or two tabs.
-
-It is clear that you might get unexpected results if you mix tabs and spaces or if you don't have
-the tab stops set to multiples of four in your editor! Therefore this should be avoided!
-
-The content of a list item is made up of either text or block-level elements. Simple list items only
-contain text like in the above examples. They are not even wrapped in a paragraph tag. If the first
-list text is followed by one or more blank lines, it will be wrapped in a paragraph tag:
-
-    * kram
-
-    * down
-    * now
-
-In the above example, the first list item text will be wrapped in a paragraph tag since it is
-followed by a blank line whereas the second list item contains just text. There is obviously a
-problem for doing this with the last list item when it contains only text. You can circumvent this
-by leaving a blank line after the last list item and using an EOB marker:
-
-    * Not wrapped in a paragraph
-    * Wrapped in a paragraph due to the following blank line.
-
-    * Also wrapped in a paragraph due to the
-      following blank line and the EOB marker.
-
-    ^
-
-The text of the last list item is also wrapped in a paragraph tag if *all* other list items contain
-a proper paragraph as first element. This makes the following use case work like expected, i.e.
-*all* the list items are wrapped in paragraphs:
-
-    * First list item
-
-    * Second list item
-
-    * Last list item
-
-> The original Markdown syntax page specifies that list items which are separated by one or more
-> blank lines are wrapped in paragraph tags. This means that the first text will also be wrapped in
-> a paragraph if you have block-level elements in a list which are separated by blank lines. The
-> above rule is easy to remember and lets you exactly specify when the first list text should be
-> wrapped in a paragraph. The idea for the above rule comes from the [Pandoc] package.
-{: .markdown-difference}
-
-As seen in the examples above, blank lines between list items are allowed.
-
-Since the content of a list item can contain block-level elements, you can do the following:
-
-    *   First item
-
-        A second paragraph
-
-        * nested list
-
-        > blockquote
-
-    *   Second item
-
-However, there is a problem when you want to have a code block immediately after a list item. You
-can use an EOB marker to circumvent this problem:
-
-    *   This is a list item.
-
-        The second para of the list item.
-    ^
-        A code block following the list item.
-
-You can have any block-level element as first element in a list item. However, as described above,
-the leading tabs or spaces of the line with the list item marker are stripped away. This leads to a
-problem when you want to have a code block as first element. The solution to this problem is the
-following construct:
-
-    * 
-            This is a code block (indentation needs to be 4(1)+4(1)
-            spaces (tabs)).
-{: .show-whitespaces .ws-lr}
-
-Note that the list marker needs to be followed with at least one space or tab! Otherwise the line is
-not recognized as the start of a list item but interpreted as a paragraph containing the list
-marker.
-
-If you want to have one list directly after another one (both with the same list type, i.e. ordered
-or unordered), you need to use an EOB marker to separate the two:
-
-    * List one
-    ^
-    * List two
-
-Since paragraphs support [line wrapping](#line-wrapping), it would usually not be possible to create
-compact nested list, i.e. a list where the text is not wrapped in paragraphs because there is no
-blank line but a sub list after it:
-
-    *   This is just text.
-        * this is a sub list item
-          * this is a sub sub list item
-    * This is just text,
-        spanning two lines
-      * this is a nested list item.
-
-However, this is an often used syntax and is therefore support by kramdown.
-
-If you want to start a paragraph with something that looks like a list item marker, you need to
-escape it. This is done by escaping the period in an ordered list or the list item marker in an
-unordered list:
-
-    1984\. It was great
-    \- others say that, too!
-
-As mentioned at the beginning, an optional IAL for applying attributes to a list item can be used
-after the list item marker:
-
-    * {:.cls} This item has the class "cls".
-      Here continues the above paragraph.
-
-    * This is a normal list item.
 
 
 ### Definition Lists
@@ -602,83 +411,6 @@ three spaces. The following examples show different possibilities to create a ho
     ---------------
 
 
-## Math Blocks
-
-> This syntax feature is not part of the original Markdown syntax. The idea comes from the [Maruku]
-> and [Pandoc] packages.
-{: .markdown-difference}
-
-kramdown has built-in support for block and span-level mathematics written in LaTeX.
-
-A math block needs to start and end on [block boundaries](#block-boundaries). It is started using
-two dollar signs, optionally indented up to three spaces. The math block continues until the next
-two dollar signs (which may be on the same line or on one of the next lines) that appear at the end
-of a line, i.e. they may only be followed by whitespace characters. The content of a math block has
-to be valid LaTeX math. It is always wrapped inside a `\begin{displaymath}...\end{displaymath}`
-enviroment except if it begins with a `\begin` statement.
-
-The following kramdown fragment
-
-    $$
-    \begin{align*}
-      & \phi(x,y) = \phi \left(\sum_{i=1}^n x_ie_i, \sum_{j=1}^n y_je_j \right)
-      = \sum_{i=1}^n \sum_{j=1}^n x_i y_j \phi(e_i, e_j) = \\
-      & (x_1, \ldots, x_n) \left( \begin{array}{ccc}
-          \phi(e_1, e_1) & \cdots & \phi(e_1, e_n) \\
-          \vdots & \ddots & \vdots \\
-          \phi(e_n, e_1) & \cdots & \phi(e_n, e_n)
-        \end{array} \right)
-      \left( \begin{array}{c}
-          y_1 \\
-          \vdots \\
-          y_n
-        \end{array} \right)
-    \end{align*}
-    $$
-
-renders (using Javascript library [MathJax](http://www.mathjax.org/)) as
-
-$$
-\begin{align*}
-  & \phi(x,y) = \phi \left(\sum_{i=1}^n x_ie_i, \sum_{j=1}^n y_je_j \right)
-  = \sum_{i=1}^n \sum_{j=1}^n x_i y_j \phi(e_i, e_j) = \\
-  & (x_1, \ldots, x_n) \left( \begin{array}{ccc}
-      \phi(e_1, e_1) & \cdots & \phi(e_1, e_n) \\
-      \vdots & \ddots & \vdots \\
-      \phi(e_n, e_1) & \cdots & \phi(e_n, e_n)
-    \end{array} \right)
-  \left( \begin{array}{c}
-      y_1 \\
-      \vdots \\
-      y_n
-    \end{array} \right)
-\end{align*}
-$$
-
-Using inline math is also easy: just surround your math content with two dollar signs, like with a
-math block. If you don't want to start an inline math statement, just escape the dollar signs and
-they will be treated as simple dollar signs.
-
-> **Note** that LaTeX code that uses the pipe symbol `|` in inline math statements may lead to a
-> line being recognized as a table line. This problem can be avoided by using the `\vert` command
-> instead of `|`!
-{:.information}
-
-If you have a paragraph that looks like a math block but should actually be a paragraph with just an
-inline math statement, you need to escape the first dollar sign:
-
-    The following is a math block:
-
-    $$ 5 + 5 $$
-
-    But next comes a paragraph with an inline math statement:
-
-    \$$ 5 + 5 $$
-
-If you don't even want the inline math statement, escape the first two dollar signs:
-
-    \$\$ 5 + 5 $$
-
 ## HTML Blocks
 
 > The original Markdown syntax specifies that an HTML block must start at the left margin, i.e. no
@@ -770,78 +502,6 @@ Parse as span-level elements
 > above lists also include span-level HTML tags in the case the `markdown` attribute is used on a
 > tag inside a raw HTML block.
 
-Here is a simple example input and its HTML output with `parse_block_html` set to `false`:
-
-    This is a para.
-    <div>
-    Something in here.
-    </div>
-    Other para.
-^
-    <p>This is a para.</p>
-    <div>
-    Something in here.
-    </div>
-    <p>Other para.</p>
-
-As one can see the content of the `div` tag will be parsed as raw HTML block and left alone.
-However, if the `markdown="1"` attribute was used on the `div` tag, the content would be parsed as
-block-level elements and therefore converted to a paragraph.
-
-You can also use several HTML tags at once:
-
-    <div id="content"><div id="layers"><div id="layer1">
-    This is some text in the `layer1` div.
-    </div>
-    This is some text in the `layers` div.
-    </div></div>
-    This is a para outside the HTML block.
-
-However, remember that if the content of a tag is parsed as block-level elements, the content that
-appears after a start/end tag but on the same line, is processed as if it appears on a new line:
-
-    <div markdown="1">This is the first part of a para,
-    which is continued here.
-    </div>
-
-    <p markdown="1">This works without problems because it is parsed as
-    span-level elements</p>
-
-    <div markdown="1">The end tag is not found because
-    this line is parsed as a paragraph</div>
-
-Since setting `parse_block_html` to `true` can lead to some not wanted behaviour, it is generally
-better to selectively enable or disable block/span-level elements parsing by using the `markdown`
-attribute!
-
-Unclosed block-level HTML tags are correctly closed at the end of the document to ensure correct
-nesting and invalidly used end tags are removed from the output:
-
-    This is a para.
-    <div markdown="1">
-    Another para.
-    </p>
-^
-    <p>This is a para.</p>
-    <div>
-      <p>Another para.</p>
-    </div>
-
-The parsing of processing instructions and XML comments is also supported. The content of both, PIs
-and XML comments, may span multiple lines. The start of a PI/XML comment may only appear at the
-beginning of a line, optionally indented up to three spaces. If there is text after the end of a PI
-or XML comment, it will be parsed as if it appears on a separate line. kramdown syntax in PIs/XML
-comments is not processed:
-
-    This is a para.
-    <!-- a *comment* -->
-    <? a processing `instruction`
-       spanning multiple lines
-    ?> First part of para,
-    continues here.
-
-
-
 # Text Markup
 
 These elements are all span-level elements and used inside block-level elements to markup text
@@ -849,8 +509,6 @@ fragments. For example, one can easily create links or apply emphasis to certain
 
 Note that empty span-level elements are not converted to empty HTML tags but are copied as-is to the
 output.
-
-
 
 ## Links and Images
 
@@ -1083,10 +741,6 @@ single space, for example:
 
 
 ## Footnotes
-
-> This syntax feature is not part of the original Markdown syntax. The idea and syntax comes from
-> the [PHP Markdown Extra] package.
-{: .markdown-difference}
 
 Footnotes in kramdown are similar to reference style links and link definitions. You need to place
 the footnote marker in the correct position in the text and the actual footnote content can be
