@@ -115,13 +115,7 @@ implements the following extensions:
     default in the `MarkdownBasic` and `MarkdownCommon` convenience
     functions), newlines in the input translate into line breaks in
     the output. This is activate by using two trailing spaces before
-    a new line.
-
-*   **LaTeX-style dash parsing** is an additional option, where `--`
-    is translated into `&ndash;`, and `---` is translated into
-    `&mdash;`. This differs from most smartypants processors, which
-    turn a single hyphen into an ndash and a double hyphen into an
-    mdash.
+    a new line. XXX(miek): this will probably be deleted.
 
 *   **Includes**, support including files with `{{filename}}` syntax.
 
@@ -193,7 +187,10 @@ implements the following extensions:
         *[HTML]: Hyper Text Markup Language
 
     Allows you to use HTML in the document and it will be expanded to
-    `<abbr title="Hyper Text Markup Language">HTML</abbr>`.
+    `<abbr title="Hyper Text Markup Language">HTML</abbr>`. If you need text that looks like
+    an abbreviation, but isn't, escape the colon:
+
+        *[HTML]\: HyperTextMarkupLanguage
 
 * **Super and subscripts**, for superscripts use '^' and for subscripts use '~'. For example:
 
