@@ -78,6 +78,14 @@ func (options *Xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	out.WriteString("<rfc ipr=\"" +
 		options.titleBlock.Ipr + "\" category=\"" +
 		options.titleBlock.Category + "\" docName=\"" + options.titleBlock.DocName + "\">\n")
+
+	// Default processing instructions
+	out.WriteString("<?rfc toc=\"yes\"?>\n")
+	out.WriteString("<?rfc symrefs=\"yes\"?>\n")
+	out.WriteString("<?rfc sortrefs=\"yes\"?>\n")
+	out.WriteString("<?rfc compact=\"yes\"?>\n")
+	out.WriteString("<?rfc subcompact=\"no\"?>\n")
+
 	out.WriteString("<front>\n")
 	out.WriteString("<title abbrev=\"" + options.titleBlock.Abbrev + "\">")
 	out.WriteString(options.titleBlock.Title + "</title>\n\n")

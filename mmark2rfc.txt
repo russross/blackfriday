@@ -61,6 +61,39 @@ Internet-Draft                  mmark2rfc                  December 2014
    the Trust Legal Provisions and are provided without warranty as
    described in the Simplified BSD License.
 
+Table of Contents
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Mmark Syntax  . . . . . . . . . . . . . . . . . . . . . . . .   3
+   3.  TOML header . . . . . . . . . . . . . . . . . . . . . . . . .   3
+   4.  Citations . . . . . . . . . . . . . . . . . . . . . . . . . .   3
+   5.  Document divisions  . . . . . . . . . . . . . . . . . . . . .   4
+   6.  Abstract  . . . . . . . . . . . . . . . . . . . . . . . . . .   4
+   7.  Captions  . . . . . . . . . . . . . . . . . . . . . . . . . .   4
+     7.1.  Figures . . . . . . . . . . . . . . . . . . . . . . . . .   4
+     7.2.  Quotes  . . . . . . . . . . . . . . . . . . . . . . . . .   4
+   8.  Tables  . . . . . . . . . . . . . . . . . . . . . . . . . . .   5
+   9.  Inline Attribute Lists  . . . . . . . . . . . . . . . . . . .   5
+   10. Miscellaneous . . . . . . . . . . . . . . . . . . . . . . . .   5
+     10.1.  Example Lists  . . . . . . . . . . . . . . . . . . . . .   5
+     10.2.  HTML Comment . . . . . . . . . . . . . . . . . . . . . .   5
+     10.3.  Including Files  . . . . . . . . . . . . . . . . . . . .   5
+     10.4.  Ordered lists  . . . . . . . . . . . . . . . . . . . . .   5
+   11. XML2RFC V3 features . . . . . . . . . . . . . . . . . . . . .   6
+     11.1.  Asides . . . . . . . . . . . . . . . . . . . . . . . . .   6
+     11.2.  Notes  . . . . . . . . . . . . . . . . . . . . . . . . .   6
+     11.3.  RFC 2119 Keywords  . . . . . . . . . . . . . . . . . . .   6
+     11.4.  Super- and Subscripts  . . . . . . . . . . . . . . . . .   6
+     11.5.  Images . . . . . . . . . . . . . . . . . . . . . . . . .   6
+   12. Converting from RFC 7328 Syntax . . . . . . . . . . . . . . .   6
+   13. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   7
+   14. References  . . . . . . . . . . . . . . . . . . . . . . . . .   7
+     14.1.  Informative References . . . . . . . . . . . . . . . . .   7
+     14.2.  Normative References . . . . . . . . . . . . . . . . . .   7
+     14.3.  URIs . . . . . . . . . . . . . . . . . . . . . . . . . .   7
+   Appendix A.  Bugs . . . . . . . . . . . . . . . . . . . . . . . .   8
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   8
+
 1.  Introduction
 
    Mmark [mmark] is a markdown processor.  It supports the basic
@@ -73,6 +106,13 @@ Internet-Draft                  mmark2rfc                  December 2014
    Mmark is a fork of blackfriday [blackfriday] written in Golang and it
    is very fast.  Input to mmark must be UTF-8, the output is also UTF-
    8.  Mmark converts tabs to 4 spaces.
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 2]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
 
    The goals of mmark are:
 
@@ -102,18 +142,6 @@ Internet-Draft                  mmark2rfc                  December 2014
 
 2.  Mmark Syntax
 
-
-
-
-
-
-
-
-Gieben                    Expires June 13, 2015                 [Page 2]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
-
 3.  TOML header
 
    Mmark uses TOML [toml] document header to specify the document's meta
@@ -134,6 +162,14 @@ Internet-Draft                  mmark2rfc                  December 2014
    If the need arises (usually when citing a document that is not in the
    XML2RFC database) an XML reference fragment can be included, note
    that this needs to happen _before_ the back matter is started,
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 3]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
    because that is the point when the references are outputted (right
    now the implementation does not scan the entire file for citations,
    also see Appendix A).
@@ -163,13 +199,6 @@ Internet-Draft                  mmark2rfc                  December 2014
    block).  Referencing these element (and thus creating an document
    "id" for them), is done with an IAL (Section 9:
 
-
-
-Gieben                    Expires June 13, 2015                 [Page 3]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
-
    {#identifier}
    Name    | Age
    --------|-----:
@@ -189,6 +218,13 @@ Internet-Draft                  mmark2rfc                  December 2014
    After a quote (a paragraph prefixed with ">") you can add a caption:
 
    Quote: Name -- URI for attribution
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 4]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
 
    In v3 this is used in the block quote attributes, for v2 it is
    discarded.
@@ -219,13 +255,6 @@ Internet-Draft                  mmark2rfc                  December 2014
    example lists work as well.  Note that an example list always needs
    to have an identifier, "(@good)" works "(@)" does not.
 
-
-
-Gieben                    Expires June 13, 2015                 [Page 4]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
-
 10.2.  HTML Comment
 
    If a HTML comment contains "--", it will be rendered as a "cref"
@@ -240,6 +269,18 @@ Internet-Draft                  mmark2rfc                  December 2014
 10.4.  Ordered lists
 
    mmark pays attention ot the starting number of a list and will ...
+
+
+
+
+
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 5]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
 
 11.  XML2RFC V3 features
 
@@ -261,7 +302,7 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    Any [RFC2119] keyword used with strong emphasis _and_ in uppercase
    will be typeset within "bcp14" tags, that is "**MUST**" becomes
-   "<bcp14>MUST</bcp14", but "**must**" will not.
+   "<bcp14>MUST</bcp14>", but "**must**" will not.
 
 11.4.  Super- and Subscripts
 
@@ -273,15 +314,6 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    Converting from an RFC 7328 ([RFC7328]) document can be done using
    the quick and dirty Perl script [11], which uses pandoc to output
-
-
-
-
-Gieben                    Expires June 13, 2015                 [Page 5]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
-
    markdown PHP extra and converts that into proper mmark: (mmark is
    more like markdown PHP extra, than like pandoc).
 
@@ -298,6 +330,13 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    o  Handles all figure and table captions and adds references (if
       appropriate);
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 6]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
 
    o  Probably has bugs, so a manual review should be in order.
 
@@ -323,37 +362,37 @@ Internet-Draft                  mmark2rfc                  December 2014
 
 14.1.  Informative References
 
-   [mmark]    Gieben, R., "Mmark git repository", December 2014,
-              <http://github.com/miekg/mmark>.
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119, March 1997.
 
    [blackfriday]
               "Blackfriday git repository", November 2011,
               <http://github.com/russross/blackfriday>.
 
-
-
-
-Gieben                    Expires June 13, 2015                 [Page 6]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
-
-   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
-              Requirement Levels", BCP 14, RFC 2119, March 1997.
+   [mmark]    Gieben, R., "Mmark git repository", December 2014,
+              <http://github.com/miekg/mmark>.
 
 14.2.  Normative References
 
-   [toml]     Preston-Werner, T., "TOML git repository", March 2013,
-              <https://github.com/toml-lang/toml>.
-
    [RFC7328]  Gieben, R., "Writing I-Ds and RFCs Using Pandoc and a Bit
               of XML", RFC 7328, August 2014.
+
+   [toml]     Preston-Werner, T., "TOML git repository", March 2013,
+              <https://github.com/toml-lang/toml>.
 
 14.3.  URIs
 
    [1] http://http://kramdown.gettalong.org/
 
    [2] http://michelf.com/projects/php-markdown/extra/
+
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 7]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
 
    [3] http://johnmacfarlane.net/pandoc/
 
@@ -383,17 +422,6 @@ Appendix A.  Bugs
    o  Citations must be included in the text before the "{backmatter}"
       starts.
 
-
-
-
-
-
-
-Gieben                    Expires June 13, 2015                 [Page 7]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
-
 Author's Address
 
    R. (Miek) Gieben
@@ -401,34 +429,6 @@ Author's Address
    Buckingham Palace Road
 
    Email: miek@google.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
