@@ -23,30 +23,29 @@ A> be used to create RFC documents. The aim of mmark is to make writing document
 A> as natural as possible, while providing a lot of power on how to structure and layout
 A> the document.
 A>
-A> Of course the
+A> The
 A> [source of this document](https://raw.githubusercontent.com/miekg/mmark/master/mmark2rfc.md)
-A> provides an excellent example.
+A> provides an good example.
 
 {mainmatter}
 
 # Introduction
 
-Mmark [@mmark] is a markdown processor. It supports the basic markdown syntax and has been
-extended to support more (syntax) features needed to write larger, structured documents
-such as RFC and I-Ds.
-The mmark syntax is based on the Markdown syntax and has been enhanced with features that are
-found in other Markdown implementations like [kramdown], [PHP markdown extra], [pandoc], [leanpub] and
-[asciidoc]. 
+Mmark [@mmark] is a markdown processor. It supports the basic markdown syntax
+and has been extended with (syntax) features found in other Markdown
+implementations like [kramdown], [PHP markdown extra], [pandoc], [leanpub] and
+[asciidoc]. This allows mmark to be used to write larger, structured documents
+such as RFC and I-Ds or even books.
 
-The goals of mmark can be stated as:
+Mmark is a fork of blackfriday [@blackfriday] written in Golang and it is very fast.
+Input to mmark must be UTF-8, the output is also UTF-8. Mmark converts tabs to 4 spaces.
+
+The goals of mmark are:
 
 {style="format (%I)"}
 1. Self contained: a single file can be converted to XML2RFC v2 or (v3) or HTML5;
 2. Make the markdown "source code" look as natural as possible;
 3. Provide seemless upgrade path to XML2RFC v3.
-
-Mmark is a fork of blackfriday [@blackfriday] written in Golang and it is very fast.
-Input to mmark must be UTF-8, the output is also UTF-8. Mmark converts tabs to 4 spaces.
 
 Using Figure 1 from [@!RFC7328], mmark can be positioned as follows:
 
@@ -57,7 +56,7 @@ Using Figure 1 from [@!RFC7328], mmark can be positioned as follows:
      +-------------------+            +---------+
                    |      \                 |
      non-existent  |       \_________       | xsltproc
-       faster way  |         mmark   \      |
+       faster way  |        *mmark*  \      |
                    v                  v     v
            +------------+    xml2rfc  +---------+
            | PLAIN TEXT |  <--------  |   XML   |
@@ -79,17 +78,18 @@ header must start with an `% `.
 
 # Citations
 
-A citation can be entered by using the syntax from pandoc [@pandoc]: `[@reference]`,
+A citation can be entered using the syntax from pandoc @pandoc: `[@reference]`,
 such a reference is "informative" by default. Making a reference informative or normative
 can be done with a `?` and `!` respectively: `[@!reference]` is a normative reference.
 
 For RFC and I-Ds the references are generated automatically, although for I-Ds you might
 need to include a draft version in the reference `[@?I-D.draft-blah,#06]`, creates an
-informative reference to the sixth version of draft-blah.
+informative reference to the seventh version of draft-blah.
 
-If the need arises an XML reference fragment can be included, note that this needs to happen
+If the need arises (usually when citing a document that is not in the XML2RFC database)
+an XML reference fragment can be included, note that this needs to happen
 *before* the back matter is started, because that is the point when the references are outputted
-(right now the implementation does not scan the entire file for citations).
+(right now the implementation does not scan the entire file for citations, also see [](#bugs)).
 
 # Document divisions
 
@@ -99,15 +99,8 @@ but is normally not need because the TOML header ([](#toml-header)) starts that 
 
 # Abstract
 
-Any paragraph prefix with `A> ` is an abstract. This is similar to asides and notes
-([](#asides) , [](#notes)) work.
-
-# Tables
-
-A table caption is signalled by using `Table: ` directly after the table.
-The table syntax used that one of
-[Markdown Extra](https://michelf.ca/projects/php-markdown/extra/#table).
-
+Any paragraph prefixed with `A> ` is an abstract. This is similar to asides and notes
+([](#asides) , [](#notes)) work. Note that an RFC doucment can only have one paragraph.
 
 # Captions
 
@@ -138,6 +131,14 @@ After a quote (a paragraph prefixed with `> `) you can add a caption:
 
 In v3 this is used in the block quote attributes, for v2 it is discarded.
 
+# Tables
+
+A table caption is signalled by using `Table: ` directly after the table.
+The table syntax used that one of
+[Markdown Extra](https://michelf.ca/projects/php-markdown/extra/#table).
+
+
+
 # Inline Attribute Lists
 
 This borrows from [kramdown][http://kramdown.gettalong.org/syntax.html#block-ials], which
@@ -155,7 +156,9 @@ arbitrary key value pairs where each key becomes an attribute.
 ## Example Lists
 
 This is the example list syntax
-[from pandoc](http://johnmacfarlane.net/pandoc/README.html#extension-example_lists).
+[from pandoc](http://johnmacfarlane.net/pandoc/README.html#extension-example_lists). References
+to example lists work as well. Note that an example list always needs to have an identifier,
+`(@good)` works `(@)` does not.
 
 
 ## HTML Comment
@@ -188,7 +191,7 @@ Any paragraph prefixed with `N> `. For v2 this becomes a indentend paragraph.
 ## RFC 2119 Keywords
 
 Any [@?RFC2119] keyword used with strong emphasis *and* in uppercase  will be typeset
-within `bcp14` tags, that is `**MUST**` becomes `<bcp14>MUST</bcp14`, but `**must**` will not.
+within `bcp14` tags, that is `**MUST**` becomes `<bcp14>MUST</bcp14>`, but `**must**` will not.
 
 ## Super- and Subscripts
 
@@ -283,6 +286,10 @@ This documents has been modeled after the excellent [kramdown syntax page](http:
 </reference>
 
 {backmatter}
+
+# Bugs
+
+* Citations must be included in the text before the `{backmatter}` starts.
 
 [kramdown]: http://http://kramdown.gettalong.org/
 [leanpub]: https://leanpub.com/help/manual
