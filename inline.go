@@ -65,6 +65,11 @@ func emphasis(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		if c == '~' && isspace(data[1]) {
 			return 0
 		}
+		// an emphasis character followed by a space is just that:
+		// a lone character
+		if isspace(data[1]) {
+			return 0
+		}
 		switch c {
 		case '~':
 			if ret = subscript(p, out, data[1:], 0); ret == 0 {
@@ -1226,10 +1231,8 @@ func helperEmphasis(p *parser, out *bytes.Buffer, data []byte, c byte) int {
 
 		if data[i] == c && !isspace(data[i-1]) {
 
-			if p.flags&EXTENSION_NO_INTRA_EMPHASIS != 0 {
-				if !(i+1 == len(data) || isspace(data[i+1]) || ispunct(data[i+1])) {
-					continue
-				}
+			if c != '*' && !(i+1 == len(data) || isspace(data[i+1]) || ispunct(data[i+1])) {
+				continue
 			}
 
 			var work bytes.Buffer
@@ -1397,7 +1400,7 @@ func exampleReference(p *parser, out *bytes.Buffer, data []byte, offset int) int
 	}
 	if e, ok := p.examples[string(data[2:i])]; ok {
 		p.r.Example(out, e.last)
-		return i+1
+		return i + 1
 	}
 	return 0
 }

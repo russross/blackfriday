@@ -9,7 +9,8 @@ Mmark is a fork of blackfriday which is a [Markdown][1] processor implemented in
 [Go][2]. It supports a number of extensions, inspired by Leanpub, kramdown and
 Asciidoc, that allows for large documents to be written. It is specifically
 designed to write internet drafts and RFCs for the IETF. With mmark you can create
-a single file that serves as input into the XML2RFC processor.
+a single file that serves as input into the XML2RFC processor. But is also allows
+for writing large documents such as technical books.
 
 It can currently output HTML5, XML2RFC v2 and XML2RFC v3 XML. Other output
 engines could be easily added.
@@ -36,10 +37,6 @@ It adds the following syntax elements to [black friday](https://github.com/russr
 * Abbreviations;
 * Super- and subscript;
 * HTML renderer uses HTML5 (TODO).
-
-It removes the following:
-
-* Smartypants support.
 
 Mmark is forked from blackfriday which started out as a translation from C of [upskirt][4].
 
@@ -118,13 +115,7 @@ implements the following extensions:
     default in the `MarkdownBasic` and `MarkdownCommon` convenience
     functions), newlines in the input translate into line breaks in
     the output. This is activate by using two trailing spaces before
-    a new line.
-
-*   **LaTeX-style dash parsing** is an additional option, where `--`
-    is translated into `&ndash;`, and `---` is translated into
-    `&mdash;`. This differs from most smartypants processors, which
-    turn a single hyphen into an ndash and a double hyphen into an
-    mdash.
+    a new line. XXX(miek): this will probably be deleted.
 
 *   **Includes**, support including files with `{{filename}}` syntax.
 
@@ -141,6 +132,9 @@ implements the following extensions:
     can be done as such: `[@?I-D.draft-blah,#06]`. If you have other references
     you can include the raw XML in the document (before the `{backmatter}`).
     Also see **XML references**.
+
+    Once a citation has been defined (i.e. the reference anchor is known to mmark)
+    you can use @RFC2535 is a shortcut for the citation.
 
 *  **Captions**, table and figure/code block captions. For tables add the string
     `Table: caption text` after the table, this will be rendered as an caption. For
@@ -196,7 +190,10 @@ implements the following extensions:
         *[HTML]: Hyper Text Markup Language
 
     Allows you to use HTML in the document and it will be expanded to
-    `<abbr title="Hyper Text Markup Language">HTML</abbr>`.
+    `<abbr title="Hyper Text Markup Language">HTML</abbr>`. If you need text that looks like
+    an abbreviation, but isn't, escape the colon:
+
+        *[HTML]\: HyperTextMarkupLanguage
 
 * **Super and subscripts**, for superscripts use '^' and for subscripts use '~'. For example:
 
@@ -213,6 +210,10 @@ implements the following extensions:
     if caption is given, wrap in figure -> otherwise not.
 *   Extension to recognize pandoc2rfc indices?
 *   Extend table syntax to support multi line tables?
+
+*   pandoc line_blocks
+*   pandoc multi_line_tables
+*   escaping chars
 
 *   make webservers that converts for you
 *   cleanups - and loose a bunch of extensions, turn them on per default

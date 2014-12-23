@@ -33,8 +33,10 @@ A> provides an excellent example.
 
 Mmark [@mmark] is a markdown processor. It supports the basic markdown syntax and has been
 extended to support more (syntax) features needed to write larger, structured documents
-such as RFC and I-Ds. The extra syntax elements have been copied from kramdown, leanpub,
-markdown extra and Asciidoc.
+such as RFC and I-Ds.
+The mmark syntax is based on the Markdown syntax and has been enhanced with features that are
+found in other Markdown implementations like [kramdown], [PHP markdown extra], [pandoc], [leanpub] and
+[asciidoc]. 
 
 The goals of mmark can be stated as:
 
@@ -44,6 +46,8 @@ The goals of mmark can be stated as:
 3. Provide seemless upgrade path to XML2RFC v3.
 
 Mmark is a fork of blackfriday [@blackfriday] written in Golang and it is very fast.
+Input to mmark must be UTF-8, the output is also UTF-8. Mmark converts tabs to 4 spaces.
+
 Using Figure 1 from [@!RFC7328], mmark can be positioned as follows:
 
 {#fig:mmark}
@@ -98,6 +102,13 @@ but is normally not need because the TOML header ([](#toml-header)) starts that 
 Any paragraph prefix with `A> ` is an abstract. This is similar to asides and notes
 ([](#asides) , [](#notes)) work.
 
+# Tables
+
+A table caption is signalled by using `Table: ` directly after the table.
+The table syntax used that one of
+[Markdown Extra](https://michelf.ca/projects/php-markdown/extra/#table).
+
+
 # Captions
 
 Whenever an blockquote, fenced codeblock or image has caption text, the entire block is wrapped
@@ -118,12 +129,6 @@ An empty line between the IAL and the table of indented code block is allowed.
 ## Figures
 
 Any text directly after the figure starting with `Figure: ` is used as the caption.
-
-## Table
-
-A table caption is signalled by using `Table: ` directly after the table.
-The table syntax used that one of
-[Markdown Extra](https://michelf.ca/projects/php-markdown/extra/#table).
 
 ## Quotes
 
@@ -152,7 +157,6 @@ arbitrary key value pairs where each key becomes an attribute.
 This is the example list syntax
 [from pandoc](http://johnmacfarlane.net/pandoc/README.html#extension-example_lists).
 
-The reference syntax `(@list-id)` is *not* (yet?) supported.
 
 ## HTML Comment
 
@@ -163,6 +167,10 @@ XML file. Typically `<!-- Miek Gieben -- you want to include the next paragraph?
 
 Files can be included using ``{{filename}}``, `filename` is relative to the current working
 directory if it is not absolute.
+
+## Ordered lists
+
+mmark pays attention ot the starting number of a list and will ...
 
 # XML2RFC V3 features
 
@@ -275,3 +283,9 @@ This documents has been modeled after the excellent [kramdown syntax page](http:
 </reference>
 
 {backmatter}
+
+[kramdown]: http://http://kramdown.gettalong.org/
+[leanpub]: https://leanpub.com/help/manual
+[asciidoc]: http://www.methods.co.nz/asciidoc/
+[PHP markdown extra]: http://michelf.com/projects/php-markdown/extra/
+[pandoc]: http://johnmacfarlane.net/pandoc/
