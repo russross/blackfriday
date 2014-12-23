@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/miekg/mmark.svg?branch=master)](https://travis-ci.org/miekg/mmark)
-[![GoDoc](https://godoc.org/github.com/miekg/mmark?status.svg)](https://godoc.org/github.com/miekg/mmark)  
+[![GoDoc](https://godoc.org/github.com/miekg/mmark?status.svg)](https://godoc.org/github.com/miekg/mmark)
 
 Everything that was true of [blackfriday][5], might not be true for mmark anymore.
 
@@ -93,10 +93,9 @@ implements the following extensions:
 
     If a table is started with a *multiline table header*, which starts
     with a pipe and a number of dashes (may also include plus signs, or
-    colons (but does are ignored): `|--+---`. Only when another header
+    colons (but those are ignored): `|--+---`. Only when another header
     line as seen a new row is started, allow tables to have block level
-    elements. The tables stops on the first line that does not start with a
-    pipe symbol.
+    elements.
 
     ```
     |-----------------+------------+-----------------|
@@ -110,7 +109,10 @@ implements the following extensions:
     | 2 line          |            |                 |
     |=================+============+=================|
     | Footer row      |            |                 |
+    | more lines
     ```
+
+    Note that the header must still be one line.
 
 *   **Fenced code blocks**. In addition to the normal 4-space
     indentation to mark code blocks, you can explicitly mark them
