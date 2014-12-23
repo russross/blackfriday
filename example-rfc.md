@@ -35,6 +35,9 @@ In this document, the key words "MUST", "MUST NOT", "REQUIRED",
 "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY",
 and "OPTIONAL" are to be interpreted as described in [@!RFC2119].
 
+Once defined you can just use citations like @RFC2119, which *just* works.
+@miekg is not a citation, so it will not be seen as one.
+
 # DS Record Field Values
 
 AS> When typesetting something in an aide

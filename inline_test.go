@@ -991,6 +991,9 @@ func TestCitationXML(t *testing.T) {
 
 		"[@?I-D.6man-udpzero p. 23]",
 		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t><xref target=\"I-D.6man-udpzero\" section=\"p. 23\"/></t>\n\n</middle>\n<back>\n<references title=\"Informative References\">\n<xi:include href=\"reference.I-D.draft-6man-udpzero.xml\"/>\n\n</back>\n</rfc>\n",
+
+		"[@RFC2525], as you can see from @RFC2525, as @miekg says",
+		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t><xref target=\"RFC2525\"/>, as you can see from <xref target=\"RFC2525\"/>, as @miekg says</t>\n\n</middle>\n<back>\n<references title=\"Informative References\">\n<xi:include href=\"reference.RFC.2525.xml\"/>\n\n</back>\n</rfc>\n",
 	}
 	doTestsInlineParamXML(t, tests, 0, XML_STANDALONE)
 }

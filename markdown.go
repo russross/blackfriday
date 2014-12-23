@@ -299,6 +299,7 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	}
 
 	if extensions&EXTENSION_CITATION != 0 {
+		p.inlineCallback['@'] = citationReference // @ref, short form of citations
 		p.citations = make(map[string]*citation)
 	}
 
