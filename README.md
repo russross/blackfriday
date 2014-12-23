@@ -150,7 +150,10 @@ implements the following extensions:
 
 *  **Quote attribution**, after a blockquote you can optionally use
     `Quote: John Doe -- http://example.org`, where
-    the quote will be attributed to John Doe, pointing to the URL.
+    the quote will be attributed to John Doe, pointing to the URL:
+
+        > Ability is nothing without opportunity.
+        Quote: Napoleon Bonaparte -- http://example.com
 
 *  **Notes**, any parapgraph with `N>`
 
