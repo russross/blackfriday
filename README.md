@@ -133,6 +133,9 @@ implements the following extensions:
     you can include the raw XML in the document (before the `{backmatter}`).
     Also see **XML references**.
 
+    Once a citation has been defined (i.e. the reference anchor is known to mmark)
+    you can use @RFC2535 is a shortcut for the citation.
+
 *  **Captions**, table and figure/code block captions. For tables add the string
     `Table: caption text` after the table, this will be rendered as an caption. For
     code blocks you'll need to use `Figure: `
