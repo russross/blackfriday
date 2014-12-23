@@ -150,6 +150,24 @@ func TestEmphasis(t *testing.T) {
 
 		"_does_ work\n",
 		"<p><em>does</em> work</p>\n",
+
+		"This is a * literal asterisk as is this *\n",
+		"<p>This is a * literal asterisk as is this *</p>\n",
+
+		"These are ** two literal asterisk.\n",
+		"<p>These are ** two literal asterisk.</p>\n",
+
+		"As \\*are\\* these!\n",
+		"<p>As *are* these!</p>\n",
+
+		"This is an underscore _ and a _word_\n",
+		"<p>This is an underscore _ and a <em>word</em></p>\n",
+
+		"This is a not a literal one *hallo there!*\n",
+		"<p>This is a not a literal one <em>hallo there!</em></p>\n",
+
+		"**This**",
+		"<p><strong>This</strong></p>\n",
 	}
 	doTestsInline(t, tests)
 }

@@ -65,6 +65,11 @@ func emphasis(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		if c == '~' && isspace(data[1]) {
 			return 0
 		}
+		// an emphasis character followed by a space is just that:
+		// a lone character
+		if isspace(data[1]) {
+			return 0
+		}
 		switch c {
 		case '~':
 			if ret = subscript(p, out, data[1:], 0); ret == 0 {
