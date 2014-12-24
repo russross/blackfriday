@@ -11,10 +11,13 @@
 | 2 line          |            | 3. Item3        |
 | 2 line          |            |                 |
 |-----------------+------------+-----------------+
-| Second body     |            |                 |
-| 2 line          |            |  1. Item1       |
-| 2 line          |            |  2. Item2       |
-| 2 line          |            |  3. Item3       |
+| Third  body     |            |                 |
+| 3 line          |            |  1. Item1       |
+| 3 line          |            |  2. Item2       |
+| 3 line          |            |  3. Item3       |
+| 3 line          |            |                 |
+| 3 line          |            |  Works for me   |
+| 3 line          |            |                 |
 +=================+============+=================|
 | Footer row2     |   dhsjds   |      sjds       |
 |-----------------+------------+-----------------

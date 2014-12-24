@@ -171,7 +171,8 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			}
 		}
 
-		// multiLineTable:
+		// block table:
+		// (cells contain block elements)
 		//
 		// |-------|-----|---------
 		// | Name  | Age | Phone
@@ -182,7 +183,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// | Bob   | 31  | 555-1234
 		// | Alice | 27  | 555-4321
 		if p.flags&EXTENSION_TABLES != 0 {
-			if i := p.multiLineTable(out, data); i > 0 {
+			if i := p.blockTable(out, data); i > 0 {
 				data = data[i:]
 				continue
 			}
@@ -923,7 +924,7 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 
 		// include the newline in data sent to tableRow
 		i++
-		if !foot && p.isTableFooter(out, data[rowStart:i]) > 0 {
+		if !foot && p.isTableFooter(data[rowStart:i]) > 0 {
 			foot = true
 			continue
 		}
@@ -959,14 +960,14 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 	return j
 }
 
-func (p *parser) multiLineTable(out *bytes.Buffer, data []byte) int {
+func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 	var (
 		header  bytes.Buffer
 		body    bytes.Buffer
 		footer  bytes.Buffer
 		rowWork bytes.Buffer
 	)
-	i := p.isMultilineTableSeperator(out, data)
+	i := p.isMultilineTableSeperator(data)
 	if i == 0 {
 		return 0
 	}
@@ -978,7 +979,6 @@ func (p *parser) multiLineTable(out *bytes.Buffer, data []byte) int {
 	// each cell in a row gets multiple lines which we store per column, we
 	// process the buffers when we so a row seperator (isMultiLineTableSeperator)
 	bodies := make([]bytes.Buffer, len(columns))
-	footers := make([]bytes.Buffer, len(columns))
 	println("HEADER parsed")
 
 	foot := false
@@ -998,42 +998,41 @@ func (p *parser) multiLineTable(out *bytes.Buffer, data []byte) int {
 
 		// include the newline in data sent to tableRow
 		i++
-		if !foot && p.isTableFooter(out, data[rowStart:i]) > 0 {
-			// todo process previous cells
-			println("F O O T E R")
-			foot = true
-			continue
-		}
-		if j := p.isMultilineTableSeperator(nil, data[rowStart:i]); j > 0 {
+		if !foot && p.isTableFooter(data[rowStart:i]) > 0 {
+			// footer is a seperator as well
 			var cellWork bytes.Buffer
 			for c := 0; c < len(columns); c++ {
 				cellWork.Truncate(0)
-				if foot {
-					p.block(&cellWork, footers[c].Bytes())
-				} else {
-					println("WORKING ON\n", string(bodies[c].Bytes()))
-					p.block(&cellWork, bodies[c].Bytes())
-					bodies[c].Truncate(0)
-				}
+				p.block(&cellWork, bodies[c].Bytes())
+				bodies[c].Truncate(0)
 				p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c])
 			}
-			if foot {
-				p.r.TableRow(&footer, rowWork.Bytes())
-			} else {
-				p.r.TableRow(&body, rowWork.Bytes())
-			}
+			p.r.TableRow(&body, rowWork.Bytes())
 			rowWork.Truncate(0)
-			println("S E P E R A T O R")
+
+			foot = true
+			continue
+		}
+		if j := p.isMultilineTableSeperator(data[rowStart:i]); j > 0 {
+			var cellWork bytes.Buffer
+			for c := 0; c < len(columns); c++ {
+				cellWork.Truncate(0)
+				p.block(&cellWork, bodies[c].Bytes())
+				bodies[c].Truncate(0)
+				p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c])
+			}
+			p.r.TableRow(&body, rowWork.Bytes())
+			rowWork.Truncate(0)
+
 			i += j
 			continue
 		}
+		p.blockTableRow(bodies, data[rowStart:i])
 		if foot {
-			p.multiLineTableRow(footers, data[rowStart:i])
-			continue
+			p.tableRow(&footer, data[rowStart:i], columns, false)
 		}
-		p.multiLineTableRow(bodies, data[rowStart:i])
 	}
-	// caption
+	// caption, remaining row, row padding
 	p.r.Table(out, header.Bytes(), body.Bytes(), footer.Bytes(), columns, nil)
 
 	return i
@@ -1205,7 +1204,7 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 	p.r.TableRow(out, rowWork.Bytes())
 }
 
-func (p *parser) multiLineTableRow(out []bytes.Buffer, data []byte) {
+func (p *parser) blockTableRow(out []bytes.Buffer, data []byte) {
 	i, col := 0, 0
 
 	if data[i] == '|' && !isBackslashEscaped(data, i) {
@@ -1233,19 +1232,13 @@ func (p *parser) multiLineTableRow(out []bytes.Buffer, data []byte) {
 		for cellEnd > cellStart && data[cellEnd-1] == ' ' {
 			cellEnd--
 		}
-		// write this line to the buffer for this column. Add a newline because that is implicit.
-		if cellStart == cellEnd {
-			return
-		}
-
-		println("A", string(data[cellStart:cellEnd]), "A", cellStart, cellEnd )
 		out[col].Write(data[cellStart:cellEnd])
 		out[col].WriteByte('\n')
 	}
 }
 
 // optional | or + at the beginning, then at least 3 equals
-func (p *parser) isTableFooter(out *bytes.Buffer, data []byte) int {
+func (p *parser) isTableFooter(data []byte) int {
 	i := 0
 	if data[i] == '|' || data[i] == '+' {
 		i++
@@ -1263,7 +1256,7 @@ func (p *parser) isTableFooter(out *bytes.Buffer, data []byte) int {
 }
 
 // this starts a table and also serves as a row divider, basically three dashes with optional | or + at the start
-func (p *parser) isMultilineTableSeperator(out *bytes.Buffer, data []byte) int {
+func (p *parser) isMultilineTableSeperator(data []byte) int {
 	i := 0
 	if data[i] == '|' || data[i] == '+' {
 		i++
