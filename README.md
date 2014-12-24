@@ -91,11 +91,11 @@ implements the following extensions:
     Charlie | 4
     ```
 
-    If a table is started with a *multiline table header*, which starts
-    with a pipe and a number of dashes (may also include plus signs, or
-    colons (but those are ignored): `|--+---`. Only when another header
-    line as seen a new row is started, allow tables to have block level
-    elements.
+    If a table is started with a *block table header*, which starts
+    with an optional pipe or plus sign and a minimum of three dashes,
+    it is a block table. A block table may include block level elements in each
+    (body) cell. If we want to start a new cell reuse the block table header
+    syntax. In the exampe below we include a list in one of the cells.
 
     ```
     |-----------------+------------+-----------------|
@@ -105,14 +105,13 @@ implements the following extensions:
     | Second line     |foo         | **strong**      |
     | Third line      |quux        | baz             |
     |-----------------+------------+-----------------|
-    | Second body     |            |                 |
-    | 2 line          |            |                 |
+    | Second body     |            | 1. Item2        |
+    | 2 line          |            | 2. Item2        |
     |=================+============+=================|
     | Footer row      |            |                 |
-    | more lines
     ```
 
-    Note that the header must still be one line.
+    Note that the header and footer can't contain block level elements.
 
 *   **Fenced code blocks**. In addition to the normal 4-space
     indentation to mark code blocks, you can explicitly mark them

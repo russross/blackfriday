@@ -185,6 +185,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		if p.flags&EXTENSION_TABLES != 0 {
 			if i := p.blockTable(out, data); i > 0 {
 				data = data[i:]
+				println("WHAT's LEFT", string(data))
 				continue
 			}
 		}
@@ -910,6 +911,11 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 	foot := false
 
 	for i < len(data) {
+		if j := p.isTableFooter(data[i:]); j > 0 && !foot {
+			foot = true
+			i += j
+			continue
+		}
 		pipes, rowStart := 0, i
 		for ; data[i] != '\n'; i++ {
 			if data[i] == '|' {
@@ -924,10 +930,6 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 
 		// include the newline in data sent to tableRow
 		i++
-		if !foot && p.isTableFooter(data[rowStart:i]) > 0 {
-			foot = true
-			continue
-		}
 		if foot {
 			p.tableRow(&footer, data[rowStart:i], columns, false)
 			continue
@@ -967,7 +969,7 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 		footer  bytes.Buffer
 		rowWork bytes.Buffer
 	)
-	i := p.isBlockTableSeperator(data)
+	i := p.isBlockTableHeader(data)
 	if i == 0 || i == len(data) {
 		return 0
 	}
@@ -977,13 +979,34 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 		return 0
 	}
 	// each cell in a row gets multiple lines which we store per column, we
-	// process the buffers when we so a row seperator (isBlockTableSeperator)
+	// process the buffers when we so a row seperator (isBlockTableHeader)
 	bodies := make([]bytes.Buffer, len(columns))
-	println("HEADER parsed")
 
 	foot := false
 
 	for i < len(data) {
+		if j := p.isTableFooter(data[i:]); j > 0 && !foot {
+			// prepare previous ones
+			foot = true
+			i += j
+			continue
+		}
+		if j := p.isBlockTableHeader(data[i:]); j > 0 && !foot {
+			// foot stuff is wrong too
+			println("HEADER +  SIZE", string(data[i:i+j]), j)
+			var cellWork bytes.Buffer
+			for c := 0; c < len(columns); c++ {
+				cellWork.Truncate(0)
+				p.block(&cellWork, bodies[c].Bytes())
+				bodies[c].Truncate(0)
+				p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c])
+			}
+			p.r.TableRow(&body, rowWork.Bytes())
+			rowWork.Truncate(0)
+			i += j
+			continue
+		}
+
 		pipes, rowStart := 0, i
 		for ; data[i] != '\n'; i++ {
 			if data[i] == '|' {
@@ -993,48 +1016,23 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 
 		if pipes == 0 {
 			i = rowStart
+			println("WHAAHAAH")
 			break
 		}
 
-		// include the newline in data sent to tableRow
+		// include the newline in data sent to tableRow and blockTabeRow
 		i++
-		if !foot && p.isTableFooter(data[rowStart:i]) > 0 {
-			// footer is a seperator as well
-			var cellWork bytes.Buffer
-			for c := 0; c < len(columns); c++ {
-				cellWork.Truncate(0)
-				p.block(&cellWork, bodies[c].Bytes())
-				bodies[c].Truncate(0)
-				p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c])
-			}
-			p.r.TableRow(&body, rowWork.Bytes())
-			rowWork.Truncate(0)
-
-			foot = true
-			continue
-		}
-		if j := p.isBlockTableSeperator(data[rowStart:i]); j > 0 {
-			var cellWork bytes.Buffer
-			for c := 0; c < len(columns); c++ {
-				cellWork.Truncate(0)
-				p.block(&cellWork, bodies[c].Bytes())
-				bodies[c].Truncate(0)
-				p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c])
-			}
-			p.r.TableRow(&body, rowWork.Bytes())
-			rowWork.Truncate(0)
-
-			i += j
-			continue
-		}
-		p.blockTableRow(bodies, data[rowStart:i])
+		println("I", i)
 		if foot {
 			p.tableRow(&footer, data[rowStart:i], columns, false)
+		} else {
+			p.blockTableRow(bodies, data[rowStart:i])
 		}
 	}
-	// caption, remaining row, row padding
+	// caption, remaining rows, row padding, remaingig sperators
 	p.r.Table(out, header.Bytes(), body.Bytes(), footer.Bytes(), columns, nil)
 
+	println("REMAINING", string(data[i:]))
 	return i
 }
 
@@ -1232,6 +1230,7 @@ func (p *parser) blockTableRow(out []bytes.Buffer, data []byte) {
 		for cellEnd > cellStart && data[cellEnd-1] == ' ' {
 			cellEnd--
 		}
+		println("ADDING for col", col, string(data[cellStart:cellEnd]))
 		out[col].Write(data[cellStart:cellEnd])
 		out[col].WriteByte('\n')
 	}
@@ -1256,7 +1255,7 @@ func (p *parser) isTableFooter(data []byte) int {
 }
 
 // this starts a table and also serves as a row divider, basically three dashes with optional | or + at the start
-func (p *parser) isBlockTableSeperator(data []byte) int {
+func (p *parser) isBlockTableHeader(data []byte) int {
 	i := 0
 	if data[i] == '|' || data[i] == '+' {
 		i++
