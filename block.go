@@ -967,8 +967,8 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 		footer  bytes.Buffer
 		rowWork bytes.Buffer
 	)
-	i := p.isMultilineTableSeperator(data)
-	if i == 0 {
+	i := p.isBlockTableSeperator(data)
+	if i == 0 || i == len(data) {
 		return 0
 	}
 	data = data[i:]
@@ -977,7 +977,7 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 		return 0
 	}
 	// each cell in a row gets multiple lines which we store per column, we
-	// process the buffers when we so a row seperator (isMultiLineTableSeperator)
+	// process the buffers when we so a row seperator (isBlockTableSeperator)
 	bodies := make([]bytes.Buffer, len(columns))
 	println("HEADER parsed")
 
@@ -1013,7 +1013,7 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 			foot = true
 			continue
 		}
-		if j := p.isMultilineTableSeperator(data[rowStart:i]); j > 0 {
+		if j := p.isBlockTableSeperator(data[rowStart:i]); j > 0 {
 			var cellWork bytes.Buffer
 			for c := 0; c < len(columns); c++ {
 				cellWork.Truncate(0)
@@ -1243,7 +1243,7 @@ func (p *parser) isTableFooter(data []byte) int {
 	if data[i] == '|' || data[i] == '+' {
 		i++
 	}
-	if len(data[i:]) < 3 {
+	if len(data[i:]) < 4 {
 		return 0
 	}
 	if data[i+1] != '=' && data[i+2] != '=' && data[i+3] != '=' {
@@ -1256,12 +1256,12 @@ func (p *parser) isTableFooter(data []byte) int {
 }
 
 // this starts a table and also serves as a row divider, basically three dashes with optional | or + at the start
-func (p *parser) isMultilineTableSeperator(data []byte) int {
+func (p *parser) isBlockTableSeperator(data []byte) int {
 	i := 0
 	if data[i] == '|' || data[i] == '+' {
 		i++
 	}
-	if len(data[i:]) < 3 {
+	if len(data[i:]) < 4 {
 		return 0
 	}
 	if data[i+1] != '-' && data[i+2] != '-' && data[i+3] != '-' {
