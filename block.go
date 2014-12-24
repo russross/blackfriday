@@ -1004,14 +1004,16 @@ func (p *parser) multiLineTable(out *bytes.Buffer, data []byte) int {
 			foot = true
 			continue
 		}
-		if j := p.isMultilineTableSeperator(out, data[rowStart:i]); j > 0 {
+		if j := p.isMultilineTableSeperator(nil, data[rowStart:i]); j > 0 {
 			var cellWork bytes.Buffer
 			for c := 0; c < len(columns); c++ {
 				cellWork.Truncate(0)
 				if foot {
 					p.block(&cellWork, footers[c].Bytes())
 				} else {
+					println("WORKING ON\n", string(bodies[c].Bytes()))
 					p.block(&cellWork, bodies[c].Bytes())
+					bodies[c].Truncate(0)
 				}
 				p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c])
 			}
@@ -1020,7 +1022,7 @@ func (p *parser) multiLineTable(out *bytes.Buffer, data []byte) int {
 			} else {
 				p.r.TableRow(&body, rowWork.Bytes())
 			}
-			//rowWork.Truncate(0)
+			rowWork.Truncate(0)
 			println("S E P E R A T O R")
 			i += j
 			continue
@@ -1211,7 +1213,9 @@ func (p *parser) multiLineTableRow(out []bytes.Buffer, data []byte) {
 	}
 
 	for col = 0; col < len(out) && i < len(data); col++ {
+		space := i
 		for data[i] == ' ' {
+			space++
 			i++
 		}
 
@@ -1230,6 +1234,11 @@ func (p *parser) multiLineTableRow(out []bytes.Buffer, data []byte) {
 			cellEnd--
 		}
 		// write this line to the buffer for this column. Add a newline because that is implicit.
+		if cellStart == cellEnd {
+			return
+		}
+
+		println("A", string(data[cellStart:cellEnd]), "A", cellStart, cellEnd )
 		out[col].Write(data[cellStart:cellEnd])
 		out[col].WriteByte('\n')
 	}
