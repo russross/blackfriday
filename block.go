@@ -1039,8 +1039,10 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 		for c := 0; c < len(columns); c++ {
 			var cellWork bytes.Buffer
 			cellWork.Truncate(0)
-			p.block(&cellWork, bodies[c].Bytes())
-			bodies[c].Truncate(0)
+			if bodies[c].Len() > 0 {
+				p.block(&cellWork, bodies[c].Bytes())
+				bodies[c].Truncate(0)
+			}
 			p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c])
 		}
 		p.r.TableRow(&body, rowWork.Bytes())
