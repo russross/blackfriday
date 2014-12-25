@@ -220,7 +220,7 @@ Note this:
 * Probably has bugs, so a manual review should be in order.
 
 There is also [titleblock.pl](https://raw.githubusercontent.com/miekg/mmark/master/convert/titleblock.pl)
-which can be given an [@RFC7328] `template.xml` file and will output a TOML titleblock, that can
+which can be given an @RFC7328 `template.xml` file and will output a TOML titleblock, that can
 be used as a starting point.
 
 AS> Yes, this uses pandoc and Perl.. why? Becasue if mmark could parse the file by itself, there wasn't much
@@ -289,7 +289,9 @@ This documents has been modeled after the excellent [kramdown syntax page](http:
 
 # Bugs
 
-* Citations must be included in the text before the `{backmatter}` starts.
+*   Citations must be included in the text before the `{backmatter}` starts, 
+    otherwise they are not available in the appendix.
+*   Inline Attribute Lists must be given *before* the block element.
 
 [kramdown]: http://http://kramdown.gettalong.org/
 [leanpub]: https://leanpub.com/help/manual
