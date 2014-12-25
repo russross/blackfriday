@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/miekg/mmark.svg?branch=master)](https://travis-ci.org/miekg/mmark)
-[![GoDoc](https://godoc.org/github.com/miekg/mmark?status.svg)](https://godoc.org/github.com/miekg/mmark)  
+[![GoDoc](https://godoc.org/github.com/miekg/mmark?status.svg)](https://godoc.org/github.com/miekg/mmark)
 
 Everything that was true of [blackfriday][5], might not be true for mmark anymore.
 
@@ -78,8 +78,9 @@ implements the following extensions:
     Alice   | 23
     ```
 
-    Tables can also have a footer, use equal signs instead of dashes.
-    If there are multiple footer line, the first one is used as a
+    Tables can also have a footer, use equal signs instead of dashes for
+    the separator.
+    If there are multiple footer lines, the first one is used as a
     starting point for the table footer.
 
     ```
@@ -90,6 +91,29 @@ implements the following extensions:
     ======= | ====
     Charlie | 4
     ```
+
+    If a table is started with a *block table header*, which starts
+    with an optional pipe or plus sign and a minimum of three dashes,
+    it is a **Block Table**. A block table may include block level elements in each
+    (body) cell. If we want to start a new cell reuse the block table header
+    syntax. In the exampe below we include a list in one of the cells.
+
+    ```
+    |-----------------+------------+-----------------|
+    | Default aligned |Left aligned| Center aligned  |
+    |-----------------|:-----------|:---------------:|
+    | First body part |Second cell | Third cell      |
+    | Second line     |foo         | **strong**      |
+    | Third line      |quux        | baz             |
+    |-----------------+------------+-----------------|
+    | Second body     |            | 1. Item2        |
+    | 2 line          |            | 2. Item2        |
+    |=================+============+=================|
+    | Footer row      |            |                 |
+    |-----------------+------------+-----------------|
+    ```
+
+    Note that the header and footer can't contain block level elements.
 
 *   **Fenced code blocks**. In addition to the normal 4-space
     indentation to mark code blocks, you can explicitly mark them

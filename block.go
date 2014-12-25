@@ -160,13 +160,31 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 
 		// table:
 		//
-		// Table: this is a caption
 		// Name  | Age | Phone
 		// ------|-----|---------
 		// Bob   | 31  | 555-1234
 		// Alice | 27  | 555-4321
+		// Table: this is a caption
 		if p.flags&EXTENSION_TABLES != 0 {
 			if i := p.table(out, data); i > 0 {
+				data = data[i:]
+				continue
+			}
+		}
+
+		// block table:
+		// (cells contain block elements)
+		//
+		// |-------|-----|---------
+		// | Name  | Age | Phone
+		// | ------|-----|---------
+		// | Bob   | 31  | 555-1234
+		// | Alice | 27  | 555-4321
+		// |-------|-----|---------
+		// | Bob   | 31  | 555-1234
+		// | Alice | 27  | 555-4321
+		if p.flags&EXTENSION_TABLES != 0 {
+			if i := p.blockTable(out, data); i > 0 {
 				data = data[i:]
 				continue
 			}
@@ -881,17 +899,24 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 }
 
 func (p *parser) table(out *bytes.Buffer, data []byte) int {
-	var header bytes.Buffer
+	var (
+		header bytes.Buffer
+		body   bytes.Buffer
+		footer bytes.Buffer
+	)
 	i, columns := p.tableHeader(&header, data)
 	if i == 0 {
 		return 0
 	}
-	var body bytes.Buffer
-	var footer bytes.Buffer
 
 	foot := false
 
 	for i < len(data) {
+		if j := p.isTableFooter(data[i:]); j > 0 && !foot {
+			foot = true
+			i += j
+			continue
+		}
 		pipes, rowStart := 0, i
 		for ; data[i] != '\n'; i++ {
 			if data[i] == '|' {
@@ -906,10 +931,6 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 
 		// include the newline in data sent to tableRow
 		i++
-		if !foot && p.isTableFooter(out, data[rowStart:i], columns) > 0 {
-			foot = true
-			continue
-		}
 		if foot {
 			p.tableRow(&footer, data[rowStart:i], columns, false)
 			continue
@@ -919,6 +940,119 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 	var caption bytes.Buffer
 	line := i
 	j := i
+	if bytes.HasPrefix(data[j:], []byte("Table: ")) {
+		for line < len(data) {
+			j++
+			// find the end of this line
+			for data[j-1] != '\n' {
+				j++
+			}
+			if p.isEmpty(data[line:j]) > 0 {
+				break
+			}
+			line = j
+		}
+		p.inline(&caption, data[i+7:j-1]) // +7 for 'Table: '
+	}
+
+	p.r.SetInlineAttr(p.ial)
+	p.ial = nil
+
+	p.r.Table(out, header.Bytes(), body.Bytes(), footer.Bytes(), columns, caption.Bytes())
+
+	return j
+}
+
+func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
+	var (
+		header  bytes.Buffer
+		body    bytes.Buffer
+		footer  bytes.Buffer
+		rowWork bytes.Buffer
+	)
+	i := p.isBlockTableHeader(data)
+	if i == 0 || i == len(data) {
+		return 0
+	}
+	j, columns := p.tableHeader(&header, data[i:])
+	if i == 0 {
+		return 0
+	}
+	i += j
+	// each cell in a row gets multiple lines which we store per column, we
+	// process the buffers when we see a row separator (isBlockTableHeader)
+	bodies := make([]bytes.Buffer, len(columns))
+
+	foot := false
+
+	j = 0
+	for i < len(data) {
+		if j = p.isTableFooter(data[i:]); j > 0 && !foot {
+			// prepare previous ones
+			foot = true
+			i += j
+			continue
+		}
+		if j = p.isBlockTableHeader(data[i:]); j > 0 {
+			switch foot {
+			case false: // separator before any footer
+				var cellWork bytes.Buffer
+				for c := 0; c < len(columns); c++ {
+					cellWork.Truncate(0)
+					if bodies[c].Len() > 0 {
+						p.block(&cellWork, bodies[c].Bytes())
+						bodies[c].Truncate(0)
+					}
+					p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c])
+				}
+				p.r.TableRow(&body, rowWork.Bytes())
+				rowWork.Truncate(0)
+				i += j
+				continue
+
+			case true: // closing separator that closes the table
+				i += j
+				continue
+			}
+		}
+
+		pipes, rowStart := 0, i
+		for ; data[i] != '\n'; i++ {
+			if data[i] == '|' {
+				pipes++
+			}
+		}
+
+		if pipes == 0 {
+			i = rowStart
+			break
+		}
+
+		// include the newline in data sent to tableRow and blockTabeRow
+		i++
+		if foot {
+			p.tableRow(&footer, data[rowStart:i], columns, false)
+		} else {
+			p.blockTableRow(bodies, data[rowStart:i])
+		}
+	}
+	// are there cells left to process?
+	if len(bodies) > 0 && bodies[0].Len() != 0 {
+		for c := 0; c < len(columns); c++ {
+			var cellWork bytes.Buffer
+			cellWork.Truncate(0)
+			if bodies[c].Len() > 0 {
+				p.block(&cellWork, bodies[c].Bytes())
+				bodies[c].Truncate(0)
+			}
+			p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c])
+		}
+		p.r.TableRow(&body, rowWork.Bytes())
+	}
+
+	var caption bytes.Buffer
+	line := i
+	j = i
 	if bytes.HasPrefix(data[j:], []byte("Table: ")) {
 		for line < len(data) {
 			j++
@@ -1108,66 +1242,73 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 	p.r.TableRow(out, rowWork.Bytes())
 }
 
-func (p *parser) isTableFooter(out *bytes.Buffer, data []byte, columns []int) int {
-	// a column footer is of form: / *=+ *|/ with # equals >= 1 and not other characters
-	// and trailing | optional on last column
+func (p *parser) blockTableRow(out []bytes.Buffer, data []byte) {
 	i, col := 0, 0
 
 	if data[i] == '|' && !isBackslashEscaped(data, i) {
 		i++
 	}
-	for data[i] == ' ' {
+
+	for col = 0; col < len(out) && i < len(data); col++ {
+		space := i
+		for data[i] == ' ' {
+			space++
+			i++
+		}
+
+		cellStart := i
+
+		for (data[i] != '|' || isBackslashEscaped(data, i)) && data[i] != '\n' {
+			i++
+		}
+
+		cellEnd := i
+
+		// skip the end-of-cell marker, possibly taking us past end of buffer
+		i++
+
+		for cellEnd > cellStart && data[cellEnd-1] == ' ' {
+			cellEnd--
+		}
+		out[col].Write(data[cellStart:cellEnd])
+		out[col].WriteByte('\n')
+	}
+}
+
+// optional | or + at the beginning, then at least 3 equals
+func (p *parser) isTableFooter(data []byte) int {
+	i := 0
+	if data[i] == '|' || data[i] == '+' {
 		i++
 	}
-
-	for data[i] != '\n' {
-		equals := 0
-
-		for data[i] == '=' {
-			i++
-			equals++
-		}
-		for data[i] == ' ' {
-			i++
-		}
-
-		// end of column test is messy
-		switch {
-		case equals < 1:
-			// not a valid column
-			return 0
-
-		case data[i] == '|' && !isBackslashEscaped(data, i):
-			// marker found, now skip past trailing whitespace
-			col++
-			i++
-			for data[i] == ' ' {
-				i++
-			}
-
-			// trailing junk found after last column
-			if col >= len(columns) && data[i] != '\n' {
-				return 0
-			}
-
-		case (data[i] != '|' || isBackslashEscaped(data, i)) && col+1 < len(columns):
-			// something else found where marker was required
-			return 0
-
-		case data[i] == '\n':
-			// marker is optional for the last column
-			col++
-
-		default:
-			// trailing junk found after last column
-			return 0
-		}
-	}
-
-	if col != len(columns) {
+	if len(data[i:]) < 4 {
 		return 0
 	}
-	return i
+	if data[i+1] != '=' && data[i+2] != '=' && data[i+3] != '=' {
+		return 0
+	}
+	for i < len(data) && data[i] != '\n' {
+		i++
+	}
+	return i + 1
+}
+
+// this starts a table and also serves as a row divider, basically three dashes with optional | or + at the start
+func (p *parser) isBlockTableHeader(data []byte) int {
+	i := 0
+	if data[i] == '|' || data[i] == '+' {
+		i++
+	}
+	if len(data[i:]) < 4 {
+		return 0
+	}
+	if data[i+1] != '-' && data[i+2] != '-' && data[i+3] != '-' {
+		return 0
+	}
+	for i < len(data) && data[i] != '\n' {
+		i++
+	}
+	return i + 1
 }
 
 // returns prefix length for block code

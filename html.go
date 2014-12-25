@@ -272,9 +272,15 @@ func (options *Html) Note(out *bytes.Buffer, text []byte) {
 	out.WriteString("</blockquote>\n")
 }
 
-func (options *Html) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, table []byte) {
+func (options *Html) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
 	doubleSpace(out)
-	out.WriteString("<table>\n<thead>\n")
+	out.WriteString("<table>\n")
+	if len(caption) > 0 {
+		out.WriteString("<caption>\n")
+		out.Write(caption)
+		out.WriteString("\n</caption>\n")
+	}
+	out.WriteString("<thead>\n")
 	out.Write(header)
 	out.WriteString("</thead>\n\n<tbody>\n")
 	out.Write(body)
