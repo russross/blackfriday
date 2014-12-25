@@ -109,6 +109,7 @@ implements the following extensions:
     | 2 line          |            | 2. Item2        |
     |=================+============+=================|
     | Footer row      |            |                 |
+    |-----------------+------------+-----------------|
     ```
 
     Note that the header and footer can't contain block level elements.

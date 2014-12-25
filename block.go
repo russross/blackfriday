@@ -185,7 +185,6 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		if p.flags&EXTENSION_TABLES != 0 {
 			if i := p.blockTable(out, data); i > 0 {
 				data = data[i:]
-				println("WHAT's LEFT", string(data))
 				continue
 			}
 		}
@@ -973,38 +972,46 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 	if i == 0 || i == len(data) {
 		return 0
 	}
-	data = data[i:]
-	i, columns := p.tableHeader(&header, data)
+	j, columns := p.tableHeader(&header, data[i:])
 	if i == 0 {
 		return 0
 	}
+	i += j
 	// each cell in a row gets multiple lines which we store per column, we
-	// process the buffers when we so a row seperator (isBlockTableHeader)
+	// process the buffers when we see a row separator (isBlockTableHeader)
 	bodies := make([]bytes.Buffer, len(columns))
 
 	foot := false
 
+	j = 0
 	for i < len(data) {
-		if j := p.isTableFooter(data[i:]); j > 0 && !foot {
+		if j = p.isTableFooter(data[i:]); j > 0 && !foot {
 			// prepare previous ones
 			foot = true
 			i += j
 			continue
 		}
-		if j := p.isBlockTableHeader(data[i:]); j > 0 && !foot {
-			// foot stuff is wrong too
-			println("HEADER +  SIZE", string(data[i:i+j]), j)
-			var cellWork bytes.Buffer
-			for c := 0; c < len(columns); c++ {
-				cellWork.Truncate(0)
-				p.block(&cellWork, bodies[c].Bytes())
-				bodies[c].Truncate(0)
-				p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c])
+		if j = p.isBlockTableHeader(data[i:]); j > 0 {
+			switch foot {
+			case false: // separator before any footer
+				var cellWork bytes.Buffer
+				for c := 0; c < len(columns); c++ {
+					cellWork.Truncate(0)
+					if bodies[c].Len() > 0 {
+						p.block(&cellWork, bodies[c].Bytes())
+						bodies[c].Truncate(0)
+					}
+					p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c])
+				}
+				p.r.TableRow(&body, rowWork.Bytes())
+				rowWork.Truncate(0)
+				i += j
+				continue
+
+			case true: // closing separator that closes the table
+				i += j
+				continue
 			}
-			p.r.TableRow(&body, rowWork.Bytes())
-			rowWork.Truncate(0)
-			i += j
-			continue
 		}
 
 		pipes, rowStart := 0, i
@@ -1016,24 +1023,53 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 
 		if pipes == 0 {
 			i = rowStart
-			println("WHAAHAAH")
 			break
 		}
 
 		// include the newline in data sent to tableRow and blockTabeRow
 		i++
-		println("I", i)
 		if foot {
 			p.tableRow(&footer, data[rowStart:i], columns, false)
 		} else {
 			p.blockTableRow(bodies, data[rowStart:i])
 		}
 	}
-	// caption, remaining rows, row padding, remaingig sperators
-	p.r.Table(out, header.Bytes(), body.Bytes(), footer.Bytes(), columns, nil)
+	// are there cells left to process?
+	if len(bodies) > 0 && bodies[0].Len() != 0 {
+		for c := 0; c < len(columns); c++ {
+			var cellWork bytes.Buffer
+			cellWork.Truncate(0)
+			p.block(&cellWork, bodies[c].Bytes())
+			bodies[c].Truncate(0)
+			p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c])
+		}
+		p.r.TableRow(&body, rowWork.Bytes())
+	}
 
-	println("REMAINING", string(data[i:]))
-	return i
+	var caption bytes.Buffer
+	line := i
+	j = i
+	if bytes.HasPrefix(data[j:], []byte("Table: ")) {
+		for line < len(data) {
+			j++
+			// find the end of this line
+			for data[j-1] != '\n' {
+				j++
+			}
+			if p.isEmpty(data[line:j]) > 0 {
+				break
+			}
+			line = j
+		}
+		p.inline(&caption, data[i+7:j-1]) // +7 for 'Table: '
+	}
+
+	p.r.SetInlineAttr(p.ial)
+	p.ial = nil
+
+	p.r.Table(out, header.Bytes(), body.Bytes(), footer.Bytes(), columns, caption.Bytes())
+
+	return j
 }
 
 // check if the specified position is preceeded by an odd number of backslashes
@@ -1230,7 +1266,6 @@ func (p *parser) blockTableRow(out []bytes.Buffer, data []byte) {
 		for cellEnd > cellStart && data[cellEnd-1] == ' ' {
 			cellEnd--
 		}
-		println("ADDING for col", col, string(data[cellStart:cellEnd]))
 		out[col].Write(data[cellStart:cellEnd])
 		out[col].WriteByte('\n')
 	}
