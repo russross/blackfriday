@@ -78,7 +78,8 @@ implements the following extensions:
     Alice   | 23
     ```
 
-    Tables can also have a footer, use equal signs instead of dashes.
+    Tables can also have a footer, use equal signs instead of dashes for
+    the separator.
     If there are multiple footer lines, the first one is used as a
     starting point for the table footer.
 
@@ -93,7 +94,7 @@ implements the following extensions:
 
     If a table is started with a *block table header*, which starts
     with an optional pipe or plus sign and a minimum of three dashes,
-    it is a block table. A block table may include block level elements in each
+    it is a **Block Table**. A block table may include block level elements in each
     (body) cell. If we want to start a new cell reuse the block table header
     syntax. In the exampe below we include a list in one of the cells.
 
