@@ -420,7 +420,9 @@ Internet-Draft                  mmark2rfc                  December 2014
 Appendix A.  Bugs
 
    o  Citations must be included in the text before the "{backmatter}"
-      starts.
+      starts, otherwise they are not available in the appendix.
+
+   o  Inline Attribute Lists must be given _before_ the block element.
 
 Author's Address
 
@@ -429,8 +431,6 @@ Author's Address
    Buckingham Palace Road
 
    Email: miek@google.com
-
-
 
 
 
