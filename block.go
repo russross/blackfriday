@@ -1296,9 +1296,10 @@ func (p *parser) isTableFooter(data []byte) int {
 // this starts a table and also serves as a row divider, basically three dashes with optional | or + at the start
 func (p *parser) isBlockTableHeader(data []byte) int {
 	i := 0
-	if data[i] == '|' || data[i] == '+' {
-		i++
+	if data[i] != '|' && data[i] != '+' {
+		return 0
 	}
+	i++
 	if len(data[i:]) < 4 {
 		return 0
 	}
