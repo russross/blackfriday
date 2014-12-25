@@ -26,7 +26,7 @@ const DEFAULT_TITLE = ""
 
 func main() {
 	// parse command-line options
-	var page, toc, toconly, xhtml, xml, xml2 bool
+	var page, toc, toconly, xhtml, xml, xml2, commonmark bool
 	var css, cpuprofile string
 	var repeat int
 	flag.BoolVar(&page, "page", false, "generate a standalone HTML page")
@@ -35,6 +35,7 @@ func main() {
 	flag.BoolVar(&xhtml, "xhtml", true, "use XHTML-style tags in HTML output")
 	flag.BoolVar(&xml, "xml", false, "generate XML2RFC v3 output")
 	flag.BoolVar(&xml2, "xml2", false, "generate XML2RFC v2 output")
+	flag.BoolVar(&commonmark, "commonmark", false, "input is commonmark")
 	flag.StringVar(&css, "css", "", "link to a CSS stylesheet (implies -page)")
 	flag.StringVar(&cpuprofile, "cpuprofile", "", "write cpu profile to a file")
 	flag.IntVar(&repeat, "repeat", 1, "process the input multiple times (for benchmarking)")
@@ -106,6 +107,10 @@ func main() {
 	extensions |= mmark.EXTENSION_AUTO_HEADER_IDS
 	extensions |= mmark.EXTENSION_UNIQUE_HEADER_IDS
 	extensions |= mmark.EXTENSION_FOOTNOTES
+
+	if commonmark {
+		extensions &= ^mmark.EXTENSION_AUTO_HEADER_IDS
+	}
 
 	var renderer mmark.Renderer
 	xmlFlags := 0

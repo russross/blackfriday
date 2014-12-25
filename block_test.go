@@ -933,10 +933,10 @@ func TestBlockTable(t *testing.T) {
 		"<table>\n<caption>\nthis is a table\n</caption>\n<thead>\n</thead>\n\n<tbody>\n<tr>\n<td></td>\n</tr>\n\n<tr>\n<td><p>Defaul</p>\n</td>\n</tr>\n\n<tr>\n<td></td>\n</tr>\n\n<tr>\n<td><p>Second\n2 line</p>\n</td>\n</tr>\n</tbody>\n</table>\n",
 		"|--------+--------+\n|--------+--------+\n| Defaul |Left ald|\n|--------|--------|\n|--------+--------+\n| Second | 2. Ite |\n| 2 line | 3. Ite |\n+========+========+\n+========+========+\n|--------+--------+\nTable: this is a table\n",
 		"<table>\n<thead>\n</thead>\n\n<tbody>\n<tr>\n<td></td>\n</tr>\n\n<tr>\n<td><p>Defaul</p>\n</td>\n</tr>\n\n<tr>\n<td></td>\n</tr>\n\n<tr>\n<td><p>Second\n2 line</p>\n</td>\n</tr>\n</tbody>\n</table>\n\n<p>+========+========+\n|--------+--------+\nTable: this is a table</p>\n",
-		"|--------+--------+\n| Defaul |Left ald|\n|--------|--------|\n|--------+--------+\n| Second | 2. Ite |\n| 2 line | 3. Ite |\n+========+========+\n|--------+--------+\nTable: this is a table\n",
+		"+--------+--------+\n| Defaul |Left ald|\n|--------|--------|\n|--------+--------+\n| Second | 2. Ite |\n| 2 line | 3. Ite |\n+========+========+\n|--------+--------+\nTable: this is a table\n",
 		"<table>\n<caption>\nthis is a table\n</caption>\n<thead>\n<tr>\n<th>Defaul</th>\n<th>Left ald</th>\n</tr>\n</thead>\n\n<tbody>\n<tr>\n<td></td>\n<td></td>\n</tr>\n\n<tr>\n<td><p>Second\n2 line</p>\n</td>\n<td><ol>\n<li>Ite</li>\n<li>Ite</li>\n</ol>\n</td>\n</tr>\n</tbody>\n</table>\n",
 		"--\n**\n--\n",
-		"",
+		"<p>--</p>\n\n<h2>**</h2>\n",
 	}
 
 	doTestsBlock(t, tests, EXTENSION_TABLES)
