@@ -25,7 +25,7 @@ A> the document.
 A>
 A> The
 A> [source of this document](https://raw.githubusercontent.com/miekg/mmark/master/mmark2rfc.md)
-A> provides an good example.
+A> provides a good example.
 
 {mainmatter}
 
@@ -47,6 +47,10 @@ The goals of mmark are:
 2. Make the markdown "source code" look as natural as possible;
 3. Provide seemless upgrade path to XML2RFC v3.
 
+Mmark uses two scans when converting a document and does not build an internal AST of
+the document, which means it can not adhere 100% to the [CommonMark] specification, however
+the CommonMark test suite is used when developing mmark. Currently mmark passes 60% of the tests.
+
 Using Figure 1 from [@!RFC7328], mmark can be positioned as follows:
 
 {#fig:mmark}
@@ -61,7 +65,7 @@ Using Figure 1 from [@!RFC7328], mmark can be positioned as follows:
            +------------+    xml2rfc  +---------+
            | PLAIN TEXT |  <--------  |   XML   |
            +------------+             +---------+
-Figure: Mmark skips the conversion to DOCBOOK and directly outputs XML2RFC XML.
+Figure: Mmark skips the conversion to DOCBOOK and directly outputs XML2RFC XML (or HTML5).
 
 Note that [kramdown-2629](https://github.com/cabo/kramdown-rfc2629) fills the same niche as mmark.
 
@@ -78,7 +82,7 @@ header must start with an `% `.
 
 # Citations
 
-A citation can be entered using the syntax from pandoc @pandoc: `[@reference]`,
+A citation can be entered using the syntax from @pandoc: `[@reference]`,
 such a reference is "informative" by default. Making a reference informative or normative
 can be done with a `?` and `!` respectively: `[@!reference]` is a normative reference.
 
@@ -95,12 +99,12 @@ an XML reference fragment can be included, note that this needs to happen
 
 Using `{mainmatter}` on a line by itself starts the main matter (middle) of the document, `{backmatter}`
 starts the appendix. There is also a `{frontmatter}` that starts the front matter (front) of the document,
-but is normally not need because the TOML header ([](#toml-header)) starts that by default.
+but is normally not needed because the TOML header ([](#toml-header)) starts that by default.
 
 # Abstract
 
 Any paragraph prefixed with `A> ` is an abstract. This is similar to asides and notes
-([](#asides) , [](#notes)) work. Note that an RFC doucment can only have one paragraph.
+([](#asides) , [](#notes)) work. Note that an RFC document can only have one abstract.
 
 # Captions
 
@@ -131,25 +135,76 @@ After a quote (a paragraph prefixed with `> `) you can add a caption:
 
 In v3 this is used in the block quote attributes, for v2 it is discarded.
 
-# Tables
+## Tables
 
 A table caption is signalled by using `Table: ` directly after the table.
 The table syntax used that one of
 [Markdown Extra](https://michelf.ca/projects/php-markdown/extra/#table).
 
 
+# References
+
+internal referencs, external ones
+
+# Tables
+
+Tables can be created by drawing them in the input using a simple syntax:
+
+```
+Name    | Age
+--------|-----:
+Bob     | 27
+Alice   | 23
+```
+
+Tables can also have a footer, use equal signs instead of dashes for the separator,
+to start a table footer. If there are multiple footer lines, the first one is used as a
+starting point for the table footer.
+
+```
+Name    | Age
+--------|-----:
+Bob     | 27
+Alice   | 23
+======= | ====
+Charlie | 4
+```
+
+If a table is started with a *block table header*, which starts
+with a pipe or plus sign and a minimum of three dashes,
+it is a **Block Table**. A block table may include block level elements in each
+(body) cell. If we want to start a new cell use the block table header
+syntax. In the example below we include a list in one of the cells.
+
+```
+|-----------------+------------+-----------------|
+| Default aligned |Left aligned| Center aligned  |
+|-----------------|:-----------|:---------------:|
+| Bob             |Second cell | Third cell      |
+| Alice           |foo         | **strong**      |
+| Charlie         |quux        | baz             |
+|-----------------+------------+-----------------|
+| Bob             | foot       | 1. Item2        |
+| Alice           | quuz       | 2. Item2        |
+|=================+============+=================|
+| Footer row      | more footer| and more        |
+|-----------------+------------+-----------------|
+```
+
+Note that the header and footer can't contain block level elements.
 
 # Inline Attribute Lists
 
-This borrows from [kramdown][http://kramdown.gettalong.org/syntax.html#block-ials], which
-the difference that the colon is dropped and each IAL must be typeset *before* the block element.
+This borrows from [kramdown][http://kramdown.gettalong.org/syntax.html#block-ials], with
+the difference that the colon is dropped and each IAL must be typeset *before* the block element 
+(see [](#bugs)).
 Added an anchor to blockquote can be done like so:
 
     {#quote:ref1}
     > A block quote
 
 You can specify classes with `.class` (although these are not used when converting to XML2RFC), and
-arbitrary key value pairs where each key becomes an attribute.
+arbitrary key value pairs where each key/value becomes an attribute.
 
 # Miscellaneous
 
@@ -158,7 +213,7 @@ arbitrary key value pairs where each key becomes an attribute.
 This is the example list syntax
 [from pandoc](http://johnmacfarlane.net/pandoc/README.html#extension-example_lists). References
 to example lists work as well. Note that an example list always needs to have an identifier,
-`(@good)` works `(@)` does not.
+`(@good)` works, `(@)` does not.
 
 
 ## HTML Comment
@@ -173,29 +228,35 @@ directory if it is not absolute.
 
 ## Ordered lists
 
-mmark pays attention ot the starting number of a list and will ...
+Mmark pays attention to the starting number of a list:
+
+    4. Item 4
+    5. Item 5
+
+Will start of ordered list with element 4.
 
 # XML2RFC V3 features
 
-The v3 syntax adds some new features, those can already be used in mmark (even for documents targetting
+The v3 syntax adds some new features, those can already be used in mmark (even for documents targeting
 v2 -- but there they will be faked with the limited constructs of v2 syntax).
 
 ## Asides
 
-Any paragraph prefixed with `AS> `. For v2 this becomes a indentend paragraph.
+Any paragraph prefixed with `AS> `. For v2 this becomes a indented paragraph.
 
 ## Notes
 
-Any paragraph prefixed with `N> `. For v2 this becomes a indentend paragraph.
+Any paragraph prefixed with `N> `. For v2 this becomes a indented paragraph.
 
 ## RFC 2119 Keywords
 
 Any [@?RFC2119] keyword used with strong emphasis *and* in uppercase  will be typeset
 within `bcp14` tags, that is `**MUST**` becomes `<bcp14>MUST</bcp14>`, but `**must**` will not.
+For v2 they are stripped of the emphasis and outputted as-is.
 
 ## Super- and Subscripts
 
-Use H~2~O and 2^10^ is 1024.
+Use H~2~O and 2^10^ is 1024. In v2 these are outputted as-is.
 
 ## Images
 
@@ -217,7 +278,7 @@ Note this:
 * Does not convert the abstract to a prefixed paragraph;
 * Makes all RFC references normative;
 * Handles all figure and table captions and adds references (if appropriate);
-* Probably has bugs, so a manual review should be in order.
+* Probably has other bugs, so a manual review should be in order.
 
 There is also [titleblock.pl](https://raw.githubusercontent.com/miekg/mmark/master/convert/titleblock.pl)
 which can be given an @RFC7328 `template.xml` file and will output a TOML titleblock, that can
@@ -289,12 +350,14 @@ This documents has been modeled after the excellent [kramdown syntax page](http:
 
 # Bugs
 
-*   Citations must be included in the text before the `{backmatter}` starts, 
+*   Citations must be included in the text before the `{backmatter}` starts.
     otherwise they are not available in the appendix.
 *   Inline Attribute Lists must be given *before* the block element.
+*   Mmark cannot parse @RFC728 markdown.
 
 [kramdown]: http://http://kramdown.gettalong.org/
 [leanpub]: https://leanpub.com/help/manual
 [asciidoc]: http://www.methods.co.nz/asciidoc/
 [PHP markdown extra]: http://michelf.com/projects/php-markdown/extra/
 [pandoc]: http://johnmacfarlane.net/pandoc/
+[CommonMark]: http://commonmark.org/
