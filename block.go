@@ -347,6 +347,10 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 			}
 		}
 	}
+	// CommonMark spaces *after* the header
+	for end > 0 && data[end-1] == ' ' {
+		end--
+	}
 	for end > 0 && data[end-1] == '#' {
 		end--
 	}
