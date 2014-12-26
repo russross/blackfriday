@@ -110,6 +110,7 @@ func main() {
 
 	if commonmark {
 		extensions &= ^mmark.EXTENSION_AUTO_HEADER_IDS
+		extensions &= ^mmark.EXTENSION_AUTOLINK
 	}
 
 	var renderer mmark.Renderer
