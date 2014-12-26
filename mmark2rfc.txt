@@ -18,7 +18,7 @@ Abstract
    writing document as natural as possible, while providing a lot of
    power on how to structure and layout the document.
 
-   The source of this document [1] provides an good example.
+   The source of this document [1] provides a good example.
 
 Status of This Memo
 
@@ -70,29 +70,31 @@ Table of Contents
    5.  Document divisions  . . . . . . . . . . . . . . . . . . . . .   4
    6.  Abstract  . . . . . . . . . . . . . . . . . . . . . . . . . .   4
    7.  Captions  . . . . . . . . . . . . . . . . . . . . . . . . . .   4
-     7.1.  Figures . . . . . . . . . . . . . . . . . . . . . . . . .   4
-     7.2.  Quotes  . . . . . . . . . . . . . . . . . . . . . . . . .   4
-   8.  Tables  . . . . . . . . . . . . . . . . . . . . . . . . . . .   5
-   9.  Inline Attribute Lists  . . . . . . . . . . . . . . . . . . .   5
-   10. Miscellaneous . . . . . . . . . . . . . . . . . . . . . . . .   5
-     10.1.  Example Lists  . . . . . . . . . . . . . . . . . . . . .   5
-     10.2.  HTML Comment . . . . . . . . . . . . . . . . . . . . . .   5
-     10.3.  Including Files  . . . . . . . . . . . . . . . . . . . .   5
-     10.4.  Ordered lists  . . . . . . . . . . . . . . . . . . . . .   5
-   11. XML2RFC V3 features . . . . . . . . . . . . . . . . . . . . .   6
-     11.1.  Asides . . . . . . . . . . . . . . . . . . . . . . . . .   6
-     11.2.  Notes  . . . . . . . . . . . . . . . . . . . . . . . . .   6
-     11.3.  RFC 2119 Keywords  . . . . . . . . . . . . . . . . . . .   6
-     11.4.  Super- and Subscripts  . . . . . . . . . . . . . . . . .   6
-     11.5.  Images . . . . . . . . . . . . . . . . . . . . . . . . .   6
-   12. Converting from RFC 7328 Syntax . . . . . . . . . . . . . . .   6
-   13. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   7
-   14. References  . . . . . . . . . . . . . . . . . . . . . . . . .   7
-     14.1.  Informative References . . . . . . . . . . . . . . . . .   7
-     14.2.  Normative References . . . . . . . . . . . . . . . . . .   7
-     14.3.  URIs . . . . . . . . . . . . . . . . . . . . . . . . . .   7
-   Appendix A.  Bugs . . . . . . . . . . . . . . . . . . . . . . . .   8
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   8
+     7.1.  Figures . . . . . . . . . . . . . . . . . . . . . . . . .   5
+     7.2.  Quotes  . . . . . . . . . . . . . . . . . . . . . . . . .   5
+     7.3.  Tables  . . . . . . . . . . . . . . . . . . . . . . . . .   5
+   8.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   5
+   9.  Tables  . . . . . . . . . . . . . . . . . . . . . . . . . . .   5
+   10. Inline Attribute Lists  . . . . . . . . . . . . . . . . . . .   6
+   11. Miscellaneous . . . . . . . . . . . . . . . . . . . . . . . .   6
+     11.1.  Example Lists  . . . . . . . . . . . . . . . . . . . . .   6
+     11.2.  HTML Comment . . . . . . . . . . . . . . . . . . . . . .   6
+     11.3.  Including Files  . . . . . . . . . . . . . . . . . . . .   7
+     11.4.  Ordered lists  . . . . . . . . . . . . . . . . . . . . .   7
+   12. XML2RFC V3 features . . . . . . . . . . . . . . . . . . . . .   7
+     12.1.  Asides . . . . . . . . . . . . . . . . . . . . . . . . .   7
+     12.2.  Notes  . . . . . . . . . . . . . . . . . . . . . . . . .   7
+     12.3.  RFC 2119 Keywords  . . . . . . . . . . . . . . . . . . .   7
+     12.4.  Super- and Subscripts  . . . . . . . . . . . . . . . . .   7
+     12.5.  Images . . . . . . . . . . . . . . . . . . . . . . . . .   7
+   13. Converting from RFC 7328 Syntax . . . . . . . . . . . . . . .   7
+   14. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   8
+   15. References  . . . . . . . . . . . . . . . . . . . . . . . . .   8
+     15.1.  Informative References . . . . . . . . . . . . . . . . .   8
+     15.2.  Normative References . . . . . . . . . . . . . . . . . .   9
+     15.3.  URIs . . . . . . . . . . . . . . . . . . . . . . . . . .   9
+   Appendix A.  Bugs . . . . . . . . . . . . . . . . . . . . . . . .   9
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  10
 
 1.  Introduction
 
@@ -103,9 +105,7 @@ Table of Contents
    be used to write larger, structured documents such as RFC and I-Ds or
    even books.
 
-   Mmark is a fork of blackfriday [blackfriday] written in Golang and it
-   is very fast.  Input to mmark must be UTF-8, the output is also UTF-
-   8.  Mmark converts tabs to 4 spaces.
+
 
 
 
@@ -113,6 +113,10 @@ Gieben                    Expires June 13, 2015                 [Page 2]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
+
+   Mmark is a fork of blackfriday [blackfriday] written in Golang and it
+   is very fast.  Input to mmark must be UTF-8, the output is also UTF-
+   8.  Mmark converts tabs to 4 spaces.
 
    The goals of mmark are:
 
@@ -122,6 +126,12 @@ Internet-Draft                  mmark2rfc                  December 2014
    (II)    Make the markdown "source code" look as natural as possible;
 
    (III)   Provide seemless upgrade path to XML2RFC v3.
+
+   Mmark uses two scans when converting a document and does not build an
+   internal AST of the document, which means it can not adhere 100% to
+   the CommonMark [7] specification, however the CommonMark test suite
+   is used when developing mmark.  Currently mmark passes 60% of the
+   tests.
 
    Using Figure 1 from [RFC7328], mmark can be positioned as follows:
 
@@ -138,7 +148,7 @@ Internet-Draft                  mmark2rfc                  December 2014
 
                                  Figure 1
 
-   Note that kramdown-2629 [7] fills the same niche as mmark.
+   Note that kramdown-2629 [8] fills the same niche as mmark.
 
 2.  Mmark Syntax
 
@@ -149,8 +159,17 @@ Internet-Draft                  mmark2rfc                  December 2014
 
 4.  Citations
 
-   A citation can be entered using the syntax from pandoc @pandoc:
+   A citation can be entered using the syntax from @pandoc:
    "[@reference]", such a reference is "informative" by default.  Making
+
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 3]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
    a reference informative or normative can be done with a "?" and "!"
    respectively: "[@!reference]" is a normative reference.
 
@@ -162,14 +181,6 @@ Internet-Draft                  mmark2rfc                  December 2014
    If the need arises (usually when citing a document that is not in the
    XML2RFC database) an XML reference fragment can be included, note
    that this needs to happen _before_ the back matter is started,
-
-
-
-Gieben                    Expires June 13, 2015                 [Page 3]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
-
    because that is the point when the references are outputted (right
    now the implementation does not scan the entire file for citations,
    also see Appendix A).
@@ -179,14 +190,14 @@ Internet-Draft                  mmark2rfc                  December 2014
    Using "{mainmatter}" on a line by itself starts the main matter
    (middle) of the document, "{backmatter}" starts the appendix.  There
    is also a "{frontmatter}" that starts the front matter (front) of the
-   document, but is normally not need because the TOML header
+   document, but is normally not needed because the TOML header
    (Section 3) starts that by default.
 
 6.  Abstract
 
    Any paragraph prefixed with "A>" is an abstract.  This is similar to
-   asides and notes (Section 11.1 , Section 11.2) work.  Note that an
-   RFC doucment can only have one paragraph.
+   asides and notes (Section 12.1 , Section 12.2) work.  Note that an
+   RFC document can only have one abstract.
 
 7.  Captions
 
@@ -197,7 +208,7 @@ Internet-Draft                  mmark2rfc                  December 2014
    Captions for tables are supported in pandoc, but not for code block.
    In mmark you can put a caption under either (even after a fenced code
    block).  Referencing these element (and thus creating an document
-   "id" for them), is done with an IAL (Section 9:
+   "id" for them), is done with an IAL (Section 10:
 
    {#identifier}
    Name    | Age
@@ -207,6 +218,13 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    An empty line between the IAL and the table of indented code block is
    allowed.
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 4]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
 
 7.1.  Figures
 
@@ -219,61 +237,43 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    Quote: Name -- URI for attribution
 
-
-
-Gieben                    Expires June 13, 2015                 [Page 4]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
-
    In v3 this is used in the block quote attributes, for v2 it is
    discarded.
 
-8.  Tables
+7.3.  Tables
 
    A table caption is signalled by using "Table:" directly after the
-   table.  The table syntax used that one of Markdown Extra [8].
+   table.  The table syntax used that one of Markdown Extra [9].
 
-9.  Inline Attribute Lists
+8.  References
 
-   This borrows from [kramdown][[9]], which the difference that the
-   colon is dropped and each IAL must be typeset _before_ the block
-   element.  Added an anchor to blockquote can be done like so:
+   internal referencs, external ones
 
-   {#quote:ref1}
-   > A block quote
+9.  Tables
 
-   You can specify classes with ".class" (although these are not used
-   when converting to XML2RFC), and arbitrary key value pairs where each
-   key becomes an attribute.
+   Tables can be created by drawing them in the input using a simple
+   syntax:
 
-10.  Miscellaneous
+   Name    | Age
+   --------|-----:
+   Bob     | 27
+   Alice   | 23
 
-10.1.  Example Lists
+   Tables can also have a footer, use equal signs instead of dashes for
+   the separator, to start a table footer.  If there are multiple footer
+   lines, the first one is used as a starting point for the table
+   footer.
 
-   This is the example list syntax from pandoc [10].  References to
-   example lists work as well.  Note that an example list always needs
-   to have an identifier, "(@good)" works "(@)" does not.
+   Name    | Age
+   --------|-----:
+   Bob     | 27
+   Alice   | 23
+   ======= | ====
+   Charlie | 4
 
-10.2.  HTML Comment
-
-   If a HTML comment contains "--", it will be rendered as a "cref"
-   comment in the resulting XML file.  Typically "<!-- Miek Gieben --
-   you want to include the next paragraph? -->".
-
-10.3.  Including Files
-
-   Files can be included using "{{filename}}", "filename" is relative to
-   the current working directory if it is not absolute.
-
-10.4.  Ordered lists
-
-   mmark pays attention ot the starting number of a list and will ...
-
-
-
-
-
+   If a table is started with a _block table header_, which starts with
+   a pipe or plus sign and a minimum of three dashes, it is a *Block
+   Table*. A block table may include block level elements in each (body)
 
 
 
@@ -282,38 +282,118 @@ Gieben                    Expires June 13, 2015                 [Page 5]
 Internet-Draft                  mmark2rfc                  December 2014
 
 
-11.  XML2RFC V3 features
+   cell.  If we want to start a new cell use the block table header
+   syntax.  In the example below we include a list in one of the cells.
+
+   |-----------------+------------+-----------------|
+   | Default aligned |Left aligned| Center aligned  |
+   |-----------------|:-----------|:---------------:|
+   | Bob             |Second cell | Third cell      |
+   | Alice           |foo         | **strong**      |
+   | Charlie         |quux        | baz             |
+   |-----------------+------------+-----------------|
+   | Bob             | foot       | 1. Item2        |
+   | Alice           | quuz       | 2. Item2        |
+   |=================+============+=================|
+   | Footer row      | more footer| and more        |
+   |-----------------+------------+-----------------|
+
+   Note that the header and footer can't contain block level elements.
+
+10.  Inline Attribute Lists
+
+   This borrows from [kramdown][[10]], with the difference that the
+   colon is dropped and each IAL must be typeset _before_ the block
+   element (see Appendix A).  Added an anchor to blockquote can be done
+   like so:
+
+   {#quote:ref1}
+   > A block quote
+
+   You can specify classes with ".class" (although these are not used
+   when converting to XML2RFC), and arbitrary key value pairs where each
+   key/value becomes an attribute.
+
+11.  Miscellaneous
+
+11.1.  Example Lists
+
+   This is the example list syntax from pandoc [11].  References to
+   example lists work as well.  Note that an example list always needs
+   to have an identifier, "(@good)" works, "(@)" does not.
+
+11.2.  HTML Comment
+
+   If a HTML comment contains "--", it will be rendered as a "cref"
+   comment in the resulting XML file.  Typically "<!-- Miek Gieben --
+   you want to include the next paragraph? -->".
+
+
+
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 6]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
+11.3.  Including Files
+
+   Files can be included using "{{filename}}", "filename" is relative to
+   the current working directory if it is not absolute.
+
+11.4.  Ordered lists
+
+   Mmark pays attention to the starting number of a list:
+
+   4. Item 4
+   5. Item 5
+
+   Will start of ordered list with element 4.
+
+12.  XML2RFC V3 features
 
    The v3 syntax adds some new features, those can already be used in
-   mmark (even for documents targetting v2 -- but there they will be
+   mmark (even for documents targeting v2 -- but there they will be
    faked with the limited constructs of v2 syntax).
 
-11.1.  Asides
+12.1.  Asides
 
-   Any paragraph prefixed with "AS>".  For v2 this becomes a indentend
+   Any paragraph prefixed with "AS>".  For v2 this becomes a indented
    paragraph.
 
-11.2.  Notes
+12.2.  Notes
 
-   Any paragraph prefixed with "N>".  For v2 this becomes a indentend
+   Any paragraph prefixed with "N>".  For v2 this becomes a indented
    paragraph.
 
-11.3.  RFC 2119 Keywords
+12.3.  RFC 2119 Keywords
 
    Any [RFC2119] keyword used with strong emphasis _and_ in uppercase
    will be typeset within "bcp14" tags, that is "**MUST**" becomes
-   "<bcp14>MUST</bcp14>", but "**must**" will not.
+   "<bcp14>MUST</bcp14>", but "**must**" will not.  For v2 they are
+   stripped of the emphasis and outputted as-is.
 
-11.4.  Super- and Subscripts
+12.4.  Super- and Subscripts
 
-   Use H~2~O and 2^10^ is 1024.
+   Use H~2~O and 2^10^ is 1024.  In v2 these are outputted as-is.
 
-11.5.  Images
+12.5.  Images
 
-12.  Converting from RFC 7328 Syntax
+13.  Converting from RFC 7328 Syntax
 
    Converting from an RFC 7328 ([RFC7328]) document can be done using
-   the quick and dirty Perl script [11], which uses pandoc to output
+   the quick and dirty Perl script [12], which uses pandoc to output
+
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 7]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
    markdown PHP extra and converts that into proper mmark: (mmark is
    more like markdown PHP extra, than like pandoc).
 
@@ -331,16 +411,9 @@ Internet-Draft                  mmark2rfc                  December 2014
    o  Handles all figure and table captions and adds references (if
       appropriate);
 
+   o  Probably has other bugs, so a manual review should be in order.
 
-
-Gieben                    Expires June 13, 2015                 [Page 6]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
-
-   o  Probably has bugs, so a manual review should be in order.
-
-   There is also titleblock.pl [12] which can be given an [RFC7328]
+   There is also titleblock.pl [13] which can be given an [RFC7328]
    "template.xml" file and will output a TOML titleblock, that can be
    used as a starting point.
 
@@ -353,14 +426,14 @@ Internet-Draft                  mmark2rfc                  December 2014
    For now the mmark parser will not get any features that makes it
    backwards compatible with pandoc2rfc.
 
-13.  Acknowledgements
+14.  Acknowledgements
 
    This documents has been modeled after the excellent kramdown syntax
-   page [13].
+   page [14].
 
-14.  References
+15.  References
 
-14.1.  Informative References
+15.1.  Informative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119, March 1997.
@@ -369,10 +442,18 @@ Internet-Draft                  mmark2rfc                  December 2014
               "Blackfriday git repository", November 2011,
               <http://github.com/russross/blackfriday>.
 
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 8]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
    [mmark]    Gieben, R., "Mmark git repository", December 2014,
               <http://github.com/miekg/mmark>.
 
-14.2.  Normative References
+15.2.  Normative References
 
    [RFC7328]  Gieben, R., "Writing I-Ds and RFCs Using Pandoc and a Bit
               of XML", RFC 7328, August 2014.
@@ -380,19 +461,11 @@ Internet-Draft                  mmark2rfc                  December 2014
    [toml]     Preston-Werner, T., "TOML git repository", March 2013,
               <https://github.com/toml-lang/toml>.
 
-14.3.  URIs
+15.3.  URIs
 
    [1] http://http://kramdown.gettalong.org/
 
    [2] http://michelf.com/projects/php-markdown/extra/
-
-
-
-
-Gieben                    Expires June 13, 2015                 [Page 7]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
 
    [3] http://johnmacfarlane.net/pandoc/
 
@@ -400,29 +473,40 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    [5] http://www.methods.co.nz/asciidoc/
 
-   [6] https://github.com/cabo/kramdown-rfc2629
+   [6] http://commonmark.org/
 
-   [7] https://michelf.ca/projects/php-markdown/extra/#table
+   [7] https://github.com/cabo/kramdown-rfc2629
 
-   [8] http://kramdown.gettalong.org/syntax.html#block-ials
+   [8] https://michelf.ca/projects/php-markdown/extra/#table
 
-   [9] http://johnmacfarlane.net/pandoc/README.html#extension-
-       example_lists
+   [9] http://kramdown.gettalong.org/syntax.html#block-ials
 
-   [10] https://raw.githubusercontent.com/miekg/mmark/master/convert/
-        parts.pl
+   [10] http://johnmacfarlane.net/pandoc/README.html#extension-
+        example_lists
 
    [11] https://raw.githubusercontent.com/miekg/mmark/master/convert/
+        parts.pl
+
+   [12] https://raw.githubusercontent.com/miekg/mmark/master/convert/
         titleblock.pl
 
-   [12] http://kramdown.gettalong.org/syntax.html
+   [13] http://kramdown.gettalong.org/syntax.html
 
 Appendix A.  Bugs
 
    o  Citations must be included in the text before the "{backmatter}"
-      starts, otherwise they are not available in the appendix.
+      starts.  otherwise they are not available in the appendix.
 
    o  Inline Attribute Lists must be given _before_ the block element.
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 9]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
+   o  Mmark cannot parse @RFC728 markdown.
 
 Author's Address
 
@@ -445,4 +529,32 @@ Author's Address
 
 
 
-Gieben                    Expires June 13, 2015                 [Page 8]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Gieben                    Expires June 13, 2015                [Page 10]
