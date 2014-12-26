@@ -282,6 +282,16 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 }
 
 func (p *parser) isPrefixHeader(data []byte) bool {
+	// CommonMark: up to three spaces allowed
+	k := 0
+	for k < len(data) && data[k] == ' ' {
+		k++
+	}
+	if k == len(data) || k > 3 {
+		return false
+	}
+	data = data[k:]
+
 	if data[0] != '#' {
 		return false
 	}
@@ -299,6 +309,16 @@ func (p *parser) isPrefixHeader(data []byte) bool {
 }
 
 func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
+	// CommonMark: up to three spaces allowed
+	k := 0
+	for k < len(data) && data[k] == ' ' {
+		k++
+	}
+	if k == len(data) || k > 3 {
+		return 0
+	}
+	data = data[k:]
+
 	level := 0
 	for level < 6 && data[level] == '#' {
 		level++
@@ -343,6 +363,7 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 		}
 		if id != "" {
 			if v, ok := p.anchors[id]; ok && p.flags&EXTENSION_UNIQUE_HEADER_IDS != 0 {
+				println("anchor found")
 				// anchor found
 				id += "-" + strconv.Itoa(v)
 				p.anchors[id]++
@@ -356,7 +377,7 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 
 		p.r.Header(out, work, level, id)
 	}
-	return skip
+	return skip + k
 }
 
 func (p *parser) isUnderlinedHeader(data []byte) int {
