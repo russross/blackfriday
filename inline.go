@@ -55,11 +55,14 @@ func (p *parser) inline(out *bytes.Buffer, data []byte) {
 
 // single and double emphasis parsing
 func emphasis(p *parser, out *bytes.Buffer, data []byte, offset int) int {
-	// CommonMark openening char preceeded by alphanumeric and followed
-	// by puncttuation: not emphasis
+	// CommonMark opening char preceded by alphanumeric and followed
+	// by punctuation: not emphasis
 	if offset > 0 && offset+1 < len(data) {
 		if isalnum(data[offset-1]) && ispunct(data[offset+1]) {
-			return 0
+			// except when data[offset+1] is not '**, because it could be intraword double emphasis.
+			if data[offset+1] != '*' {
+				return 0
+			}
 		}
 	}
 
