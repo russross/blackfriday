@@ -363,10 +363,9 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 		}
 		if id != "" {
 			if v, ok := p.anchors[id]; ok && p.flags&EXTENSION_UNIQUE_HEADER_IDS != 0 {
-				println("anchor found")
+				p.anchors[id]++
 				// anchor found
 				id += "-" + strconv.Itoa(v)
-				p.anchors[id]++
 			} else {
 				p.anchors[id] = 1
 			}
