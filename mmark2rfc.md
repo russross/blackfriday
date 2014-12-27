@@ -206,7 +206,19 @@ Added an anchor to blockquote can be done like so:
 You can specify classes with `.class` (although these are not used when converting to XML2RFC), and
 arbitrary key value pairs where each key/value becomes an attribute.
 
-# Miscellaneous
+# Lists
+
+## Ordered Lists
+
+The are several ways to start an ordered lists.
+
+## Unordered Lists
+
+
+## Definition Lists
+
+Mmark supports the definition list syntax from [PHP Markdown Extra](https://michelf.ca/projects/php-markdown/extra/#def-list), meaning
+there can not be a empty line between the term and the definition. Note the multiple terms and definition syntax is *not* supported.
 
 ## Example Lists
 
@@ -214,6 +226,9 @@ This is the example list syntax
 [from pandoc](http://johnmacfarlane.net/pandoc/README.html#extension-example_lists). References
 to example lists work as well. Note that an example list always needs to have an identifier,
 `(@good)` works, `(@)` does not.
+
+
+# Miscellaneous
 
 
 ## HTML Comment
@@ -354,6 +369,7 @@ This documents has been modeled after the excellent [kramdown syntax page](http:
     otherwise they are not available in the appendix.
 *   Inline Attribute Lists must be given *before* the block element.
 *   Mmark cannot parse @RFC728 markdown.
+*   Multiple terms and definitions are not supported in definition lists.
 
 [kramdown]: http://http://kramdown.gettalong.org/
 [leanpub]: https://leanpub.com/help/manual
