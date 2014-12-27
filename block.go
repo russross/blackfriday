@@ -426,6 +426,9 @@ func (p *parser) isUnderlinedHeader(data []byte) int {
 }
 
 func (p *parser) titleBlock(out *bytes.Buffer, data []byte, doRender bool) int {
+	if p.titleblock {
+		return 0
+	}
 	if data[0] != '%' {
 		return 0
 	}
@@ -437,6 +440,7 @@ func (p *parser) titleBlock(out *bytes.Buffer, data []byte, doRender bool) int {
 			break
 		}
 	}
+	p.titleblock = true
 	data = bytes.Join(splitData[0:i], []byte("\n"))
 	block := p.titleBlockTOML(out, data)
 	p.r.TitleBlockTOML(out, &block)

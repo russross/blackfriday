@@ -1343,6 +1343,17 @@ As we can see from (@good) some things never change. Some we do not when we refe
 	doTestsBlockXML(t, tests, 0)
 }
 
+// TODO(miek): titleblock
+func TestTitleBlockTOML(t *testing.T) {
+	var tests = []string{
+		`% Title = "Test Document"
+% abbr = "test"
+`,
+		"",
+	}
+	doTestsBlockXML(t, tests, EXTENSION_TITLEBLOCK_TOML)
+}
+
 // TODO:
 // figure caption
 // table caption

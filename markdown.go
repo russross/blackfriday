@@ -241,8 +241,10 @@ type parser struct {
 	// Footnotes need to be ordered as well as available to quickly check for
 	// presence. If a ref is also a footnote, it's stored both in refs and here
 	// in notes. Slice is nil if footnotes not enabled.
-	notes    []*reference
-	appendix bool // have we seen a {backmatter}?
+	notes []*reference
+
+	appendix   bool // have we seen a {backmatter}?
+	titleblock bool // have we seen a titleblock
 
 	// Placeholder IAL that can be added to blocklevel elements.
 	ial *InlineAttr
