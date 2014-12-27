@@ -236,12 +236,11 @@ implements the following extensions:
 *   images -> artwork, use title for caption
     if caption is given, wrap in figure -> otherwise not.
 *   Extension to recognize pandoc2rfc indices?
-*   Extend table syntax to support multi line tables?
 
 *   pandoc line_blocks
-*   pandoc multi_line_tables
 *   escaping chars
 
+*   HTML renderer is lagging behind the other renderers.
 *   make webservers that converts for you
 *   cleanups - and loose a bunch of extensions, turn them on per default
     reduce API footprint (hide constants mainly)

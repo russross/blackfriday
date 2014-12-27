@@ -674,6 +674,22 @@ func TestOrderedList(t *testing.T) {
 
 		"1. numbers\n1. are ignored\n",
 		"<ol>\n<li>numbers</li>\n<li>are ignored</li>\n</ol>\n",
+
+		"a. hallo\n\na.  item2\nb.  item2\n",
+		"<p>a. hallo</p>\n\n<ol type=\"a\">\n<li>item2</li>\n<li>item2</li>\n</ol>\n",
+
+		"i. hallo\n\ni.  item2\nii.  item2\n",
+		"<p>i. hallo</p>\n\n<ol type=\"i\">\n<li>item2</li>\n<li>item2</li>\n</ol>\n",
+
+		"A. hallo\n\nA.  item2\nB.  item2\n",
+		"<p>A. hallo</p>\n\n<ol type=\"A\">\n<li>item2</li>\n<li>item2</li>\n</ol>\n",
+
+		"1)  item2\n2)  item2\n",
+		"<p>1)  item2\n2)  item2</p>\n",
+
+		"4. numbers\n1. are ignored\n",
+		"<ol>\n<li>numbers</li>\n<li>are ignored</li>\n</ol>\n",
+
 	}
 	doTestsBlock(t, tests, 0)
 }
@@ -1328,8 +1344,6 @@ As we can see from (@good) some things never change. Some we do not when we refe
 }
 
 // TODO:
-// Roman lists
-// Letter prefix
 // figure caption
 // table caption
 // frontmatter
