@@ -93,11 +93,13 @@ informative reference to the seventh version of draft-blah.
 If the need arises (usually when citing a document that is not in the XML2RFC database)
 an XML reference fragment can be included, note that this needs to happen
 *before* the back matter is started, because that is the point when the references are outputted
-(right now the implementation does not scan the entire file for citations, also see [](#bugs)).
+(right now the implementation does not scan the entire file for citations, also see (#bugs).
 
 # Internal References
 
-Shortcut form (#bugs)
+The cross reference syntax is `[](#id)`, which allows for an optional title between the brackets.
+Usually this is left empty, for this use case mmark allows the shortcut form `(#id)` which omits
+the brackets in its entirely.
 
 # Document divisions
 
