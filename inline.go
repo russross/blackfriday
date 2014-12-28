@@ -1084,6 +1084,12 @@ func index(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 				return ret
 			}
 		}
+		if data[1] == '#' {
+			ret = crossReference(p, out, data, 0)
+			if ret > 0 {
+				return ret
+			}
+		}
 		// no three (((
 		return 0
 	}
@@ -1390,16 +1396,7 @@ func exampleReference(p *parser, out *bytes.Buffer, data []byte, offset int) int
 	}
 	i++
 	for i < len(data) && data[i] != ')' {
-		// isAlpha shortcut, TODO(miek): check what there is
-		if data[i] >= 'a' && data[i] <= 'z' {
-			i++
-			continue
-		}
-		if data[i] >= 'A' && data[i] <= 'Z' {
-			i++
-			continue
-		}
-		if data[i] >= '0' && data[i] <= '9' {
+		if isalnum(data[i]) {
 			i++
 			continue
 		}
@@ -1416,20 +1413,44 @@ func exampleReference(p *parser, out *bytes.Buffer, data []byte, offset int) int
 	return 0
 }
 
+// (#r), ref is alfanumeric, underscores or hyphens
+func crossReference(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+	data = data[offset:]
+	i := 0
+	if len(data) < 4 {
+		return 0
+	}
+	i++
+	if data[i] != '#' {
+		return 0
+	}
+	i++
+	for i < len(data) && data[i] != ')' {
+		if isalnum(data[i]) {
+			i++
+			continue
+		}
+		if data[i] == '_' || data[i] == '-' {
+			i++
+			continue
+		}
+		return 0
+	}
+	// TODO(miek): write out the Link
+//	if e, ok := p.examples[string(data[2:i])]; ok {
+//		p.r.Example(out, e.last)
+//		p.r.Link(out, uLink, title, content.Bytes())
+//		return i + 1
+//	}
+	return 0
+}
+
 // @r, ref is known reference anchor: alfanumeric, underscores or hyphens
 func citationReference(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
 	i := 1
 	for i < len(data) && data[i] != ' ' && !ispunct(data[i]) {
-		if data[i] >= 'a' && data[i] <= 'z' {
-			i++
-			continue
-		}
-		if data[i] >= 'A' && data[i] <= 'Z' {
-			i++
-			continue
-		}
-		if data[i] >= '0' && data[i] <= '9' {
+		if data[i] == '_' || data[i] == '-' {
 			i++
 			continue
 		}

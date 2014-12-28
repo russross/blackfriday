@@ -135,6 +135,11 @@ implements the following extensions:
 *   **Strikethrough**. Use two tildes (`~~`) to mark text that
     should be crossed out.
 
+*   **Short References**. Internal references use the syntax `[](#id)`,
+    usually the need for the title within the brackets is not needed,
+    so mmark has the shorter syntax (#id) to cross reference in the
+    document.
+
 *   **Hard line breaks**. With this extension enabled (it is off by
     default in the `MarkdownBasic` and `MarkdownCommon` convenience
     functions), newlines in the input translate into line breaks in

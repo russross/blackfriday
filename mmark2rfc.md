@@ -95,6 +95,10 @@ an XML reference fragment can be included, note that this needs to happen
 *before* the back matter is started, because that is the point when the references are outputted
 (right now the implementation does not scan the entire file for citations, also see [](#bugs)).
 
+# Internal References
+
+Shortcut form (#bugs)
+
 # Document divisions
 
 Using `{mainmatter}` on a line by itself starts the main matter (middle) of the document, `{backmatter}`
