@@ -1084,7 +1084,7 @@ func index(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 				return ret
 			}
 		}
-		if data[1] == '#' {
+		if data[1] == '#' && p.flags&EXTENSION_SHORT_REF != 0 {
 			ret = crossReference(p, out, data, 0)
 			if ret > 0 {
 				return ret
@@ -1437,11 +1437,11 @@ func crossReference(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		return 0
 	}
 	// TODO(miek): write out the Link
-//	if e, ok := p.examples[string(data[2:i])]; ok {
-//		p.r.Example(out, e.last)
-//		p.r.Link(out, uLink, title, content.Bytes())
-//		return i + 1
-//	}
+	//	if e, ok := p.examples[string(data[2:i])]; ok {
+	//		p.r.Example(out, e.last)
+	//		p.r.Link(out, uLink, title, content.Bytes())
+	//		return i + 1
+	//	}
 	return 0
 }
 
