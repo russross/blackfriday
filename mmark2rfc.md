@@ -49,7 +49,7 @@ The goals of mmark are:
 
 Mmark uses two scans when converting a document and does not build an internal AST of
 the document, this means it can not adhere 100% to the [CommonMark] specification, however
-the CommonMark test suite is used when developing mmark. Currently mmark passes 60% of the tests.
+the CommonMark test suite is used when developing mmark. Currently mmark passes ~60% of the tests.
 
 Using Figure 1 from [@!RFC7328], mmark can be positioned as follows:
 
@@ -223,8 +223,10 @@ The are several ways to start an ordered lists.
 
 ## Definition Lists
 
-Mmark supports the definition list syntax from [PHP Markdown Extra](https://michelf.ca/projects/php-markdown/extra/#def-list), meaning
-there can not be a empty line between the term and the definition. Note the multiple terms and definition syntax is *not* supported.
+Mmark supports the definition list syntax from [PHP Markdown
+Extra](https://michelf.ca/projects/php-markdown/extra/#def-list), meaning there
+can not be a empty line between the term and the definition. Note the multiple
+terms and definition syntax is *not* supported.
 
 ## Example Lists
 
