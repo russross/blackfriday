@@ -354,7 +354,7 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 	for end > 0 && data[end-1] == '#' {
 		// CommonMark: a # directly following the header name is allowed and we
 		// should keep it
-		if end > 1 && data[end-2] != '#' && data[end-2] != ' '  {
+		if end > 1 && data[end-2] != '#' && data[end-2] != ' ' {
 			end++
 			break
 		}

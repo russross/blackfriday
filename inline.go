@@ -1445,7 +1445,7 @@ func citationReference(p *parser, out *bytes.Buffer, data []byte, offset int) in
 	data = data[offset:]
 	i := 1
 	for i < len(data) && data[i] != ' ' && !ispunct(data[i]) {
-		if data[i] == '_' || data[i] == '-' {
+		if isalnum(data[i]) {
 			i++
 			continue
 		}

@@ -37,7 +37,7 @@ const (
 	EXTENSION_MATTER                                 // use {frontmatter} {mainmatter} {backmatter}
 	EXTENSION_EXAMPLE_LISTS                          // render '(@tag)  ' example lists
 	EXTENSION_ABBREVIATIONS                          // render abbreviations `*[HTML]: Hyper Text Markup Language`
-	EXTENSION_SHORT_REF				 // (#id) will be a cross reference.
+	EXTENSION_SHORT_REF                              // (#id) will be a cross reference.
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML

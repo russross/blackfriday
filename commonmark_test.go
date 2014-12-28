@@ -48,8 +48,8 @@ func doTestsCommonMark(t *testing.T, tests []string, extensions int) {
 
 func TestPrefixHeaderCommonMark_29(t *testing.T) {
 	var tests = []string{
-"# hallo\n\n # hallo\n\n  # hallo\n\n   # hallo\n\n    # hallo\n",
-"<h1>hallo</h1>\n\n<h1>hallo</h1>\n\n<h1>hallo</h1>\n\n<h1>hallo</h1>\n\n<pre><code># hallo\n</code></pre>\n",
+		"# hallo\n\n # hallo\n\n  # hallo\n\n   # hallo\n\n    # hallo\n",
+		"<h1>hallo</h1>\n\n<h1>hallo</h1>\n\n<h1>hallo</h1>\n\n<h1>hallo</h1>\n\n<pre><code># hallo\n</code></pre>\n",
 	}
 	doTestsCommonMark(t, tests, 0)
 }

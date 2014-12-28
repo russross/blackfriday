@@ -309,7 +309,7 @@ func TestPrefixAutoHeaderIdExtension(t *testing.T) {
 		"# hallo\n\n # hallo\n\n  # hallo\n\n   # hallo\n",
 		"<h1 id=\"hallo\">hallo</h1>\n\n<h1 id=\"hallo-1\">hallo</h1>\n\n<h1 id=\"hallo-2\">hallo</h1>\n\n<h1 id=\"hallo-3\">hallo</h1>\n",
 	}
-	doTestsBlock(t, tests, EXTENSION_AUTO_HEADER_IDS| EXTENSION_UNIQUE_HEADER_IDS)
+	doTestsBlock(t, tests, EXTENSION_AUTO_HEADER_IDS|EXTENSION_UNIQUE_HEADER_IDS)
 }
 
 func TestUnderlineHeaders(t *testing.T) {
@@ -689,7 +689,6 @@ func TestOrderedList(t *testing.T) {
 
 		"4. numbers\n1. are ignored\n",
 		"<ol>\n<li>numbers</li>\n<li>are ignored</li>\n</ol>\n",
-
 	}
 	doTestsBlock(t, tests, 0)
 }
