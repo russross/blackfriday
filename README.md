@@ -250,7 +250,6 @@ implements the following extensions:
 *   cleanups - and loose a bunch of extensions, turn them on per default
     reduce API footprint (hide constants mainly)
 *   save original IAL for example lists?
-*   add ULink?
 
 # License
 

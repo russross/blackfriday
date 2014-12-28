@@ -1436,13 +1436,8 @@ func crossReference(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		}
 		return 0
 	}
-	// TODO(miek): write out the Link
-	//	if e, ok := p.examples[string(data[2:i])]; ok {
-	//		p.r.Example(out, e.last)
-	//		p.r.Link(out, uLink, title, content.Bytes())
-	//		return i + 1
-	//	}
-	return 0
+	p.r.Link(out, data[2:i], nil, nil)
+	return i + 1
 }
 
 // @r, ref is known reference anchor: alfanumeric, underscores or hyphens
