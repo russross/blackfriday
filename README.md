@@ -177,6 +177,15 @@ implements the following extensions:
     Table: This is a table.
     ```
 
+    Or for a code block:
+
+        ``` go
+        func getTrue() bool {
+            return true
+        }
+        ```
+        Figure: Look! A Go function.
+
 *  **Quote attribution**, after a blockquote you can optionally use
     `Quote: John Doe -- http://example.org`, where
     the quote will be attributed to John Doe, pointing to the URL:
