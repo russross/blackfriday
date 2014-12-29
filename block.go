@@ -1796,6 +1796,7 @@ gatherlines:
 
 		// CommonMark, rule breaks the list, but when indented it belong to the list
 		case p.isHRule(chunk) && indent < 4:
+			*flags |= LIST_ITEM_END_OF_LIST
 			break gatherlines
 
 		}

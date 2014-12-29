@@ -54,10 +54,19 @@ func TestPrefixHeaderCommonMark_29(t *testing.T) {
 	doTestsCommonMark(t, tests, 0)
 }
 
-func TestHRuleCommonMark_18(t *testing.T) {
+func TestHRuleCommonMark_18_22(t *testing.T) {
 	var tests = []string{
 		"*   List\n    * Sublist\n    Not a header\n    ------\n",
 		"<ul>\n<li>List\n\n<ul>\n<li>Sublist\nNot a header</li>\n</ul>\n\n<hr /></li>\n</ul>\n",
+
+		"- Foo\n- * * *\n- Bar\n",
+		"<ul>\n<li>Foo</li>\n<li>* * *</li>\n<li>Bar</li>\n</ul>\n",
+
+		"* Foo\n* * * *\n",
+		"",
+
+		"* Foo\n  * - - -\n",
+		"",
 	}
 	doTestsCommonMark(t, tests, 0)
 }
