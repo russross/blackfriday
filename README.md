@@ -241,7 +241,7 @@ implements the following extensions:
         H~2~O is a liquid. 2^10^ is 1024.
 
     Inside a sub/superscript you must escape spaces.
-    Thus, if you want the letter P with 'a cat' in subscripts, use P~a\ cat~, not P~a cat~.
+    Thus, if you want the letter P with 'a cat' in subscripts, use `P~a\ cat~`, not `P~a cat~`.
 
 # Todo
 
@@ -250,10 +250,6 @@ implements the following extensions:
 *   images -> artwork, use title for caption
     if caption is given, wrap in figure -> otherwise not.
 *   Extension to recognize pandoc2rfc indices?
-
-*   pandoc line_blocks
-*   escaping chars
-
 *   HTML renderer is lagging behind the other renderers.
 *   make webservers that converts for you
 *   cleanups - and loose a bunch of extensions, turn them on per default
