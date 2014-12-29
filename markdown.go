@@ -329,55 +329,58 @@ func firstPass(p *parser, input []byte, depth int) []byte {
 	lastLineWasBlank := false
 	lastFencedCodeBlockEnd := 0
 	for beg < len(input) { // iterate over lines
-		if end = isReference(p, input[beg:], tabSize); end > 0 {
-			beg += end
-		} else { // skip to the next line
-			end = beg
-			for end < len(input) && input[end] != '\n' && input[end] != '\r' {
-				end++
+		if beg >= lastFencedCodeBlockEnd {
+			if end = isReference(p, input[beg:], tabSize); end > 0 {
+				beg += end
+				continue
 			}
-
-			if p.flags&EXTENSION_FENCED_CODE != 0 {
-				// when last line was none blank and a fenced code block comes after
-				if beg >= lastFencedCodeBlockEnd {
-					// tmp var so we don't modify beyond bounds of `input`
-					var tmp = make([]byte, len(input[beg:]), len(input[beg:])+1)
-					copy(tmp, input[beg:])
-					if i := p.fencedCode(&out, append(tmp, '\n'), false); i > 0 {
-						if !lastLineWasBlank {
-							out.WriteByte('\n') // need to inject additional linebreak
-						}
-						lastFencedCodeBlockEnd = beg + i
-					}
-				}
-				lastLineWasBlank = end == beg
-			}
-
-			// add the line body if present
-			if end > beg {
-				if end < lastFencedCodeBlockEnd { // Do not expand tabs while inside fenced code blocks.
-					out.Write(input[beg:end])
-				} else {
-					if p.flags&EXTENSION_INCLUDE != 0 {
-						line := expandIncludes(&out, input[beg:end], p, depth)
-						expandTabs(&out, line, tabSize)
-					} else {
-						expandTabs(&out, input[beg:end], tabSize)
-
-					}
-				}
-			}
-			out.WriteByte('\n')
-
-			if end < len(input) && input[end] == '\r' {
-				end++
-			}
-			if end < len(input) && input[end] == '\n' {
-				end++
-			}
-
-			beg = end
 		}
+		// skip to the next line
+		end = beg
+		for end < len(input) && input[end] != '\n' && input[end] != '\r' {
+			end++
+		}
+
+		if p.flags&EXTENSION_FENCED_CODE != 0 {
+			// when last line was none blank and a fenced code block comes after
+			if beg >= lastFencedCodeBlockEnd {
+				// tmp var so we don't modify beyond bounds of `input`
+				var tmp = make([]byte, len(input[beg:]), len(input[beg:])+1)
+				copy(tmp, input[beg:])
+				if i := p.fencedCode(&out, append(tmp, '\n'), false); i > 0 {
+					if !lastLineWasBlank {
+						out.WriteByte('\n') // need to inject additional linebreak
+					}
+					lastFencedCodeBlockEnd = beg + i
+				}
+			}
+			lastLineWasBlank = end == beg
+		}
+
+		// add the line body if present
+		if end > beg {
+			if end < lastFencedCodeBlockEnd { // Do not expand tabs while inside fenced code blocks.
+				out.Write(input[beg:end])
+			} else {
+				if p.flags&EXTENSION_INCLUDE != 0 {
+					line := expandIncludes(&out, input[beg:end], p, depth)
+					expandTabs(&out, line, tabSize)
+				} else {
+					expandTabs(&out, input[beg:end], tabSize)
+
+				}
+			}
+		}
+		out.WriteByte('\n')
+
+		if end < len(input) && input[end] == '\r' {
+			end++
+		}
+		if end < len(input) && input[end] == '\n' {
+			end++
+		}
+
+		beg = end
 	}
 
 	// empty input?

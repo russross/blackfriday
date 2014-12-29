@@ -84,6 +84,9 @@ func TestFencedCodeBlockCommonMark_81(t *testing.T) {
 
 		"~~~~    ruby\ndef foo(x)\n return 3\nend\n~~~~\n",
 		"<pre><code class=\"language-ruby\">def foo(x)\n return 3\nend\n</code></pre>\n",
+
+		"```\n[foo]: /url\n```\n",
+		"<pre><code>[foo]: /url\n</code></pre>\n",
 	}
 
 	doTestsCommonMark(t, tests, EXTENSION_FENCED_CODE)
