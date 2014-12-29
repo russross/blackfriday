@@ -63,10 +63,10 @@ func TestHRuleCommonMark_18_22(t *testing.T) {
 		"<ul>\n<li>Foo</li>\n<li>* * *</li>\n<li>Bar</li>\n</ul>\n",
 
 		"* Foo\n* * * *\n",
-		"",
+		"<ul>\n<li>Foo</li>\n</ul>\n\n<hr />\n",
 
 		"* Foo\n  * - - -\n",
-		"",
+		"<ul>\n<li>Foo\n\n<ul>\n<li>- - -</li>\n</ul></li>\n</ul>\n",
 	}
 	doTestsCommonMark(t, tests, 0)
 }
