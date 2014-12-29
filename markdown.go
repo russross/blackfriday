@@ -523,6 +523,9 @@ func isReference(p *parser, data []byte, tabSize int) int {
 	}
 	idOffset := i
 	for i < len(data) && data[i] != '\n' && data[i] != '\r' && data[i] != ']' {
+		if data[i] == '\\' {
+			i++
+		}
 		i++
 	}
 	if i >= len(data) || data[i] != ']' {
