@@ -345,7 +345,7 @@ func TestUnderlineHeaders(t *testing.T) {
 		"<h1>Header with <em>inline</em></h1>\n",
 
 		"*   List\n    * Sublist\n    Not a header\n    ------\n",
-		"<ul>\n<li>List\n\n<ul>\n<li>Sublist\nNot a header\n------</li>\n</ul></li>\n</ul>\n",
+		"<ul>\n<li>List\n\n<ul>\n<li>Sublist\nNot a header</li>\n</ul>\n\n<hr /></li>\n</ul>\n",
 
 		"Paragraph\n\n\n\n\nHeader\n===\n",
 		"<p>Paragraph</p>\n\n<h1>Header</h1>\n",

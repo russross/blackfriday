@@ -1793,6 +1793,11 @@ gatherlines:
 		case containsBlankLine:
 			raw.WriteByte('\n')
 			*flags |= LIST_ITEM_CONTAINS_BLOCK
+
+		// CommonMark, rule breaks the list, but when indented it belong to the list
+		case p.isHRule(chunk) && indent < 4:
+			break gatherlines
+
 		}
 
 		// if this line was preceeded by one or more blanks,
