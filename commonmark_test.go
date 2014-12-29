@@ -70,3 +70,15 @@ func TestHRuleCommonMark_18_22(t *testing.T) {
 	}
 	doTestsCommonMark(t, tests, 0)
 }
+
+func TestFencedCodeBlockCommonMark_81(t *testing.T) {
+	var tests = []string{
+		" ```\n aaa\naaa\n```\n",
+		"<pre><code>aaa\naaa\n</code></pre>\n",
+
+		"```\n bbb\nbbb\n```\n",
+		"<pre><code> bbb\nbbb\n</code></pre>\n",
+	}
+
+	doTestsCommonMark(t, tests, EXTENSION_FENCED_CODE)
+}

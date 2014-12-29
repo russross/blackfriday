@@ -869,6 +869,12 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 		return 0
 	}
 
+	// CommonMark: if indented strip this many leading spaces from code block
+	indent := 0
+	for indent < beg && data[indent] == ' ' {
+		indent++
+	}
+
 	var work bytes.Buffer
 
 	for {
@@ -891,6 +897,13 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 		// did we reach the end of the buffer without a closing marker?
 		if end >= len(data) {
 			return 0
+		}
+
+		// CommmonMark, strip beginning spaces
+		s := 0
+		for s < indent && data[beg] == ' ' {
+			beg++
+			s++
 		}
 
 		// verbatim copy to the working buffer
