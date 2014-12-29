@@ -210,6 +210,12 @@ func lineBreak(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	}
 	out.Truncate(eol)
 
+	if offset > 1 && data[offset-1] == '\\' {
+		out.Truncate(eol-1)
+		p.r.LineBreak(out)
+		return 1
+	}
+
 	precededByTwoSpaces := offset >= 2 && data[offset-2] == ' ' && data[offset-1] == ' '
 
 	// should there be a hard line break here?
