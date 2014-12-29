@@ -788,10 +788,18 @@ func (p *parser) isFencedCode(data []byte, syntax **string, oldmarker string) (s
 
 	c := data[i]
 
-	// the whole line must be the same char or whitespace
+	// the whole line must be the same char per CommonMark whitespace is not allowed
 	for data[i] == c {
 		size++
 		i++
+	}
+	// if we find spaces and them some more markers, this is not a fenced code block
+	j := i
+	for data[j] == ' ' {
+		j++
+	}
+	if data[j] == c {
+		return
 	}
 
 	// the marker char must occur at least 3 times
@@ -851,11 +859,9 @@ func (p *parser) isFencedCode(data []byte, syntax **string, oldmarker string) (s
 		*syntax = &language
 	}
 
-	for data[i] == ' ' {
+	// CommonMark: skip garbage until end of line
+	for data[i] != '\n' {
 		i++
-	}
-	if data[i] != '\n' {
-		return
 	}
 
 	skip = i + 1
@@ -865,8 +871,13 @@ func (p *parser) isFencedCode(data []byte, syntax **string, oldmarker string) (s
 func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 	var lang *string
 	beg, marker := p.isFencedCode(data, &lang, "")
-	if beg == 0 || beg >= len(data) {
+	if beg == 0 {
 		return 0
+	}
+	if beg >= len(data) {
+		// only the marker and end of doc. CommonMark dictates this is valid
+		p.r.BlockCode(out, nil, "", nil)
+		return len(data)
 	}
 
 	// CommonMark: if indented strip this many leading spaces from code block
@@ -895,8 +906,11 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 		end++
 
 		// did we reach the end of the buffer without a closing marker?
+		// CommonMark: end of buffer closes fencec code block
 		if end >= len(data) {
-			return 0
+			work.Write(data[beg:])
+			beg = end
+			break
 		}
 
 		// CommmonMark, strip beginning spaces
