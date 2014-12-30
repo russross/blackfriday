@@ -779,13 +779,14 @@ func scanAbbreviation(p *parser, data []byte, i int) (titleOffset, titleEnd, lin
 
 // Miscellaneous helper functions
 
-func ispunct(c byte) bool        { return unicode.IsPunct(rune(c)) }
-func isletter(c byte) bool       { return unicode.IsLetter(rune(c)) }
-func isalnum(c byte) bool        { return (unicode.IsNumber(rune(c)) || unicode.IsLetter(rune(c))) }
-func isnum(c byte) bool          { return unicode.IsNumber(rune(c)) }
-func isspace(c byte) bool        { return unicode.IsSpace(rune(c)) }
-func isupper(c byte) bool        { return unicode.IsUpper(rune(c)) }
-func islower(c byte) bool        { return !unicode.IsUpper(rune(c)) }
+func ispunct(c byte) bool  { return unicode.IsPunct(rune(c)) }
+func isletter(c byte) bool { return unicode.IsLetter(rune(c)) }
+func isalnum(c byte) bool  { return (unicode.IsNumber(rune(c)) || unicode.IsLetter(rune(c))) }
+func isnum(c byte) bool    { return unicode.IsNumber(rune(c)) }
+func isspace(c byte) bool  { return unicode.IsSpace(rune(c)) }
+func isupper(c byte) bool  { return unicode.IsUpper(rune(c)) }
+func islower(c byte) bool  { return !unicode.IsUpper(rune(c)) }
+
 func iswhitespace(c byte) bool { // better name?
 	if c == '\n' || c == '\r' {
 		return false

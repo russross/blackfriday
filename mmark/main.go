@@ -112,6 +112,8 @@ func main() {
 	if commonmark {
 		extensions &= ^mmark.EXTENSION_AUTO_HEADER_IDS
 		extensions &= ^mmark.EXTENSION_AUTOLINK
+		extensions |= mmark.EXTENSION_LAX_HTML_BLOCKS
+		extensions |= mmark.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
 	}
 
 	var renderer mmark.Renderer
