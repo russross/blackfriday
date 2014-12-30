@@ -231,7 +231,7 @@ type parser struct {
 	refs                 map[string]*reference
 	citations            map[string]*citation
 	abbreviations        map[string]*abbreviation
-	examples             map[string]*example
+	examples             map[string]int
 	inlineCallback       [256]inlineParser
 	flags                int
 	nesting              int
@@ -276,7 +276,7 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	p.refs = make(map[string]*reference)
 	p.abbreviations = make(map[string]*abbreviation)
 	p.anchors = make(map[string]int)
-	p.examples = make(map[string]*example)
+	p.examples = make(map[string]int)
 	p.maxNesting = 16
 	p.insideLink = false
 
@@ -481,11 +481,6 @@ type citation struct {
 	xml   []byte // raw include of reference XML
 	typ   byte   // 'i' for informal, 'n' normative (default = 'i')
 	seq   int    // sequence number for I-Ds
-}
-
-// last exam
-type example struct {
-	last int
 }
 
 // Check whether or not data starts with a reference link.

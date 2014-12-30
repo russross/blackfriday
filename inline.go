@@ -1413,7 +1413,7 @@ func exampleReference(p *parser, out *bytes.Buffer, data []byte, offset int) int
 		return 0
 	}
 	if e, ok := p.examples[string(data[2:i])]; ok {
-		p.r.Example(out, e.last)
+		p.r.Example(out, e)
 		return i + 1
 	}
 	return 0
