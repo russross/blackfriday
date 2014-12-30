@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"io/ioutil"
 	"log"
+	"unicode"
 	"unicode/utf8"
 )
 
@@ -789,28 +790,21 @@ func scanAbbreviation(p *parser, data []byte, i int) (titleOffset, titleEnd, lin
 // Test if a character is a punctuation symbol.
 // Taken from a private function in regexp in the stdlib.
 func ispunct(c byte) bool {
-	for _, r := range []byte("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~") {
-		if c == r {
-			return true
-		}
-	}
-	return false
+	return unicode.IsPunct(rune(c))
 }
 
 // Test if a character is a whitespace character.
 func isspace(c byte) bool {
-	return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v'
+	return unicode.IsSpace(rune(c))
 }
 
 // Test if a character is letter.
 func isletter(c byte) bool {
-	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+	return unicode.IsLetter(rune(c))
 }
 
-// Test if a character is a letter or a digit.
-// TODO: check when this is looking for ASCII alnum and when it should use unicode
 func isalnum(c byte) bool {
-	return (c >= '0' && c <= '9') || isletter(c)
+	return (unicode.IsNumber(rune(c)) || unicode.IsLetter(rune(c)))
 }
 
 // Replace {{file.md}} with the contents of the file.
