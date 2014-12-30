@@ -324,7 +324,7 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 		level++
 	}
 	i, end := 0, 0
-	for i = level; iswhitespace(data[i]) ; i++ {
+	for i = level; iswhitespace(data[i]); i++ {
 	}
 	for end = i; data[end] != '\n'; end++ {
 	}
@@ -1458,8 +1458,8 @@ func (p *parser) uliPrefix(data []byte) int {
 	}
 
 	// need a *, +, #, or - followed by a space
-	if (data[i] != '*' && data[i] != '+' && data[i] != '-' && data[i] != ' ') ||
-		data[i+1] != ' ' {
+	if (data[i] != '*' && data[i] != '+' && data[i] != '-' && !iswhitespace(data[i])) ||
+		!iswhitespace(data[i+1]) {
 		return 0
 	}
 	return i + 2
@@ -1479,12 +1479,12 @@ func (p *parser) oliPrefix(data []byte) int {
 
 	// count the digits
 	start := i
-	for data[i] >= '0' && data[i] <= '9' {
+	for isnum(data[i]) {
 		i++
 	}
 
-	// we need >= 1 digits followed by a dot and a space
-	if start == i || data[i] != '.' || data[i+1] != ' ' {
+	// we need >= 1 digits followed by a dot or brace and a space
+	if start == i || (data[i] != '.' && data[i] != ')') || !iswhitespace(data[i+1]) {
 		return 0
 	}
 	return i + 2
@@ -1509,7 +1509,7 @@ func (p *parser) aliPrefix(data []byte) int {
 	}
 
 	// we need >= 1 letter followed by a dot and  two spaces
-	if start == i || data[i] != '.' || data[i+1] != ' ' || data[i+2] != ' ' {
+	if start == i || (data[i] != '.' && data[i] != ')') || !iswhitespace(data[i+1]) || !iswhitespace(data[i+2]) {
 		return 0
 	}
 	return i + 3
@@ -1534,7 +1534,7 @@ func (p *parser) aliPrefixU(data []byte) int {
 	}
 
 	// we need >= 1 letter followed by a dot and  two spaces
-	if start == i || data[i] != '.' || !iswhitespace(data[i+1]) || !iswhitespace(data[i+2]) {
+	if start == i || (data[i] != '.' && data[i] != ')') || !iswhitespace(data[i+1]) || !iswhitespace(data[i+2]) {
 		return 0
 	}
 	return i + 3
@@ -1559,7 +1559,7 @@ func (p *parser) rliPrefix(data []byte) int {
 	}
 
 	// we need >= 1 letter followed by a dot and  two spaces
-	if start == i || data[i] != '.' || !iswhitespace(data[i+1]) || !iswhitespace(data[i+2]) {
+	if start == i || (data[i] != '.' && data[i] != ')') || !iswhitespace(data[i+1]) || !iswhitespace(data[i+2]) {
 		return 0
 	}
 	return i + 3
@@ -1584,7 +1584,7 @@ func (p *parser) rliPrefixU(data []byte) int {
 	}
 
 	// we need >= 1 letter followed by a dot and  two spaces
-	if start == i || data[i] != '.' || !iswhitespace(data[i+1]) || !iswhitespace(data[i+2]) {
+	if start == i || (data[i] != '.' && data[i] != ')') || !iswhitespace(data[i+1]) || !iswhitespace(data[i+2]) {
 		return 0
 	}
 	return i + 3

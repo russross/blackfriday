@@ -685,7 +685,7 @@ func TestOrderedList(t *testing.T) {
 		"<p>A. hallo</p>\n\n<ol type=\"A\">\n<li>item2</li>\n<li>item2</li>\n</ol>\n",
 
 		"1)  item2\n2)  item2\n",
-		"<p>1)  item2\n2)  item2</p>\n",
+		"<ol>\n<li>item2</li>\n<li>item2</li>\n</ol>\n",
 
 		"4. numbers\n1. are ignored\n",
 		"<ol>\n<li>numbers</li>\n<li>are ignored</li>\n</ol>\n",
