@@ -145,12 +145,12 @@ func codeSpan(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 	// trim outside whitespace
 	fBegin := nb
-	for fBegin < end && data[fBegin] == ' ' {
+	for fBegin < end && isspace(data[fBegin]) {
 		fBegin++
 	}
 
 	fEnd := end - nb
-	for fEnd > fBegin && data[fEnd-1] == ' ' {
+	for fEnd > fBegin && isspace(data[fEnd-1]) {
 		fEnd--
 	}
 
@@ -171,10 +171,10 @@ func normalText(p *parser, out *bytes.Buffer, data []byte) {
 		inWord := false
 		for j := 0; j < end; j++ {
 			switch {
-			case data[j] != ' ' && !inWord:
+			case !isspace(data[j]) && !inWord:
 				inWord = true
 				wordBeg = j
-			case data[j] == ' ' && inWord:
+			case isspace(data[j]) && inWord:
 				// first space after coming out of a word, output
 				if t, ok := p.abbreviations[string(data[wordBeg:j])]; ok {
 					p.r.Abbreviation(out, data[wordBeg:j], t.title)
@@ -183,7 +183,7 @@ func normalText(p *parser, out *bytes.Buffer, data []byte) {
 				}
 				p.r.NormalText(out, data[j:j+1])
 				inWord = false
-			case data[j] == ' ' && !inWord:
+			case isspace(data[j]) && !inWord:
 				p.r.NormalText(out, data[j:j+1])
 			}
 		}
@@ -211,7 +211,7 @@ func lineBreak(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	out.Truncate(eol)
 
 	if offset > 1 && data[offset-1] == '\\' {
-		out.Truncate(eol-1)
+		out.Truncate(eol - 1)
 		p.r.LineBreak(out)
 		return 1
 	}
@@ -345,7 +345,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 					commaB = j
 					id = data[k:commaB]
 				}
-			case data[j] == ' ':
+			case isspace(data[j]):
 				if spaceB == 0 {
 					spaceB = j
 					title = data[j+1 : txtE]
@@ -536,7 +536,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 					switch {
 					case data[j] != '\n':
 						b.WriteByte(data[j])
-					case data[j-1] != ' ':
+					case !isspace(data[j-1]):
 						b.WriteByte(' ')
 					}
 				}
@@ -573,7 +573,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 				switch {
 				case data[j] != '\n':
 					b.WriteByte(data[j])
-				case data[j-1] != ' ':
+				case !isspace(data[j-1]):
 					b.WriteByte(' ')
 				}
 			}
@@ -1127,14 +1127,14 @@ func index(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	// comma may be surrounded by whitespace, strip it
 	primary := comma - 1
 	for i := comma - 1; i >= 0; i-- {
-		if data[i] != ' ' {
+		if !isspace(data[i]) {
 			break
 		}
 		primary = i
 	}
 	secondary := comma + 1
 	for i := comma + 1; i < end; i++ {
-		if data[i] != ' ' {
+		if !isspace(data[i]) {
 			secondary = i
 			break
 		}
@@ -1198,7 +1198,7 @@ func helperFindEmphChar(data []byte, c byte) int {
 				i++
 			}
 			i++
-			for i < len(data) && (data[i] == ' ' || data[i] == '\n') {
+			for i < len(data) && isspace(data[i])  {
 				i++
 			}
 			if i >= len(data) {
@@ -1361,7 +1361,7 @@ func helperScript(p *parser, out *bytes.Buffer, data []byte, c byte) int {
 	// write too much
 	var raw bytes.Buffer
 	for i < len(data) {
-		if data[i] == ' ' {
+		if isspace(data[i]) {
 			if i > 0 && data[i-1] == '\\' {
 				// just written the '\', truncate to length-1 and write the space
 				raw.Truncate(raw.Len() - 1)
@@ -1450,7 +1450,7 @@ func crossReference(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 func citationReference(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
 	i := 1
-	for i < len(data) && data[i] != ' ' && !ispunct(data[i]) {
+	for i < len(data) && !isspace(data[i]) && !ispunct(data[i]) {
 		if isalnum(data[i]) {
 			i++
 			continue

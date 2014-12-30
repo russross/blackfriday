@@ -469,11 +469,12 @@ type reference struct {
 	hasBlock bool
 }
 
+// abbreviations are parsed and stored in this struct.
 type abbreviation struct {
 	title []byte
 }
 
-// Citations are parsed and stored in this struct.
+// citations are parsed and stored in this struct.
 type citation struct {
 	link  []byte
 	title []byte
@@ -482,9 +483,9 @@ type citation struct {
 	seq   int    // sequence number for I-Ds
 }
 
+// last exam
 type example struct {
 	last int
-	//attr *InlineAttr
 }
 
 // Check whether or not data starts with a reference link.
@@ -498,7 +499,7 @@ func isReference(p *parser, data []byte, tabSize int) int {
 		return 0
 	}
 	i := 0
-	for i < 3 && data[i] == ' ' {
+	for i < 3 && data[i] == ' ' { // break tests if this is 'iswhitespace'
 		i++
 	}
 
@@ -781,30 +782,33 @@ func scanAbbreviation(p *parser, data []byte, i int) (titleOffset, titleEnd, lin
 	return
 }
 
-//
-//
 // Miscellaneous helper functions
-//
-//
 
-// Test if a character is a punctuation symbol.
-// Taken from a private function in regexp in the stdlib.
-func ispunct(c byte) bool {
-	return unicode.IsPunct(rune(c))
-}
-
-// Test if a character is a whitespace character.
-func isspace(c byte) bool {
+func ispunct(c byte) bool        { return unicode.IsPunct(rune(c)) }
+func isletter(c byte) bool       { return unicode.IsLetter(rune(c)) }
+func isalnum(c byte) bool        { return (unicode.IsNumber(rune(c)) || unicode.IsLetter(rune(c))) }
+func isspace(c byte) bool        { return unicode.IsSpace(rune(c)) }
+func isupper(c byte) bool        { return unicode.IsUpper(rune(c)) }
+func islower(c byte) bool        { return !unicode.IsUpper(rune(c)) }
+func iswhitespace(c byte) bool { // better name?
+	if c == '\n' || c == '\r' {
+		return false
+	}
 	return unicode.IsSpace(rune(c))
 }
 
-// Test if a character is letter.
-func isletter(c byte) bool {
-	return unicode.IsLetter(rune(c))
-}
-
-func isalnum(c byte) bool {
-	return (unicode.IsNumber(rune(c)) || unicode.IsLetter(rune(c)))
+// check if the string only contains, i, v, x, c and l. If uppercase is true, check uppercase version.
+func isroman(digit byte, uppercase bool) bool {
+	if !uppercase {
+		if digit == 'i' || digit == 'v' || digit == 'x' || digit == 'c' || digit == 'l' {
+			return true
+		}
+		return false
+	}
+	if digit == 'I' || digit == 'V' || digit == 'X' || digit == 'C' || digit == 'L' {
+		return true
+	}
+	return false
 }
 
 // Replace {{file.md}} with the contents of the file.

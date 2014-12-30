@@ -59,7 +59,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 
 		// title block in TOML
 		//
-		// % stuff = "dbllaa"
+		// % stuff = "foo"
 		// % port = 1024
 		if p.flags&EXTENSION_TITLEBLOCK_TOML != 0 {
 			if data[0] == '%' {
@@ -301,7 +301,7 @@ func (p *parser) isPrefixHeader(data []byte) bool {
 		for level < 6 && data[level] == '#' {
 			level++
 		}
-		if data[level] != ' ' {
+		if !iswhitespace(data[level]) {
 			return false
 		}
 	}
@@ -324,7 +324,7 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 		level++
 	}
 	i, end := 0, 0
-	for i = level; data[i] == ' '; i++ {
+	for i = level; iswhitespace(data[i]) ; i++ {
 	}
 	for end = i; data[end] != '\n'; end++ {
 	}
@@ -354,13 +354,13 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 	for end > 0 && data[end-1] == '#' {
 		// CommonMark: a # directly following the header name is allowed and we
 		// should keep it
-		if end > 1 && data[end-2] != '#' && data[end-2] != ' ' {
+		if end > 1 && data[end-2] != '#' && !iswhitespace(data[end-2]) {
 			end++
 			break
 		}
 		end--
 	}
-	for end > 0 && data[end-1] == ' ' {
+	for end > 0 && iswhitespace(data[end-1]) {
 		end--
 	}
 	if end > i {
@@ -396,7 +396,7 @@ func (p *parser) isUnderlinedHeader(data []byte) int {
 		for data[i] == '=' {
 			i++
 		}
-		for data[i] == ' ' {
+		for iswhitespace(data[i]) {
 			i++
 		}
 		if data[i] == '\n' {
@@ -412,7 +412,7 @@ func (p *parser) isUnderlinedHeader(data []byte) int {
 		for data[i] == '-' {
 			i++
 		}
-		for data[i] == ' ' {
+		for iswhitespace(data[i]) {
 			i++
 		}
 		if data[i] == '\n' {
@@ -1529,12 +1529,12 @@ func (p *parser) aliPrefixU(data []byte) int {
 
 	// count the digits
 	start := i
-	for data[i] >= 'A' && data[i] <= 'Z' {
+	for isupper(data[i]) {
 		i++
 	}
 
 	// we need >= 1 letter followed by a dot and  two spaces
-	if start == i || data[i] != '.' || data[i+1] != ' ' || data[i+2] != ' ' {
+	if start == i || data[i] != '.' || !iswhitespace(data[i+1]) || !iswhitespace(data[i+2]) {
 		return 0
 	}
 	return i + 3
@@ -1554,12 +1554,12 @@ func (p *parser) rliPrefix(data []byte) int {
 
 	// count the digits
 	start := i
-	for isRoman(data[i], false) {
+	for isroman(data[i], false) {
 		i++
 	}
 
 	// we need >= 1 letter followed by a dot and  two spaces
-	if start == i || data[i] != '.' || data[i+1] != ' ' || data[i+2] != ' ' {
+	if start == i || data[i] != '.' || !iswhitespace(data[i+1]) || !iswhitespace(data[i+2]) {
 		return 0
 	}
 	return i + 3
@@ -1579,12 +1579,12 @@ func (p *parser) rliPrefixU(data []byte) int {
 
 	// count the digits
 	start := i
-	for isRoman(data[i], true) {
+	for isroman(data[i], true) {
 		i++
 	}
 
 	// we need >= 1 letter followed by a dot and  two spaces
-	if start == i || data[i] != '.' || data[i+1] != ' ' || data[i+2] != ' ' {
+	if start == i || data[i] != '.' || !iswhitespace(data[i+1]) || !iswhitespace(data[i+2]) {
 		return 0
 	}
 	return i + 3
@@ -1602,7 +1602,7 @@ func (p *parser) dliPrefix(data []byte) int {
 	}
 	// start with up to 3 spaces before :
 	j := 0
-	for j < 3 && data[i+j] == ' ' && i+j < len(data) {
+	for j < 3 && iswhitespace(data[i+j]) && i+j < len(data) {
 		j++
 	}
 	i++
@@ -1623,7 +1623,7 @@ func (p *parser) eliPrefix(data []byte) int {
 	}
 
 	// start with up to 3 spaces
-	for i < 3 && data[i] == ' ' {
+	for i < 3 && iswhitespace(data[i]) {
 		i++
 	}
 
@@ -1640,7 +1640,7 @@ func (p *parser) eliPrefix(data []byte) int {
 		}
 	}
 	// now two spaces
-	if data[i] != ')' || data[i+1] != ' ' || data[i+2] != ' ' {
+	if data[i] != ')' || !iswhitespace(data[i+1]) || !iswhitespace(data[i+2]) {
 		return 0
 	}
 	return i + 2
@@ -1691,7 +1691,7 @@ func (p *parser) list(out *bytes.Buffer, data []byte, flags, start int, group []
 func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *int) int {
 	// keep track of the indentation of the first line
 	itemIndent := 0
-	for itemIndent < 3 && data[itemIndent] == ' ' {
+	for itemIndent < 3 && iswhitespace(data[itemIndent]) {
 		itemIndent++
 	}
 
@@ -1728,7 +1728,7 @@ func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *int) int {
 	}
 
 	// skip leading whitespace on first line
-	for data[i] == ' ' {
+	for iswhitespace(data[i]) {
 		i++
 	}
 
@@ -1883,7 +1883,7 @@ func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 
 	// trim leading spaces
 	beg := 0
-	for data[beg] == ' ' {
+	for iswhitespace(data[beg]) {
 		beg++
 	}
 
@@ -1891,7 +1891,7 @@ func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 	end := len(data) - 1
 
 	// trim trailing spaces
-	for end > beg && data[end-1] == ' ' {
+	for end > beg && iswhitespace(data[end-1]) {
 		end--
 	}
 
@@ -1941,10 +1941,10 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 
 				// ignore leading and trailing whitespace
 				eol := i - 1
-				for prev < eol && data[prev] == ' ' {
+				for prev < eol && iswhitespace(data[prev]) {
 					prev++
 				}
-				for eol > prev && data[eol-1] == ' ' {
+				for eol > prev && iswhitespace(data[eol-1]) {
 					eol--
 				}
 
@@ -2047,21 +2047,6 @@ func isMatter(text []byte) bool {
 		return true
 	}
 	if string(text) == "{backmatter}\n" {
-		return true
-	}
-	return false
-}
-
-// check if the string only contains, i, v, x, c and l. If uppercase is true, check
-// uppercase version.
-func isRoman(digit byte, uppercase bool) bool {
-	if !uppercase {
-		if digit == 'i' || digit == 'v' || digit == 'x' || digit == 'c' || digit == 'l' {
-			return true
-		}
-		return false
-	}
-	if digit == 'I' || digit == 'V' || digit == 'X' || digit == 'C' || digit == 'L' {
 		return true
 	}
 	return false

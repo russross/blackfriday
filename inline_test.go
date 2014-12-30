@@ -791,9 +791,7 @@ No longer in the footnote
 
 <p>Paragraph 2</p>
 
-<p><code>
-some code
-</code></p>
+<p><code>some code</code></p>
 
 <p>Paragraph 3</p>
 </li>
