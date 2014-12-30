@@ -329,7 +329,7 @@ func firstPass(p *parser, input []byte, depth int) []byte {
 	lastLineWasBlank := false
 	lastFencedCodeBlockEnd := 0
 	for beg < len(input) { // iterate over lines
-		if beg >= lastFencedCodeBlockEnd {
+		if beg >= lastFencedCodeBlockEnd { // don't parse inside fenced code blocks
 			if end = isReference(p, input[beg:], tabSize); end > 0 {
 				beg += end
 				continue
