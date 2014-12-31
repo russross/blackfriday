@@ -918,6 +918,7 @@ func TestFootnotesWithParameters(t *testing.T) {
 func runMarkdownInlineXML(input string, extensions, xmlFlags int) string {
 	extensions |= EXTENSION_AUTOLINK
 	extensions |= EXTENSION_CITATION
+	extensions |= EXTENSION_SHORT_REF
 
 	renderer := XmlRenderer(xmlFlags)
 
@@ -1013,7 +1014,7 @@ func TestRFC2119XML(t *testing.T) {
 func TestShortReferenceXML(t *testing.T) {
 	var tests = []string{
 		"(#ref)",
-		"<p><a href=\"#ref\"></a></p>",
+		"<t><xref target=\"ref\"/></t>\n",
 	}
 	doTestsInlineXML(t, tests)
 }
