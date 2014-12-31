@@ -65,12 +65,12 @@ Table of Contents
 
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
    2.  Mmark Syntax  . . . . . . . . . . . . . . . . . . . . . . . .   3
-   3.  TOML header . . . . . . . . . . . . . . . . . . . . . . . . .   3
+   3.  TOML header . . . . . . . . . . . . . . . . . . . . . . . . .   4
    4.  Citations . . . . . . . . . . . . . . . . . . . . . . . . . .   4
    5.  Internal References . . . . . . . . . . . . . . . . . . . . .   4
    6.  Document divisions  . . . . . . . . . . . . . . . . . . . . .   4
    7.  Abstract  . . . . . . . . . . . . . . . . . . . . . . . . . .   4
-   8.  Captions  . . . . . . . . . . . . . . . . . . . . . . . . . .   4
+   8.  Captions  . . . . . . . . . . . . . . . . . . . . . . . . . .   5
      8.1.  Figures . . . . . . . . . . . . . . . . . . . . . . . . .   5
      8.2.  Quotes  . . . . . . . . . . . . . . . . . . . . . . . . .   5
      8.3.  Tables  . . . . . . . . . . . . . . . . . . . . . . . . .   5
@@ -86,7 +86,7 @@ Table of Contents
      13.1.  HTML Comment . . . . . . . . . . . . . . . . . . . . . .   7
      13.2.  Including Files  . . . . . . . . . . . . . . . . . . . .   7
      13.3.  Ordered lists  . . . . . . . . . . . . . . . . . . . . .   7
-   14. XML2RFC V3 features . . . . . . . . . . . . . . . . . . . . .   7
+   14. XML2RFC V3 features . . . . . . . . . . . . . . . . . . . . .   8
      14.1.  Asides . . . . . . . . . . . . . . . . . . . . . . . . .   8
      14.2.  Notes  . . . . . . . . . . . . . . . . . . . . . . . . .   8
      14.3.  RFC 2119 Keywords  . . . . . . . . . . . . . . . . . . .   8
@@ -97,15 +97,15 @@ Table of Contents
    17. References  . . . . . . . . . . . . . . . . . . . . . . . . .   9
      17.1.  Informative References . . . . . . . . . . . . . . . . .   9
      17.2.  Normative References . . . . . . . . . . . . . . . . . .   9
-     17.3.  URIs . . . . . . . . . . . . . . . . . . . . . . . . . .   9
+     17.3.  URIs . . . . . . . . . . . . . . . . . . . . . . . . . .  10
    Appendix A.  Bugs . . . . . . . . . . . . . . . . . . . . . . . .  10
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  10
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  11
 
 1.  Introduction
 
-   Mmark [mmark] is a markdown processor.  It supports the basic
-   markdown syntax and has been extended with (syntax) features found in
-   other Markdown implementations like kramdown [2], PHP markdown extra
+   Mmark [mmark] is a markdown processor.  It supports the markdown
+   syntax and has been extended with (syntax) features found in other
+   markdown implementations like kramdown [2], PHP markdown extra [3],
 
 
 
@@ -114,12 +114,12 @@ Gieben                    Expires June 13, 2015                 [Page 2]
 Internet-Draft                  mmark2rfc                  December 2014
 
 
-   [3], pandoc [4], leanpub [5] and asciidoc [6].  This allows mmark to
+   pandoc [4], leanpub [5] and even asciidoc [6].  This allows mmark to
    be used to write larger, structured documents such as RFC and I-Ds or
-   even books.
+   even books, while not deviating too far from markdown.
 
-   Mmark is a fork of blackfriday [blackfriday] written in Golang and it
-   is very fast.  Input to mmark must be UTF-8, the output is also UTF-
+   Mmark is a fork of blackfriday [blackfriday] and is written in Golang
+   and very fast.  Input to mmark must be UTF-8, the output is also UTF-
    8.  Mmark converts tabs to 4 spaces.
 
    The goals of mmark are:
@@ -134,7 +134,7 @@ Internet-Draft                  mmark2rfc                  December 2014
    Mmark uses two scans when converting a document and does not build an
    internal AST of the document, this means it can not adhere 100% to
    the CommonMark [7] specification, however the CommonMark test suite
-   is used when developing mmark.  Currently mmark passes 60% of the
+   is used when developing mmark.  Currently mmark passes ~60% of the
    tests.
 
    Using Figure 1 from [RFC7328], mmark can be positioned as follows:
@@ -156,10 +156,10 @@ Internet-Draft                  mmark2rfc                  December 2014
 
 2.  Mmark Syntax
 
-3.  TOML header
+   In the following sections we go over some of the difference, or extra
+   syntax features of mmark.
 
-   Mmark uses TOML [toml] document header to specify the document's meta
-   data.  Each line of this header must start with an "%".
+
 
 
 
@@ -169,6 +169,11 @@ Gieben                    Expires June 13, 2015                 [Page 3]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
+
+3.  TOML header
+
+   Mmark uses TOML [toml] document header to specify the document's meta
+   data.  Each line of this header must start with an "%".
 
 4.  Citations
 
@@ -210,14 +215,9 @@ Internet-Draft                  mmark2rfc                  December 2014
    asides and notes (Section 14.1 , Section 14.2) work.  Note that an
    RFC document can only have one abstract.
 
-8.  Captions
 
-   Whenever an blockquote, fenced codeblock or image has caption text,
-   the entire block is wrapped in a "<figure>" and the caption text is
-   put in a "<name>" tag for v3.
 
-   Captions for tables are supported in pandoc, but not for code block.
-   In mmark you can put a caption under either (even after a fenced code
+
 
 
 
@@ -226,6 +226,14 @@ Gieben                    Expires June 13, 2015                 [Page 4]
 Internet-Draft                  mmark2rfc                  December 2014
 
 
+8.  Captions
+
+   Whenever an blockquote, fenced codeblock or image has caption text,
+   the entire block is wrapped in a "<figure>" and the caption text is
+   put in a "<name>" tag for v3.
+
+   Captions for tables are supported in pandoc, but not for code block.
+   In mmark you can put a caption under either (even after a fenced code
    block).  Referencing these element (and thus creating an document
    "id" for them), is done with an IAL (Section 11:
 
@@ -266,14 +274,6 @@ Internet-Draft                  mmark2rfc                  December 2014
    Tables can be created by drawing them in the input using a simple
    syntax:
 
-   Name    | Age
-   --------|-----:
-   Bob     | 27
-   Alice   | 23
-
-   Tables can also have a footer, use equal signs instead of dashes for
-   the separator, to start a table footer.  If there are multiple footer
-
 
 
 
@@ -282,6 +282,13 @@ Gieben                    Expires June 13, 2015                 [Page 5]
 Internet-Draft                  mmark2rfc                  December 2014
 
 
+   Name    | Age
+   --------|-----:
+   Bob     | 27
+   Alice   | 23
+
+   Tables can also have a footer, use equal signs instead of dashes for
+   the separator, to start a table footer.  If there are multiple footer
    lines, the first one is used as a starting point for the table
    footer.
 
@@ -323,13 +330,6 @@ Internet-Draft                  mmark2rfc                  December 2014
    {#quote:ref1}
    > A block quote
 
-   You can specify classes with ".class" (although these are not used
-   when converting to XML2RFC), and arbitrary key value pairs where each
-   key/value becomes an attribute.
-
-
-
-
 
 
 
@@ -337,6 +337,10 @@ Gieben                    Expires June 13, 2015                 [Page 6]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
+
+   You can specify classes with ".class" (although these are not used
+   when converting to XML2RFC), and arbitrary key value pairs where each
+   key/value becomes an attribute.
 
 12.  Lists
 
@@ -381,11 +385,7 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    Will start of ordered list with element 4.
 
-14.  XML2RFC V3 features
 
-   The v3 syntax adds some new features, those can already be used in
-   mmark (even for documents targeting v2 -- but there they will be
-   faked with the limited constructs of v2 syntax).
 
 
 
@@ -393,6 +393,12 @@ Gieben                    Expires June 13, 2015                 [Page 7]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
+
+14.  XML2RFC V3 features
+
+   The v3 syntax adds some new features, those can already be used in
+   mmark (even for documents targeting v2 -- but there they will be
+   faked with the limited constructs of v2 syntax).
 
 14.1.  Asides
 
@@ -435,12 +441,6 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    o  Makes all RFC references normative;
 
-   o  Handles all figure and table captions and adds references (if
-      appropriate);
-
-   o  Probably has other bugs, so a manual review should be in order.
-
-
 
 
 
@@ -449,6 +449,11 @@ Gieben                    Expires June 13, 2015                 [Page 8]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
+
+   o  Handles all figure and table captions and adds references (if
+      appropriate);
+
+   o  Probably has other bugs, so a manual review should be in order.
 
    There is also titleblock.pl [15] which can be given an [RFC7328]
    "template.xml" file and will output a TOML titleblock, that can be
@@ -490,13 +495,8 @@ Internet-Draft                  mmark2rfc                  December 2014
    [toml]     Preston-Werner, T., "TOML git repository", March 2013,
               <https://github.com/toml-lang/toml>.
 
-17.3.  URIs
 
-   [1] http://http://kramdown.gettalong.org/
 
-   [2] http://michelf.com/projects/php-markdown/extra/
-
-   [3] http://johnmacfarlane.net/pandoc/
 
 
 
@@ -505,6 +505,14 @@ Gieben                    Expires June 13, 2015                 [Page 9]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
+
+17.3.  URIs
+
+   [1] http://http://kramdown.gettalong.org/
+
+   [2] http://michelf.com/projects/php-markdown/extra/
+
+   [3] http://johnmacfarlane.net/pandoc/
 
    [4] https://leanpub.com/help/manual
 
@@ -545,6 +553,15 @@ Appendix A.  Bugs
    o  Multiple terms and definitions are not supported in definition
       lists.
 
+
+
+
+
+Gieben                    Expires June 13, 2015                [Page 10]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
 Author's Address
 
    R. (Miek) Gieben
@@ -557,4 +574,43 @@ Author's Address
 
 
 
-Gieben                    Expires June 13, 2015                [Page 10]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Gieben                    Expires June 13, 2015                [Page 11]
