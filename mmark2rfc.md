@@ -33,7 +33,7 @@ A> provides a good example.
 
 Mmark [@mmark] is a markdown processor. It supports the markdown syntax
 and has been extended with (syntax) features found in other markdown
-implementations like [kramdown], [PHP markdown extra], [pandoc], [leanpub] and even
+implementations like [kramdown], [PHP markdown extra], [@pandoc], [leanpub] and even
 [asciidoc]. This allows mmark to be used to write larger, structured documents
 such as RFC and I-Ds or even books, while not deviating too far from markdown.
 
@@ -87,6 +87,9 @@ can be done with a `?` and `!` respectively: `[@!reference]` is a normative refe
 For RFC and I-Ds the references are generated automatically, although for I-Ds you might
 need to include a draft version in the reference `[@?I-D.draft-blah,#06]`, creates an
 informative reference to the seventh version of draft-blah.
+
+Once a citation has been defined the brackets can be omited, so once `[@pandoc]` is used, you
+can just use `@pandoc`.
 
 If the need arises (usually when citing a document that is not in the XML2RFC database)
 an XML reference fragment can be included, note that this needs to happen
