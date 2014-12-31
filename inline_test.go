@@ -1008,5 +1008,12 @@ func TestRFC2119XML(t *testing.T) {
 		"<t><bcp14>MUST</bcp14></t>\n",
 	}
 	doTestsInlineXML(t, tests)
+}
 
+func TestShortReferenceXML(t *testing.T) {
+	var tests = []string{
+		"(#ref)",
+		"<p><a href=\"#ref\"></a></p>",
+	}
+	doTestsInlineXML(t, tests)
 }

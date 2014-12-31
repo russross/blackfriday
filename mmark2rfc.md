@@ -204,7 +204,7 @@ Note that the header and footer can't contain block level elements.
 
 This borrows from [kramdown][http://kramdown.gettalong.org/syntax.html#block-ials], with
 the difference that the colon is dropped and each IAL must be typeset *before* the block element
-(see [](#bugs)).
+(see (#bugs)).
 Added an anchor to blockquote can be done like so:
 
     {#quote:ref1}

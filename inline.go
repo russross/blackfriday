@@ -1443,7 +1443,7 @@ func crossReference(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		}
 		return 0
 	}
-	p.r.Link(out, data[2:i], nil, nil)
+	p.r.Link(out, data[1:i], nil, nil)
 	return i + 1
 }
 

@@ -99,7 +99,7 @@ Table of Contents
      17.2.  Normative References . . . . . . . . . . . . . . . . . .   9
      17.3.  URIs . . . . . . . . . . . . . . . . . . . . . . . . . .  10
    Appendix A.  Bugs . . . . . . . . . . . . . . . . . . . . . . . .  10
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  11
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  10
 
 1.  Introduction
 
@@ -195,7 +195,7 @@ Internet-Draft                  mmark2rfc                  December 2014
    that this needs to happen _before_ the back matter is started,
    because that is the point when the references are outputted (right
    now the implementation does not scan the entire file for citations,
-   also see [8].
+   also see Appendix A.
 
 5.  Internal References
 
@@ -263,7 +263,7 @@ Internet-Draft                  mmark2rfc                  December 2014
 8.3.  Tables
 
    A table caption is signalled by using "Table:" directly after the
-   table.  The table syntax used that one of Markdown Extra [9].
+   table.  The table syntax used that one of Markdown Extra [8].
 
 9.  References
 
@@ -322,13 +322,13 @@ Internet-Draft                  mmark2rfc                  December 2014
 
 11.  Inline Attribute Lists
 
-   This borrows from [kramdown][[10]], with the difference that the
-   colon is dropped and each IAL must be typeset _before_ the block
-   element (see Appendix A).  Added an anchor to blockquote can be done
-   like so:
+   This borrows from [kramdown][[9]], with the difference that the colon
+   is dropped and each IAL must be typeset _before_ the block element
+   (see Appendix A).  Added an anchor to blockquote can be done like so:
 
    {#quote:ref1}
    > A block quote
+
 
 
 
@@ -353,13 +353,13 @@ Internet-Draft                  mmark2rfc                  December 2014
 12.3.  Definition Lists
 
    Mmark supports the definition list syntax from PHP Markdown Extra
-   [11], meaning there can not be a empty line between the term and the
+   [10], meaning there can not be a empty line between the term and the
    definition.  Note the multiple terms and definition syntax is _not_
    supported.
 
 12.4.  Example Lists
 
-   This is the example list syntax from pandoc [12].  References to
+   This is the example list syntax from pandoc [11].  References to
    example lists work as well.  Note that an example list always needs
    to have an identifier, "(@good)" works, "(@)" does not.
 
@@ -426,7 +426,7 @@ Internet-Draft                  mmark2rfc                  December 2014
 15.  Converting from RFC 7328 Syntax
 
    Converting from an RFC 7328 ([RFC7328]) document can be done using
-   the quick and dirty Perl script [13], which uses pandoc to output
+   the quick and dirty Perl script [12], which uses pandoc to output
    markdown PHP extra and converts that into proper mmark: (mmark is
    more like markdown PHP extra, than like pandoc).
 
@@ -455,7 +455,7 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    o  Probably has other bugs, so a manual review should be in order.
 
-   There is also titleblock.pl [14] which can be given an [RFC7328]
+   There is also titleblock.pl [13] which can be given an [RFC7328]
    "template.xml" file and will output a TOML titleblock, that can be
    used as a starting point.
 
@@ -471,7 +471,7 @@ Internet-Draft                  mmark2rfc                  December 2014
 16.  Acknowledgements
 
    This documents has been modeled after the excellent kramdown syntax
-   page [15].
+   page [14].
 
 17.  References
 
@@ -520,24 +520,22 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    [6] https://github.com/cabo/kramdown-rfc2629
 
-   [7] bugs
+   [7] https://michelf.ca/projects/php-markdown/extra/#table
 
-   [8] https://michelf.ca/projects/php-markdown/extra/#table
+   [8] http://kramdown.gettalong.org/syntax.html#block-ials
 
-   [9] http://kramdown.gettalong.org/syntax.html#block-ials
+   [9] https://michelf.ca/projects/php-markdown/extra/#def-list
 
-   [10] https://michelf.ca/projects/php-markdown/extra/#def-list
-
-   [11] http://johnmacfarlane.net/pandoc/README.html#extension-
+   [10] http://johnmacfarlane.net/pandoc/README.html#extension-
         example_lists
 
-   [12] https://raw.githubusercontent.com/miekg/mmark/master/convert/
+   [11] https://raw.githubusercontent.com/miekg/mmark/master/convert/
         parts.pl
 
-   [13] https://raw.githubusercontent.com/miekg/mmark/master/convert/
+   [12] https://raw.githubusercontent.com/miekg/mmark/master/convert/
         titleblock.pl
 
-   [14] http://kramdown.gettalong.org/syntax.html
+   [13] http://kramdown.gettalong.org/syntax.html
 
 Appendix A.  Bugs
 
@@ -551,6 +549,8 @@ Appendix A.  Bugs
    o  Multiple terms and definitions are not supported in definition
       lists.
 
+Author's Address
+
 
 
 
@@ -562,13 +562,13 @@ Gieben                    Expires June 13, 2015                [Page 10]
 Internet-Draft                  mmark2rfc                  December 2014
 
 
-Author's Address
-
    R. (Miek) Gieben
    Google
    Buckingham Palace Road
 
    Email: miek@google.com
+
+
 
 
 
