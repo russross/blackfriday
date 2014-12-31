@@ -1215,6 +1215,7 @@ func helperFindEmphChar(data []byte, c byte) int {
 			i++
 			for i < len(data) && data[i] != cc {
 				if tmpI == 0 && data[i] == c {
+					return i
 					tmpI = i
 				}
 				i++
