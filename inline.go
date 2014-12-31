@@ -1198,7 +1198,7 @@ func helperFindEmphChar(data []byte, c byte) int {
 				i++
 			}
 			i++
-			for i < len(data) && isspace(data[i])  {
+			for i < len(data) && isspace(data[i]) {
 				i++
 			}
 			if i >= len(data) {
@@ -1252,9 +1252,10 @@ func helperEmphasis(p *parser, out *bytes.Buffer, data []byte, c byte) int {
 		}
 
 		if data[i] == c && !isspace(data[i-1]) {
-
-			if c != '*' && !(i+1 == len(data) || isspace(data[i+1]) || ispunct(data[i+1])) {
-				continue
+			if c != '*' {
+				if !(i+1 == len(data) || isspace(data[i+1]) || ispunct(data[i+1])) {
+					continue
+				}
 			}
 
 			var work bytes.Buffer
