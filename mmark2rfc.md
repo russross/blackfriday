@@ -43,8 +43,8 @@ Input to mmark must be UTF-8, the output is also UTF-8. Mmark converts tabs to 4
 The goals of mmark are:
 
 {style="format (%I)"}
-1. Self contained: a single file can be converted to XML2RFC v2 or (v3) or HTML5;
-2. Make the markdown "source code" look as natural as possible;
+1. Self contained: a single file can be converted to XML2RFC v2 or (v3) or HTML5.
+2. Make the markdown "source code" look as natural as possible.
 3. Provide seemless upgrade path to XML2RFC v3.
 
 Mmark uses two scans when converting a document and does not build an internal AST of
@@ -71,7 +71,7 @@ Note that [kramdown-2629](https://github.com/cabo/kramdown-rfc2629) fills the sa
 
 # Mmark Syntax
 
-In the following sections we go over some of the difference, or extra syntax features of mmark.
+In the following sections we go over some of the difference, and the extra syntax features of mmark.
 
 # TOML header
 
@@ -102,6 +102,8 @@ The cross reference syntax is `[](#id)`, which allows for an optional title betw
 Usually this is left empty, for this use case mmark allows the shortcut form `(#id)` which omits
 the brackets in its entirely.
 
+The external reference syntax is `[](url)`.
+
 # Document divisions
 
 Using `{mainmatter}` on a line by itself starts the main matter (middle) of the document, `{backmatter}`
@@ -118,8 +120,9 @@ Any paragraph prefixed with `A> ` is an abstract. This is similar to asides and 
 Whenever an blockquote, fenced codeblock or image has caption text, the entire block is wrapped
 in a `<figure>` and the caption text is put in a `<name>` tag for v3.
 
-Captions for tables are supported in pandoc, but not for code block. In mmark you can put a
-caption under either (even after a fenced code block). Referencing these element (and thus
+In mmark you can put a
+caption under either a table, indented code block (even after a fenced code block) or even after a block quote.
+Referencing these elements (and thus
 creating an document `id` for them), is done with an IAL ([](#inline-attribute-lists):
 
     {#identifier}
@@ -128,7 +131,7 @@ creating an document `id` for them), is done with an IAL ([](#inline-attribute-l
     Bob     | 27
     Alice   | 23
 
-An empty line between the IAL and the table of indented code block is allowed.
+An empty line between the IAL and the table or indented code block is allowed.
 
 ## Figures
 
@@ -148,11 +151,6 @@ A table caption is signalled by using `Table: ` directly after the table.
 The table syntax used that one of
 [Markdown Extra](https://michelf.ca/projects/php-markdown/extra/#table).
 
-
-# References
-
-internal referencs, external ones
-
 # Tables
 
 Tables can be created by drawing them in the input using a simple syntax:
@@ -164,7 +162,7 @@ Bob     | 27
 Alice   | 23
 ```
 
-Tables can also have a footer, use equal signs instead of dashes for the separator,
+Tables can also have a footer: use equal signs instead of dashes for the separator,
 to start a table footer. If there are multiple footer lines, the first one is used as a
 starting point for the table footer.
 
@@ -217,10 +215,25 @@ arbitrary key value pairs where each key/value becomes an attribute.
 
 ## Ordered Lists
 
-The are several ways to start an ordered lists.
+The are several ways to start an ordered lists. You can use numbers, roman numbers, letters and uppercase
+letters. When using roman numbers and letter you **MUST** use two spaces after the dot or the brace (the
+underscore signals a space here):
+
+    a)__  
+    II.__
+    A)__
+
+Note that mmark (just as @pandoc) pays attention to the starting number of a list (when using decimal numbers), thus
+a list started with:
+
+    4) Item4
+    5) Item5
+
+Will use for `4` as the starting number.
 
 ## Unordered Lists
 
+Unordered lists can be started with `*`, `+` or `-` and follow the normal markdown syntax rules.
 
 ## Definition Lists
 
@@ -238,7 +251,6 @@ to example lists work as well. Note that an example list always needs to have an
 
 # Miscellaneous
 
-
 ## HTML Comment
 
 If a HTML comment contains `--`, it will be rendered as a `cref` comment in the resulting
@@ -248,15 +260,6 @@ XML file. Typically `<!-- Miek Gieben -- you want to include the next paragraph?
 
 Files can be included using ``{{filename}}``, `filename` is relative to the current working
 directory if it is not absolute.
-
-## Ordered lists
-
-Mmark pays attention to the starting number of a list:
-
-    4. Item 4
-    5. Item 5
-
-Will start of ordered list with element 4.
 
 # XML2RFC V3 features
 
@@ -283,6 +286,7 @@ Use H~2~O and 2^10^ is 1024. In v2 these are outputted as-is.
 
 ## Images
 
+TODO
 
 # Converting from RFC 7328 Syntax
 
