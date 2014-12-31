@@ -31,13 +31,13 @@ A> provides a good example.
 
 # Introduction
 
-Mmark [@mmark] is a markdown processor. It supports the basic markdown syntax
-and has been extended with (syntax) features found in other Markdown
-implementations like [kramdown], [PHP markdown extra], [pandoc], [leanpub] and
+Mmark [@mmark] is a markdown processor. It supports the markdown syntax
+and has been extended with (syntax) features found in other markdown
+implementations like [kramdown], [PHP markdown extra], [pandoc], [leanpub] and even
 [asciidoc]. This allows mmark to be used to write larger, structured documents
-such as RFC and I-Ds or even books.
+such as RFC and I-Ds or even books, while not deviating too far from markdown.
 
-Mmark is a fork of blackfriday [@blackfriday] written in Golang and it is very fast.
+Mmark is a fork of blackfriday [@blackfriday] and is written in Golang and very fast.
 Input to mmark must be UTF-8, the output is also UTF-8. Mmark converts tabs to 4 spaces.
 
 The goals of mmark are:
@@ -71,9 +71,7 @@ Note that [kramdown-2629](https://github.com/cabo/kramdown-rfc2629) fills the sa
 
 # Mmark Syntax
 
-
-
-
+In the following sections we go over some of the difference, or extra syntax features of mmark.
 
 # TOML header
 
@@ -202,7 +200,7 @@ Note that the header and footer can't contain block level elements.
 # Inline Attribute Lists
 
 This borrows from [kramdown][http://kramdown.gettalong.org/syntax.html#block-ials], with
-the difference that the colon is dropped and each IAL must be typeset *before* the block element 
+the difference that the colon is dropped and each IAL must be typeset *before* the block element
 (see [](#bugs)).
 Added an anchor to blockquote can be done like so:
 
@@ -234,7 +232,6 @@ This is the example list syntax
 [from pandoc](http://johnmacfarlane.net/pandoc/README.html#extension-example_lists). References
 to example lists work as well. Note that an example list always needs to have an identifier,
 `(@good)` works, `(@)` does not.
-
 
 # Miscellaneous
 
