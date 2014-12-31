@@ -254,6 +254,23 @@ func TestEmphasisMix(t *testing.T) {
 	doTestsInline(t, tests)
 }
 
+func TestEmphasisLink(t *testing.T) {
+	var tests = []string{
+		"[first](before) *text[second] (inside)text* [third](after)\n",
+		"<p><a href=\"before\">first</a> <em>text<a href=\"inside\">second</a>text</em> <a href=\"after\">third</a></p>\n",
+
+		"*incomplete [link] definition*\n",
+		"<p><em>incomplete [link] definition</em></p>\n",
+
+		"*it's [emphasis*] (not link)\n",
+		"<p><em>it's [emphasis</em>] (not link)</p>\n",
+
+		"*it's [emphasis*] and *[asterisk]\n",
+		"<p><em>it's [emphasis</em>] and *[asterisk]</p>\n",
+	}
+	doTestsInline(t, tests)
+}
+
 func TestStrikeThrough(t *testing.T) {
 	var tests = []string{
 		"nothing inline\n",
