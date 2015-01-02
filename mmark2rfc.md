@@ -143,7 +143,8 @@ After a quote (a paragraph prefixed with `> `) you can add a caption:
 
     Quote: Name -- URI for attribution
 
-In v3 this is used in the block quote attributes, for v2 it is discarded.
+In v3 this is used in the block quote attributes, for v2 it is discarded. If you need
+the string 'Quote:` after an quote, escape the colon: `Quote\:`.
 
 ## Tables
 
@@ -325,7 +326,7 @@ This documents has been modeled after the excellent [kramdown syntax page](http:
 
 <reference anchor='mmark' target='http://github.com/miekg/mmark'>
     <front>
-        <title abbrev='mmark'>Mmark git repository</title>
+        <title>Mmark git repository</title>
         <author initials='R.' surname='Gieben' fullname='R. (Miek) Gieben'>
             <address>
                 <email>miek@miek.nl</email>
@@ -337,7 +338,7 @@ This documents has been modeled after the excellent [kramdown syntax page](http:
 
 <reference anchor='blackfriday' target='http://github.com/russross/blackfriday'>
     <front>
-        <title abbrev='mmark'>Blackfriday git repository</title>
+        <title>Blackfriday git repository</title>
         <author initials='' surname='' fullname=''>
             <address>
                 <email>miek@miek.nl</email>
@@ -349,7 +350,7 @@ This documents has been modeled after the excellent [kramdown syntax page](http:
 
 <reference anchor='toml' target='https://github.com/toml-lang/toml'>
     <front>
-        <title abbrev='mmark'>TOML git repository</title>
+        <title>TOML git repository</title>
         <author initials='T.' surname='Preston-Werner' fullname='Tom Preston-Werner'>
             <address>
                 <email></email>
