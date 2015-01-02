@@ -220,7 +220,7 @@ The are several ways to start an ordered lists. You can use numbers, roman numbe
 letters. When using roman numbers and letter you **MUST** use two spaces after the dot or the brace (the
 underscore signals a space here):
 
-    a)__  
+    a)__
     II.__
     A)__
 
