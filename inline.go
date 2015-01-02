@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"regexp"
 	"strconv"
+	"unicode/utf8"
 )
 
 var (
@@ -804,13 +805,36 @@ func entity(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 	if end < len(data) && data[end] == ';' {
 		end++ // real entity
-	} else {
-		return 0 // lone '&'
+		p.r.Entity(out, decodeEntity(data[:end]))
+		return end
 	}
 
-	p.r.Entity(out, data[:end])
+	return 0 // lone '&'
+}
 
-	return end
+// decode decimal entity to the UTF8 code point
+// we receive the whole entity: &#10232;
+func decodeEntity(entity []byte) []byte {
+	base := 10
+	i := 2
+	if entity[2] == 'x' || entity[2] == 'X' {
+		i++
+		base = 16
+	}
+	r, e := strconv.ParseInt(string(entity[i:len(entity)-1]), base, 32)
+	if e != nil {
+		return entity
+	}
+
+	l := utf8.RuneLen(rune(r))
+	if l == -1 {
+		return []byte("0xFFFD")
+	}
+	u := make([]byte, l)
+	l = utf8.EncodeRune(u, rune(r))
+	u = u[:l]
+
+	return u
 }
 
 func linkEndsWithEntity(data []byte, linkEnd int) bool {
