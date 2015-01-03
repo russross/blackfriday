@@ -325,7 +325,7 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 // - add missing newlines before fenced code blocks
 func firstPass(p *parser, input []byte, depth int) []byte {
 	if depth > 8 {
-		log.Fatalf("nested includes depth > 8")
+		log.Printf("nested includes depth > 8")
 		return []byte{'\n'}
 	}
 	var out bytes.Buffer
@@ -807,7 +807,7 @@ func isroman(digit byte, uppercase bool) bool {
 }
 
 // replace {{file.md}} with the contents of the file.
-func (p *parser) expandIncludes(out *bytes.Buffer, data []byte) int {
+func (p *parser) include(out *bytes.Buffer, data []byte) int {
 	i := 0
 	if len(data) < 3 {
 		return 0
@@ -832,19 +832,30 @@ func (p *parser) expandIncludes(out *bytes.Buffer, data []byte) int {
 	name := string(data[i+2 : end-2])
 	input, err := ioutil.ReadFile(name)
 	if err != nil {
-		log.Fatalf("failed: `%s': %s", name, err)
-	} else {
-		out.Write(input)
+		log.Printf("failed: `%s': %s", name, err)
+		return end
 	}
+
+	if len(input) == 0 {
+		input = []byte{'\n'}
+	}
+	if input[len(input)-1] != '\n' {
+		println("ADDING")
+		input = append(input, '\n')
+	}
+
+	var work bytes.Buffer
+	p.block(&work, input)
 	return end
 }
 
 // replace <{{file.go}}[address] with the contents of the file. Pay attention to the indentation of the
 // include and prefix the code with that number of spaces + 4, it returns the new bytes and a boolean
 // indicating we've detected a code include.
-func (p *parser) expandCodeIncludes(out *bytes.Buffer, data []byte) int {
+func (p *parser) codeInclude(out *bytes.Buffer, data []byte) int {
 	i := 0
-	if len(data) < 3 {
+	l := len(data)
+	if l < 3 {
 		return 0
 	}
 	if data[i] != '<' && data[i+1] != '{' && data[i+2] != '{' {
@@ -853,14 +864,14 @@ func (p *parser) expandCodeIncludes(out *bytes.Buffer, data []byte) int {
 
 	// find the end delimiter
 	end, j := 0, 0
-	for end = i; end < len(data) && j < 2; end++ {
+	for end = i; end < l && j < 2; end++ {
 		if data[end] == '}' {
 			j++
 		} else {
 			j = 0
 		}
 	}
-	if j < 2 && end >= len(data) {
+	if j < 2 && end >= l {
 		return 0
 	}
 
@@ -870,15 +881,15 @@ func (p *parser) expandCodeIncludes(out *bytes.Buffer, data []byte) int {
 
 	// Now a possible address in blockquotes
 	var address []byte
-	if end < len(data) && data[end] == '[' {
+	if end < l && data[end] == '[' {
 		j = end
-		for j < len(data) && data[j] != ']' {
+		for j < l && data[j] != ']' {
 			j++
 		}
-		if j == len(data) {
+		if j == l {
 			// assuming no address
 			address = nil
-			end = len(data)
+			end = l
 		} else {
 			address = data[end+1 : j]
 			end = j + 1
@@ -886,7 +897,38 @@ func (p *parser) expandCodeIncludes(out *bytes.Buffer, data []byte) int {
 	}
 
 	code := parseCode(address, filename)
-	out.Write(code)
+
+	if len(code) == 0 {
+	code = []byte{'\n'}
+	}
+	if code[len(code)-1] != '\n' {
+		code = append(code, '\n')
+	}
+
+	// if the next line starts with Figure: we consider that a caption
+	var caption bytes.Buffer
+	if end < l-1 && bytes.HasPrefix(data[end+1:], []byte("Figure: ")) {
+		line := end + 1
+		j := end + 1
+		for line < l {
+			j++
+			// find the end of this line
+			for j <= l && data[j-1] != '\n' {
+				j++
+			}
+			if p.isEmpty(data[line:j]) > 0 {
+				break
+			}
+			line = j
+		}
+		p.inline(&caption, data[end+1+8:j-1]) // +8 for 'Figure: '
+		end = j - 1
+	}
+
+	p.r.SetInlineAttr(p.ial)
+	p.ial = nil
+
+	p.r.BlockCode(out, code, "", caption.Bytes())
 
 	return end
 }

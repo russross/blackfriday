@@ -706,6 +706,12 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 // '<' when tags or autolinks are allowed
 func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+	if p.flags&EXTENSION_INCLUDE != 0 {
+		if j := p.codeInclude(out, data[offset:]); j > 0 {
+			return j
+		}
+	}
+
 	data = data[offset:]
 	altype := LINK_TYPE_NOT_AUTOLINK
 	end := tagLength(data, &altype)
@@ -746,6 +752,11 @@ func leftBrace(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	}
 	if j := p.isInlineAttr(data); j > 0 {
 		return j
+	}
+	if p.flags&EXTENSION_INCLUDE != 0 {
+		if j := p.include(out, data); j > 0 {
+			return j
+		}
 	}
 	return 0
 }

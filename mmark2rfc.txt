@@ -63,8 +63,8 @@ Internet-Draft                  mmark2rfc                  December 2014
 
 Table of Contents
 
-   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
-   2.  Mmark Syntax  . . . . . . . . . . . . . . . . . . . . . . . .   3
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   3
+   2.  Mmark Syntax  . . . . . . . . . . . . . . . . . . . . . . . .   4
    3.  TOML header . . . . . . . . . . . . . . . . . . . . . . . . .   4
    4.  Citations . . . . . . . . . . . . . . . . . . . . . . . . . .   4
    5.  Internal References . . . . . . . . . . . . . . . . . . . . .   4
@@ -92,20 +92,20 @@ Table of Contents
      13.4.  Super- and Subscripts  . . . . . . . . . . . . . . . . .   9
      13.5.  Images . . . . . . . . . . . . . . . . . . . . . . . . .   9
    14. Converting from RFC 7328 Syntax . . . . . . . . . . . . . . .   9
-   15. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  10
-   16. References  . . . . . . . . . . . . . . . . . . . . . . . . .  10
-     16.1.  Informative References . . . . . . . . . . . . . . . . .  10
-     16.2.  Normative References . . . . . . . . . . . . . . . . . .  10
-     16.3.  URIs . . . . . . . . . . . . . . . . . . . . . . . . . .  10
+   15. Extra features  . . . . . . . . . . . . . . . . . . . . . . .  10
+     15.1.  Exercises and Answers  . . . . . . . . . . . . . . . . .  10
+   16. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  10
+   17. References  . . . . . . . . . . . . . . . . . . . . . . . . .  10
+     17.1.  Informative References . . . . . . . . . . . . . . . . .  10
+     17.2.  Normative References . . . . . . . . . . . . . . . . . .  10
+     17.3.  URIs . . . . . . . . . . . . . . . . . . . . . . . . . .  11
    Appendix A.  Bugs . . . . . . . . . . . . . . . . . . . . . . . .  11
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  11
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  12
 
-1.  Introduction
 
-   Mmark [mmark] is a markdown processor.  It supports the markdown
-   syntax and has been extended with (syntax) features found in other
-   markdown implementations like kramdown [2], PHP markdown extra [3],
-   [pandoc], leanpub [4] and even asciidoc [5].  This allows mmark to be
+
+
+
 
 
 
@@ -114,6 +114,12 @@ Gieben                    Expires June 13, 2015                 [Page 2]
 Internet-Draft                  mmark2rfc                  December 2014
 
 
+1.  Introduction
+
+   Mmark [mmark] is a markdown processor.  It supports the markdown
+   syntax and has been extended with (syntax) features found in other
+   markdown implementations like kramdown [2], PHP markdown extra [3],
+   [pandoc], leanpub [4] and even asciidoc [5].  This allows mmark to be
    used to write larger, structured documents such as RFC and I-Ds or
    even books, while not deviating too far from markdown.
 
@@ -153,12 +159,6 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    Note that kramdown-2629 [7] fills the same niche as mmark.
 
-2.  Mmark Syntax
-
-   In the following sections we go over some of the difference, and the
-   extra syntax features of mmark.
-
-
 
 
 
@@ -169,6 +169,11 @@ Gieben                    Expires June 13, 2015                 [Page 3]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
+
+2.  Mmark Syntax
+
+   In the following sections we go over some of the difference, and the
+   extra syntax features of mmark.
 
 3.  TOML header
 
@@ -213,11 +218,6 @@ Internet-Draft                  mmark2rfc                  December 2014
    is also a "{frontmatter}" that starts the front matter (front) of the
    document, but is normally not needed because the TOML header
    (Section 3) starts that by default.
-
-
-
-
-
 
 
 
@@ -409,18 +409,20 @@ Internet-Draft                  mmark2rfc                  December 2014
 
 12.3.  Including Code Fragments
 
-   This borrows from the Go present tool, which go its inspiration from
-   the Sam editor.  Use the syntax: `"<<{{filename}}[address]" to
-   include a code snippet.  The "address" identifier specifies what
-   lines of code are to be included in the fragment.
+   This borrows from the Go present tool, which got its inspiration from
+   the Sam editor and leanpub.  The syntax presented here is more
+   powerful than the one used by leanpub.  Use the syntax:
+   "<{{program}}[address]" to include a code snippet.  The "address"
+   identifier specifies what lines of code are to be included in the
+   fragment.
 
    Any line in the program that ends with the four characters "OMIT" is
    deleted from the source before inclusion, making it easy to write
    things like
 
-   <<{{test.go}}[/START OMIT/,/END OMIT/}
+   <{{test.go}}[/START OMIT/,/END OMIT/}
 
-   to find snippets like this
+   So you can include snippets like this:
 
    tedious_code = boring_function()
    // START OMIT
@@ -437,8 +439,6 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    Any paragraph prefixed with "AS>".  For v2 this becomes a indented
    paragraph.
-
-
 
 
 
@@ -515,14 +515,26 @@ Internet-Draft                  mmark2rfc                  December 2014
    For now the mmark parser will not get any features that makes it
    backwards compatible with pandoc2rfc.
 
-15.  Acknowledgements
+15.  Extra features
+
+   These feature are not directly useful when writing an I-D, but they
+   are part of mmark nonetheless.
+
+15.1.  Exercises and Answers
+
+   Prefix a paragraph with "X>" for an exercise and "XA>" for an answer:
+
+   X> What is 5+5?
+   XA> 10
+
+16.  Acknowledgements
 
    This documents has been modeled after the excellent kramdown syntax
    page [14].
 
-16.  References
+17.  References
 
-16.1.  Informative References
+17.1.  Informative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119, March 1997.
@@ -537,15 +549,23 @@ Internet-Draft                  mmark2rfc                  December 2014
    [pandoc]   MacFarlane, J., "Pandoc, a universal document converter",
               2006, <http://johnmacfarlane.net/pandoc/>.
 
-16.2.  Normative References
+17.2.  Normative References
 
    [RFC7328]  Gieben, R., "Writing I-Ds and RFCs Using Pandoc and a Bit
               of XML", RFC 7328, August 2014.
 
+
+
+
+Gieben                    Expires June 13, 2015                [Page 10]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
    [toml]     Preston-Werner, T., "TOML git repository", March 2013,
               <https://github.com/toml-lang/toml>.
 
-16.3.  URIs
+17.3.  URIs
 
    [1] http://http://kramdown.gettalong.org/
 
@@ -554,13 +574,6 @@ Internet-Draft                  mmark2rfc                  December 2014
    [3] https://leanpub.com/help/manual
 
    [4] http://www.methods.co.nz/asciidoc/
-
-
-
-Gieben                    Expires June 13, 2015                [Page 10]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
 
    [5] http://commonmark.org/
 
@@ -597,6 +610,14 @@ Appendix A.  Bugs
 
    o  Mmark only passes about 60% of the tests of CommonMark.
 
+
+
+
+Gieben                    Expires June 13, 2015                [Page 11]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
 Author's Address
 
    R. (Miek) Gieben
@@ -613,4 +634,39 @@ Author's Address
 
 
 
-Gieben                    Expires June 13, 2015                [Page 11]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Gieben                    Expires June 13, 2015                [Page 12]

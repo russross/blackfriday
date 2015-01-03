@@ -23,7 +23,7 @@ func parseCode(addr []byte, file []byte) []byte {
 
 	textBytes, err := ioutil.ReadFile(string(file))
 	if err != nil {
-		log.Fatalf("failed: `%s': %s", string(file), err)
+		log.Printf("failed: `%s': %s", string(file), err)
 		return nil
 	}
 

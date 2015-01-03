@@ -1312,13 +1312,13 @@ func TestInsideQuoteXML(t *testing.T) {
 func TestIncludesXML(t *testing.T) {
 	var tests = []string{
 		"{{/dev/null}}",
-		"",
+		"<t></t>\n",
 
 		"<{{/dev/null}}",
-		"",
+		"<t><artwork>\n\n</artwork>\n</t>\n",
 
 		"  <{{/dev/null}}",
-		"",
+		"<t><artwork>\n\n</artwork>\n</t>\n",
 
 		"`{{does-not-exist}}`",
 		"<t><tt>{{does-not-exist}}</tt></t>\n",
@@ -1328,6 +1328,13 @@ func TestIncludesXML(t *testing.T) {
 
 		"`<{{prog-not-exist}}`",
 		"<t><tt>&lt;{{prog-not-exist}}</tt></t>\n",
+
+		`1. This is item1
+2. This is item2.
+    Lets include some code:
+    <{{/dev/null}}
+    Figure: this is some code!`,
+		"<ol>\n<li>This is item1</li>\n<li>This is item2.\nLets include some code:\n<figure>\n<name>this is some code!</name>\n<artwork>\n\n</artwork>\n</figure></li>\n</ol>\n",
 	}
 	doTestsBlockXML(t, tests, EXTENSION_INCLUDE)
 }

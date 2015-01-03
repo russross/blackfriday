@@ -33,18 +33,6 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 				data = data[j:]
 				continue
 			}
-			if p.flags&EXTENSION_INCLUDE != 0 {
-				data = data[p.expandIncludes(out, data):]
-			}
-		}
-
-		// code includes
-		//
-		// <{{...}}
-		if data[0] == '<' {
-			if p.flags&EXTENSION_INCLUDE != 0 {
-				data = data[p.expandCodeIncludes(out, data):]
-			}
 		}
 
 		// prefixed header:
