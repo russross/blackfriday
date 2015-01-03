@@ -259,7 +259,7 @@ XML file. Typically `<!-- Miek Gieben -- you want to include the next paragraph?
 
 ## Including Files
 
-Files can be included using ``{{filename}}``, `filename` is relative to the current working
+Files can be included using `{{filename}}`, `filename` is relative to the current working
 directory if it is not absolute.
 
 ## Including Code Fragments
@@ -267,7 +267,7 @@ directory if it is not absolute.
 This borrows from the Go present tool, which got its inspiration from the Sam editor and leanpub. The
 syntax presented here is more powerful than the one used by leanpub.
 Use the
-syntax: `<{{filename}}[address]` to include a code snippet. The `address` identifier specifies
+syntax: `<{{program}}[address]` to include a code snippet. The `address` identifier specifies
 what lines of code are to be included in the fragment.
 
 Any line in the program that ends with the four characters `OMIT`
@@ -338,6 +338,17 @@ AS> of problem. Two things are holding this back: mmark cannot parse definition 
 AS> there isn't renderer that can output markdown syntax.
 
 For now the mmark parser will not get any features that makes it backwards compatible with pandoc2rfc.
+
+# Extra features
+
+These feature are not directly useful when writing an I-D, but they are part of mmark nonetheless.
+
+## Exercises and Answers
+
+Prefix a paragraph with `X>` for an exercise and `XA>` for an answer:
+
+    X> What is 5+5?
+    XA> 10
 
 # Acknowledgements
 

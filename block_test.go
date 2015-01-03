@@ -1316,6 +1316,12 @@ func TestIncludesXML(t *testing.T) {
 
 		"<{{/dev/null}}",
 		"",
+
+		"`{{does-not-exist}}`",
+		"",
+
+		"`<{{prog-not-exist}}`",
+		"",
 	}
 	doTestsBlockXML(t, tests, EXTENSION_INCLUDE)
 }

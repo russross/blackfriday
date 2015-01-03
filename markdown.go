@@ -818,6 +818,7 @@ func expandIncludes(out *bytes.Buffer, line []byte, p *parser, depth int) []byte
 	l := len(line)
 
 	for i := 0; i < l-2; i++ {
+		// TODO(miek): don't go over the newline
 		if line[i] == '{' && line[i+1] == '{' {
 			// find the end delimiter
 			end, j := 0, 0
