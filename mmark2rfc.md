@@ -383,6 +383,7 @@ This documents has been modeled after the excellent [kramdown syntax page](http:
 *   Inline Attribute Lists must be given *before* the block element.
 *   Mmark cannot parse @RFC728 markdown.
 *   Multiple terms and definitions are not supported in definition lists.
+*   Mmark only passes about 60% of the tests of CommonMark.
 
 [kramdown]: http://http://kramdown.gettalong.org/
 [leanpub]: https://leanpub.com/help/manual

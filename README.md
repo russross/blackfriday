@@ -257,6 +257,15 @@ implements the following extensions:
 *   save original IAL for example lists?
 *   Profile and make it faster
 
+*   Leanpub features: <<{code/sample1.rb}[address], different syntax to be more inline with using
+    `{` and `}` for "special" functions. This will be expanded to a code block (indented 4 spaces).
+    Extra features to allow to specify what to include, line numbers or awk syntax ??
+    Features from https://godoc.org/golang.org/x/tools/present
+    Address is used to select the code.
+
+*   Exercises and answers: exercise: `EX>` for an exercise with an optional? followning `AX>` for the answer..?
+    We call exercise of the renderer Exercise(ex []byte, answer []byte) -> go render.
+
 # License
 
 Mmark is a fork of blackfriday, hence is shares it's license.
