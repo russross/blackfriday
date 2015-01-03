@@ -47,6 +47,9 @@ func (p *parser) isInlineAttr(data []byte) int {
 				k, v := parseKeyValue(chunk)
 				if k != "" {
 					ial.attr[k] = v
+				} else {
+					// this is illegal in an IAL, discard the posibility
+					return 0
 				}
 			}
 			ialB = i
@@ -86,6 +89,9 @@ func (p *parser) isInlineAttr(data []byte) int {
 				k, v := parseKeyValue(chunk)
 				if k != "" {
 					ial.attr[k] = v
+				} else {
+					// this is illegal in an IAL, discard the posibility
+					return 0
 				}
 			}
 			p.ial = p.ial.add(ial)

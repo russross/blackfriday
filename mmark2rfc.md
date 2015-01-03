@@ -265,7 +265,7 @@ directory if it is not absolute.
 ## Including Code Fragments
 
 This borrows from the Go present tool, which go its inspiration from the Sam editor. Use the
-syntax: ``<<{{filename}}[address]` to include a code snippet. The `address` identifier specifies
+syntax: `<<{{filename}}[address]` to include a code snippet. The `address` identifier specifies
 what lines of code are to be included in the fragment.
 
 Any line in the program that ends with the four characters `OMIT`

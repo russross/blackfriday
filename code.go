@@ -11,26 +11,25 @@ import (
 	"bytes"
 	"errors"
 	"io/ioutil"
+	"log"
 	"regexp"
 	"strconv"
 	"unicode/utf8"
 )
 
-// parseCode parses a code address directive. Its syntax: address
-// it returns the lines.
-// There are no errors, because we are parsing markdown. Error in
-// the command means returning the entire file, file not found
-// results in return nothing. The returned bytes are *not* indented.
+// parseCode parses a code address directive.
 func parseCode(addr []byte, file []byte) []byte {
 	bytes.TrimSpace(addr)
 
 	textBytes, err := ioutil.ReadFile(string(file))
 	if err != nil {
+		log.Fatalf("failed: `%s': %s", string(file), err)
 		return nil
 	}
 
 	lo, hi, err := addrToByteRange(string(addr), 0, textBytes)
 	if err != nil {
+		log.Printf("code include address: %s", err.Error())
 		return textBytes
 	}
 
@@ -69,8 +68,9 @@ func codeLines(src []byte, start, end int) (lines []byte) {
 			continue
 		}
 		lines = append(lines, l...)
+		lines = append(lines, '\n')
 	}
-	// TODO(miek): trim leading the trailing blanklines
+	// TODO(miek): trim leading and trailing blanklines
 	return
 }
 

@@ -154,7 +154,7 @@ implements the following extensions:
 
     So including a code snippet will work like so:
 
-        <{{test.go}}[/START OMIT/,END OMIT/]
+        <{{test.go}}[/START OMIT/,/END OMIT/]
 
     where `test.go` looks like this:
 
@@ -164,10 +164,12 @@ implements the following extensions:
     interesting_code = fascinating_function()
     // END OMIT
     ```
-    Ofcourse the captioning works here as well:
+    Of course the captioning works here as well:
 
-        <<{{test.go}}[/START OMIT/,END OMIT/]
+        <<{{test.go}}[/START OMIT/,/END OMIT/]
         Figure: A sample program.
+
+    The address may be omitted: `<<{test.go}}` is legal as well.
 
 *   **Indices**, using `(((item, subitem)))` syntax. To make `item` primary, use
     an `!`: `(((!item, subitem)))`.
