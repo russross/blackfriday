@@ -272,6 +272,20 @@ func (options *Html) Note(out *bytes.Buffer, text []byte) {
 	out.WriteString("</blockquote>\n")
 }
 
+func (options *Html) Exercise(out *bytes.Buffer, text []byte) {
+	doubleSpace(out)
+	out.WriteString("<blockquote>\n")
+	out.Write(text)
+	out.WriteString("</blockquote>\n")
+}
+
+func (options *Html) Answer(out *bytes.Buffer, text []byte) {
+	doubleSpace(out)
+	out.WriteString("<blockquote>\n")
+	out.Write(text)
+	out.WriteString("</blockquote>\n")
+}
+
 func (options *Html) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
 	doubleSpace(out)
 	out.WriteString("<table>\n")

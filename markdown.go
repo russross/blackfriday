@@ -183,6 +183,8 @@ type Renderer interface {
 	Abstract(out *bytes.Buffer, text []byte)
 	Aside(out *bytes.Buffer, text []byte)
 	Note(out *bytes.Buffer, text []byte)
+	Exercise(out *bytes.Buffer, text []byte)
+	Answer(out *bytes.Buffer, text []byte)
 
 	// Span-level callbacks
 	AutoLink(out *bytes.Buffer, link []byte, kind int)
@@ -366,7 +368,6 @@ func firstPass(p *parser, input []byte, depth int) []byte {
 				out.Write(input[beg:end])
 			} else {
 				if p.flags&EXTENSION_INCLUDE != 0 {
-					//line := expandIncludes(&out, input[beg:end], p, depth)
 					line := expandCodeIncludes(&out, input[beg:end], p)
 					line = expandIncludes(&out, line, p, depth)
 					expandTabs(&out, line, tabSize)

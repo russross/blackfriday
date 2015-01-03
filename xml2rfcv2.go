@@ -158,6 +158,14 @@ func (options *Xml2) Note(out *bytes.Buffer, text []byte) {
 	options.BlockQuote(out, text, nil)
 }
 
+func (options *Xml2) Exercise(out *bytes.Buffer, text []byte) {
+	options.BlockQuote(out, text, nil)
+}
+
+func (options *Xml2) Answer(out *bytes.Buffer, text []byte) {
+	options.BlockQuote(out, text, nil)
+}
+
 func (options *Xml2) CommentHtml(out *bytes.Buffer, text []byte) {
 	// nothing fancy any left of the first `:` will be used as the source="..."
 	i := bytes.Index(text, []byte("-->"))

@@ -149,6 +149,23 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			continue
 		}
 
+		// Answer quote:
+		//
+		// XA> It's 10!
+		if p.answerPrefix(data) > 0 {
+			data = data[p.answer(out, data):]
+			continue
+		}
+
+		// Exercise quote:
+		//
+		// X> This is an exercise.
+		// X> How much is 5+5?
+		if p.exercisePrefix(data) > 0 {
+			data = data[p.exercise(out, data):]
+			continue
+		}
+
 		// block quote:
 		//
 		// > A big quote I found somewhere
@@ -272,7 +289,6 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_GROUP, 0, group):]
 			continue
 		}
-
 		// anything else must look like a normal paragraph
 		// note: this finds underlined headers, too
 		data = data[p.paragraph(out, data):]
@@ -2002,6 +2018,11 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 				p.eliPrefix(current) != 0 ||
 				p.dliPrefix(current) != 0 ||
 				p.quotePrefix(current) != 0 ||
+				p.notePrefix(current) != 0 ||
+				p.asidePrefix(current) != 0 ||
+				p.abstractPrefix(current) != 0 ||
+				p.exercisePrefix(current) != 0 ||
+				p.answerPrefix(current) != 0 ||
 				p.codePrefix(current) != 0 {
 				p.renderParagraph(out, data[:i])
 				return i

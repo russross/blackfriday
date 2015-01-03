@@ -166,7 +166,7 @@ implements the following extensions:
     ```
     Of course the captioning works here as well:
 
-        <<{{test.go}}[/START OMIT/,/END OMIT/]
+        <{{test.go}}[/START OMIT/,/END OMIT/]
         Figure: A sample program.
 
     The address may be omitted: `<<{test.go}}` is legal as well.
