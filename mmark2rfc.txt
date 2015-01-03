@@ -84,16 +84,17 @@ Table of Contents
    12. Miscellaneous . . . . . . . . . . . . . . . . . . . . . . . .   8
      12.1.  HTML Comment . . . . . . . . . . . . . . . . . . . . . .   8
      12.2.  Including Files  . . . . . . . . . . . . . . . . . . . .   8
+     12.3.  Including Code Fragments . . . . . . . . . . . . . . . .   8
    13. XML2RFC V3 features . . . . . . . . . . . . . . . . . . . . .   8
      13.1.  Asides . . . . . . . . . . . . . . . . . . . . . . . . .   8
-     13.2.  Notes  . . . . . . . . . . . . . . . . . . . . . . . . .   8
-     13.3.  RFC 2119 Keywords  . . . . . . . . . . . . . . . . . . .   8
-     13.4.  Super- and Subscripts  . . . . . . . . . . . . . . . . .   8
-     13.5.  Images . . . . . . . . . . . . . . . . . . . . . . . . .   8
+     13.2.  Notes  . . . . . . . . . . . . . . . . . . . . . . . . .   9
+     13.3.  RFC 2119 Keywords  . . . . . . . . . . . . . . . . . . .   9
+     13.4.  Super- and Subscripts  . . . . . . . . . . . . . . . . .   9
+     13.5.  Images . . . . . . . . . . . . . . . . . . . . . . . . .   9
    14. Converting from RFC 7328 Syntax . . . . . . . . . . . . . . .   9
-   15. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   9
-   16. References  . . . . . . . . . . . . . . . . . . . . . . . . .   9
-     16.1.  Informative References . . . . . . . . . . . . . . . . .   9
+   15. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  10
+   16. References  . . . . . . . . . . . . . . . . . . . . . . . . .  10
+     16.1.  Informative References . . . . . . . . . . . . . . . . .  10
      16.2.  Normative References . . . . . . . . . . . . . . . . . .  10
      16.3.  URIs . . . . . . . . . . . . . . . . . . . . . . . . . .  10
    Appendix A.  Bugs . . . . . . . . . . . . . . . . . . . . . . . .  11
@@ -105,7 +106,6 @@ Table of Contents
    syntax and has been extended with (syntax) features found in other
    markdown implementations like kramdown [2], PHP markdown extra [3],
    [pandoc], leanpub [4] and even asciidoc [5].  This allows mmark to be
-
 
 
 
@@ -264,13 +264,13 @@ Internet-Draft                  mmark2rfc                  December 2014
    Quote: Name -- URI for attribution
 
    In v3 this is used in the block quote attributes, for v2 it is
-   discarded.
+   discarded.  If you need the string 'Quote:"after an quote, escape the
+   colon:"Quote:`.
 
 8.3.  Tables
 
    A table caption is signalled by using "Table:" directly after the
    table.  The table syntax used that one of Markdown Extra [8].
-
 
 
 
@@ -407,6 +407,26 @@ Internet-Draft                  mmark2rfc                  December 2014
    Files can be included using "{{filename}}", "filename" is relative to
    the current working directory if it is not absolute.
 
+12.3.  Including Code Fragments
+
+   This borrows from the Go present tool, which go its inspiration from
+   the Sam editor.  Use the syntax: `"<<{{filename}}[address]" to
+   include a code snippet.  The "address" identifier specifies what
+   lines of code are to be included in the fragment.
+
+   Any line in the program that ends with the four characters "OMIT" is
+   deleted from the source before inclusion, making it easy to write
+   things like
+
+   <<{{test.go}}[/START OMIT/,/END OMIT/}
+
+   to find snippets like this
+
+   tedious_code = boring_function()
+   // START OMIT
+   interesting_code = fascinating_function()
+   // END OMIT
+
 13.  XML2RFC V3 features
 
    The v3 syntax adds some new features, those can already be used in
@@ -417,6 +437,18 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    Any paragraph prefixed with "AS>".  For v2 this becomes a indented
    paragraph.
+
+
+
+
+
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 8]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
 
 13.2.  Notes
 
@@ -437,18 +469,6 @@ Internet-Draft                  mmark2rfc                  December 2014
 13.5.  Images
 
    TODO
-
-
-
-
-
-
-
-
-Gieben                    Expires June 13, 2015                 [Page 8]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
 
 14.  Converting from RFC 7328 Syntax
 
@@ -477,6 +497,15 @@ Internet-Draft                  mmark2rfc                  December 2014
    "template.xml" file and will output a TOML titleblock, that can be
    used as a starting point.
 
+
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 9]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
       Yes, this uses pandoc and Perl.. why?  Becasue if mmark could
       parse the file by itself, there wasn't much of problem.  Two
       things are holding this back: mmark cannot parse definition lists
@@ -497,14 +526,6 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119, March 1997.
-
-
-
-
-Gieben                    Expires June 13, 2015                 [Page 9]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
 
    [blackfriday]
               "Blackfriday git repository", November 2011,
@@ -534,6 +555,13 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    [4] http://www.methods.co.nz/asciidoc/
 
+
+
+Gieben                    Expires June 13, 2015                [Page 10]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
    [5] http://commonmark.org/
 
    [6] https://github.com/cabo/kramdown-rfc2629
@@ -555,13 +583,6 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    [13] http://kramdown.gettalong.org/syntax.html
 
-
-
-Gieben                    Expires June 13, 2015                [Page 10]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
-
 Appendix A.  Bugs
 
    o  Citations must be included in the text before the "{backmatter}"
@@ -574,6 +595,8 @@ Appendix A.  Bugs
    o  Multiple terms and definitions are not supported in definition
       lists.
 
+   o  Mmark only passes about 60% of the tests of CommonMark.
+
 Author's Address
 
    R. (Miek) Gieben
@@ -581,29 +604,6 @@ Author's Address
    Buckingham Palace Road
 
    Email: miek@google.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

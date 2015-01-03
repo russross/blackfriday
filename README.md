@@ -148,6 +148,27 @@ implements the following extensions:
 
 *   **Includes**, support including files with `{{filename}}` syntax.
 
+*   **Code Block Includes**, use the syntax `<{{code/hello.c}}[address]`, where
+    address is the syntax described in <https://godoc.org/golang.org/x/tools/present/>, the
+    OMIT keyword in the code also works.
+
+    So including a code snippet will work like so:
+
+        <{{test.go}}[/START OMIT/,END OMIT/]
+
+    where `test.go` looks like this:
+
+    ``` go
+    tedious_code = boring_function()
+    // START OMIT
+    interesting_code = fascinating_function()
+    // END OMIT
+    ```
+    Ofcourse the captioning works here as well:
+
+        <<{{test.go}}[/START OMIT/,END OMIT/]
+        Figure: A sample program.
+
 *   **Indices**, using `(((item, subitem)))` syntax. To make `item` primary, use
     an `!`: `(((!item, subitem)))`.
 
@@ -256,12 +277,6 @@ implements the following extensions:
     reduce API footprint (hide constants mainly)
 *   save original IAL for example lists?
 *   Profile and make it faster
-
-*   Leanpub features: <<{code/sample1.rb}[address], different syntax to be more inline with using
-    `{` and `}` for "special" functions. This will be expanded to a code block (indented 4 spaces).
-    Extra features to allow to specify what to include, line numbers or awk syntax ??
-    Features from https://godoc.org/golang.org/x/tools/present
-    Address is used to select the code.
 
 *   Exercises and answers: exercise: `EX>` for an exercise with an optional? followning `AX>` for the answer..?
     We call exercise of the renderer Exercise(ex []byte, answer []byte) -> go render.

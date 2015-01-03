@@ -262,6 +262,26 @@ XML file. Typically `<!-- Miek Gieben -- you want to include the next paragraph?
 Files can be included using ``{{filename}}``, `filename` is relative to the current working
 directory if it is not absolute.
 
+## Including Code Fragments
+
+This borrows from the Go present tool, which go its inspiration from the Sam editor. Use the
+syntax: ``<<{{filename}}[address]` to include a code snippet. The `address` identifier specifies
+what lines of code are to be included in the fragment.
+
+Any line in the program that ends with the four characters `OMIT`
+is deleted from the source before inclusion, making it easy to write things like
+
+    <<{{test.go}}[/START OMIT/,/END OMIT/}
+
+to find snippets like this
+
+~~~ go
+tedious_code = boring_function()
+// START OMIT
+interesting_code = fascinating_function()
+// END OMIT
+~~~
+
 # XML2RFC V3 features
 
 The v3 syntax adds some new features, those can already be used in mmark (even for documents targeting
