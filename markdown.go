@@ -367,14 +367,7 @@ func firstPass(p *parser, input []byte, depth int) []byte {
 			if end < lastFencedCodeBlockEnd { // Do not expand tabs while inside fenced code blocks.
 				out.Write(input[beg:end])
 			} else {
-				if p.flags&EXTENSION_INCLUDE != 0 {
-					line := expandCodeIncludes(&out, input[beg:end], p)
-					line = expandIncludes(&out, line, p, depth)
-					expandTabs(&out, line, tabSize)
-				} else {
-					expandTabs(&out, input[beg:end], tabSize)
-
-				}
+				expandTabs(&out, input[beg:end], tabSize)
 			}
 		}
 		out.WriteByte('\n')
@@ -814,114 +807,88 @@ func isroman(digit byte, uppercase bool) bool {
 }
 
 // replace {{file.md}} with the contents of the file.
-func expandIncludes(out *bytes.Buffer, line []byte, p *parser, depth int) []byte {
-	l := len(line)
+func (p *parser) expandIncludes(out *bytes.Buffer, data []byte) int {
+	i := 0
+	if len(data) < 3 {
+		return 0
+	}
+	if data[i] != '{' && data[i+1] != '{' {
+		return 0
+	}
 
-	for i := 0; i < l-2; i++ {
-		// TODO(miek): don't go over the newline
-		if line[i] == '{' && line[i+1] == '{' {
-			// find the end delimiter
-			end, j := 0, 0
-			for end = i; end < l && j < 2; end++ {
-				if line[end] == '}' {
-					j++
-				} else {
-					j = 0
-				}
-			}
-			if j < 2 && end >= l {
-				i += 1
-				continue
-			}
-
-			name := string(line[i+2 : end-2])
-			// need to remove this text, so we don't see it further along
-			line = append(line[:i], line[end:]...)
-			input, err := ioutil.ReadFile(name)
-			if err != nil {
-				log.Fatalf("failed: `%s': %s", name, err)
-			} else {
-				// parse contents and inject
-				first := firstPass(p, input, depth+1)
-				second := secondPass(p, first, depth+1)
-				out.Write(second)
-			}
-			l = len(line)
+	// find the end delimiter
+	end, j := 0, 0
+	for end = i; end < len(data) && j < 2; end++ {
+		if data[end] == '}' {
+			j++
+		} else {
+			j = 0
 		}
 	}
-	return line
+	if j < 2 && end >= len(data) {
+		return 0
+	}
+
+	name := string(data[i+2 : end-2])
+	input, err := ioutil.ReadFile(name)
+	if err != nil {
+		log.Fatalf("failed: `%s': %s", name, err)
+	} else {
+		out.Write(input)
+	}
+	return end
 }
 
 // replace <{{file.go}}[address] with the contents of the file. Pay attention to the indentation of the
 // include and prefix the code with that number of spaces + 4, it returns the new bytes and a boolean
 // indicating we've detected a code include.
-func expandCodeIncludes(out *bytes.Buffer, line []byte, p *parser) []byte {
-	l := len(line)
-	indent := 0
-	// TODO(miek): needs to be on a line, same holds true to the otherinclude. i.e. don't parse
-	// this inside paragraphs.
-	for i := 0; i < l-3; i++ {
-		if line[i] == '<' && line[i+1] == '{' && line[i+2] == '{' {
-			// save the indentation
-			indent = i
+func (p *parser) expandCodeIncludes(out *bytes.Buffer, data []byte) int {
+	i := 0
+	if len(data) < 3 {
+		return 0
+	}
+	if data[i] != '<' && data[i+1] != '{' && data[i+2] != '{' {
+		return 0
+	}
 
-			// find the end delimiter
-			end, j := 0, 0
-			for end = i; end < l && j < 2; end++ {
-				if line[end] == '}' {
-					j++
-				} else {
-					j = 0
-				}
-			}
-			if j < 2 && end >= l {
-				i += 1
-				continue
-			}
-
-			// found <{{filename}}
-			// this could be the end, or we could have an option [address] -block attached
-			filename := line[i+3 : end-2]
-
-			// Now a possible address in blockquotes
-			var address []byte
-			if end < l && line[end] == '[' {
-				j = end
-				for j < l && line[j] != ']' {
-					j++
-				}
-				if j == l {
-					// assuming no address
-					address = nil
-					end = l
-				} else {
-					address = line[end+1 : j]
-					end = j + 1
-				}
-			}
-			// need to remove this text, so we don't see it further along
-			line = append(line[:indent], line[end:]...)
-
-			code := parseCode(address, filename)
-
-			// don't like the code below, TODO
-
-			// create indent bytes sequence
-			id := make([]byte, indent+4)
-			for c, _ := range id {
-				id[c] = ' '
-			}
-
-			code = append(id, code...)
-			id = append([]byte{'\n'}, id...)
-			code = bytes.Replace(code, []byte("\n"), id, -1)
-			// Inject code into the document
-			out.Write(code)
-
-			l = len(line)
+	// find the end delimiter
+	end, j := 0, 0
+	for end = i; end < len(data) && j < 2; end++ {
+		if data[end] == '}' {
+			j++
+		} else {
+			j = 0
 		}
 	}
-	return line
+	if j < 2 && end >= len(data) {
+		return 0
+	}
+
+	// found <{{filename}}
+	// this could be the end, or we could have an option [address] -block attached
+	filename := data[i+3 : end-2]
+
+	// Now a possible address in blockquotes
+	var address []byte
+	if end < len(data) && data[end] == '[' {
+		j = end
+		for j < len(data) && data[j] != ']' {
+			j++
+		}
+		if j == len(data) {
+			// assuming no address
+			address = nil
+			end = len(data)
+		} else {
+			address = data[end+1 : j]
+			end = j + 1
+		}
+	}
+
+	code := parseCode(address, filename)
+	out.Write(code)
+
+	return end
 }
 
 // replace tab characters with spaces, aligning to the next tab_size column.

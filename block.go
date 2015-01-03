@@ -25,12 +25,25 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 
 	// parse out one block-level construct at a time
 	for len(data) > 0 {
-		// IAL:
-		// {....}
+		// IAL
+		//
+		// {.class #id key=value}
 		if data[0] == '{' {
 			if j := p.isInlineAttr(data); j > 0 {
 				data = data[j:]
 				continue
+			}
+			if p.flags&EXTENSION_INCLUDE != 0 {
+				data = data[p.expandIncludes(out, data):]
+			}
+		}
+
+		// code includes
+		//
+		// <{{...}}
+		if data[0] == '<' {
+			if p.flags&EXTENSION_INCLUDE != 0 {
+				data = data[p.expandCodeIncludes(out, data):]
 			}
 		}
 
@@ -494,34 +507,6 @@ func (p *parser) html(out *bytes.Buffer, data []byte, doRender bool) int {
 	// look for an unindented matching closing tag
 	// followed by a blank line
 	found := false
-	/*
-		closetag := []byte("\n</" + curtag + ">")
-		j = len(curtag) + 1
-		for !found {
-			// scan for a closing tag at the beginning of a line
-			if skip := bytes.Index(data[j:], closetag); skip >= 0 {
-				j += skip + len(closetag)
-			} else {
-				break
-			}
-
-			// see if it is the only thing on the line
-			if skip := p.isEmpty(data[j:]); skip > 0 {
-				// see if it is followed by a blank line/eof
-				j += skip
-				if j >= len(data) {
-					found = true
-					i = j
-				} else {
-					if skip := p.isEmpty(data[j:]); skip > 0 {
-						j += skip
-						found = true
-						i = j
-					}
-				}
-			}
-		}
-	*/
 
 	// if not found, try a second pass looking for indented match
 	// but not if tag is "ins" or "del" (following original Markdown.pl)
