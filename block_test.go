@@ -1299,16 +1299,6 @@ func TestOrderedListStartXML(t *testing.T) {
 	doTestsBlockXML(t, tests, 0)
 }
 
-// TODO
-func TestInsideQuoteXML(t *testing.T) {
-	var tests = []string{
-	// need to fix header in quote
-	//	"N> # hello\nN>\n N> text\n",
-	//	"<note>\n<name>hello</name>\n<t>text</t>\n</note>\n",
-	}
-	doTestsBlockXML(t, tests, 0)
-}
-
 func TestIncludesXML(t *testing.T) {
 	var tests = []string{
 		"{{/dev/null}}",
