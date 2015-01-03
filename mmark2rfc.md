@@ -264,8 +264,8 @@ directory if it is not absolute.
 
 ## Including Code Fragments
 
-This borrows from the Go present tool, which got its inspiration from the Sam editor and leanpub. The
-syntax presented here is more powerful than the one used by leanpub.
+This borrows from the Go present tool, which got its inspiration from the Sam editor. The syntax was gleaned from leanpub.
+But the syntax presented here is more powerful than the one used by leanpub.
 Use the
 syntax: `<{{program}}[address]` to include a code snippet. The `address` identifier specifies
 what lines of code are to be included in the fragment.

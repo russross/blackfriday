@@ -410,11 +410,11 @@ Internet-Draft                  mmark2rfc                  December 2014
 12.3.  Including Code Fragments
 
    This borrows from the Go present tool, which got its inspiration from
-   the Sam editor and leanpub.  The syntax presented here is more
-   powerful than the one used by leanpub.  Use the syntax:
-   "<{{program}}[address]" to include a code snippet.  The "address"
-   identifier specifies what lines of code are to be included in the
-   fragment.
+   the Sam editor.  The syntax was gleaned from leanpub.  But the syntax
+   presented here is more powerful than the one used by leanpub.  Use
+   the syntax: "<{{program}}[address]" to include a code snippet.  The
+   "address" identifier specifies what lines of code are to be included
+   in the fragment.
 
    Any line in the program that ends with the four characters "OMIT" is
    deleted from the source before inclusion, making it easy to write
