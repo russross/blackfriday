@@ -280,11 +280,7 @@ implements the following extensions:
 *   make webservers that converts for you
 *   cleanups - and loose a bunch of extensions, turn them on per default
     reduce API footprint (hide constants mainly)
-*   save original IAL for example lists?
-*   Profile and make it faster
 
-*   Exercises and answers: exercise: `EX>` for an exercise with an optional? followning `AX>` for the answer..?
-    We call exercise of the renderer Exercise(ex []byte, answer []byte) -> go render.
 
 # License
 
