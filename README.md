@@ -259,12 +259,15 @@ implements the following extensions:
 
         *[HTML]\: HyperTextMarkupLanguage
 
-* **Super and subscripts**, for superscripts use '^' and for subscripts use '~'. For example:
+*  **Super and subscripts**, for superscripts use '^' and for subscripts use '~'. For example:
 
         H~2~O is a liquid. 2^10^ is 1024.
 
     Inside a sub/superscript you must escape spaces.
     Thus, if you want the letter P with 'a cat' in subscripts, use `P~a\ cat~`, not `P~a cat~`.
+
+*  **Exercises and answers**. This comes from leanpub. And exercise is an paragraph prefixed
+    with `X>`. Answers should be typeset as a paragraph prefxed with `XA>`.
 
 # Todo
 

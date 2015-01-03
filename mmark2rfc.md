@@ -264,17 +264,18 @@ directory if it is not absolute.
 
 ## Including Code Fragments
 
-This borrows from the Go present tool, which go its inspiration from the Sam editor. Use the
-syntax: `<<{{filename}}[address]` to include a code snippet. The `address` identifier specifies
+This borrows from the Go present tool, which got its inspiration from the Sam editor and leanpub. The
+syntax presented here is more powerful than the one used by leanpub.
+Use the
+syntax: `<{{filename}}[address]` to include a code snippet. The `address` identifier specifies
 what lines of code are to be included in the fragment.
 
 Any line in the program that ends with the four characters `OMIT`
 is deleted from the source before inclusion, making it easy to write things like
 
-    <<{{test.go}}[/START OMIT/,/END OMIT/}
+    <{{test.go}}[/START OMIT/,/END OMIT/}
 
-to find snippets like this
-
+So you can include snippets like this:
 ~~~ go
 tedious_code = boring_function()
 // START OMIT
