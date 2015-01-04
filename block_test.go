@@ -3,6 +3,8 @@
 package mmark
 
 import (
+	"os"
+	"io/ioutil"
 	"testing"
 )
 
@@ -1329,6 +1331,21 @@ func TestIncludesXML(t *testing.T) {
     Figure: this is some code!`,
 		"<ol>\n<li>This is item1</li>\n<li>This is item2.\nLets include some code:\n<figure>\n<name>this is some code!</name>\n<artwork>\n\n</artwork>\n</figure></li>\n</ol>\n",
 	}
+
+	f, e := ioutil.TempFile("/tmp", "mmark_test.")
+	if e == nil {
+		defer os.Remove(f.Name())
+		ioutil.WriteFile(f.Name(), []byte(`
+tedious_code = boring_function()
+// START OMIT
+interesting_code = fascinating_function()
+// END OMIT`), 0644)
+
+		t1 := "Include some code\n <{{" + f.Name() + "}}[/START OMIT/,/END OMIT/]\n"
+		e1 := "<t>Include some code\n <artwork>\ninteresting_code = fascinating_function()\n</artwork>\n</t>\n"
+		tests = append(tests, []string{t1, e1}...)
+	}
+
 	doTestsBlockXML(t, tests, EXTENSION_INCLUDE)
 }
 
