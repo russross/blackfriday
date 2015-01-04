@@ -840,12 +840,12 @@ func (p *parser) include(out *bytes.Buffer, data []byte) int {
 		input = []byte{'\n'}
 	}
 	if input[len(input)-1] != '\n' {
-		println("ADDING")
 		input = append(input, '\n')
 	}
+	first := firstPass(p, input, 0)
 
 	var work bytes.Buffer
-	p.block(&work, input)
+	p.block(&work, first)
 	return end
 }
 

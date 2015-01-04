@@ -1300,6 +1300,9 @@ func TestOrderedListStartXML(t *testing.T) {
 }
 
 func TestIncludesXML(t *testing.T) {
+	if !testing.Short() {
+		return
+	}
 	var tests = []string{
 		"{{/dev/null}}",
 		"<t></t>\n",
