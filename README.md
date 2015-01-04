@@ -280,6 +280,7 @@ implements the following extensions:
 *   make webservers that converts for you
 *   cleanups - and loose a bunch of extensions, turn them on per default
     reduce API footprint (hide constants mainly)
+*   Math support? `$` and `$$` from pandoc
 
 
 # License
