@@ -271,7 +271,8 @@ implements the following extensions:
 *  **Exercises and answers**. This comes from leanpub. And exercise is an paragraph prefixed
     with `X>`. Answers should be typeset as a paragraph prefxed with `XA>`.
 
-*  **Parts**, use the special part header `-# Part` to start a new part.
+*  **Parts**, use the special part header `-#` to start a new part. This follows the header
+    syntax, so `-# Part {#part1}` is a valid part header.
 
 # Todo
 
@@ -284,7 +285,8 @@ implements the following extensions:
 *   make webservers that converts for you
 *   cleanups - and loose a bunch of extensions, turn them on per default
     reduce API footprint (hide constants mainly)
-*   Math support? `$` and `$$` from pandoc
+*   Math support? `$$` from pandoc? kramdown does this as well, but detects display
+    is used as a paragraph, otherwise normal formula.
 
 
 # License
