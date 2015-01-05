@@ -160,7 +160,7 @@ func (options *Html) Flags() int {
 
 func (options *Html) TitleBlockTOML(out *bytes.Buffer, data *title) {}
 
-func (options *Html) Part(out *bytes.Buffer, text func() bool, id string) { }
+func (options *Html) Part(out *bytes.Buffer, text func() bool, id string) {}
 
 func (options *Html) Header(out *bytes.Buffer, text func() bool, level int, id string) {
 	marker := out.Len()

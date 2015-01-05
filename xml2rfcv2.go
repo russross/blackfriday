@@ -21,10 +21,10 @@ const (
 //
 // Do not create this directly, instead use the Xml2Renderer function.
 type Xml2 struct {
-	flags        int // XML2_* options
-	sectionLevel int // current section level
-	docLevel     int // frontmatter/mainmatter or backmatter
-	part	     bool // parts cannot nest, if true a part has been opened
+	flags        int  // XML2_* options
+	sectionLevel int  // current section level
+	docLevel     int  // frontmatter/mainmatter or backmatter
+	part         bool // parts cannot nest, if true a part has been opened
 
 	// store the IAL we see for this block element
 	ial *InlineAttr
@@ -206,7 +206,7 @@ func (options *Xml2) BlockHtml(out *bytes.Buffer, text []byte) {
 	return
 }
 
-func (options *Xml2) Part(out *bytes.Buffer, text func() bool, id string) { }
+func (options *Xml2) Part(out *bytes.Buffer, text func() bool, id string) {}
 
 func (options *Xml2) Header(out *bytes.Buffer, text func() bool, level int, id string) {
 	//marker := out.Len()

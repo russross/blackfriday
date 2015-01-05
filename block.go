@@ -463,7 +463,7 @@ func (p *parser) isPartHeader(data []byte) bool {
 		return false
 	}
 
-	if data[0] != '-' && data[1] != '#' {
+	if data[0] != '-' || data[1] != '#' {
 		return false
 	}
 
@@ -488,7 +488,7 @@ func (p *parser) partHeader(out *bytes.Buffer, data []byte) int {
 		return 0
 	}
 
-	if data[0] != '-' && data[1] != '#' {
+	if data[0] != '-' || data[1] != '#' {
 		return 0
 	}
 
@@ -553,9 +553,8 @@ func (p *parser) partHeader(out *bytes.Buffer, data []byte) int {
 
 		p.r.SetInlineAttr(p.ial)
 		p.ial = nil
-		
-		println("PART SEEN", string(id), work())
-	//	p.r.Part(out, work, id)
+
+		p.r.Part(out, work, id)
 	}
 	return skip + k
 }

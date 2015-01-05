@@ -3,8 +3,8 @@
 package mmark
 
 import (
-	"os"
 	"io/ioutil"
+	"os"
 	"testing"
 )
 

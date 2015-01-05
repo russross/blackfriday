@@ -168,6 +168,7 @@ type Renderer interface {
 	BlockQuote(out *bytes.Buffer, text []byte, attribution []byte)
 	BlockHtml(out *bytes.Buffer, text []byte)
 	CommentHtml(out *bytes.Buffer, text []byte)
+	Part(out *bytes.Buffer, text func() bool, id string)
 	Header(out *bytes.Buffer, text func() bool, level int, id string)
 	HRule(out *bytes.Buffer)
 	List(out *bytes.Buffer, text func() bool, flags, start int, group []byte)
@@ -899,7 +900,7 @@ func (p *parser) codeInclude(out *bytes.Buffer, data []byte) int {
 	code := parseCode(address, filename)
 
 	if len(code) == 0 {
-	code = []byte{'\n'}
+		code = []byte{'\n'}
 	}
 	if code[len(code)-1] != '\n' {
 		code = append(code, '\n')
