@@ -32,9 +32,10 @@ var words2119 = map[string]bool{
 //
 // Do not create this directly, instead use the XmlRenderer function.
 type Xml struct {
-	flags        int // XML_* options
-	sectionLevel int // current section level
-	docLevel     int // frontmatter/mainmatter or backmatter
+	flags        int  // XML_* options
+	sectionLevel int  // current section level
+	docLevel     int  // frontmatter/mainmatter or backmatter
+	part         bool // parts cannot nest, if true a part has been opened
 
 	// Store the IAL we see for this block element
 	ial *InlineAttr
@@ -239,6 +240,8 @@ func (options *Xml) BlockHtml(out *bytes.Buffer, text []byte) {
 	// not supported, don't know yet if this is useful
 	return
 }
+
+func (options *Xml) Part(out *bytes.Buffer, text func() bool, id string) {}
 
 func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id string) {
 	// set amount of open in options, so we know what to close after we finish
