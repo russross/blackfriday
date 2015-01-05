@@ -36,7 +36,9 @@ It adds the following syntax elements to [black friday](https://github.com/russr
 * Include raw XML references;
 * Abbreviations;
 * Super- and subscript;
-* HTML renderer uses HTML5 (TODO).
+* HTML renderer uses HTML5 (TODO);
+* Exercises and answers;
+* Allow document to have parts.
 
 Mmark is forked from blackfriday which started out as a translation from C of [upskirt][4].
 
@@ -268,6 +270,8 @@ implements the following extensions:
 
 *  **Exercises and answers**. This comes from leanpub. And exercise is an paragraph prefixed
     with `X>`. Answers should be typeset as a paragraph prefxed with `XA>`.
+
+*  **Parts**, use the special part header `-# Part` to start a new part.
 
 # Todo
 

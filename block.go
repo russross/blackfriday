@@ -35,6 +35,14 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			}
 		}
 
+		// part header:
+		//
+		// -# Part
+		if p.isPartHeader(data) {
+			data = data[p.partHeader(out, data):]
+			continue
+		}
+
 		// prefixed header:
 		//
 		// # Header 1
@@ -440,6 +448,116 @@ func (p *parser) isUnderlinedHeader(data []byte) int {
 	}
 
 	return 0
+}
+
+func (p *parser) isPartHeader(data []byte) bool {
+	k := 0
+	for k < len(data) && data[k] == ' ' {
+		k++
+	}
+	if k == len(data) || k > 3 {
+		return false
+	}
+	data = data[k:]
+	if len(data) < 3 {
+		return false
+	}
+
+	if data[0] != '-' && data[1] != '#' {
+		return false
+	}
+
+	if p.flags&EXTENSION_SPACE_HEADERS != 0 {
+		if !iswhitespace(data[2]) {
+			return false
+		}
+	}
+	return true
+}
+
+func (p *parser) partHeader(out *bytes.Buffer, data []byte) int {
+	k := 0
+	for k < len(data) && data[k] == ' ' {
+		k++
+	}
+	if k == len(data) || k > 3 {
+		return 0
+	}
+	data = data[k:]
+	if len(data) < 3 {
+		return 0
+	}
+
+	if data[0] != '-' && data[1] != '#' {
+		return 0
+	}
+
+	i, end := 0, 0
+	for i = 2; iswhitespace(data[i]); i++ {
+	}
+	for end = i; data[end] != '\n'; end++ {
+	}
+	skip := end
+	id := ""
+
+	if p.flags&EXTENSION_HEADER_IDS != 0 {
+		j, k := 0, 0
+		// find start/end of header id
+		for j = i; j < end-1 && (data[j] != '{' || data[j+1] != '#'); j++ {
+		}
+		for k = j + 1; k < end && data[k] != '}'; k++ {
+		}
+		// extract header id iff found
+		if j < end && k < end {
+			id = string(data[j+2 : k])
+			end = j
+			skip = k + 1
+			for end > 0 && data[end-1] == ' ' {
+				end--
+			}
+		}
+	}
+	// CommonMark spaces *after* the header
+	for end > 0 && data[end-1] == ' ' {
+		end--
+	}
+	for end > 0 && data[end-1] == '#' {
+		// CommonMark: a # directly following the header name is allowed and we
+		// should keep it
+		if end > 1 && data[end-2] != '#' && !iswhitespace(data[end-2]) {
+			end++
+			break
+		}
+		end--
+	}
+	for end > 0 && iswhitespace(data[end-1]) {
+		end--
+	}
+	if end > i {
+		if id == "" && p.flags&EXTENSION_AUTO_HEADER_IDS != 0 {
+			id = createSanitizedAnchorName(string(data[i:end]))
+		}
+		work := func() bool {
+			p.inline(out, data[i:end])
+			return true
+		}
+		if id != "" {
+			if v, ok := p.anchors[id]; ok && p.flags&EXTENSION_UNIQUE_HEADER_IDS != 0 {
+				p.anchors[id]++
+				// anchor found
+				id += "-" + strconv.Itoa(v)
+			} else {
+				p.anchors[id] = 1
+			}
+		}
+
+		p.r.SetInlineAttr(p.ial)
+		p.ial = nil
+		
+		println("PART SEEN", string(id), work())
+	//	p.r.Part(out, work, id)
+	}
+	return skip + k
 }
 
 func (p *parser) titleBlock(out *bytes.Buffer, data []byte, doRender bool) int {
