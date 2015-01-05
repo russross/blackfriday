@@ -38,9 +38,11 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// part header:
 		//
 		// -# Part
-		if p.isPartHeader(data) {
-			data = data[p.partHeader(out, data):]
-			continue
+		if p.flags&EXTENSION_PARTS != 0 {
+			if p.isPartHeader(data) {
+				data = data[p.partHeader(out, data):]
+				continue
+			}
 		}
 
 		// prefixed header:
