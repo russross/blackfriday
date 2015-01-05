@@ -18,28 +18,28 @@ const VERSION = "1.0"
 // These are the supported markdown parsing extensions.
 // OR these values together to select multiple extensions.
 const (
-	_                                    = 1 << iota // ignore emphasis markers inside words
-	EXTENSION_TABLES                                 // render tables
-	EXTENSION_FENCED_CODE                            // render fenced code blocks
+	_                                    = 1 << iota
+	EXTENSION_ABBREVIATIONS                          // render abbreviations `*[HTML]: Hyper Text Markup Language`
+	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text
 	EXTENSION_AUTOLINK                               // detect embedded URLs that are not explicitly marked
-	EXTENSION_LAX_HTML_BLOCKS                        // loosen up HTML block parsing rules
-	EXTENSION_SPACE_HEADERS                          // be strict about prefix header rules
-	EXTENSION_HARD_LINE_BREAK                        // translate newlines into line breaks
+	EXTENSION_CITATION                               // Support citations via the link syntax
+	EXTENSION_EXAMPLE_LISTS                          // render '(@tag)  ' example lists
+	EXTENSION_FENCED_CODE                            // render fenced code blocks
 	EXTENSION_FOOTNOTES                              // Pandoc-style footnotes
+	EXTENSION_HARD_LINE_BREAK                        // translate newlines into line breaks
+	EXTENSION_HEADER_IDS                             // specify header IDs with {#id}
+	EXTENSION_INCLUDE                                // Include file with {{ syntax
+	EXTENSION_INLINE_ATTR                            // detect CommonMark's IAL syntax (copied from kramdown)
+	EXTENSION_LAX_HTML_BLOCKS                        // loosen up HTML block parsing rules
+	EXTENSION_MATTER                                 // use {frontmatter} {mainmatter} {backmatter}
 	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK             // No need to insert an empty line to start a (code, quote, order list, unorder list)block
 	EXTENSION_PARTS					 // detect part headers (-#) (from leanpub)
-	EXTENSION_HEADER_IDS                             // specify header IDs with {#id}
-	EXTENSION_UNIQUE_HEADER_IDS                      // When detecting identical anchors add a sequence number -1, -2 etc.
-	EXTENSION_TITLEBLOCK_TOML                        // Titleblock in TOML
-	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text
-	EXTENSION_INCLUDE                                // Include file with {{ syntax
-	EXTENSION_CITATION                               // Support citations via the link syntax
 	EXTENSION_QUOTES                                 // Allow A> AS> and N> to be parsed as abstract, asides and notes
-	EXTENSION_INLINE_ATTR                            // detect CommonMark's IAL syntax (copied from kramdown)
-	EXTENSION_MATTER                                 // use {frontmatter} {mainmatter} {backmatter}
-	EXTENSION_EXAMPLE_LISTS                          // render '(@tag)  ' example lists
-	EXTENSION_ABBREVIATIONS                          // render abbreviations `*[HTML]: Hyper Text Markup Language`
 	EXTENSION_SHORT_REF                              // (#id) will be a cross reference.
+	EXTENSION_SPACE_HEADERS                          // be strict about prefix header rules
+	EXTENSION_TABLES                                 // render tables
+	EXTENSION_TITLEBLOCK_TOML                        // Titleblock in TOML
+	EXTENSION_UNIQUE_HEADER_IDS                      // When detecting identical anchors add a sequence number -1, -2 etc.
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML
