@@ -1281,13 +1281,13 @@ Orange and *Apples*
 
 func TestAbstractNoteAsideXML(t *testing.T) {
 	var tests = []string{
-		"A> begin of abstract\nA>\nA> this is an abstract\n",
+		".# Abstract\nbegin of abstract\n\nthis is an abstract\n",
 		"<abstract>\n<t>begin of abstract</t>\n<t>this is an abstract</t>\n</abstract>\n",
 
 		"N> begin of note\nN> this is a note\n",
 		"<note>\n<t>begin of note\nthis is a note</t>\n</note>\n",
 
-		"AS> begin of aside\nAS> this is an aside\n",
+		"A> begin of aside\nA> this is an aside\n",
 		"<aside>\n<t>begin of aside\nthis is an aside</t>\n</aside>\n",
 	}
 	doTestsBlockXML(t, tests, 0)
@@ -1349,7 +1349,7 @@ interesting_code = fascinating_function()
 	doTestsBlockXML(t, tests, EXTENSION_INCLUDE)
 }
 
-func TestInlineAttr(t *testing.T) {
+func TestInlineAttrXML(t *testing.T) {
 	var tests = []string{
 		"{attribution=\"BLA BLA\" .green}\n{bla=BLA}\n{more=\"ALB ALB\" #ref:quote .yellow}\n> Hallo2\n> Hallo3\n\nThis is no one `{source='BLEIP'}` on of them\n\n{evenmore=\"BLE BLE\"}\n> Hallo6\n> Hallo7",
 		"<blockquote anchor=\"ref:quote\" class=\"green yellow\" attribution=\"BLA BLA\" bla=\"BLA\" more=\"ALB ALB\">\n<t>Hallo2\nHallo3</t>\n</blockquote>\n<t>This is no one <tt>{source='BLEIP'}</tt> on of them</t>\n<blockquote evenmore=\"BLE BLE\">\n<t>Hallo6\nHallo7</t>\n</blockquote>\n",
@@ -1362,6 +1362,14 @@ func TestInlineAttr(t *testing.T) {
 
 		"{.green #ref1}\n# hallo\n\n{.yellow}\n# hallo {#ref2}\n\n{.blue #ref3}\n# hallo {#ref4}\n",
 		"\n<section anchor=\"ref1\" class=\"green\"><name>hallo</name>\n</section>\n\n<section anchor=\"ref2\" class=\"yellow\"><name>hallo</name>\n</section>\n\n<section anchor=\"ref3\" class=\"blue\"><name>hallo</name>\n",
+	}
+	doTestsBlockXML(t, tests, 0)
+}
+
+func TestCloseHeaderXML(t *testing.T) {
+	var tests = []string{
+		"# Header1\n",
+		"\n<section anchor=\"header1\"><name>Header1</name>\n</section>\n",
 	}
 	doTestsBlockXML(t, tests, 0)
 }
