@@ -211,18 +211,16 @@ func (options *Xml2) Abstract(out *bytes.Buffer, text func() bool, id string) {
 		}
 	}
 
-	ial := options.InlineAttr()
-	ial.GetOrDefaultId(id)
+	//ial := options.InlineAttr()
+	//ial.GetOrDefaultId(id)
 
-	out.WriteString("\n<abstract" + ial.String() + "/>\n")
+	out.WriteString("\n<abstract>\n")
 	options.sectionLevel = 0
 	options.specialSection = ABSTRACT
 	return
 }
 
 func (options *Xml2) Header(out *bytes.Buffer, text func() bool, level int, id string) {
-	//marker := out.Len()
-	//out.Truncate(marker)
 	switch options.specialSection {
 	case ABSTRACT:
 		out.WriteString("</abstract>\n\n")
@@ -244,6 +242,7 @@ func (options *Xml2) Header(out *bytes.Buffer, text func() bool, level int, id s
 	text() // check bool here
 	out.WriteString("\">\n")
 	options.sectionLevel = level
+	options.specialSection = 0
 	return
 }
 
@@ -614,6 +613,10 @@ func (options *Xml2) DocumentMatter(out *bytes.Buffer, matter int) {
 	if options.flags&XML2_STANDALONE == 0 {
 		return
 	}
+	switch options.specialSection {
+	case ABSTRACT:
+		out.WriteString("</abstract>\n\n")
+	}
 	// we default to frontmatter already openened in the documentHeader
 	for i := options.sectionLevel; i > 0; i-- {
 		out.WriteString("</section>\n")
@@ -630,4 +633,5 @@ func (options *Xml2) DocumentMatter(out *bytes.Buffer, matter int) {
 		out.WriteString("<back>\n")
 	}
 	options.docLevel = matter
+	options.specialSection = 0
 }

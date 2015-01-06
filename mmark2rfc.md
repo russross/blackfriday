@@ -114,8 +114,9 @@ but is normally not needed because the TOML header ([](#toml-header)) starts tha
 
 # Abstract
 
-Any paragraph prefixed with `A> ` is an abstract. This is similar to asides and notes
-([](#asides) , [](#notes)) work. Note that an RFC document can only have one abstract.
+An abstract is defined by using the special header syntax `.#`. The name of the section, when lowercased,
+must be "abstract". 
+In the future mmark might also support Preface and Colophon (special) sections.
 
 # Captions
 
@@ -292,7 +293,7 @@ v2 -- but there they will be faked with the limited constructs of v2 syntax).
 
 ## Asides
 
-Any paragraph prefixed with `AS> `. For v2 this becomes a indented paragraph.
+Any paragraph prefixed with `A> `. For v2 this becomes a indented paragraph.
 
 ## Notes
 

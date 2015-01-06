@@ -228,9 +228,10 @@ Internet-Draft                  mmark2rfc                  December 2014
 
 7.  Abstract
 
-   Any paragraph prefixed with "A>" is an abstract.  This is similar to
-   asides and notes (Section 13.1 , Section 13.2) work.  Note that an
-   RFC document can only have one abstract.
+   An abstract is defined by using the special header syntax ".#".  The
+   name of the section, when lowercased, must be "abstract".  In the
+   future mmark might also support Preface and Colophon (special)
+   sections.
 
 8.  Captions
 
@@ -271,7 +272,6 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    A table caption is signalled by using "Table:" directly after the
    table.  The table syntax used that one of Markdown Extra [8].
-
 
 
 
@@ -437,7 +437,7 @@ Internet-Draft                  mmark2rfc                  December 2014
 
 13.1.  Asides
 
-   Any paragraph prefixed with "AS>".  For v2 this becomes a indented
+   Any paragraph prefixed with "A>".  For v2 this becomes a indented
    paragraph.
 
 
@@ -506,11 +506,11 @@ Gieben                    Expires June 13, 2015                 [Page 9]
 Internet-Draft                  mmark2rfc                  December 2014
 
 
-      Yes, this uses pandoc and Perl.. why?  Becasue if mmark could
-      parse the file by itself, there wasn't much of problem.  Two
-      things are holding this back: mmark cannot parse definition lists
-      with empty spaces and there isn't renderer that can output
-      markdown syntax.
+   AS> Yes, this uses pandoc and Perl.. why?  Becasue if mmark could
+   parse the file by itself, there wasn't much AS> of problem.  Two
+   things are holding this back: mmark cannot parse definition lists
+   with empty spaces and AS> there isn't renderer that can output
+   markdown syntax.
 
    For now the mmark parser will not get any features that makes it
    backwards compatible with pandoc2rfc.
