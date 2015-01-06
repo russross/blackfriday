@@ -60,11 +60,11 @@ func (p *parser) asidePrefix(data []byte) int {
 	for i < 3 && data[i] == ' ' {
 		i++
 	}
-	if data[i] == 'A' && data[i+1] == 'S' && data[i+2] == '>' {
-		if data[i+3] == ' ' {
-			return i + 4
+	if data[i] == 'A' && data[i+1] == '>' {
+		if data[i+2] == ' ' {
+			return i + 3
 		}
-		return i + 3
+		return i + 2
 	}
 	return 0
 }
@@ -99,58 +99,6 @@ func (p *parser) aside(out *bytes.Buffer, data []byte) int {
 	p.ial = nil
 
 	p.r.Aside(out, cooked.Bytes())
-	return end
-}
-
-// returns abstractquote prefix length
-func (p *parser) abstractPrefix(data []byte) int {
-	i := 0
-	for i < 3 && data[i] == ' ' {
-		i++
-	}
-	if data[i] == 'A' && data[i+1] == '>' {
-		if data[i+2] == ' ' {
-			return i + 3
-		}
-		return i + 2
-	}
-	return 0
-}
-
-// parse an abstract fragment
-func (p *parser) abstract(out *bytes.Buffer, data []byte) int {
-	var raw bytes.Buffer
-	beg, end := 0, 0
-	for beg < len(data) {
-		end = beg
-		for data[end] != '\n' {
-			end++
-		}
-		end++
-
-		if pre := p.abstractPrefix(data[beg:]); pre > 0 {
-			// skip the prefix
-			beg += pre
-		} else if p.isEmpty(data[beg:]) > 0 &&
-			(end >= len(data) ||
-				(p.abstractPrefix(data[end:]) == 0 && p.isEmpty(data[end:]) == 0)) {
-			// abstract ends with at least one blank line
-			// followed by something without a abstract prefix
-			break
-		}
-
-		// this line is part of the abstract
-		raw.Write(data[beg:end])
-		beg = end
-	}
-
-	var cooked bytes.Buffer
-	p.block(&cooked, raw.Bytes())
-
-	p.r.SetInlineAttr(p.ial)
-	p.ial = nil
-
-	p.r.Abstract(out, cooked.Bytes())
 	return end
 }
 

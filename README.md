@@ -218,11 +218,12 @@ implements the following extensions:
         > Ability is nothing without opportunity.
         Quote: Napoleon Bonaparte -- http://example.com
 
+*  **Abstracts**, use the special header `.# Abstract`. Note that the header name, when lowercased,
+    must match 'abstract'.
+
 *  **Notes**, any parapgraph with `N>`
 
-*  **Abstracts**, any paragraph with `A>`
-
-*  **Asides**, any paragraph with `AS>` at the beginning of all lines is an aside.
+*  **Asides**, any paragraph with `A>` at the beginning of all lines is an aside.
 
 *  **{frontmatter}/{mainmatter}/{backmatter}** Create useful divisions in your document.
 

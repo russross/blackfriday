@@ -19,27 +19,27 @@ const VERSION = "1.0"
 // OR these values together to select multiple extensions.
 const (
 	_                                    = 1 << iota
-	EXTENSION_ABBREVIATIONS                          // render abbreviations `*[HTML]: Hyper Text Markup Language`
-	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text
-	EXTENSION_AUTOLINK                               // detect embedded URLs that are not explicitly marked
-	EXTENSION_CITATION                               // Support citations via the link syntax
-	EXTENSION_EXAMPLE_LISTS                          // render '(@tag)  ' example lists
-	EXTENSION_FENCED_CODE                            // render fenced code blocks
-	EXTENSION_FOOTNOTES                              // Pandoc-style footnotes
-	EXTENSION_HARD_LINE_BREAK                        // translate newlines into line breaks
-	EXTENSION_HEADER_IDS                             // specify header IDs with {#id}
-	EXTENSION_INCLUDE                                // Include file with {{ syntax
-	EXTENSION_INLINE_ATTR                            // detect CommonMark's IAL syntax (copied from kramdown)
-	EXTENSION_LAX_HTML_BLOCKS                        // loosen up HTML block parsing rules
-	EXTENSION_MATTER                                 // use {frontmatter} {mainmatter} {backmatter}
-	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK             // No need to insert an empty line to start a (code, quote, order list, unorder list)block
-	EXTENSION_PARTS					 // detect part headers (-#) (from leanpub)
-	EXTENSION_QUOTES                                 // Allow A> AS> and N> to be parsed as abstract, asides and notes
-	EXTENSION_SHORT_REF                              // (#id) will be a cross reference.
-	EXTENSION_SPACE_HEADERS                          // be strict about prefix header rules
-	EXTENSION_TABLES                                 // render tables
-	EXTENSION_TITLEBLOCK_TOML                        // Titleblock in TOML
-	EXTENSION_UNIQUE_HEADER_IDS                      // When detecting identical anchors add a sequence number -1, -2 etc.
+	EXTENSION_ABBREVIATIONS              // render abbreviations `*[HTML]: Hyper Text Markup Language`
+	EXTENSION_AUTO_HEADER_IDS            // Create the header ID from the text
+	EXTENSION_AUTOLINK                   // detect embedded URLs that are not explicitly marked
+	EXTENSION_CITATION                   // Support citations via the link syntax
+	EXTENSION_EXAMPLE_LISTS              // render '(@tag)  ' example lists
+	EXTENSION_FENCED_CODE                // render fenced code blocks
+	EXTENSION_FOOTNOTES                  // Pandoc-style footnotes
+	EXTENSION_HARD_LINE_BREAK            // translate newlines into line breaks
+	EXTENSION_HEADER_IDS                 // specify header IDs with {#id}
+	EXTENSION_INCLUDE                    // Include file with {{ syntax
+	EXTENSION_INLINE_ATTR                // detect CommonMark's IAL syntax (copied from kramdown)
+	EXTENSION_LAX_HTML_BLOCKS            // loosen up HTML block parsing rules
+	EXTENSION_MATTER                     // use {frontmatter} {mainmatter} {backmatter}
+	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK // No need to insert an empty line to start a (code, quote, order list, unorder list)block
+	EXTENSION_PARTS                      // detect part headers (-#) (from leanpub)
+	EXTENSION_QUOTES                     // Allow A> AS> and N> to be parsed as abstract, asides and notes
+	EXTENSION_SHORT_REF                  // (#id) will be a cross reference.
+	EXTENSION_SPACE_HEADERS              // be strict about prefix header rules
+	EXTENSION_TABLES                     // render tables
+	EXTENSION_TITLEBLOCK_TOML            // Titleblock in TOML
+	EXTENSION_UNIQUE_HEADER_IDS          // When detecting identical anchors add a sequence number -1, -2 etc.
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML
@@ -110,6 +110,14 @@ const (
 	DOC_BACK_MATTER
 )
 
+// Special headers, keep track if there are open
+const (
+	_ = iota
+	ABSTRACT
+	PREFACE
+	COLOPHON
+)
+
 // These are the tags that are recognized as HTML block tags.
 // Any of these can be included in markdown text without special escaping.
 var blockTags = map[string]bool{
@@ -169,6 +177,7 @@ type Renderer interface {
 	BlockQuote(out *bytes.Buffer, text []byte, attribution []byte)
 	BlockHtml(out *bytes.Buffer, text []byte)
 	CommentHtml(out *bytes.Buffer, text []byte)
+	Abstract(out *bytes.Buffer, text func() bool, id []byte)
 	Part(out *bytes.Buffer, text func() bool, id string)
 	Header(out *bytes.Buffer, text func() bool, level int, id string)
 	HRule(out *bytes.Buffer)
@@ -182,7 +191,6 @@ type Renderer interface {
 	Footnotes(out *bytes.Buffer, text func() bool)
 	FootnoteItem(out *bytes.Buffer, name, text []byte, flags int)
 	TitleBlockTOML(out *bytes.Buffer, data *title)
-	Abstract(out *bytes.Buffer, text []byte)
 	Aside(out *bytes.Buffer, text []byte)
 	Note(out *bytes.Buffer, text []byte)
 	Exercise(out *bytes.Buffer, text []byte)

@@ -25,6 +25,7 @@ type Xml2 struct {
 	sectionLevel int  // current section level
 	docLevel     int  // frontmatter/mainmatter or backmatter
 	part         bool // parts cannot nest, if true a part has been opened
+	specialSection int //
 
 	// store the IAL we see for this block element
 	ial *InlineAttr
@@ -207,6 +208,26 @@ func (options *Xml2) BlockHtml(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Xml2) Part(out *bytes.Buffer, text func() bool, id string) {}
+
+func (options *Xml2) Abstract(out *bytes.Buffer, text func() bool, id string) {
+	if level <= options.sectionLevel {
+		// close previous ones
+		for i := options.sectionLevel - level + 1; i > 0; i-- {
+			out.WriteString("</section>\n")
+		}
+	}
+
+	ial := options.InlineAttr()
+	ial.GetOrDefaultId(id)
+
+	out.WriteString("\n<abstract" + ial.String())
+	//out.WriteString(" title=\"")
+	//text()
+	out.WriteByte('\n')
+	options.sectionLevel = 1 // 1?
+	option.specialSection = ABSTRACT
+	return
+}
 
 func (options *Xml2) Header(out *bytes.Buffer, text func() bool, level int, id string) {
 	//marker := out.Len()

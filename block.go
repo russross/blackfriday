@@ -56,6 +56,15 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			continue
 		}
 
+		// special header:
+		//
+		// .# Abstract
+		// .# Preface
+		if p.isSpecialHeader(data) {
+			data = data[p.specialHeader(out, data):]
+			continue
+		}
+
 		// block of preformatted HTML:
 		//
 		// <div>
@@ -133,19 +142,10 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			continue
 		}
 
-		// Abstract quote:
-		//
-		// A> This is an abstract
-		// A> I found on the web
-		if p.abstractPrefix(data) > 0 {
-			data = data[p.abstract(out, data):]
-			continue
-		}
-
 		// Aside quote:
 		//
-		// AS> This is an aside
-		// AS> I found on the web
+		// A> This is an aside
+		// A> I found on the web
 		if p.asidePrefix(data) > 0 {
 			data = data[p.aside(out, data):]
 			continue
@@ -475,6 +475,124 @@ func (p *parser) isPartHeader(data []byte) bool {
 		}
 	}
 	return true
+}
+
+func (p *parser) isSpecialHeader(data []byte) bool {
+	k := 0
+	for k < len(data) && data[k] == ' ' {
+		k++
+	}
+	if k == len(data) || k > 3 {
+		return false
+	}
+	data = data[k:]
+	if len(data) < 3 {
+		return false
+	}
+
+	if data[0] != '.' || data[1] != '#' {
+		return false
+	}
+
+	if p.flags&EXTENSION_SPACE_HEADERS != 0 {
+		if !iswhitespace(data[2]) {
+			return false
+		}
+	}
+	return true
+}
+
+func (p *parser) specialHeader(out *bytes.Buffer, data []byte) int {
+	k := 0
+	for k < len(data) && data[k] == ' ' {
+		k++
+	}
+	if k == len(data) || k > 3 {
+		return 0
+	}
+	data = data[k:]
+	if len(data) < 3 {
+		return 0
+	}
+
+	if data[0] != '.' || data[1] != '#' {
+		return 0
+	}
+
+	i, end := 0, 0
+	for i = 2; iswhitespace(data[i]); i++ {
+	}
+	for end = i; data[end] != '\n'; end++ {
+	}
+	skip := end
+	id := ""
+
+	if p.flags&EXTENSION_HEADER_IDS != 0 {
+		j, k := 0, 0
+		// find start/end of header id
+		for j = i; j < end-1 && (data[j] != '{' || data[j+1] != '#'); j++ {
+		}
+		for k = j + 1; k < end && data[k] != '}'; k++ {
+		}
+		// extract header id iff found
+		if j < end && k < end {
+			id = string(data[j+2 : k])
+			end = j
+			skip = k + 1
+			for end > 0 && data[end-1] == ' ' {
+				end--
+			}
+		}
+	}
+	// CommonMark spaces *after* the header
+	for end > 0 && data[end-1] == ' ' {
+		end--
+	}
+	// Remove this, not true for this header
+	for end > 0 && data[end-1] == '#' {
+		// CommonMark: a # directly following the header name is allowed and we
+		// should keep it
+		if end > 1 && data[end-2] != '#' && !iswhitespace(data[end-2]) {
+			end++
+			break
+		}
+		end--
+	}
+	for end > 0 && iswhitespace(data[end-1]) {
+		end--
+	}
+	if end > i {
+		if id == "" && p.flags&EXTENSION_AUTO_HEADER_IDS != 0 {
+			id = createSanitizedAnchorName(string(data[i:end]))
+		}
+		work := func() bool {
+			p.inline(out, data[i:end])
+			return true
+		}
+		if id != "" {
+			if v, ok := p.anchors[id]; ok && p.flags&EXTENSION_UNIQUE_HEADER_IDS != 0 {
+				p.anchors[id]++
+				// anchor found
+				id += "-" + strconv.Itoa(v)
+			} else {
+				p.anchors[id] = 1
+			}
+		}
+
+		p.r.SetInlineAttr(p.ial)
+		p.ial = nil
+
+		name := bytes.ToLower(data[i:end])
+		switch {
+		case bytes.Compare(name, []byte("abstract")) == 0:
+			p.r.Abstract(out, work, id)
+		//case bytes.Compare(name, []byte("preface")) == 0:
+		default:
+			return 0
+
+		}
+	}
+	return skip + k
 }
 
 func (p *parser) partHeader(out *bytes.Buffer, data []byte) int {
@@ -2112,7 +2230,6 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 				p.quotePrefix(current) != 0 ||
 				p.notePrefix(current) != 0 ||
 				p.asidePrefix(current) != 0 ||
-				p.abstractPrefix(current) != 0 ||
 				p.exercisePrefix(current) != 0 ||
 				p.answerPrefix(current) != 0 ||
 				p.codePrefix(current) != 0 {

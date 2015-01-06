@@ -162,6 +162,10 @@ func (options *Html) TitleBlockTOML(out *bytes.Buffer, data *title) {}
 
 func (options *Html) Part(out *bytes.Buffer, text func() bool, id string) {}
 
+func (options *Html) Abstract(out *bytes.Buffer, text func() bool, id string) {
+	// Create header with abstract
+}
+
 func (options *Html) Header(out *bytes.Buffer, text func() bool, level int, id string) {
 	marker := out.Len()
 	doubleSpace(out)
@@ -247,13 +251,6 @@ func (options *Html) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 }
 
 func (options *Html) BlockQuote(out *bytes.Buffer, text []byte, attribution []byte) {
-	doubleSpace(out)
-	out.WriteString("<blockquote>\n")
-	out.Write(text)
-	out.WriteString("</blockquote>\n")
-}
-
-func (options *Html) Abstract(out *bytes.Buffer, text []byte) {
 	doubleSpace(out)
 	out.WriteString("<blockquote>\n")
 	out.Write(text)
