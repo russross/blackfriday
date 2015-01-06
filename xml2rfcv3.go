@@ -251,7 +251,7 @@ func (options *Xml) Abstract(out *bytes.Buffer, text func() bool, id string) {
 
 	out.WriteString("\n<abstract" + ial.String())
 	out.WriteByte('\n')
-	options.sectionLevel = 1
+	options.sectionLevel = 0
 	options.specialSection = ABSTRACT
 	return
 }
@@ -624,13 +624,20 @@ func (options *Xml) DocumentHeader(out *bytes.Buffer, first bool) {
 }
 
 func (options *Xml) DocumentFooter(out *bytes.Buffer, first bool) {
-	if !first || options.flags&XML_STANDALONE == 0 {
+	if !first {
 		return
+	}
+	switch options.specialSection {
+	case ABSTRACT:
+		out.WriteString("</abstract>\n\n")
 	}
 	// close any option section tags
 	for i := options.sectionLevel; i > 0; i-- {
 		out.WriteString("</section>\n")
 		options.sectionLevel--
+	}
+	if options.flags&XML_STANDALONE == 0 {
+		return
 	}
 	switch options.docLevel {
 	case DOC_FRONT_MATTER:

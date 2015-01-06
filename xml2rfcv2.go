@@ -590,13 +590,20 @@ func (options *Xml2) DocumentHeader(out *bytes.Buffer, first bool) {
 }
 
 func (options *Xml2) DocumentFooter(out *bytes.Buffer, first bool) {
-	if !first || options.flags&XML2_STANDALONE == 0 {
+	if !first {
 		return
+	}
+	switch options.specialSection {
+	case ABSTRACT:
+		out.WriteString("</abstract>\n\n")
 	}
 	// close any option section tags
 	for i := options.sectionLevel; i > 0; i-- {
 		out.WriteString("</section>\n")
 		options.sectionLevel--
+	}
+	if options.flags&XML2_STANDALONE == 0 {
+		return
 	}
 	switch options.docLevel {
 	case DOC_FRONT_MATTER:
