@@ -21,11 +21,11 @@ const (
 //
 // Do not create this directly, instead use the Xml2Renderer function.
 type Xml2 struct {
-	flags        int  // XML2_* options
-	sectionLevel int  // current section level
-	docLevel     int  // frontmatter/mainmatter or backmatter
-	part         bool // parts cannot nest, if true a part has been opened
-	specialSection int //
+	flags          int  // XML2_* options
+	sectionLevel   int  // current section level
+	docLevel       int  // frontmatter/mainmatter or backmatter
+	part           bool // parts cannot nest, if true a part has been opened
+	specialSection int  //
 
 	// store the IAL we see for this block element
 	ial *InlineAttr
@@ -145,13 +145,6 @@ func (options *Xml2) BlockQuote(out *bytes.Buffer, text []byte, attribution []by
 	out.WriteString("</list></t>\n")
 }
 
-func (options *Xml2) Abstract(out *bytes.Buffer, text []byte) {
-	s := options.InlineAttr().String()
-	out.WriteString("<abstract" + s + ">\n")
-	out.Write(text)
-	out.WriteString("</abstract>\n")
-}
-
 func (options *Xml2) Aside(out *bytes.Buffer, text []byte) {
 	options.BlockQuote(out, text, nil)
 }
@@ -210,6 +203,7 @@ func (options *Xml2) BlockHtml(out *bytes.Buffer, text []byte) {
 func (options *Xml2) Part(out *bytes.Buffer, text func() bool, id string) {}
 
 func (options *Xml2) Abstract(out *bytes.Buffer, text func() bool, id string) {
+	level := 1
 	if level <= options.sectionLevel {
 		// close previous ones
 		for i := options.sectionLevel - level + 1; i > 0; i-- {
@@ -220,18 +214,20 @@ func (options *Xml2) Abstract(out *bytes.Buffer, text func() bool, id string) {
 	ial := options.InlineAttr()
 	ial.GetOrDefaultId(id)
 
-	out.WriteString("\n<abstract" + ial.String())
-	//out.WriteString(" title=\"")
-	//text()
-	out.WriteByte('\n')
-	options.sectionLevel = 1 // 1?
-	option.specialSection = ABSTRACT
+	out.WriteString("\n<abstract" + ial.String() + "/>\n")
+	options.sectionLevel = 0
+	options.specialSection = ABSTRACT
 	return
 }
 
 func (options *Xml2) Header(out *bytes.Buffer, text func() bool, level int, id string) {
 	//marker := out.Len()
 	//out.Truncate(marker)
+	switch options.specialSection {
+	case ABSTRACT:
+		out.WriteString("</abstract>\n\n")
+	}
+
 	if level <= options.sectionLevel {
 		// close previous ones
 		for i := options.sectionLevel - level + 1; i > 0; i-- {

@@ -177,7 +177,7 @@ type Renderer interface {
 	BlockQuote(out *bytes.Buffer, text []byte, attribution []byte)
 	BlockHtml(out *bytes.Buffer, text []byte)
 	CommentHtml(out *bytes.Buffer, text []byte)
-	Abstract(out *bytes.Buffer, text func() bool, id []byte)
+	Abstract(out *bytes.Buffer, text func() bool, id string)
 	Part(out *bytes.Buffer, text func() bool, id string)
 	Header(out *bytes.Buffer, text func() bool, level int, id string)
 	HRule(out *bytes.Buffer)

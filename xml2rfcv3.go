@@ -32,10 +32,11 @@ var words2119 = map[string]bool{
 //
 // Do not create this directly, instead use the XmlRenderer function.
 type Xml struct {
-	flags        int  // XML_* options
-	sectionLevel int  // current section level
-	docLevel     int  // frontmatter/mainmatter or backmatter
-	part         bool // parts cannot nest, if true a part has been opened
+	flags          int  // XML_* options
+	sectionLevel   int  // current section level
+	docLevel       int  // frontmatter/mainmatter or backmatter
+	part           bool // parts cannot nest, if true a part has been opened
+	specialSection int
 
 	// Store the IAL we see for this block element
 	ial *InlineAttr
@@ -165,13 +166,6 @@ func (options *Xml) BlockQuote(out *bytes.Buffer, text []byte, attribution []byt
 	out.WriteString("</blockquote>\n")
 }
 
-func (options *Xml) Abstract(out *bytes.Buffer, text []byte) {
-	s := options.InlineAttr().String()
-	out.WriteString("<abstract" + s + ">\n")
-	out.Write(text)
-	out.WriteString("</abstract>\n")
-}
-
 func (options *Xml) Aside(out *bytes.Buffer, text []byte) {
 	s := options.InlineAttr().String()
 	out.WriteString("<aside" + s + ">\n")
@@ -242,6 +236,25 @@ func (options *Xml) BlockHtml(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Xml) Part(out *bytes.Buffer, text func() bool, id string) {}
+
+func (options *Xml) Abstract(out *bytes.Buffer, text func() bool, id string) {
+	level := 1
+	if level <= options.sectionLevel {
+		// close previous ones
+		for i := options.sectionLevel - level + 1; i > 0; i-- {
+			out.WriteString("</section>\n")
+		}
+	}
+
+	ial := options.InlineAttr()
+	ial.GetOrDefaultId(id)
+
+	out.WriteString("\n<abstract" + ial.String())
+	out.WriteByte('\n')
+	options.sectionLevel = 1
+	options.specialSection = ABSTRACT
+	return
+}
 
 func (options *Xml) Header(out *bytes.Buffer, text func() bool, level int, id string) {
 	// set amount of open in options, so we know what to close after we finish
