@@ -180,20 +180,6 @@ func (options *Xml) Note(out *bytes.Buffer, text []byte) {
 	out.WriteString("</note>\n")
 }
 
-func (options *Xml) Exercise(out *bytes.Buffer, text []byte) {
-	s := options.InlineAttr().String()
-	out.WriteString("<note" + s + ">\n")
-	out.Write(text)
-	out.WriteString("</note>\n")
-}
-
-func (options *Xml) Answer(out *bytes.Buffer, text []byte) {
-	s := options.InlineAttr().String()
-	out.WriteString("<note" + s + ">\n")
-	out.Write(text)
-	out.WriteString("</note>\n")
-}
-
 func (options *Xml) CommentHtml(out *bytes.Buffer, text []byte) {
 	// nothing fancy any left of the first `:` will be used as the source="..."
 	// if the syntax is different, don't output anything.

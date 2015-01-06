@@ -194,8 +194,6 @@ type Renderer interface {
 	TitleBlockTOML(out *bytes.Buffer, data *title)
 	Aside(out *bytes.Buffer, text []byte)
 	Note(out *bytes.Buffer, text []byte)
-	Exercise(out *bytes.Buffer, text []byte)
-	Answer(out *bytes.Buffer, text []byte)
 
 	// Span-level callbacks
 	AutoLink(out *bytes.Buffer, link []byte, kind int)
