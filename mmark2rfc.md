@@ -55,7 +55,7 @@ the CommonMark test suite is used when developing mmark. Currently mmark passes 
 
 Using Figure 1 from [@!RFC7328], mmark can be positioned as follows:
 
-{#fig:mmark}
+{#fig:mmark align=left}
 
      +-------------------+   pandoc   +---------+
      | ALMOST PLAIN TEXT |   ------>  | DOCBOOK |

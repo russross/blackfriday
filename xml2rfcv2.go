@@ -61,9 +61,8 @@ func (options *Xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 	ial := options.InlineAttr()
 	ial.GetOrDefaultAttr("align", "center")
 	s := ial.String()
-	// Need a get a specific attribute, because artwork needs align as well.
 
-	out.WriteString("\n<figure" + s + "><artwork>\n")
+	out.WriteString("\n<figure" + s + "><artwork" + ial.Key("align") + ">\n")
 	writeEntity(out, text)
 	out.WriteString("</artwork></figure>\n")
 }

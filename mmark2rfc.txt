@@ -244,11 +244,11 @@ Internet-Draft                  mmark2rfc                  December 2014
    Referencing these elements (and thus creating an document "id" for
    them), is done with an IAL (Section 10:
 
-   {#identifier}
-   Name    | Age
-   --------|-----:
-   Bob     | 27
-   Alice   | 23
+                              {#identifier}
+                              Name    | Age
+                              --------|-----:
+                              Bob     | 27
+                              Alice   | 23
 
    An empty line between the IAL and the table or indented code block is
    allowed.
@@ -262,7 +262,7 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    After a quote (a paragraph prefixed with ">") you can add a caption:
 
-   Quote: Name -- URI for attribution
+                    Quote: Name -- URI for attribution
 
    In v3 this is used in the block quote attributes, for v2 it is
    discarded.  If you need the string 'Quote:"after an quote, escape the
@@ -287,22 +287,22 @@ Internet-Draft                  mmark2rfc                  December 2014
    Tables can be created by drawing them in the input using a simple
    syntax:
 
-   Name    | Age
-   --------|-----:
-   Bob     | 27
-   Alice   | 23
+                              Name    | Age
+                              --------|-----:
+                              Bob     | 27
+                              Alice   | 23
 
    Tables can also have a footer: use equal signs instead of dashes for
    the separator, to start a table footer.  If there are multiple footer
    lines, the first one is used as a starting point for the table
    footer.
 
-   Name    | Age
-   --------|-----:
-   Bob     | 27
-   Alice   | 23
-   ======= | ====
-   Charlie | 4
+                              Name    | Age
+                              --------|-----:
+                              Bob     | 27
+                              Alice   | 23
+                              ======= | ====
+                              Charlie | 4
 
    If a table is started with a _block table header_, which starts with
    a pipe or plus sign and a minimum of three dashes, it is a *Block
@@ -310,18 +310,18 @@ Internet-Draft                  mmark2rfc                  December 2014
    cell.  If we want to start a new cell use the block table header
    syntax.  In the example below we include a list in one of the cells.
 
-   |-----------------+------------+-----------------|
-   | Default aligned |Left aligned| Center aligned  |
-   |-----------------|:-----------|:---------------:|
-   | Bob             |Second cell | Third cell      |
-   | Alice           |foo         | **strong**      |
-   | Charlie         |quux        | baz             |
-   |-----------------+------------+-----------------|
-   | Bob             | foot       | 1. Item2        |
-   | Alice           | quuz       | 2. Item2        |
-   |=================+============+=================|
-   | Footer row      | more footer| and more        |
-   |-----------------+------------+-----------------|
+            |-----------------+------------+-----------------|
+            | Default aligned |Left aligned| Center aligned  |
+            |-----------------|:-----------|:---------------:|
+            | Bob             |Second cell | Third cell      |
+            | Alice           |foo         | **strong**      |
+            | Charlie         |quux        | baz             |
+            |-----------------+------------+-----------------|
+            | Bob             | foot       | 1. Item2        |
+            | Alice           | quuz       | 2. Item2        |
+            |=================+============+=================|
+            | Footer row      | more footer| and more        |
+            |-----------------+------------+-----------------|
 
    Note that the header and footer can't contain block level elements.
 
@@ -338,8 +338,8 @@ Gieben                    Expires June 13, 2015                 [Page 6]
 Internet-Draft                  mmark2rfc                  December 2014
 
 
-   {#quote:ref1}
-   > A block quote
+                              {#quote:ref1}
+                              > A block quote
 
    You can specify classes with ".class" (although these are not used
    when converting to XML2RFC), and arbitrary key value pairs where each
@@ -354,16 +354,16 @@ Internet-Draft                  mmark2rfc                  December 2014
    numbers and letter you *MUST* use two spaces after the dot or the
    brace (the underscore signals a space here):
 
-   a)__
-   II.__
-   A)__
+                                   a)__
+                                   II.__
+                                   A)__
 
    Note that mmark (just as [pandoc]) pays attention to the starting
    number of a list (when using decimal numbers), thus a list started
    with:
 
-   4) Item4
-   5) Item5
+                                 4) Item4
+                                 5) Item5
 
    Will use for "4" as the starting number.
 
@@ -420,14 +420,14 @@ Internet-Draft                  mmark2rfc                  December 2014
    deleted from the source before inclusion, making it easy to write
    things like
 
-   <{{test.go}}[/START OMIT/,/END OMIT/}
+                   <{{test.go}}[/START OMIT/,/END OMIT/}
 
    So you can include snippets like this:
 
-   tedious_code = boring_function()
-   // START OMIT
-   interesting_code = fascinating_function()
-   // END OMIT
+                 tedious_code = boring_function()
+                 // START OMIT
+                 interesting_code = fascinating_function()
+                 // END OMIT
 
 13.  XML2RFC V3 features
 
@@ -477,10 +477,10 @@ Internet-Draft                  mmark2rfc                  December 2014
    markdown PHP extra and converts that into proper mmark: (mmark is
    more like markdown PHP extra, than like pandoc).
 
-   for i in middle.mkd back.mkd; do \
-       pandoc --atx-headers -t markdown_phpextra < $i |
-       ./parts.pl
-   done
+           for i in middle.mkd back.mkd; do \
+               pandoc --atx-headers -t markdown_phpextra < $i |
+               ./parts.pl
+           done
 
    Note this:
 
@@ -524,8 +524,8 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    Prefix a paragraph with "X>" for an exercise and "XA>" for an answer:
 
-   X> What is 5+5?
-   XA> 10
+                              X> What is 5+5?
+                              XA> 10
 
 16.  Acknowledgements
 
