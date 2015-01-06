@@ -61,8 +61,10 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// .# Abstract
 		// .# Preface
 		if p.isSpecialHeader(data) {
-			data = data[p.specialHeader(out, data):]
-			continue
+			if i := p.specialHeader(out, data); i > 0 {
+				data = data[i:]
+				continue
+			}
 		}
 
 		// block of preformatted HTML:
@@ -569,22 +571,22 @@ func (p *parser) specialHeader(out *bytes.Buffer, data []byte) int {
 			p.inline(out, data[i:end])
 			return true
 		}
-		if id != "" {
-			if v, ok := p.anchors[id]; ok && p.flags&EXTENSION_UNIQUE_HEADER_IDS != 0 {
-				p.anchors[id]++
-				// anchor found
-				id += "-" + strconv.Itoa(v)
-			} else {
-				p.anchors[id] = 1
-			}
-		}
-
 		p.r.SetInlineAttr(p.ial)
 		p.ial = nil
 
 		name := bytes.ToLower(data[i:end])
 		switch {
 		case bytes.Compare(name, []byte("abstract")) == 0:
+			if id != "" {
+				if v, ok := p.anchors[id]; ok && p.flags&EXTENSION_UNIQUE_HEADER_IDS != 0 {
+					p.anchors[id]++
+					// anchor found
+					id += "-" + strconv.Itoa(v)
+				} else {
+					p.anchors[id] = 1
+				}
+			}
+
 			p.r.Abstract(out, work, id)
 		//case bytes.Compare(name, []byte("preface")) == 0:
 		default:
