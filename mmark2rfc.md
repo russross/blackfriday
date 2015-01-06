@@ -342,13 +342,7 @@ AS> there isn't renderer that can output markdown syntax.
 
 For now the mmark parser will not get any features that makes it backwards compatible with pandoc2rfc.
 
-# Extra features
-
-These feature are not directly useful when writing an I-D, but they are part of mmark nonetheless.
-
 # Acknowledgements
-
-This documents has been modeled after the excellent [kramdown syntax page](http://kramdown.gettalong.org/syntax.html).
 
 <!-- reference we need to include -->
 
