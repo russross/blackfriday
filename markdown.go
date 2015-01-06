@@ -19,27 +19,28 @@ const VERSION = "1.0"
 // OR these values together to select multiple extensions.
 const (
 	_                                    = 1 << iota
-	EXTENSION_ABBREVIATIONS                          // render abbreviations `*[HTML]: Hyper Text Markup Language`
-	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text
-	EXTENSION_AUTOLINK                               // detect embedded URLs that are not explicitly marked
-	EXTENSION_CITATION                               // Support citations via the link syntax
-	EXTENSION_EXAMPLE_LISTS                          // render '(@tag)  ' example lists
-	EXTENSION_FENCED_CODE                            // render fenced code blocks
-	EXTENSION_FOOTNOTES                              // Pandoc-style footnotes
-	EXTENSION_HARD_LINE_BREAK                        // translate newlines into line breaks
-	EXTENSION_HEADER_IDS                             // specify header IDs with {#id}
-	EXTENSION_INCLUDE                                // Include file with {{ syntax
-	EXTENSION_INLINE_ATTR                            // detect CommonMark's IAL syntax (copied from kramdown)
-	EXTENSION_LAX_HTML_BLOCKS                        // loosen up HTML block parsing rules
-	EXTENSION_MATTER                                 // use {frontmatter} {mainmatter} {backmatter}
-	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK             // No need to insert an empty line to start a (code, quote, order list, unorder list)block
-	EXTENSION_PARTS					 // detect part headers (-#) (from leanpub)
-	EXTENSION_QUOTES                                 // Allow A> AS> and N> to be parsed as abstract, asides and notes
-	EXTENSION_SHORT_REF                              // (#id) will be a cross reference.
-	EXTENSION_SPACE_HEADERS                          // be strict about prefix header rules
-	EXTENSION_TABLES                                 // render tables
-	EXTENSION_TITLEBLOCK_TOML                        // Titleblock in TOML
-	EXTENSION_UNIQUE_HEADER_IDS                      // When detecting identical anchors add a sequence number -1, -2 etc.
+	EXTENSION_ABBREVIATIONS              // render abbreviations `*[HTML]: Hyper Text Markup Language`
+	EXTENSION_AUTO_HEADER_IDS            // Create the header ID from the text
+	EXTENSION_AUTOLINK                   // detect embedded URLs that are not explicitly marked
+	EXTENSION_CITATION                   // Support citations via the link syntax
+	EXTENSION_EXAMPLE_LISTS              // render '(@tag)  ' example lists
+	EXTENSION_FENCED_CODE                // render fenced code blocks
+	EXTENSION_FOOTNOTES                  // Pandoc-style footnotes
+	EXTENSION_HARD_LINE_BREAK            // translate newlines into line breaks
+	EXTENSION_HEADER_IDS                 // specify header IDs with {#id}
+	EXTENSION_INCLUDE                    // Include file with {{ syntax
+	EXTENSION_INLINE_ATTR                // detect CommonMark's IAL syntax (copied from kramdown)
+	EXTENSION_LAX_HTML_BLOCKS            // loosen up HTML block parsing rules
+	EXTENSION_MATH                       // detect $$...$$ and parse as math
+	EXTENSION_MATTER                     // use {frontmatter} {mainmatter} {backmatter}
+	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK // No need to insert an empty line to start a (code, quote, order list, unorder list)block
+	EXTENSION_PARTS                      // detect part headers (-#) (from leanpub)
+	EXTENSION_QUOTES                     // Allow A> AS> and N> to be parsed as abstract, asides and notes
+	EXTENSION_SHORT_REF                  // (#id) will be a cross reference.
+	EXTENSION_SPACE_HEADERS              // be strict about prefix header rules
+	EXTENSION_TABLES                     // render tables
+	EXTENSION_TITLEBLOCK_TOML            // Titleblock in TOML
+	EXTENSION_UNIQUE_HEADER_IDS          // When detecting identical anchors add a sequence number -1, -2 etc.
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML
@@ -299,6 +300,7 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	p.inlineCallback['{'] = leftBrace
 	p.inlineCallback['^'] = superscript // subscript is handled in emphasis
 	p.inlineCallback['('] = index       // also find example list references and cross references
+	p.inlineCallback['$'] = math
 
 	if extensions&EXTENSION_AUTOLINK != 0 {
 		p.inlineCallback[':'] = autoLink

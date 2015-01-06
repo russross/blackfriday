@@ -1503,3 +1503,32 @@ func citationReference(p *parser, out *bytes.Buffer, data []byte, offset int) in
 	}
 	return 0
 }
+
+func math(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+	if len(data[offset:]) < 5 {
+		return 0
+	}
+	i := offset + 1
+	if data[i] != '$' {
+		return 0
+	}
+	// if this is a standalone paragraph this is display math
+//	display := true
+
+	// find end delimiter
+	end, j := i+1, 0
+	for ; end < len(data) && j < 2; end++ {
+		if data[end] == '$' {
+			j++
+		} else {
+			j = 0
+		}
+	}
+
+	// no matching delimiter?
+	if j < 2 && end >= len(data) {
+		return 0
+	}
+	println("MATH", string(data[i+1:end-2]), display)
+	return end
+}
