@@ -18,14 +18,16 @@
 %   [author.address.postal]
 %   street = "Buckingham Palace Road"
 
-A> This document describes an markdown variant called mmark [@?mmark] that can
-A> be used to create RFC documents. The aim of mmark is to make writing document
-A> as natural as possible, while providing a lot of power on how to structure and layout
-A> the document.
-A>
-A> The
-A> [source of this document](https://raw.githubusercontent.com/miekg/mmark/master/mmark2rfc.md)
-A> provides a good example.
+.# Abstract
+
+This document describes an markdown variant called mmark [@?mmark] that can
+be used to create RFC documents. The aim of mmark is to make writing document
+as natural as possible, while providing a lot of power on how to structure and layout
+the document.
+
+The
+[source of this document](https://raw.githubusercontent.com/miekg/mmark/master/mmark2rfc.md)
+provides a good example.
 
 {mainmatter}
 
