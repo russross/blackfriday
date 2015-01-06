@@ -115,7 +115,7 @@ but is normally not needed because the TOML header ([](#toml-header)) starts tha
 # Abstract
 
 An abstract is defined by using the special header syntax `.#`. The name of the section, when lowercased,
-must be "abstract". 
+must be "abstract".
 In the future mmark might also support Preface and Colophon (special) sections.
 
 # Captions
@@ -237,7 +237,7 @@ Will use for `4` as the starting number.
 
 ## Unordered Lists
 
-Unordered lists can be started with `*`, `+` or `-` and follow the normal markdown syntax rules.
+Unordered lists can be started with `*`, `+` or `-` and follow the normal markdown syntax rules. <!-- *-->
 
 ## Definition Lists
 

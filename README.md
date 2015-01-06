@@ -277,17 +277,18 @@ implements the following extensions:
 
 # Todo
 
+*   HTML renderer is lagging behind the other renderers.
+*   make webservers that converts for you
 *   fenced code blocks -> source code with language etc.
 *   indentend code blocks -> artwork
 *   images -> artwork, use title for caption
     if caption is given, wrap in figure -> otherwise not.
 *   Extension to recognize pandoc2rfc indices?
-*   HTML renderer is lagging behind the other renderers.
-*   make webservers that converts for you
 *   cleanups - and loose a bunch of extensions, turn them on per default
     reduce API footprint (hide constants mainly)
 *   Math support? `$$` from pandoc? kramdown does this as well, but detects display
     is used as a paragraph, otherwise normal formula.
+*   Introduce setext header as special header, something ala .====== ?
 
 
 # License
