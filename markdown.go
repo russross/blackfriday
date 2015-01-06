@@ -207,6 +207,7 @@ type Renderer interface {
 	Citation(out *bytes.Buffer, link, title []byte)
 	Abbreviation(out *bytes.Buffer, abbr, title []byte)
 	Example(out *bytes.Buffer, index int)
+	Math(out *bytes.Buffer, text []byte, display bool)
 
 	// Low-level callbacks
 	Entity(out *bytes.Buffer, entity []byte)
@@ -246,6 +247,7 @@ type parser struct {
 	insideLink           bool
 	insideDefinitionList bool // when in def. list ... TODO(miek):doc
 	insideList           int  // list in list counter
+	displayMath          bool
 
 	// Footnotes need to be ordered as well as available to quickly check for
 	// presence. If a ref is also a footnote, it's stored both in refs and here

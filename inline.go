@@ -680,9 +680,6 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			out.Truncate(outSize - 1)
 		}
 
-		p.r.SetInlineAttr(p.ial)
-		p.ial = nil
-
 		p.r.Image(out, uLink, title, content.Bytes())
 
 	case linkInlineFootnote:
@@ -1512,8 +1509,6 @@ func math(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	if data[i] != '$' {
 		return 0
 	}
-	// if this is a standalone paragraph this is display math
-//	display := true
 
 	// find end delimiter
 	end, j := i+1, 0
@@ -1529,6 +1524,10 @@ func math(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	if j < 2 && end >= len(data) {
 		return 0
 	}
-	println("MATH", string(data[i+1:end-2]), display)
+	if p.displayMath {
+		p.r.SetInlineAttr(p.ial)
+		p.ial = nil
+	}
+	p.r.Math(out, data[i+1:end-2], p.displayMath)
 	return end
 }

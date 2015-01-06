@@ -57,6 +57,9 @@ type Html struct {
 	title    string // document title
 	css      string // optional css file url (used with HTML_COMPLETE_PAGE)
 
+	// store the IAL we see for this block element
+	ial *InlineAttr
+
 	parameters HtmlRendererParameters
 
 	// table of contents data
@@ -438,6 +441,19 @@ func (options *Html) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	out.WriteString("</p>\n")
 }
 
+func (options *Html) Math(out *bytes.Buffer, text []byte, display bool) {
+	ial := options.InlineAttr()
+	s := ial.String()
+	if display {
+		out.WriteString("<script " + s + "type=\"math/tex; mode=display\"> ")
+	} else {
+		out.WriteString("<script type=\"math/tex\"> ")
+
+	}
+	out.Write(text)
+	out.WriteString("</script>")
+}
+
 func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	skipRanges := htmlEntity.FindAllIndex(link, -1)
 	if options.flags&HTML_SAFELINK != 0 && !isSafeLink(link) && kind != LINK_TYPE_EMAIL {
@@ -801,8 +817,16 @@ func (options *Html) TocFinalize() {
 	}
 }
 
-func (options *Html) SetInlineAttr(*InlineAttr) {}
-func (options *Html) InlineAttr() *InlineAttr   { return nil }
+func (options *Html) SetInlineAttr(i *InlineAttr) {
+	options.ial = i
+}
+
+func (options *Html) InlineAttr() *InlineAttr {
+	if options.ial == nil {
+		return newInlineAttr()
+	}
+	return options.ial
+}
 
 func isHtmlTag(tag []byte, tagname string) bool {
 	found, _ := findHtmlTagPos(tag, tagname)
