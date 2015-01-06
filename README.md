@@ -269,9 +269,6 @@ implements the following extensions:
     Inside a sub/superscript you must escape spaces.
     Thus, if you want the letter P with 'a cat' in subscripts, use `P~a\ cat~`, not `P~a cat~`.
 
-*  **Exercises and answers**. This comes from leanpub. And exercise is an paragraph prefixed
-    with `X>`. Answers should be typeset as a paragraph prefxed with `XA>`.
-
 *  **Parts**, use the special part header `-#` to start a new part. This follows the header
     syntax, so `-# Part {#part1}` is a valid part header.
 
