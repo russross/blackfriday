@@ -352,6 +352,10 @@ func (options *Xml) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	out.WriteString("</t>\n")
 }
 
+func (options *Xml) Math(out *bytes.Buffer, text []byte, display bool) {
+
+}
+
 func (options *Xml) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
 	s := options.InlineAttr().String()
 	out.WriteString("<table" + s + ">\n")

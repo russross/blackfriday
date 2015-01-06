@@ -2127,7 +2127,21 @@ func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 		p.inline(out, data[beg:end])
 		return
 	}
+	p.displayMath = false
 	work := func() bool {
+		// if we are a single paragraph constisting entirely out of math
+		// we set the displayMath to true
+		k := 0
+		if end-beg > 4 && data[beg] == '$' && data[beg+1] == '$' {
+			for k = beg + 2; k < end-1; k++ {
+				if data[k] == '$' && data[k+1] == '$' {
+					break
+				}
+			}
+			if k+2 == end {
+				p.displayMath = true
+			}
+		}
 		p.inline(out, data[beg:end])
 		return true
 	}

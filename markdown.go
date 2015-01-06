@@ -31,6 +31,7 @@ const (
 	EXTENSION_INCLUDE                    // Include file with {{ syntax
 	EXTENSION_INLINE_ATTR                // detect CommonMark's IAL syntax (copied from kramdown)
 	EXTENSION_LAX_HTML_BLOCKS            // loosen up HTML block parsing rules
+	EXTENSION_MATH                       // detect $$...$$ and parse as math
 	EXTENSION_MATTER                     // use {frontmatter} {mainmatter} {backmatter}
 	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK // No need to insert an empty line to start a (code, quote, order list, unorder list)block
 	EXTENSION_PARTS                      // detect part headers (-#) (from leanpub)
@@ -214,6 +215,7 @@ type Renderer interface {
 	Citation(out *bytes.Buffer, link, title []byte)
 	Abbreviation(out *bytes.Buffer, abbr, title []byte)
 	Example(out *bytes.Buffer, index int)
+	Math(out *bytes.Buffer, text []byte, display bool)
 
 	// Low-level callbacks
 	Entity(out *bytes.Buffer, entity []byte)
@@ -253,6 +255,7 @@ type parser struct {
 	insideLink           bool
 	insideDefinitionList bool // when in def. list ... TODO(miek):doc
 	insideList           int  // list in list counter
+	displayMath          bool
 
 	// Footnotes need to be ordered as well as available to quickly check for
 	// presence. If a ref is also a footnote, it's stored both in refs and here
@@ -307,6 +310,7 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	p.inlineCallback['{'] = leftBrace
 	p.inlineCallback['^'] = superscript // subscript is handled in emphasis
 	p.inlineCallback['('] = index       // also find example list references and cross references
+	p.inlineCallback['$'] = math
 
 	if extensions&EXTENSION_AUTOLINK != 0 {
 		p.inlineCallback[':'] = autoLink

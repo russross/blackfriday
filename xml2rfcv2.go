@@ -355,6 +355,10 @@ func (options *Xml2) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	}
 }
 
+func (options *Xml2) Math(out *bytes.Buffer, text []byte, display bool) {
+
+}
+
 func (options *Xml2) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
 	s := options.InlineAttr().String()
 	out.WriteString("<texttable" + s + ">\n")

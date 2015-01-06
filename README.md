@@ -171,7 +171,7 @@ implements the following extensions:
         <{{test.go}}[/START OMIT/,/END OMIT/]
         Figure: A sample program.
 
-    The address may be omitted: `<<{test.go}}` is legal as well.
+    The address may be omitted: `<{{test.go}}` is legal as well.
 
 *   **Indices**, using `(((item, subitem)))` syntax. To make `item` primary, use
     an `!`: `(((!item, subitem)))`.
@@ -275,6 +275,10 @@ implements the following extensions:
 *  **Parts**, use the special part header `-#` to start a new part. This follows the header
     syntax, so `-# Part {#part1}` is a valid part header.
 
+*  **Math support**, use `$$` as the delimiter. If the math is part of a paragraph it will
+    be displayed inline, if the entire paragraph consists out of math it considered display
+    math. No attempt is made to parse what is between the `$$`.
+
 # Todo
 
 *   fenced code blocks -> source code with language etc.
@@ -286,8 +290,6 @@ implements the following extensions:
 *   make webservers that converts for you
 *   cleanups - and loose a bunch of extensions, turn them on per default
     reduce API footprint (hide constants mainly)
-*   Math support? `$$` from pandoc? kramdown does this as well, but detects display
-    is used as a paragraph, otherwise normal formula.
 
 
 # License
