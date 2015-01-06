@@ -81,7 +81,7 @@ Table of Contents
      11.2.  Unordered Lists  . . . . . . . . . . . . . . . . . . . .   7
      11.3.  Definition Lists . . . . . . . . . . . . . . . . . . . .   7
      11.4.  Example Lists  . . . . . . . . . . . . . . . . . . . . .   7
-   12. Miscellaneous . . . . . . . . . . . . . . . . . . . . . . . .   8
+   12. Miscellaneous Features  . . . . . . . . . . . . . . . . . . .   8
      12.1.  HTML Comment . . . . . . . . . . . . . . . . . . . . . .   8
      12.2.  Including Files  . . . . . . . . . . . . . . . . . . . .   8
      12.3.  Including Code Fragments . . . . . . . . . . . . . . . .   8
@@ -394,7 +394,7 @@ Gieben                    Expires June 13, 2015                 [Page 7]
 Internet-Draft                  mmark2rfc                  December 2014
 
 
-12.  Miscellaneous
+12.  Miscellaneous Features
 
 12.1.  HTML Comment
 

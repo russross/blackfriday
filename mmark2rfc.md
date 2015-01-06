@@ -253,7 +253,7 @@ This is the example list syntax
 to example lists work as well. Note that an example list always needs to have an identifier,
 `(@good)` works, `(@)` does not.
 
-# Miscellaneous
+# Miscellaneous Features
 
 ## HTML Comment
 

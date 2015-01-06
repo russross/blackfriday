@@ -58,18 +58,14 @@ func (options *Xml2) InlineAttr() *InlineAttr {
 
 // render code chunks using verbatim, or listings if we have a language
 func (options *Xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte) {
-	s := options.InlineAttr().String()
-	if lang == "" {
-		out.WriteString("\n<figure" + s + "><artwork>\n")
-	} else {
-		out.WriteString("\n<figure" + s + "><artwork>\n")
-	}
+	ial := options.InlineAttr()
+	ial.GetOrDefaultAttr("align", "center")
+	s := ial.String()
+	// Need a get a specific attribute, because artwork needs align as well.
+
+	out.WriteString("\n<figure" + s + "><artwork>\n")
 	writeEntity(out, text)
-	if lang == "" {
-		out.WriteString("</artwork></figure>\n")
-	} else {
-		out.WriteString("</artwork></figure>\n")
-	}
+	out.WriteString("</artwork></figure>\n")
 }
 
 func (options *Xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
