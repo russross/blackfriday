@@ -194,10 +194,10 @@ func (i *InlineAttr) GetOrDefaultId(id string) bool {
 }
 
 // Return the value of a specific key as a ' key="value"' string. If not found
-// the empty string is returned.
+// an string containing a space is  returned.
 func (i *InlineAttr) Key(key string) string {
 	if v, ok := i.attr[key]; ok {
 		return " " + key + "=\"" + v + "\""
 	}
-	return ""
+	return " "
 }
