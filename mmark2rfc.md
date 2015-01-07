@@ -55,7 +55,7 @@ the CommonMark test suite is used when developing mmark. Currently mmark passes 
 
 Using Figure 1 from [@!RFC7328], mmark can be positioned as follows:
 
-{#fig:mmark}
+{#fig:mmark align=left}
 
      +-------------------+   pandoc   +---------+
      | ALMOST PLAIN TEXT |   ------>  | DOCBOOK |
@@ -115,7 +115,7 @@ but is normally not needed because the TOML header ([](#toml-header)) starts tha
 # Abstract
 
 An abstract is defined by using the special header syntax `.#`. The name of the section, when lowercased,
-must be "abstract". 
+must be "abstract".
 In the future mmark might also support Preface and Colophon (special) sections.
 
 # Captions
@@ -237,7 +237,7 @@ Will use for `4` as the starting number.
 
 ## Unordered Lists
 
-Unordered lists can be started with `*`, `+` or `-` and follow the normal markdown syntax rules.
+Unordered lists can be started with `*`, `+` or `-` and follow the normal markdown syntax rules. <!-- *-->
 
 ## Definition Lists
 
@@ -253,7 +253,7 @@ This is the example list syntax
 to example lists work as well. Note that an example list always needs to have an identifier,
 `(@good)` works, `(@)` does not.
 
-# Miscellaneous
+# Miscellaneous Features
 
 ## HTML Comment
 
@@ -406,6 +406,14 @@ For now the mmark parser will not get any features that makes it backwards compa
 *   Mmark cannot parse @RFC728 markdown.
 *   Multiple terms and definitions are not supported in definition lists.
 *   Mmark only passes about 60% of the tests of CommonMark.
+
+# Changes
+
+## 01
+
+* Abstract are designated using a special header `.# Abstract`
+* Removed exercises and answers, this needs a better syntax.
+* Add math `$$`.
 
 [kramdown]: http://http://kramdown.gettalong.org/
 [leanpub]: https://leanpub.com/help/manual

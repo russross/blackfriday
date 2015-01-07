@@ -229,6 +229,14 @@ implements the following extensions:
 
 *  **IAL**, kramdown's Inline Attribute List syntax, but took the CommonMark
     proposal, thus without the colon after the brace `{#id .class key=value key="value"}`.
+    IALs are used for the following (block) elements:
+    * ...
+    * Table
+    * Code Block
+    * List (any type)
+    * Section Headers
+    * Image
+    * Quote
 
 *  **Definitition lists**, the markdown extra syntax.
 
@@ -278,16 +286,18 @@ implements the following extensions:
 
 # Todo
 
+*   Renderers
+    * HTML renderer is lagging behind the other renderers.
+    * Add LaTeX output
+    * Add plain text output renderer
 *   fenced code blocks -> source code with language etc.
 *   indentend code blocks -> artwork
 *   images -> artwork, use title for caption
-    if caption is given, wrap in figure -> otherwise not.
+    Always wrap in figure
 *   Extension to recognize pandoc2rfc indices?
-*   HTML renderer is lagging behind the other renderers.
-*   make webservers that converts for you
 *   cleanups - and loose a bunch of extensions, turn them on per default
     reduce API footprint (hide constants mainly)
-
+*   Introduce setext header as special header, something ala .====== ?
 
 # License
 
