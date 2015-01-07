@@ -407,6 +407,14 @@ For now the mmark parser will not get any features that makes it backwards compa
 *   Multiple terms and definitions are not supported in definition lists.
 *   Mmark only passes about 60% of the tests of CommonMark.
 
+# Changes
+
+## 01
+
+* Abstract are designated using a special header `.# Abstract`
+* Removed exercises and answers, this needs a better syntax.
+* Add math `$$`.
+
 [kramdown]: http://http://kramdown.gettalong.org/
 [leanpub]: https://leanpub.com/help/manual
 [asciidoc]: http://www.methods.co.nz/asciidoc/
