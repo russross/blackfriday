@@ -278,12 +278,14 @@ implements the following extensions:
 
 # Todo
 
-*   HTML renderer is lagging behind the other renderers.
-*   make webservers that converts for you
+*   Renderers
+    * HTML renderer is lagging behind the other renderers.
+    * Add LaTeX output
+    * Add plain text output renderer
 *   fenced code blocks -> source code with language etc.
 *   indentend code blocks -> artwork
 *   images -> artwork, use title for caption
-    if caption is given, wrap in figure -> otherwise not.
+    Always wrap in figure
 *   Extension to recognize pandoc2rfc indices?
 *   cleanups - and loose a bunch of extensions, turn them on per default
     reduce API footprint (hide constants mainly)
