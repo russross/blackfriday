@@ -146,7 +146,8 @@ implements the following extensions:
     default in the `MarkdownBasic` and `MarkdownCommon` convenience
     functions), newlines in the input translate into line breaks in
     the output. This is activate by using two trailing spaces before
-    a new line. XXX(miek): this will probably be deleted.
+    a new line. Another way to get a hard line break is to escape
+    the newline with a `\`.
 
 *   **Includes**, support including files with `{{filename}}` syntax.
 
