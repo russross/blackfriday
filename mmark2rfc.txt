@@ -63,8 +63,8 @@ Internet-Draft                  mmark2rfc                  December 2014
 
 Table of Contents
 
-   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   3
-   2.  Mmark Syntax  . . . . . . . . . . . . . . . . . . . . . . . .   4
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Mmark Syntax  . . . . . . . . . . . . . . . . . . . . . . . .   3
    3.  TOML header . . . . . . . . . . . . . . . . . . . . . . . . .   4
    4.  Citations . . . . . . . . . . . . . . . . . . . . . . . . . .   4
    5.  Internal References . . . . . . . . . . . . . . . . . . . . .   4
@@ -92,20 +92,20 @@ Table of Contents
      13.4.  Super- and Subscripts  . . . . . . . . . . . . . . . . .   9
      13.5.  Images . . . . . . . . . . . . . . . . . . . . . . . . .   9
    14. Converting from RFC 7328 Syntax . . . . . . . . . . . . . . .   9
-   15. Extra features  . . . . . . . . . . . . . . . . . . . . . . .  10
-     15.1.  Exercises and Answers  . . . . . . . . . . . . . . . . .  10
-   16. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  10
-   17. References  . . . . . . . . . . . . . . . . . . . . . . . . .  10
-     17.1.  Informative References . . . . . . . . . . . . . . . . .  10
-     17.2.  Normative References . . . . . . . . . . . . . . . . . .  10
-     17.3.  URIs . . . . . . . . . . . . . . . . . . . . . . . . . .  11
+   15. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  10
+   16. References  . . . . . . . . . . . . . . . . . . . . . . . . .  10
+     16.1.  Informative References . . . . . . . . . . . . . . . . .  10
+     16.2.  Normative References . . . . . . . . . . . . . . . . . .  10
+     16.3.  URIs . . . . . . . . . . . . . . . . . . . . . . . . . .  10
    Appendix A.  Bugs . . . . . . . . . . . . . . . . . . . . . . . .  11
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  12
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  11
 
+1.  Introduction
 
-
-
-
+   Mmark [mmark] is a markdown processor.  It supports the markdown
+   syntax and has been extended with (syntax) features found in other
+   markdown implementations like kramdown [2], PHP markdown extra [3],
+   [pandoc], leanpub [4] and even asciidoc [5].  This allows mmark to be
 
 
 
@@ -114,12 +114,6 @@ Gieben                    Expires June 13, 2015                 [Page 2]
 Internet-Draft                  mmark2rfc                  December 2014
 
 
-1.  Introduction
-
-   Mmark [mmark] is a markdown processor.  It supports the markdown
-   syntax and has been extended with (syntax) features found in other
-   markdown implementations like kramdown [2], PHP markdown extra [3],
-   [pandoc], leanpub [4] and even asciidoc [5].  This allows mmark to be
    used to write larger, structured documents such as RFC and I-Ds or
    even books, while not deviating too far from markdown.
 
@@ -159,6 +153,12 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    Note that kramdown-2629 [7] fills the same niche as mmark.
 
+2.  Mmark Syntax
+
+   In the following sections we go over some of the difference, and the
+   extra syntax features of mmark.
+
+
 
 
 
@@ -169,11 +169,6 @@ Gieben                    Expires June 13, 2015                 [Page 3]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
-
-2.  Mmark Syntax
-
-   In the following sections we go over some of the difference, and the
-   extra syntax features of mmark.
 
 3.  TOML header
 
@@ -218,6 +213,11 @@ Internet-Draft                  mmark2rfc                  December 2014
    is also a "{frontmatter}" that starts the front matter (front) of the
    document, but is normally not needed because the TOML header
    (Section 3) starts that by default.
+
+
+
+
+
 
 
 
@@ -515,26 +515,11 @@ Internet-Draft                  mmark2rfc                  December 2014
    For now the mmark parser will not get any features that makes it
    backwards compatible with pandoc2rfc.
 
-15.  Extra features
+15.  Acknowledgements
 
-   These feature are not directly useful when writing an I-D, but they
-   are part of mmark nonetheless.
+16.  References
 
-15.1.  Exercises and Answers
-
-   Prefix a paragraph with "X>" for an exercise and "XA>" for an answer:
-
-                              X> What is 5+5?
-                              XA> 10
-
-16.  Acknowledgements
-
-   This documents has been modeled after the excellent kramdown syntax
-   page [14].
-
-17.  References
-
-17.1.  Informative References
+16.1.  Informative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119, March 1997.
@@ -549,23 +534,15 @@ Internet-Draft                  mmark2rfc                  December 2014
    [pandoc]   MacFarlane, J., "Pandoc, a universal document converter",
               2006, <http://johnmacfarlane.net/pandoc/>.
 
-17.2.  Normative References
+16.2.  Normative References
 
    [RFC7328]  Gieben, R., "Writing I-Ds and RFCs Using Pandoc and a Bit
               of XML", RFC 7328, August 2014.
 
-
-
-
-Gieben                    Expires June 13, 2015                [Page 10]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
-
    [toml]     Preston-Werner, T., "TOML git repository", March 2013,
               <https://github.com/toml-lang/toml>.
 
-17.3.  URIs
+16.3.  URIs
 
    [1] http://http://kramdown.gettalong.org/
 
@@ -576,6 +553,14 @@ Internet-Draft                  mmark2rfc                  December 2014
    [4] http://www.methods.co.nz/asciidoc/
 
    [5] http://commonmark.org/
+
+
+
+
+Gieben                    Expires June 13, 2015                [Page 10]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
 
    [6] https://github.com/cabo/kramdown-rfc2629
 
@@ -594,8 +579,6 @@ Internet-Draft                  mmark2rfc                  December 2014
    [12] https://raw.githubusercontent.com/miekg/mmark/master/convert/
         titleblock.pl
 
-   [13] http://kramdown.gettalong.org/syntax.html
-
 Appendix A.  Bugs
 
    o  Citations must be included in the text before the "{backmatter}"
@@ -609,14 +592,6 @@ Appendix A.  Bugs
       lists.
 
    o  Mmark only passes about 60% of the tests of CommonMark.
-
-
-
-
-Gieben                    Expires June 13, 2015                [Page 11]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
 
 Author's Address
 
@@ -638,35 +613,4 @@ Author's Address
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Gieben                    Expires June 13, 2015                [Page 12]
+Gieben                    Expires June 13, 2015                [Page 11]

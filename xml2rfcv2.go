@@ -148,14 +148,6 @@ func (options *Xml2) Note(out *bytes.Buffer, text []byte) {
 	options.BlockQuote(out, text, nil)
 }
 
-func (options *Xml2) Exercise(out *bytes.Buffer, text []byte) {
-	options.BlockQuote(out, text, nil)
-}
-
-func (options *Xml2) Answer(out *bytes.Buffer, text []byte) {
-	options.BlockQuote(out, text, nil)
-}
-
 func (options *Xml2) CommentHtml(out *bytes.Buffer, text []byte) {
 	// nothing fancy any left of the first `:` will be used as the source="..."
 	i := bytes.Index(text, []byte("-->"))
@@ -348,6 +340,10 @@ func (options *Xml2) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	if flags&LIST_TYPE_DEFINITION == 0 && flags&LIST_INSIDE_LIST == 0 {
 		out.WriteString("</t>\n")
 	}
+}
+
+func (options *Xml2) Math(out *bytes.Buffer, text []byte, display bool) {
+
 }
 
 func (options *Xml2) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {

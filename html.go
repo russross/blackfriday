@@ -57,6 +57,9 @@ type Html struct {
 	title    string // document title
 	css      string // optional css file url (used with HTML_COMPLETE_PAGE)
 
+	// store the IAL we see for this block element
+	ial *InlineAttr
+
 	parameters HtmlRendererParameters
 
 	// table of contents data
@@ -271,20 +274,6 @@ func (options *Html) Note(out *bytes.Buffer, text []byte) {
 	out.WriteString("</blockquote>\n")
 }
 
-func (options *Html) Exercise(out *bytes.Buffer, text []byte) {
-	doubleSpace(out)
-	out.WriteString("<blockquote>\n")
-	out.Write(text)
-	out.WriteString("</blockquote>\n")
-}
-
-func (options *Html) Answer(out *bytes.Buffer, text []byte) {
-	doubleSpace(out)
-	out.WriteString("<blockquote>\n")
-	out.Write(text)
-	out.WriteString("</blockquote>\n")
-}
-
 func (options *Html) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
 	doubleSpace(out)
 	out.WriteString("<table>\n")
@@ -433,6 +422,19 @@ func (options *Html) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 		return
 	}
 	out.WriteString("</p>\n")
+}
+
+func (options *Html) Math(out *bytes.Buffer, text []byte, display bool) {
+	ial := options.InlineAttr()
+	s := ial.String()
+	if display {
+		out.WriteString("<script " + s + "type=\"math/tex; mode=display\"> ")
+	} else {
+		out.WriteString("<script type=\"math/tex\"> ")
+
+	}
+	out.Write(text)
+	out.WriteString("</script>")
 }
 
 func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
@@ -798,8 +800,16 @@ func (options *Html) TocFinalize() {
 	}
 }
 
-func (options *Html) SetInlineAttr(*InlineAttr) {}
-func (options *Html) InlineAttr() *InlineAttr   { return nil }
+func (options *Html) SetInlineAttr(i *InlineAttr) {
+	options.ial = i
+}
+
+func (options *Html) InlineAttr() *InlineAttr {
+	if options.ial == nil {
+		return newInlineAttr()
+	}
+	return options.ial
+}
 
 func isHtmlTag(tag []byte, tagname string) bool {
 	found, _ := findHtmlTagPos(tag, tagname)

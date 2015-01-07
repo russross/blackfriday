@@ -162,23 +162,6 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			continue
 		}
 
-		// Answer quote:
-		//
-		// XA> It's 10!
-		if p.answerPrefix(data) > 0 {
-			data = data[p.answer(out, data):]
-			continue
-		}
-
-		// Exercise quote:
-		//
-		// X> This is an exercise.
-		// X> How much is 5+5?
-		if p.exercisePrefix(data) > 0 {
-			data = data[p.exercise(out, data):]
-			continue
-		}
-
 		// block quote:
 		//
 		// > A big quote I found somewhere
@@ -2127,7 +2110,21 @@ func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 		p.inline(out, data[beg:end])
 		return
 	}
+	p.displayMath = false
 	work := func() bool {
+		// if we are a single paragraph constisting entirely out of math
+		// we set the displayMath to true
+		k := 0
+		if end-beg > 4 && data[beg] == '$' && data[beg+1] == '$' {
+			for k = beg + 2; k < end-1; k++ {
+				if data[k] == '$' && data[k+1] == '$' {
+					break
+				}
+			}
+			if k+2 == end {
+				p.displayMath = true
+			}
+		}
 		p.inline(out, data[beg:end])
 		return true
 	}
@@ -2232,8 +2229,6 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 				p.quotePrefix(current) != 0 ||
 				p.notePrefix(current) != 0 ||
 				p.asidePrefix(current) != 0 ||
-				p.exercisePrefix(current) != 0 ||
-				p.answerPrefix(current) != 0 ||
 				p.codePrefix(current) != 0 {
 				p.renderParagraph(out, data[:i])
 				return i

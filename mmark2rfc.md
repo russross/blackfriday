@@ -342,20 +342,7 @@ AS> there isn't renderer that can output markdown syntax.
 
 For now the mmark parser will not get any features that makes it backwards compatible with pandoc2rfc.
 
-# Extra features
-
-These feature are not directly useful when writing an I-D, but they are part of mmark nonetheless.
-
-## Exercises and Answers
-
-Prefix a paragraph with `X>` for an exercise and `XA>` for an answer:
-
-    X> What is 5+5?
-    XA> 10
-
 # Acknowledgements
-
-This documents has been modeled after the excellent [kramdown syntax page](http://kramdown.gettalong.org/syntax.html).
 
 <!-- reference we need to include -->
 
