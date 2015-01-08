@@ -204,7 +204,7 @@ Note that the header and footer can't contain block level elements.
 
 # Inline Attribute Lists
 
-This borrows from [kramdown][http://kramdown.gettalong.org/syntax.html#block-ials], with
+This borrows from [kramdown](http://kramdown.gettalong.org/syntax.html#block-ials), with
 the difference that the colon is dropped and each IAL must be typeset *before* the block element
 (see (#bugs)).
 Added an anchor to blockquote can be done like so:
@@ -336,9 +336,9 @@ There is also [titleblock.pl](https://raw.githubusercontent.com/miekg/mmark/mast
 which can be given an @RFC7328 `template.xml` file and will output a TOML titleblock, that can
 be used as a starting point.
 
-AS> Yes, this uses pandoc and Perl.. why? Becasue if mmark could parse the file by itself, there wasn't much
-AS> of problem. Two things are holding this back: mmark cannot parse definition lists with empty spaces and
-AS> there isn't renderer that can output markdown syntax.
+A> Yes, this uses pandoc and Perl.. why? Becasue if mmark could parse the file by itself, there wasn't much
+A> of problem. Two things are holding this back: mmark cannot parse definition lists with empty spaces and
+A> there isn't renderer that can output markdown syntax.
 
 For now the mmark parser will not get any features that makes it backwards compatible with pandoc2rfc.
 

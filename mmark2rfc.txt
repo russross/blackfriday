@@ -327,9 +327,9 @@ Internet-Draft                  mmark2rfc                  December 2014
 
 10.  Inline Attribute Lists
 
-   This borrows from [kramdown][[9]], with the difference that the colon
-   is dropped and each IAL must be typeset _before_ the block element
-   (see Appendix A).  Added an anchor to blockquote can be done like so:
+   This borrows from kramdown [9], with the difference that the colon is
+   dropped and each IAL must be typeset _before_ the block element (see
+   Appendix A).  Added an anchor to blockquote can be done like so:
 
 
 
@@ -506,11 +506,11 @@ Gieben                    Expires June 13, 2015                 [Page 9]
 Internet-Draft                  mmark2rfc                  December 2014
 
 
-   AS> Yes, this uses pandoc and Perl.. why?  Becasue if mmark could
-   parse the file by itself, there wasn't much AS> of problem.  Two
-   things are holding this back: mmark cannot parse definition lists
-   with empty spaces and AS> there isn't renderer that can output
-   markdown syntax.
+      Yes, this uses pandoc and Perl.. why?  Becasue if mmark could
+      parse the file by itself, there wasn't much of problem.  Two
+      things are holding this back: mmark cannot parse definition lists
+      with empty spaces and there isn't renderer that can output
+      markdown syntax.
 
    For now the mmark parser will not get any features that makes it
    backwards compatible with pandoc2rfc.
