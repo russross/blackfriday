@@ -289,8 +289,7 @@ implements the following extensions:
 
 *   Renderers
     * HTML renderer is lagging behind the other renderers.
-    * Add LaTeX output
-    * Add plain text output renderer
+    * DocBook?
 *   fenced code blocks -> source code with language etc.
 *   indentend code blocks -> artwork
 *   images -> artwork, use title for caption
@@ -298,7 +297,6 @@ implements the following extensions:
 *   Extension to recognize pandoc2rfc indices?
 *   cleanups - and loose a bunch of extensions, turn them on per default
     reduce API footprint (hide constants mainly)
-*   Introduce setext header as special header, something ala .====== ?
 
 # License
 
