@@ -50,7 +50,7 @@ func parseCode(addr []byte, file []byte) []byte {
 
 // codeLines takes a source file and returns the lines that
 // span the byte range specified by start and end.
-// It discards lines that end in "OMIT".
+// It discards lines that end in "OMIT" and in "OMIT -->"
 func codeLines(src []byte, start, end int) (lines []byte) {
 	startLine := 1
 	for i, b := range src {
@@ -65,6 +65,9 @@ func codeLines(src []byte, start, end int) (lines []byte) {
 	for n := startLine; s.Scan(); n++ {
 		l := s.Bytes()
 		if bytes.HasSuffix(l, []byte("OMIT")) {
+			continue
+		}
+		if bytes.HasSuffix(l, []byte("OMIT -->")) {
 			continue
 		}
 		lines = append(lines, l...)

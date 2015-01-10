@@ -167,6 +167,9 @@ implements the following extensions:
     interesting_code = fascinating_function()
     // END OMIT
     ```
+    To aid in including HTML or XML framents, where the `OMIT` key words is
+    probably embedded in comments, line the in in `OMIT -->` are also excluded.
+
     Of course the captioning works here as well:
 
         <{{test.go}}[/START OMIT/,/END OMIT/]

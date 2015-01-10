@@ -286,6 +286,9 @@ interesting_code = fascinating_function()
 // END OMIT
 ~~~
 
+To aid in including HTML or XML framents, where the `OMIT` key words is probably embedded in
+comments, line the in in `OMIT -->` are excluded as well.
+
 # XML2RFC V3 features
 
 The v3 syntax adds some new features, those can already be used in mmark (even for documents targeting
