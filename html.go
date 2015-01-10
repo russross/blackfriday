@@ -58,7 +58,7 @@ type html struct {
 	css      string // optional css file url (used with HTML_COMPLETE_PAGE)
 
 	// store the IAL we see for this block element
-	ial *InlineAttr
+	ial *inlineAttr
 
 	parameters HtmlRendererParameters
 
@@ -425,7 +425,7 @@ func (options *html) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 }
 
 func (options *html) Math(out *bytes.Buffer, text []byte, display bool) {
-	ial := options.InlineAttr()
+	ial := options.inlineAttr()
 	s := ial.String()
 	if display {
 		out.WriteString("<script " + s + "type=\"math/tex; mode=display\"> ")
@@ -800,11 +800,11 @@ func (options *html) TocFinalize() {
 	}
 }
 
-func (options *html) SetInlineAttr(i *InlineAttr) {
+func (options *html) SetInlineAttr(i *inlineAttr) {
 	options.ial = i
 }
 
-func (options *html) InlineAttr() *InlineAttr {
+func (options *html) inlineAttr() *inlineAttr {
 	if options.ial == nil {
 		return newInlineAttr()
 	}

@@ -10,14 +10,14 @@ import (
 
 // One or more of these can be attached to block elements
 
-type InlineAttr struct {
+type inlineAttr struct {
 	id    string            // #id
 	class map[string]bool   // 0 or more .class
 	attr  map[string]string // key=value pairs
 }
 
-func newInlineAttr() *InlineAttr {
-	return &InlineAttr{class: make(map[string]bool), attr: make(map[string]string)}
+func newInlineAttr() *inlineAttr {
+	return &inlineAttr{class: make(map[string]bool), attr: make(map[string]string)}
 }
 
 // Parsing and thus detecting an IAL. Return a valid *IAL or nil.
@@ -113,7 +113,7 @@ func parseKeyValue(chunk []byte) (string, string) {
 }
 
 // Add IAL to another, overwriting the #id, collapsing classes and attributes
-func (i *InlineAttr) add(j *InlineAttr) *InlineAttr {
+func (i *inlineAttr) add(j *inlineAttr) *inlineAttr {
 	if i == nil {
 		return j
 	}
@@ -131,7 +131,7 @@ func (i *InlineAttr) add(j *InlineAttr) *InlineAttr {
 
 // String renders an IAL and returns a string that can be included in the tag:
 // class="class" anchor="id" key="value". The string s has a space as the first character.k
-func (i *InlineAttr) String() (s string) {
+func (i *inlineAttr) String() (s string) {
 	if i == nil {
 		return ""
 	}
@@ -169,7 +169,7 @@ func (i *InlineAttr) String() (s string) {
 // GetOrDefaultAttr set the value under key if is is not set or
 // use the value already in there. The boolean returns indicates
 // if the value has been overwritten.
-func (i *InlineAttr) GetOrDefaultAttr(key, def string) bool {
+func (i *inlineAttr) GetOrDefaultAttr(key, def string) bool {
 	v := i.attr[key]
 	if v != "" {
 		return false
@@ -182,7 +182,7 @@ func (i *InlineAttr) GetOrDefaultAttr(key, def string) bool {
 }
 
 //
-func (i *InlineAttr) GetOrDefaultId(id string) bool {
+func (i *inlineAttr) GetOrDefaultId(id string) bool {
 	if i.id != "" {
 		return false
 	}
@@ -195,7 +195,7 @@ func (i *InlineAttr) GetOrDefaultId(id string) bool {
 
 // Return the value of a specific key as a ' key="value"' string. If not found
 // an string containing a space is  returned.
-func (i *InlineAttr) Key(key string) string {
+func (i *inlineAttr) Key(key string) string {
 	if v, ok := i.attr[key]; ok {
 		return " " + key + "=\"" + v + "\""
 	}

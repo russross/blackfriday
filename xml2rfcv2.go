@@ -28,7 +28,7 @@ type xml2 struct {
 	specialSection int  //
 
 	// store the IAL we see for this block element
-	ial *InlineAttr
+	ial *inlineAttr
 
 	// titleBlock in TOML
 	titleBlock *title
@@ -45,11 +45,11 @@ func Xml2Renderer(flags int) Renderer { return &xml2{flags: flags, group: make(m
 func (options *xml2) Flags() int      { return options.flags }
 func (options *xml2) State() int      { return 0 }
 
-func (options *xml2) SetInlineAttr(i *InlineAttr) {
+func (options *xml2) SetInlineAttr(i *inlineAttr) {
 	options.ial = i
 }
 
-func (options *xml2) InlineAttr() *InlineAttr {
+func (options *xml2) inlineAttr() *inlineAttr {
 	if options.ial == nil {
 		return newInlineAttr()
 	}
@@ -58,7 +58,7 @@ func (options *xml2) InlineAttr() *InlineAttr {
 
 // render code chunks using verbatim, or listings if we have a language
 func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte) {
-	ial := options.InlineAttr()
+	ial := options.inlineAttr()
 	ial.GetOrDefaultAttr("align", "center")
 	s := ial.String()
 
@@ -133,7 +133,7 @@ func (options *xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 }
 
 func (options *xml2) BlockQuote(out *bytes.Buffer, text []byte, attribution []byte) {
-	options.InlineAttr().String()
+	options.inlineAttr().String()
 	// Fake a list paragraph
 	out.WriteString("<t><list style=\"empty\">\n")
 	out.Write(text)
@@ -220,7 +220,7 @@ func (options *xml2) Header(out *bytes.Buffer, text func() bool, level int, id s
 		}
 	}
 
-	ial := options.InlineAttr()
+	ial := options.inlineAttr()
 	ial.GetOrDefaultId(id)
 
 	// new section
@@ -244,7 +244,7 @@ func (options *xml2) List(out *bytes.Buffer, text func() bool, flags, start int,
 		out.WriteString("<t>\n")
 	}
 
-	ial := options.InlineAttr()
+	ial := options.inlineAttr()
 	if start > 1 {
 		ial.GetOrDefaultAttr("start", strconv.Itoa(start))
 	}
@@ -347,7 +347,7 @@ func (options *xml2) Math(out *bytes.Buffer, text []byte, display bool) {
 }
 
 func (options *xml2) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
-	s := options.InlineAttr().String()
+	s := options.inlineAttr().String()
 	out.WriteString("<texttable" + s + ">\n")
 	out.Write(header)
 	out.Write(body)
@@ -517,7 +517,7 @@ func (options *xml2) Superscript(out *bytes.Buffer, text []byte) {
 
 func (options *xml2) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
 	// convert to url
-	options.InlineAttr().String()
+	options.inlineAttr().String()
 	out.WriteString("<eref target=\"")
 	out.Write(link)
 	out.WriteString("\">")

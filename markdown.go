@@ -230,8 +230,8 @@ type Renderer interface {
 	// Helper functions
 	Flags() int
 
-	SetInlineAttr(*InlineAttr)
-	InlineAttr() *InlineAttr
+	SetInlineAttr(*inlineAttr)
+	inlineAttr() *inlineAttr
 }
 
 // Callback functions for inline parsing. One such function is defined
@@ -264,7 +264,7 @@ type parser struct {
 	titleblock bool // have we seen a titleblock
 
 	// Placeholder IAL that can be added to blocklevel elements.
-	ial *InlineAttr
+	ial *inlineAttr
 
 	// Prevent identical header anchors by appending -<sequence_number> starting
 	// with -1, this is the same thing that pandoc does.

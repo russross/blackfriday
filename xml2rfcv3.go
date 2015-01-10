@@ -39,7 +39,7 @@ type xml struct {
 	specialSection int
 
 	// Store the IAL we see for this block element
-	ial *InlineAttr
+	ial *inlineAttr
 
 	// TitleBlock in TOML
 	titleBlock *title
@@ -53,11 +53,11 @@ func XmlRenderer(flags int) Renderer { return &xml{flags: flags} }
 func (options *xml) Flags() int      { return options.flags }
 func (options *xml) State() int      { return 0 }
 
-func (options *xml) SetInlineAttr(i *InlineAttr) {
+func (options *xml) SetInlineAttr(i *inlineAttr) {
 	options.ial = i
 }
 
-func (options *xml) InlineAttr() *InlineAttr {
+func (options *xml) inlineAttr() *inlineAttr {
 	if options.ial == nil {
 		return newInlineAttr()
 	}
@@ -68,7 +68,7 @@ func (options *xml) InlineAttr() *InlineAttr {
 func (options *xml) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte) {
 	s := ""
 	// Tick of language for sourcecode...
-	ial := options.InlineAttr()
+	ial := options.inlineAttr()
 	if lang != "" {
 		ial.GetOrDefaultAttr("type", lang)
 	}
@@ -150,7 +150,7 @@ func (options *xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 func (options *xml) BlockQuote(out *bytes.Buffer, text []byte, attribution []byte) {
 	// check for "person -- URI" syntax use those if found
 	// need to strip tags because these are attributes
-	ial := options.InlineAttr()
+	ial := options.inlineAttr()
 	if len(attribution) != 0 {
 		parts := bytes.Split(attribution, []byte(" -- "))
 		if len(parts) == 2 {
@@ -167,14 +167,14 @@ func (options *xml) BlockQuote(out *bytes.Buffer, text []byte, attribution []byt
 }
 
 func (options *xml) Aside(out *bytes.Buffer, text []byte) {
-	s := options.InlineAttr().String()
+	s := options.inlineAttr().String()
 	out.WriteString("<aside" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</aside>\n")
 }
 
 func (options *xml) Note(out *bytes.Buffer, text []byte) {
-	s := options.InlineAttr().String()
+	s := options.inlineAttr().String()
 	out.WriteString("<note" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</note>\n")
@@ -232,7 +232,7 @@ func (options *xml) Abstract(out *bytes.Buffer, text func() bool, id string) {
 		}
 	}
 
-	ial := options.InlineAttr()
+	ial := options.inlineAttr()
 	ial.GetOrDefaultId(id)
 
 	out.WriteString("\n<abstract" + ial.String())
@@ -254,7 +254,7 @@ func (options *xml) Header(out *bytes.Buffer, text func() bool, level int, id st
 		}
 	}
 
-	ial := options.InlineAttr()
+	ial := options.inlineAttr()
 	ial.GetOrDefaultId(id)
 
 	// new section
@@ -273,7 +273,7 @@ func (options *xml) HRule(out *bytes.Buffer) {
 func (options *xml) List(out *bytes.Buffer, text func() bool, flags, start int, group []byte) {
 	marker := out.Len()
 
-	ial := options.InlineAttr()
+	ial := options.inlineAttr()
 	if start > 1 {
 		ial.GetOrDefaultAttr("start", strconv.Itoa(start))
 	}
@@ -343,7 +343,7 @@ func (options *xml) Math(out *bytes.Buffer, text []byte, display bool) {
 }
 
 func (options *xml) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
-	s := options.InlineAttr().String()
+	s := options.inlineAttr().String()
 	out.WriteString("<table" + s + ">\n")
 	if caption != nil {
 		out.WriteString("<name>")
@@ -536,7 +536,7 @@ func (options *xml) Image(out *bytes.Buffer, link []byte, title []byte, alt []by
 	// use title as caption is we have it and wrap everything in a figure
 	// check the extension of the local include to set the type of the thing.
 
-	s := options.InlineAttr().String()
+	s := options.inlineAttr().String()
 	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
 		// link to external entity
 		out.WriteString("<artwork" + s)
