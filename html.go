@@ -305,11 +305,11 @@ func (options *html) TableRow(out *bytes.Buffer, text []byte) {
 func (options *html) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
 	doubleSpace(out)
 	switch align {
-	case TABLE_ALIGNMENT_LEFT:
+	case _TABLE_ALIGNMENT_LEFT:
 		out.WriteString("<th align=\"left\">")
-	case TABLE_ALIGNMENT_RIGHT:
+	case _TABLE_ALIGNMENT_RIGHT:
 		out.WriteString("<th align=\"right\">")
-	case TABLE_ALIGNMENT_CENTER:
+	case _TABLE_ALIGNMENT_CENTER:
 		out.WriteString("<th align=\"center\">")
 	default:
 		out.WriteString("<th>")
@@ -322,11 +322,11 @@ func (options *html) TableHeaderCell(out *bytes.Buffer, text []byte, align int) 
 func (options *html) TableCell(out *bytes.Buffer, text []byte, align int) {
 	doubleSpace(out)
 	switch align {
-	case TABLE_ALIGNMENT_LEFT:
+	case _TABLE_ALIGNMENT_LEFT:
 		out.WriteString("<td align=\"left\">")
-	case TABLE_ALIGNMENT_RIGHT:
+	case _TABLE_ALIGNMENT_RIGHT:
 		out.WriteString("<td align=\"right\">")
-	case TABLE_ALIGNMENT_CENTER:
+	case _TABLE_ALIGNMENT_CENTER:
 		out.WriteString("<td align=\"center\">")
 	default:
 		out.WriteString("<td>")
@@ -339,12 +339,12 @@ func (options *html) TableCell(out *bytes.Buffer, text []byte, align int) {
 func (options *html) Footnotes(out *bytes.Buffer, text func() bool) {
 	out.WriteString("<div class=\"footnotes\">\n")
 	options.HRule(out)
-	options.List(out, text, LIST_TYPE_ORDERED, 0, nil)
+	options.List(out, text, _LIST_TYPE_ORDERED, 0, nil)
 	out.WriteString("</div>\n")
 }
 
 func (options *html) FootnoteItem(out *bytes.Buffer, name, text []byte, flags int) {
-	if flags&LIST_ITEM_CONTAINS_BLOCK != 0 || flags&LIST_ITEM_BEGINNING_OF_LIST != 0 {
+	if flags&_LIST_ITEM_CONTAINS_BLOCK != 0 || flags&_LIST_ITEM_BEGINNING_OF_LIST != 0 {
 		doubleSpace(out)
 	}
 	slug := slugify(name)
@@ -370,15 +370,15 @@ func (options *html) List(out *bytes.Buffer, text func() bool, flags, start int,
 	marker := out.Len()
 	doubleSpace(out)
 
-	if flags&LIST_TYPE_ORDERED != 0 {
+	if flags&_LIST_TYPE_ORDERED != 0 {
 		switch {
-		case flags&LIST_TYPE_ORDERED_ALPHA_LOWER != 0:
+		case flags&_LIST_TYPE_ORDERED_ALPHA_LOWER != 0:
 			out.WriteString("<ol type=\"a\">")
-		case flags&LIST_TYPE_ORDERED_ALPHA_UPPER != 0:
+		case flags&_LIST_TYPE_ORDERED_ALPHA_UPPER != 0:
 			out.WriteString("<ol type=\"A\">")
-		case flags&LIST_TYPE_ORDERED_ROMAN_LOWER != 0:
+		case flags&_LIST_TYPE_ORDERED_ROMAN_LOWER != 0:
 			out.WriteString("<ol type=\"i\">")
-		case flags&LIST_TYPE_ORDERED_ROMAN_UPPER != 0:
+		case flags&_LIST_TYPE_ORDERED_ROMAN_UPPER != 0:
 			out.WriteString("<ol type=\"I\">")
 		default:
 			out.WriteString("<ol>")
@@ -390,7 +390,7 @@ func (options *html) List(out *bytes.Buffer, text func() bool, flags, start int,
 		out.Truncate(marker)
 		return
 	}
-	if flags&LIST_TYPE_ORDERED != 0 {
+	if flags&_LIST_TYPE_ORDERED != 0 {
 		out.WriteString("</ol>\n")
 	} else {
 		out.WriteString("</ul>\n")
@@ -398,7 +398,7 @@ func (options *html) List(out *bytes.Buffer, text func() bool, flags, start int,
 }
 
 func (options *html) ListItem(out *bytes.Buffer, text []byte, flags int) {
-	if flags&LIST_ITEM_CONTAINS_BLOCK != 0 || flags&LIST_ITEM_BEGINNING_OF_LIST != 0 {
+	if flags&_LIST_ITEM_CONTAINS_BLOCK != 0 || flags&_LIST_ITEM_BEGINNING_OF_LIST != 0 {
 		doubleSpace(out)
 	}
 	out.WriteString("<li>")
@@ -439,7 +439,7 @@ func (options *html) Math(out *bytes.Buffer, text []byte, display bool) {
 
 func (options *html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	skipRanges := htmlEntity.FindAllIndex(link, -1)
-	if options.flags&HTML_SAFELINK != 0 && !isSafeLink(link) && kind != LINK_TYPE_EMAIL {
+	if options.flags&HTML_SAFELINK != 0 && !isSafeLink(link) && kind != _LINK_TYPE_EMAIL {
 		// mark it but don't link it if it is not a safe link
 		out.WriteString("<tt>")
 		entityEscapeWithSkip(out, link, skipRanges)
@@ -448,7 +448,7 @@ func (options *html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	}
 
 	out.WriteString("<a href=\"")
-	if kind == LINK_TYPE_EMAIL {
+	if kind == _LINK_TYPE_EMAIL {
 		out.WriteString("mailto:")
 	} else {
 		options.maybeWriteAbsolutePrefix(out, link)

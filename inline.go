@@ -710,11 +710,11 @@ func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	}
 
 	data = data[offset:]
-	altype := LINK_TYPE_NOT_AUTOLINK
+	altype := _LINK_TYPE_NOT_AUTOLINK
 	end := tagLength(data, &altype)
 
 	if end > 2 {
-		if altype != LINK_TYPE_NOT_AUTOLINK {
+		if altype != _LINK_TYPE_NOT_AUTOLINK {
 			var uLink bytes.Buffer
 			unescapeText(&uLink, data[1:end+1-2])
 			if uLink.Len() > 0 {
@@ -735,13 +735,13 @@ func leftBrace(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		// {*matter} are only valid at the beginning of the line
 		switch s := string(data); true {
 		case s == "{frontmatter}":
-			p.r.DocumentMatter(out, DOC_FRONT_MATTER)
+			p.r.DocumentMatter(out, _DOC_FRONT_MATTER)
 			return len(data) + 1
 		case s == "{mainmatter}":
-			p.r.DocumentMatter(out, DOC_MAIN_MATTER)
+			p.r.DocumentMatter(out, _DOC_MAIN_MATTER)
 			return len(data) + 1
 		case s == "{backmatter}":
-			p.r.DocumentMatter(out, DOC_BACK_MATTER)
+			p.r.DocumentMatter(out, _DOC_BACK_MATTER)
 			p.r.References(out, p.citations)
 			p.appendix = true
 			return len(data) + 1
@@ -972,7 +972,7 @@ func autoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	unescapeText(&uLink, data[:linkEnd])
 
 	if uLink.Len() > 0 {
-		p.r.AutoLink(out, uLink.Bytes(), LINK_TYPE_NORMAL)
+		p.r.AutoLink(out, uLink.Bytes(), _LINK_TYPE_NORMAL)
 	}
 
 	return linkEnd - rewind
@@ -1020,7 +1020,7 @@ func tagLength(data []byte, autolink *int) int {
 	}
 
 	// scheme test
-	*autolink = LINK_TYPE_NOT_AUTOLINK
+	*autolink = _LINK_TYPE_NOT_AUTOLINK
 
 	// try to find the beginning of an URI
 	for i < len(data) && (isalnum(data[i]) || data[i] == '.' || data[i] == '+' || data[i] == '-') {
@@ -1029,20 +1029,20 @@ func tagLength(data []byte, autolink *int) int {
 
 	if i > 1 && i < len(data) && data[i] == '@' {
 		if j = isMailtoAutoLink(data[i:]); j != 0 {
-			*autolink = LINK_TYPE_EMAIL
+			*autolink = _LINK_TYPE_EMAIL
 			return i + j
 		}
 	}
 
 	if i > 2 && i < len(data) && data[i] == ':' {
-		*autolink = LINK_TYPE_NORMAL
+		*autolink = _LINK_TYPE_NORMAL
 		i++
 	}
 
 	// complete autolink test: no whitespace or ' or "
 	switch {
 	case i >= len(data):
-		*autolink = LINK_TYPE_NOT_AUTOLINK
+		*autolink = _LINK_TYPE_NOT_AUTOLINK
 	case *autolink != 0:
 		j = i
 
@@ -1065,7 +1065,7 @@ func tagLength(data []byte, autolink *int) int {
 		}
 
 		// one of the forbidden chars has been found
-		*autolink = LINK_TYPE_NOT_AUTOLINK
+		*autolink = _LINK_TYPE_NOT_AUTOLINK
 	}
 
 	// look for something looking like a tag end

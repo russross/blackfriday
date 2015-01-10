@@ -238,7 +238,7 @@ func (options *xml) Abstract(out *bytes.Buffer, text func() bool, id string) {
 	out.WriteString("\n<abstract" + ial.String())
 	out.WriteByte('\n')
 	options.sectionLevel = 0
-	options.specialSection = ABSTRACT
+	options.specialSection = _ABSTRACT
 	return
 }
 
@@ -282,9 +282,9 @@ func (options *xml) List(out *bytes.Buffer, text func() bool, flags, start int, 
 	}
 	s := ial.String()
 	switch {
-	case flags&LIST_TYPE_ORDERED != 0:
+	case flags&_LIST_TYPE_ORDERED != 0:
 		out.WriteString("<ol" + s + ">\n")
-	case flags&LIST_TYPE_DEFINITION != 0:
+	case flags&_LIST_TYPE_DEFINITION != 0:
 		out.WriteString("<dl" + s + ">\n")
 	default:
 		out.WriteString("<ul" + s + ">\n")
@@ -295,9 +295,9 @@ func (options *xml) List(out *bytes.Buffer, text func() bool, flags, start int, 
 		return
 	}
 	switch {
-	case flags&LIST_TYPE_ORDERED != 0:
+	case flags&_LIST_TYPE_ORDERED != 0:
 		out.WriteString("</ol>\n")
-	case flags&LIST_TYPE_DEFINITION != 0:
+	case flags&_LIST_TYPE_DEFINITION != 0:
 		out.WriteString("</dl>\n")
 	default:
 		out.WriteString("</ul>\n")
@@ -305,13 +305,13 @@ func (options *xml) List(out *bytes.Buffer, text func() bool, flags, start int, 
 }
 
 func (options *xml) ListItem(out *bytes.Buffer, text []byte, flags int) {
-	if flags&LIST_TYPE_DEFINITION != 0 && flags&LIST_TYPE_TERM == 0 {
+	if flags&_LIST_TYPE_DEFINITION != 0 && flags&_LIST_TYPE_TERM == 0 {
 		out.WriteString("<dd>")
 		out.Write(text)
 		out.WriteString("</dd>\n")
 		return
 	}
-	if flags&LIST_TYPE_TERM != 0 {
+	if flags&_LIST_TYPE_TERM != 0 {
 		out.WriteString("<dt>")
 		out.Write(text)
 		out.WriteString("</dt>\n")
@@ -369,9 +369,9 @@ func (options *xml) TableRow(out *bytes.Buffer, text []byte) {
 func (options *xml) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
 	a := ""
 	switch align {
-	case TABLE_ALIGNMENT_LEFT:
+	case _TABLE_ALIGNMENT_LEFT:
 		a = " align=\"left\""
-	case TABLE_ALIGNMENT_RIGHT:
+	case _TABLE_ALIGNMENT_RIGHT:
 		a = " align=\"right\""
 	default:
 		a = " align=\"center\""
@@ -422,16 +422,16 @@ func (options *xml) References(out *bytes.Buffer, citations map[string]*citation
 		options.sectionLevel--
 	}
 	switch options.docLevel {
-	case DOC_FRONT_MATTER:
+	case _DOC_FRONT_MATTER:
 		out.WriteString("</front>\n")
 		out.WriteString("<back>\n")
-	case DOC_MAIN_MATTER:
+	case _DOC_MAIN_MATTER:
 		out.WriteString("</middle>\n")
 		out.WriteString("<back>\n")
-	case DOC_BACK_MATTER:
+	case _DOC_BACK_MATTER:
 		// nothing to do
 	}
-	options.docLevel = DOC_BACK_MATTER
+	options.docLevel = _DOC_BACK_MATTER
 	// count the references
 	refi, refn := 0, 0
 	for _, c := range citations {
@@ -487,7 +487,7 @@ func referenceFile(c *citation) string {
 
 func (options *xml) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	out.WriteString("<eref target=\"")
-	if kind == LINK_TYPE_EMAIL {
+	if kind == _LINK_TYPE_EMAIL {
 		out.WriteString("mailto:")
 	}
 	out.Write(link)
@@ -618,7 +618,7 @@ func (options *xml) DocumentFooter(out *bytes.Buffer, first bool) {
 		return
 	}
 	switch options.specialSection {
-	case ABSTRACT:
+	case _ABSTRACT:
 		out.WriteString("</abstract>\n\n")
 	}
 	// close any option section tags
@@ -630,11 +630,11 @@ func (options *xml) DocumentFooter(out *bytes.Buffer, first bool) {
 		return
 	}
 	switch options.docLevel {
-	case DOC_FRONT_MATTER:
+	case _DOC_FRONT_MATTER:
 		out.WriteString("\n</front>\n")
-	case DOC_MAIN_MATTER:
+	case _DOC_MAIN_MATTER:
 		out.WriteString("\n</middle>\n")
-	case DOC_BACK_MATTER:
+	case _DOC_BACK_MATTER:
 		out.WriteString("\n</back>\n")
 	}
 	out.WriteString("</rfc>\n")
@@ -650,12 +650,12 @@ func (options *xml) DocumentMatter(out *bytes.Buffer, matter int) {
 		options.sectionLevel--
 	}
 	switch matter {
-	case DOC_FRONT_MATTER:
+	case _DOC_FRONT_MATTER:
 		// already open
-	case DOC_MAIN_MATTER:
+	case _DOC_MAIN_MATTER:
 		out.WriteString("</front>\n")
 		out.WriteString("\n<middle>\n")
-	case DOC_BACK_MATTER:
+	case _DOC_BACK_MATTER:
 		out.WriteString("\n</middle>\n")
 		out.WriteString("<back>\n")
 	}

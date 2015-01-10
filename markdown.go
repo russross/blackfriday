@@ -69,54 +69,48 @@ const (
 // Only a single one of these values will be used; they are not ORed together.
 // These are mostly of interest if you are writing a new output format.
 const (
-	LINK_TYPE_NOT_AUTOLINK = iota
-	LINK_TYPE_NORMAL
-	LINK_TYPE_EMAIL
+	_LINK_TYPE_NOT_AUTOLINK = iota
+	_LINK_TYPE_NORMAL
+	_LINK_TYPE_EMAIL
 )
 
 // These are the possible flag values for the ListItem renderer.
 // Multiple flag values may be ORed together.
 // These are mostly of interest if you are writing a new output format.
 const (
-	LIST_TYPE_ORDERED = 1 << iota
-	LIST_TYPE_ORDERED_ROMAN_UPPER
-	LIST_TYPE_ORDERED_ROMAN_LOWER
-	LIST_TYPE_ORDERED_ALPHA_UPPER
-	LIST_TYPE_ORDERED_ALPHA_LOWER
-	LIST_TYPE_ORDERED_GROUP
-	LIST_TYPE_DEFINITION
-	LIST_TYPE_TERM
-	LIST_ITEM_CONTAINS_BLOCK
-	LIST_ITEM_BEGINNING_OF_LIST
-	LIST_ITEM_END_OF_LIST
-	LIST_INSIDE_LIST
+	_LIST_TYPE_ORDERED = 1 << iota
+	_LIST_TYPE_ORDERED_ROMAN_UPPER
+	_LIST_TYPE_ORDERED_ROMAN_LOWER
+	_LIST_TYPE_ORDERED_ALPHA_UPPER
+	_LIST_TYPE_ORDERED_ALPHA_LOWER
+	_LIST_TYPE_ORDERED_GROUP
+	_LIST_TYPE_DEFINITION
+	_LIST_TYPE_TERM
+	_LIST_ITEM_CONTAINS_BLOCK
+	_LIST_ITEM_BEGINNING_OF_LIST
+	_LIST_ITEM_END_OF_LIST
+	_LIST_INSIDE_LIST
 )
 
 // These are the possible flag values for the table cell renderer.
 // Only a single one of these values will be used; they are not ORed together.
 // These are mostly of interest if you are writing a new output format.
 const (
-	TABLE_ALIGNMENT_LEFT = 1 << iota
-	TABLE_ALIGNMENT_RIGHT
-	TABLE_ALIGNMENT_CENTER = (TABLE_ALIGNMENT_LEFT | TABLE_ALIGNMENT_RIGHT)
+	_TABLE_ALIGNMENT_LEFT = 1 << iota
+	_TABLE_ALIGNMENT_RIGHT
+	_TABLE_ALIGNMENT_CENTER = (_TABLE_ALIGNMENT_LEFT | _TABLE_ALIGNMENT_RIGHT)
 )
 
 // The size of a tab stop.
 const _TAB_SIZE_DEFAULT = 4
 
-// Different divisions of the document
 const (
-	DOC_FRONT_MATTER = iota
-	DOC_MAIN_MATTER
-	DOC_BACK_MATTER
-)
-
-// Special headers, keep track if there are open
-const (
-	_ = iota
-	ABSTRACT
-	PREFACE
-	COLOPHON
+	_DOC_FRONT_MATTER = iota // Different divisions of the document
+	_DOC_MAIN_MATTER
+	_DOC_BACK_MATTER
+	_ABSTRACT // Special headers, keep track if there are open
+	_PREFACE
+	_COLOPHON
 )
 
 // These are the tags that are recognized as HTML block tags.
@@ -411,17 +405,17 @@ func secondPass(p *parser, input []byte, depth int) []byte {
 
 	if p.flags&EXTENSION_FOOTNOTES != 0 && len(p.notes) > 0 {
 		p.r.Footnotes(&output, func() bool {
-			flags := LIST_ITEM_BEGINNING_OF_LIST
+			flags := _LIST_ITEM_BEGINNING_OF_LIST
 			for _, ref := range p.notes {
 				var buf bytes.Buffer
 				if ref.hasBlock {
-					flags |= LIST_ITEM_CONTAINS_BLOCK
+					flags |= _LIST_ITEM_CONTAINS_BLOCK
 					p.block(&buf, ref.title)
 				} else {
 					p.inline(&buf, ref.title)
 				}
 				p.r.FootnoteItem(&output, ref.link, buf.Bytes(), flags)
-				flags &^= LIST_ITEM_BEGINNING_OF_LIST | LIST_ITEM_CONTAINS_BLOCK
+				flags &^= _LIST_ITEM_BEGINNING_OF_LIST | _LIST_ITEM_CONTAINS_BLOCK
 			}
 
 			return true
@@ -429,7 +423,7 @@ func secondPass(p *parser, input []byte, depth int) []byte {
 	}
 	if !p.appendix {
 		// appendix not started in doc, start it now and output references
-		p.r.DocumentMatter(&output, DOC_BACK_MATTER)
+		p.r.DocumentMatter(&output, _DOC_BACK_MATTER)
 		p.r.References(&output, p.citations)
 		p.appendix = true
 	}

@@ -211,7 +211,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// :	Definition2
 		if p.dliPrefix(data) > 0 {
 			p.insideDefinitionList = true
-			data = data[p.list(out, data, LIST_TYPE_DEFINITION, 0, nil):]
+			data = data[p.list(out, data, _LIST_TYPE_DEFINITION, 0, nil):]
 			p.insideDefinitionList = false
 		}
 
@@ -236,7 +236,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 				start, _ = strconv.Atoi(string(data[:i-2])) // this cannot fail because we just est. the thing *is* a number, and if it does start is zero anyway.
 			}
 
-			data = data[p.list(out, data, LIST_TYPE_ORDERED, start, nil):]
+			data = data[p.list(out, data, _LIST_TYPE_ORDERED, start, nil):]
 			continue
 		}
 
@@ -245,7 +245,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// ii.  Item 1
 		// ii.  Item 2
 		if p.rliPrefix(data) > 0 {
-			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_ROMAN_LOWER, 0, nil):]
+			data = data[p.list(out, data, _LIST_TYPE_ORDERED|_LIST_TYPE_ORDERED_ROMAN_LOWER, 0, nil):]
 			continue
 		}
 
@@ -254,7 +254,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// II.  Item 1
 		// II.  Item 2
 		if p.rliPrefixU(data) > 0 {
-			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_ROMAN_UPPER, 0, nil):]
+			data = data[p.list(out, data, _LIST_TYPE_ORDERED|_LIST_TYPE_ORDERED_ROMAN_UPPER, 0, nil):]
 			continue
 		}
 
@@ -263,7 +263,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// a.  Item 1
 		// b.  Item 2
 		if p.aliPrefix(data) > 0 {
-			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_ALPHA_LOWER, 0, nil):]
+			data = data[p.list(out, data, _LIST_TYPE_ORDERED|_LIST_TYPE_ORDERED_ALPHA_LOWER, 0, nil):]
 			continue
 		}
 
@@ -272,7 +272,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// A.  Item 1
 		// B.  Item 2
 		if p.aliPrefixU(data) > 0 {
-			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_ALPHA_UPPER, 0, nil):]
+			data = data[p.list(out, data, _LIST_TYPE_ORDERED|_LIST_TYPE_ORDERED_ALPHA_UPPER, 0, nil):]
 			continue
 		}
 
@@ -282,7 +282,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// (@good)  Item2
 		if i := p.eliPrefix(data); i > 0 {
 			group := data[2 : i-2]
-			data = data[p.list(out, data, LIST_TYPE_ORDERED|LIST_TYPE_ORDERED_GROUP, 0, group):]
+			data = data[p.list(out, data, _LIST_TYPE_ORDERED|_LIST_TYPE_ORDERED_GROUP, 0, group):]
 			continue
 		}
 		// anything else must look like a normal paragraph
@@ -1405,7 +1405,7 @@ func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns 
 
 		if data[i] == ':' {
 			i++
-			columns[col] |= TABLE_ALIGNMENT_LEFT
+			columns[col] |= _TABLE_ALIGNMENT_LEFT
 			dashes++
 		}
 		for data[i] == '-' {
@@ -1414,7 +1414,7 @@ func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns 
 		}
 		if data[i] == ':' {
 			i++
-			columns[col] |= TABLE_ALIGNMENT_RIGHT
+			columns[col] |= _TABLE_ALIGNMENT_RIGHT
 			dashes++
 		}
 		for data[i] == ' ' {
@@ -1864,16 +1864,16 @@ func (p *parser) list(out *bytes.Buffer, data []byte, flags, start int, group []
 		p.insideList--
 	}()
 	i := 0
-	flags |= LIST_ITEM_BEGINNING_OF_LIST
+	flags |= _LIST_ITEM_BEGINNING_OF_LIST
 	work := func() bool {
 		for i < len(data) {
 			skip := p.listItem(out, data[i:], &flags)
 			i += skip
 
-			if skip == 0 || flags&LIST_ITEM_END_OF_LIST != 0 {
+			if skip == 0 || flags&_LIST_ITEM_END_OF_LIST != 0 {
 				break
 			}
-			flags &= ^LIST_ITEM_BEGINNING_OF_LIST
+			flags &= ^_LIST_ITEM_BEGINNING_OF_LIST
 		}
 		return true
 	}
@@ -1890,7 +1890,7 @@ func (p *parser) list(out *bytes.Buffer, data []byte, flags, start int, group []
 	p.ial = nil
 
 	if p.insideList > 1 {
-		flags |= LIST_INSIDE_LIST
+		flags |= _LIST_INSIDE_LIST
 	}
 
 	p.r.List(out, work, flags, start, group)
@@ -1930,7 +1930,7 @@ func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *int) int {
 		if i > 0 {
 			var rawTerm bytes.Buffer
 			p.inline(&rawTerm, data[:i-2]) // -2 for : and the newline
-			p.r.ListItem(out, rawTerm.Bytes(), *flags|LIST_TYPE_TERM)
+			p.r.ListItem(out, rawTerm.Bytes(), *flags|_LIST_TYPE_TERM)
 		}
 	}
 
@@ -1995,7 +1995,7 @@ gatherlines:
 			p.dliPrefix(data[line+indent:]) > 0:
 
 			if containsBlankLine {
-				*flags |= LIST_ITEM_CONTAINS_BLOCK
+				*flags |= _LIST_ITEM_CONTAINS_BLOCK
 			}
 
 			// to be a nested list, it must be indented more
@@ -2014,27 +2014,27 @@ gatherlines:
 			// if the header is not indented, it is not nested in the list
 			// and thus ends the list
 			if containsBlankLine && indent < 4 {
-				*flags |= LIST_ITEM_END_OF_LIST
+				*flags |= _LIST_ITEM_END_OF_LIST
 				break gatherlines
 			}
-			*flags |= LIST_ITEM_CONTAINS_BLOCK
+			*flags |= _LIST_ITEM_CONTAINS_BLOCK
 
 		// anything following an empty line is only part
 		// of this item if it is indented 4 spaces
 		// (regardless of the indentation of the beginning of the item)
 		// if the is beginning with ':   term', we have a new term
 		case containsBlankLine && indent < 4:
-			*flags |= LIST_ITEM_END_OF_LIST
+			*flags |= _LIST_ITEM_END_OF_LIST
 			break gatherlines
 
 		// a blank line means this should be parsed as a block
 		case containsBlankLine:
 			raw.WriteByte('\n')
-			*flags |= LIST_ITEM_CONTAINS_BLOCK
+			*flags |= _LIST_ITEM_CONTAINS_BLOCK
 
 		// CommonMark, rule breaks the list, but when indented it belong to the list
 		case p.isHRule(chunk) && indent < 4:
-			*flags |= LIST_ITEM_END_OF_LIST
+			*flags |= _LIST_ITEM_END_OF_LIST
 			break gatherlines
 
 		}
@@ -2055,7 +2055,7 @@ gatherlines:
 
 	// render the contents of the list item
 	var cooked bytes.Buffer
-	if *flags&LIST_ITEM_CONTAINS_BLOCK != 0 {
+	if *flags&_LIST_ITEM_CONTAINS_BLOCK != 0 {
 		// intermediate render of block li
 		if sublist > 0 {
 			p.block(&cooked, rawBytes[:sublist])
@@ -2131,10 +2131,10 @@ func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 
 	flags := 0
 	if p.insideDefinitionList {
-		flags |= LIST_TYPE_DEFINITION
+		flags |= _LIST_TYPE_DEFINITION
 	}
 	if p.insideList > 0 {
-		flags |= LIST_INSIDE_LIST // Not really, just in a list
+		flags |= _LIST_INSIDE_LIST // Not really, just in a list
 	}
 	p.r.Paragraph(out, work, flags)
 }

@@ -203,13 +203,13 @@ func (options *xml2) Abstract(out *bytes.Buffer, text func() bool, id string) {
 
 	out.WriteString("\n<abstract>\n")
 	options.sectionLevel = 0
-	options.specialSection = ABSTRACT
+	options.specialSection = _ABSTRACT
 	return
 }
 
 func (options *xml2) Header(out *bytes.Buffer, text func() bool, level int, id string) {
 	switch options.specialSection {
-	case ABSTRACT:
+	case _ABSTRACT:
 		out.WriteString("</abstract>\n\n")
 	}
 
@@ -240,7 +240,7 @@ func (options *xml2) HRule(out *bytes.Buffer) {
 func (options *xml2) List(out *bytes.Buffer, text func() bool, flags, start int, group []byte) {
 	marker := out.Len()
 	// inside lists we must drop the paragraph
-	if flags&LIST_INSIDE_LIST == 0 {
+	if flags&_LIST_INSIDE_LIST == 0 {
 		out.WriteString("<t>\n")
 	}
 
@@ -253,17 +253,17 @@ func (options *xml2) List(out *bytes.Buffer, text func() bool, flags, start int,
 	// group -> current number in options
 
 	switch {
-	case flags&LIST_TYPE_ORDERED != 0:
+	case flags&_LIST_TYPE_ORDERED != 0:
 		switch {
-		case flags&LIST_TYPE_ORDERED_ALPHA_LOWER != 0:
+		case flags&_LIST_TYPE_ORDERED_ALPHA_LOWER != 0:
 			ial.GetOrDefaultAttr("style", "format %c")
-		case flags&LIST_TYPE_ORDERED_ALPHA_UPPER != 0:
+		case flags&_LIST_TYPE_ORDERED_ALPHA_UPPER != 0:
 			ial.GetOrDefaultAttr("style", "format %C")
-		case flags&LIST_TYPE_ORDERED_ROMAN_LOWER != 0:
+		case flags&_LIST_TYPE_ORDERED_ROMAN_LOWER != 0:
 			ial.GetOrDefaultAttr("style", "format %i")
-		case flags&LIST_TYPE_ORDERED_ROMAN_UPPER != 0:
+		case flags&_LIST_TYPE_ORDERED_ROMAN_UPPER != 0:
 			ial.GetOrDefaultAttr("style", "format %I")
-		case flags&LIST_TYPE_ORDERED_GROUP != 0:
+		case flags&_LIST_TYPE_ORDERED_GROUP != 0:
 			// check start as well
 			if group != nil {
 				options.group[string(group)]++
@@ -274,7 +274,7 @@ func (options *xml2) List(out *bytes.Buffer, text func() bool, flags, start int,
 		default:
 			ial.GetOrDefaultAttr("style", "numbers")
 		}
-	case flags&LIST_TYPE_DEFINITION != 0:
+	case flags&_LIST_TYPE_DEFINITION != 0:
 		ial.GetOrDefaultAttr("style", "hanging")
 	default:
 		ial.GetOrDefaultAttr("style", "symbols")
@@ -287,27 +287,27 @@ func (options *xml2) List(out *bytes.Buffer, text func() bool, flags, start int,
 		return
 	}
 	switch {
-	case flags&LIST_TYPE_ORDERED != 0:
+	case flags&_LIST_TYPE_ORDERED != 0:
 		out.WriteString("</list>\n")
-	case flags&LIST_TYPE_DEFINITION != 0:
+	case flags&_LIST_TYPE_DEFINITION != 0:
 		out.WriteString("</t>\n</list>\n")
 	default:
 		out.WriteString("</list>\n")
 	}
-	if flags&LIST_INSIDE_LIST == 0 {
+	if flags&_LIST_INSIDE_LIST == 0 {
 		out.WriteString("</t>\n")
 	}
 }
 
 func (options *xml2) ListItem(out *bytes.Buffer, text []byte, flags int) {
-	if flags&LIST_TYPE_DEFINITION != 0 && flags&LIST_TYPE_TERM == 0 {
+	if flags&_LIST_TYPE_DEFINITION != 0 && flags&_LIST_TYPE_TERM == 0 {
 		//out.WriteString("<dd>")
 		out.Write(text)
 		//out.WriteString("</dd>\n")
 		return
 	}
-	if flags&LIST_TYPE_TERM != 0 {
-		if flags&LIST_ITEM_BEGINNING_OF_LIST == 0 {
+	if flags&_LIST_TYPE_TERM != 0 {
+		if flags&_LIST_ITEM_BEGINNING_OF_LIST == 0 {
 			out.WriteString("</t>\n")
 		}
 		// close previous one?/
@@ -330,14 +330,14 @@ func (options *xml2) Example(out *bytes.Buffer, index int) {
 // Needs flags int, for in-list-detection xml2rfc v2
 func (options *xml2) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
-	if flags&LIST_TYPE_DEFINITION == 0 && flags&LIST_INSIDE_LIST == 0 {
+	if flags&_LIST_TYPE_DEFINITION == 0 && flags&_LIST_INSIDE_LIST == 0 {
 		out.WriteString("<t>")
 	}
 	if !text() {
 		out.Truncate(marker)
 		return
 	}
-	if flags&LIST_TYPE_DEFINITION == 0 && flags&LIST_INSIDE_LIST == 0 {
+	if flags&_LIST_TYPE_DEFINITION == 0 && flags&_LIST_INSIDE_LIST == 0 {
 		out.WriteString("</t>\n")
 	}
 }
@@ -363,9 +363,9 @@ func (options *xml2) TableRow(out *bytes.Buffer, text []byte) {
 func (options *xml2) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
 	a := ""
 	switch align {
-	case TABLE_ALIGNMENT_LEFT:
+	case _TABLE_ALIGNMENT_LEFT:
 		a = " align=\"left\""
-	case TABLE_ALIGNMENT_RIGHT:
+	case _TABLE_ALIGNMENT_RIGHT:
 		a = " align=\"right\""
 	default:
 		a = " align=\"center\""
@@ -417,16 +417,16 @@ func (options *xml2) References(out *bytes.Buffer, citations map[string]*citatio
 		options.sectionLevel--
 	}
 	switch options.docLevel {
-	case DOC_FRONT_MATTER:
+	case _DOC_FRONT_MATTER:
 		out.WriteString("</front>\n")
 		out.WriteString("<back>\n")
-	case DOC_MAIN_MATTER:
+	case _DOC_MAIN_MATTER:
 		out.WriteString("</middle>\n")
 		out.WriteString("<back>\n")
-	case DOC_BACK_MATTER:
+	case _DOC_BACK_MATTER:
 		// nothing to do
 	}
-	options.docLevel = DOC_BACK_MATTER
+	options.docLevel = _DOC_BACK_MATTER
 
 	refi, refn := 0, 0
 	for _, c := range citations {
@@ -476,7 +476,7 @@ func (options *xml2) References(out *bytes.Buffer, citations map[string]*citatio
 
 func (options *xml2) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	out.WriteString("<eref target=\"")
-	if kind == LINK_TYPE_EMAIL {
+	if kind == _LINK_TYPE_EMAIL {
 		out.WriteString("mailto:")
 	}
 	out.Write(link)
@@ -585,7 +585,7 @@ func (options *xml2) DocumentFooter(out *bytes.Buffer, first bool) {
 		return
 	}
 	switch options.specialSection {
-	case ABSTRACT:
+	case _ABSTRACT:
 		out.WriteString("</abstract>\n\n")
 	}
 	// close any option section tags
@@ -597,11 +597,11 @@ func (options *xml2) DocumentFooter(out *bytes.Buffer, first bool) {
 		return
 	}
 	switch options.docLevel {
-	case DOC_FRONT_MATTER:
+	case _DOC_FRONT_MATTER:
 		out.WriteString("\n</front>\n")
-	case DOC_MAIN_MATTER:
+	case _DOC_MAIN_MATTER:
 		out.WriteString("\n</middle>\n")
-	case DOC_BACK_MATTER:
+	case _DOC_BACK_MATTER:
 		out.WriteString("\n</back>\n")
 	}
 	out.WriteString("</rfc>\n")
@@ -612,7 +612,7 @@ func (options *xml2) DocumentMatter(out *bytes.Buffer, matter int) {
 		return
 	}
 	switch options.specialSection {
-	case ABSTRACT:
+	case _ABSTRACT:
 		out.WriteString("</abstract>\n\n")
 	}
 	// we default to frontmatter already openened in the documentHeader
@@ -621,12 +621,12 @@ func (options *xml2) DocumentMatter(out *bytes.Buffer, matter int) {
 		options.sectionLevel--
 	}
 	switch matter {
-	case DOC_FRONT_MATTER:
+	case _DOC_FRONT_MATTER:
 		// already open
-	case DOC_MAIN_MATTER:
+	case _DOC_MAIN_MATTER:
 		out.WriteString("</front>\n")
 		out.WriteString("\n<middle>\n")
-	case DOC_BACK_MATTER:
+	case _DOC_BACK_MATTER:
 		out.WriteString("\n</middle>\n")
 		out.WriteString("<back>\n")
 	}
