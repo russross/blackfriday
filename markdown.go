@@ -29,12 +29,12 @@ const (
 	EXTENSION_HARD_LINE_BREAK            // translate newlines into line breaks
 	EXTENSION_HEADER_IDS                 // specify header IDs with {#id}
 	EXTENSION_INCLUDE                    // Include file with {{ syntax
-	EXTENSION_INLINE_ATTR                // detect CommonMark's IAL syntax (copied from kramdown)
+	EXTENSION_INLINE_ATTR                // detect CommonMark's IAL syntax
 	EXTENSION_LAX_HTML_BLOCKS            // loosen up HTML block parsing rules
 	EXTENSION_MATH                       // detect $$...$$ and parse as math
 	EXTENSION_MATTER                     // use {frontmatter} {mainmatter} {backmatter}
 	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK // No need to insert an empty line to start a (code, quote, order list, unorder list)block
-	EXTENSION_PARTS                      // detect part headers (-#) (from leanpub)
+	EXTENSION_PARTS                      // detect part headers (-#)
 	EXTENSION_QUOTES                     // Allow A> AS> and N> to be parsed as abstract, asides and notes
 	EXTENSION_SHORT_REF                  // (#id) will be a cross reference.
 	EXTENSION_SPACE_HEADERS              // be strict about prefix header rules
