@@ -265,6 +265,40 @@ type parser struct {
 	anchors map[string]int
 }
 
+// Markiedown is an io.Writer. Writing a buffer with markdown text will be converted to
+// the output format the renderer outputs.
+type Markiedown struct {
+	renderer   Renderer
+	extensions int
+	in         *bytes.Buffer
+	out        *bytes.Buffer
+
+	renderedSinceLastWrite bool
+}
+
+func NewMarkdown(renderer Renderer, extensions int) *Markiedown {
+	return &Markiedown{renderer, extensions, &bytes.Buffer{}, &bytes.Buffer{}, false}
+}
+
+func (m *Markiedown) Write(p []byte) (n int, err error) {
+	m.renderedSinceLastWrite = false
+	return m.in.Write(p)
+}
+
+func (m *Markiedown) String() string { m.render(); return m.out.String() }
+func (m *Markiedown) Bytes() []byte  { m.render(); return m.out.Bytes() }
+
+func (m *Markiedown) render() {
+	if m.renderer == nil {
+		// default to Html renderer
+	}
+	if m.renderedSinceLastWrite {
+		return
+	}
+	m.out = Markdown(m.in.Bytes(), m.renderer, m.extensions)
+	m.renderedSinceLastWrite = true
+}
+
 // Markdown is the main rendering function.
 // It parses and renders a block of markdown-encoded text.
 // The supplied Renderer is used to format the output, and extensions dictates
@@ -272,7 +306,7 @@ type parser struct {
 //
 // To use the supplied Html or XML renderers, see HtmlRenderer, XmlRenderer and
 // Xml2Renderer, respectively.
-func Markdown(input []byte, renderer Renderer, extensions int) []byte {
+func Markdown(input []byte, renderer Renderer, extensions int) *bytes.Buffer {
 	// no point in parsing if we can't render
 	if renderer == nil {
 		return nil
@@ -318,7 +352,7 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	}
 
 	first := firstPass(p, input, 0)
-	second := secondPass(p, first, 0)
+	second := secondPass(p, first.Bytes(), 0)
 	return second
 }
 
@@ -329,12 +363,14 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 // - normalize newlines
 // - copy everything else
 // - add missing newlines before fenced code blocks
-func firstPass(p *parser, input []byte, depth int) []byte {
+func firstPass(p *parser, input []byte, depth int) *bytes.Buffer {
+	var out bytes.Buffer
 	if depth > 8 {
 		log.Printf("nested includes depth > 8")
-		return []byte{'\n'}
+		out.WriteByte('\n')
+		return &out
 	}
-	var out bytes.Buffer
+
 	tabSize := _TAB_SIZE_DEFAULT
 	beg, end := 0, 0
 	lastLineWasBlank := false
@@ -393,11 +429,11 @@ func firstPass(p *parser, input []byte, depth int) []byte {
 		out.WriteByte('\n')
 	}
 
-	return out.Bytes()
+	return &out
 }
 
 // second pass: actual rendering
-func secondPass(p *parser, input []byte, depth int) []byte {
+func secondPass(p *parser, input []byte, depth int) *bytes.Buffer {
 	var output bytes.Buffer
 
 	p.r.DocumentHeader(&output, depth == 0)
@@ -433,7 +469,7 @@ func secondPass(p *parser, input []byte, depth int) []byte {
 		panic("Nesting level did not end at zero")
 	}
 
-	return output.Bytes()
+	return &output
 }
 
 //
@@ -851,7 +887,7 @@ func (p *parser) include(out *bytes.Buffer, data []byte) int {
 	first := firstPass(p, input, 0)
 
 	var work bytes.Buffer
-	p.block(&work, first)
+	p.block(&work, first.Bytes())
 	return end
 }
 

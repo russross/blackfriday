@@ -12,7 +12,7 @@ func runMarkdownCommonMark(input string, extensions int) string {
 
 	renderer := HtmlRenderer(htmlFlags, "", "")
 
-	return string(Markdown([]byte(input), renderer, extensions))
+	return Markdown([]byte(input), renderer, extensions).String()
 }
 
 func doTestsCommonMark(t *testing.T, tests []string, extensions int) {
