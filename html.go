@@ -51,7 +51,7 @@ type HtmlRendererParameters struct {
 // Html is a type that implements the Renderer interface for HTML output.
 //
 // Do not create this directly, instead use the HtmlRenderer function.
-type Html struct {
+type html struct {
 	flags    int    // HTML_* options
 	closeTag string // how to end singleton tags: either " />\n" or ">\n"
 	title    string // document title
@@ -97,7 +97,7 @@ func HtmlRendererWithParameters(flags int, title string,
 		renderParameters.FootnoteReturnLinkContents = `<sup>[return]</sup>`
 	}
 
-	return &Html{
+	return &html{
 		flags:      flags,
 		closeTag:   closeTag,
 		title:      title,
@@ -157,19 +157,19 @@ func entityEscapeWithSkip(out *bytes.Buffer, src []byte, skipRanges [][]int) {
 	attrEscape(out, src[end:])
 }
 
-func (options *Html) Flags() int {
+func (options *html) Flags() int {
 	return options.flags
 }
 
-func (options *Html) TitleBlockTOML(out *bytes.Buffer, data *title) {}
+func (options *html) TitleBlockTOML(out *bytes.Buffer, data *title) {}
 
-func (options *Html) Part(out *bytes.Buffer, text func() bool, id string) {}
+func (options *html) Part(out *bytes.Buffer, text func() bool, id string) {}
 
-func (options *Html) Abstract(out *bytes.Buffer, text func() bool, id string) {
+func (options *html) Abstract(out *bytes.Buffer, text func() bool, id string) {
 	// Create header with abstract
 }
 
-func (options *Html) Header(out *bytes.Buffer, text func() bool, level int, id string) {
+func (options *html) Header(out *bytes.Buffer, text func() bool, level int, id string) {
 	marker := out.Len()
 	doubleSpace(out)
 
@@ -196,7 +196,7 @@ func (options *Html) Header(out *bytes.Buffer, text func() bool, level int, id s
 	out.WriteString(fmt.Sprintf("</h%d>\n", level))
 }
 
-func (options *Html) CommentHtml(out *bytes.Buffer, text []byte) {
+func (options *html) CommentHtml(out *bytes.Buffer, text []byte) {
 	if options.flags&HTML_SKIP_HTML != 0 {
 		return
 	}
@@ -206,7 +206,7 @@ func (options *Html) CommentHtml(out *bytes.Buffer, text []byte) {
 	out.WriteByte('\n')
 }
 
-func (options *Html) BlockHtml(out *bytes.Buffer, text []byte) {
+func (options *html) BlockHtml(out *bytes.Buffer, text []byte) {
 	if options.flags&HTML_SKIP_HTML != 0 {
 		return
 	}
@@ -216,13 +216,13 @@ func (options *Html) BlockHtml(out *bytes.Buffer, text []byte) {
 	out.WriteByte('\n')
 }
 
-func (options *Html) HRule(out *bytes.Buffer) {
+func (options *html) HRule(out *bytes.Buffer) {
 	doubleSpace(out)
 	out.WriteString("<hr")
 	out.WriteString(options.closeTag)
 }
 
-func (options *Html) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte) {
+func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte) {
 	doubleSpace(out)
 
 	// parse out the language names/classes
@@ -253,28 +253,28 @@ func (options *Html) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 	out.WriteString("</code></pre>\n")
 }
 
-func (options *Html) BlockQuote(out *bytes.Buffer, text []byte, attribution []byte) {
+func (options *html) BlockQuote(out *bytes.Buffer, text []byte, attribution []byte) {
 	doubleSpace(out)
 	out.WriteString("<blockquote>\n")
 	out.Write(text)
 	out.WriteString("</blockquote>\n")
 }
 
-func (options *Html) Aside(out *bytes.Buffer, text []byte) {
+func (options *html) Aside(out *bytes.Buffer, text []byte) {
 	doubleSpace(out)
 	out.WriteString("<blockquote>\n")
 	out.Write(text)
 	out.WriteString("</blockquote>\n")
 }
 
-func (options *Html) Note(out *bytes.Buffer, text []byte) {
+func (options *html) Note(out *bytes.Buffer, text []byte) {
 	doubleSpace(out)
 	out.WriteString("<blockquote>\n")
 	out.Write(text)
 	out.WriteString("</blockquote>\n")
 }
 
-func (options *Html) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
+func (options *html) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
 	doubleSpace(out)
 	out.WriteString("<table>\n")
 	if len(caption) > 0 {
@@ -295,14 +295,14 @@ func (options *Html) Table(out *bytes.Buffer, header []byte, body []byte, footer
 	out.WriteString("</table>\n")
 }
 
-func (options *Html) TableRow(out *bytes.Buffer, text []byte) {
+func (options *html) TableRow(out *bytes.Buffer, text []byte) {
 	doubleSpace(out)
 	out.WriteString("<tr>\n")
 	out.Write(text)
 	out.WriteString("\n</tr>\n")
 }
 
-func (options *Html) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
+func (options *html) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
 	doubleSpace(out)
 	switch align {
 	case TABLE_ALIGNMENT_LEFT:
@@ -319,7 +319,7 @@ func (options *Html) TableHeaderCell(out *bytes.Buffer, text []byte, align int) 
 	out.WriteString("</th>")
 }
 
-func (options *Html) TableCell(out *bytes.Buffer, text []byte, align int) {
+func (options *html) TableCell(out *bytes.Buffer, text []byte, align int) {
 	doubleSpace(out)
 	switch align {
 	case TABLE_ALIGNMENT_LEFT:
@@ -336,14 +336,14 @@ func (options *Html) TableCell(out *bytes.Buffer, text []byte, align int) {
 	out.WriteString("</td>")
 }
 
-func (options *Html) Footnotes(out *bytes.Buffer, text func() bool) {
+func (options *html) Footnotes(out *bytes.Buffer, text func() bool) {
 	out.WriteString("<div class=\"footnotes\">\n")
 	options.HRule(out)
 	options.List(out, text, LIST_TYPE_ORDERED, 0, nil)
 	out.WriteString("</div>\n")
 }
 
-func (options *Html) FootnoteItem(out *bytes.Buffer, name, text []byte, flags int) {
+func (options *html) FootnoteItem(out *bytes.Buffer, name, text []byte, flags int) {
 	if flags&LIST_ITEM_CONTAINS_BLOCK != 0 || flags&LIST_ITEM_BEGINNING_OF_LIST != 0 {
 		doubleSpace(out)
 	}
@@ -366,7 +366,7 @@ func (options *Html) FootnoteItem(out *bytes.Buffer, name, text []byte, flags in
 	out.WriteString("</li>\n")
 }
 
-func (options *Html) List(out *bytes.Buffer, text func() bool, flags, start int, group []byte) {
+func (options *html) List(out *bytes.Buffer, text func() bool, flags, start int, group []byte) {
 	marker := out.Len()
 	doubleSpace(out)
 
@@ -397,7 +397,7 @@ func (options *Html) List(out *bytes.Buffer, text func() bool, flags, start int,
 	}
 }
 
-func (options *Html) ListItem(out *bytes.Buffer, text []byte, flags int) {
+func (options *html) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	if flags&LIST_ITEM_CONTAINS_BLOCK != 0 || flags&LIST_ITEM_BEGINNING_OF_LIST != 0 {
 		doubleSpace(out)
 	}
@@ -406,13 +406,13 @@ func (options *Html) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	out.WriteString("</li>\n")
 }
 
-func (options *Html) Example(out *bytes.Buffer, index int) {
+func (options *html) Example(out *bytes.Buffer, index int) {
 	out.WriteByte('(')
 	out.WriteString(strconv.Itoa(index))
 	out.WriteByte(')')
 }
 
-func (options *Html) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
+func (options *html) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
 	doubleSpace(out)
 
@@ -424,7 +424,7 @@ func (options *Html) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	out.WriteString("</p>\n")
 }
 
-func (options *Html) Math(out *bytes.Buffer, text []byte, display bool) {
+func (options *html) Math(out *bytes.Buffer, text []byte, display bool) {
 	ial := options.InlineAttr()
 	s := ial.String()
 	if display {
@@ -437,7 +437,7 @@ func (options *Html) Math(out *bytes.Buffer, text []byte, display bool) {
 	out.WriteString("</script>")
 }
 
-func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
+func (options *html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	skipRanges := htmlEntity.FindAllIndex(link, -1)
 	if options.flags&HTML_SAFELINK != 0 && !isSafeLink(link) && kind != LINK_TYPE_EMAIL {
 		// mark it but don't link it if it is not a safe link
@@ -481,19 +481,19 @@ func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	out.WriteString("</a>")
 }
 
-func (options *Html) CodeSpan(out *bytes.Buffer, text []byte) {
+func (options *html) CodeSpan(out *bytes.Buffer, text []byte) {
 	out.WriteString("<code>")
 	attrEscape(out, text)
 	out.WriteString("</code>")
 }
 
-func (options *Html) DoubleEmphasis(out *bytes.Buffer, text []byte) {
+func (options *html) DoubleEmphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("<strong>")
 	out.Write(text)
 	out.WriteString("</strong>")
 }
 
-func (options *Html) Emphasis(out *bytes.Buffer, text []byte) {
+func (options *html) Emphasis(out *bytes.Buffer, text []byte) {
 	// TODO(miek): why is this check here?
 	if len(text) == 0 {
 		return
@@ -503,19 +503,19 @@ func (options *Html) Emphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("</em>")
 }
 
-func (options *Html) Subscript(out *bytes.Buffer, text []byte) {
+func (options *html) Subscript(out *bytes.Buffer, text []byte) {
 	out.WriteString("<sub>")
 	out.Write(text)
 	out.WriteString("</sub>")
 }
 
-func (options *Html) Superscript(out *bytes.Buffer, text []byte) {
+func (options *html) Superscript(out *bytes.Buffer, text []byte) {
 	out.WriteString("<sup>")
 	out.Write(text)
 	out.WriteString("</sup>")
 }
 
-func (options *Html) maybeWriteAbsolutePrefix(out *bytes.Buffer, link []byte) {
+func (options *html) maybeWriteAbsolutePrefix(out *bytes.Buffer, link []byte) {
 	if options.parameters.AbsolutePrefix != "" && isRelativeLink(link) {
 		out.WriteString(options.parameters.AbsolutePrefix)
 		if link[0] != '/' {
@@ -524,7 +524,7 @@ func (options *Html) maybeWriteAbsolutePrefix(out *bytes.Buffer, link []byte) {
 	}
 }
 
-func (options *Html) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
+func (options *html) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
 	if options.flags&HTML_SKIP_IMAGES != 0 {
 		return
 	}
@@ -546,12 +546,12 @@ func (options *Html) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 	return
 }
 
-func (options *Html) LineBreak(out *bytes.Buffer) {
+func (options *html) LineBreak(out *bytes.Buffer) {
 	out.WriteString("<br")
 	out.WriteString(options.closeTag)
 }
 
-func (options *Html) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
+func (options *html) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
 	if options.flags&HTML_SKIP_LINKS != 0 {
 		// write the link text out but don't link it, just mark it with typewriter font
 		out.WriteString("<tt>")
@@ -589,7 +589,7 @@ func (options *Html) Link(out *bytes.Buffer, link []byte, title []byte, content 
 	return
 }
 
-func (options *Html) Abbreviation(out *bytes.Buffer, abbr, title []byte) {
+func (options *html) Abbreviation(out *bytes.Buffer, abbr, title []byte) {
 	if len(title) == 0 {
 		out.WriteString("<abbr>")
 	} else {
@@ -601,7 +601,7 @@ func (options *Html) Abbreviation(out *bytes.Buffer, abbr, title []byte) {
 	out.WriteString("</abbr>")
 }
 
-func (options *Html) RawHtmlTag(out *bytes.Buffer, text []byte) {
+func (options *html) RawHtmlTag(out *bytes.Buffer, text []byte) {
 	if options.flags&HTML_SKIP_HTML != 0 {
 		return
 	}
@@ -617,19 +617,19 @@ func (options *Html) RawHtmlTag(out *bytes.Buffer, text []byte) {
 	out.Write(text)
 }
 
-func (options *Html) TripleEmphasis(out *bytes.Buffer, text []byte) {
+func (options *html) TripleEmphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("<strong><em>")
 	out.Write(text)
 	out.WriteString("</em></strong>")
 }
 
-func (options *Html) StrikeThrough(out *bytes.Buffer, text []byte) {
+func (options *html) StrikeThrough(out *bytes.Buffer, text []byte) {
 	out.WriteString("<del>")
 	out.Write(text)
 	out.WriteString("</del>")
 }
 
-func (options *Html) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
+func (options *html) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
 	slug := slugify(ref)
 	out.WriteString(`<sup class="footnote-ref" id="`)
 	out.WriteString(`fnref:`)
@@ -644,16 +644,16 @@ func (options *Html) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
 	out.WriteString(`</a></sup>`)
 }
 
-func (options *Html) Index(out *bytes.Buffer, primary, secondary []byte, prim bool) {}
-func (options *Html) Citation(out *bytes.Buffer, link, title []byte)                {}
-func (options *Html) References(out *bytes.Buffer, citations map[string]*citation)  {}
-func (options *Html) Entity(out *bytes.Buffer, entity []byte)                       { out.Write(entity) }
+func (options *html) Index(out *bytes.Buffer, primary, secondary []byte, prim bool) {}
+func (options *html) Citation(out *bytes.Buffer, link, title []byte)                {}
+func (options *html) References(out *bytes.Buffer, citations map[string]*citation)  {}
+func (options *html) Entity(out *bytes.Buffer, entity []byte)                       { out.Write(entity) }
 
-func (options *Html) NormalText(out *bytes.Buffer, text []byte) {
+func (options *html) NormalText(out *bytes.Buffer, text []byte) {
 	attrEscape(out, text)
 }
 
-func (options *Html) DocumentHeader(out *bytes.Buffer, first bool) {
+func (options *html) DocumentHeader(out *bytes.Buffer, first bool) {
 	if !first {
 		return
 	}
@@ -696,7 +696,7 @@ func (options *Html) DocumentHeader(out *bytes.Buffer, first bool) {
 	options.tocMarker = out.Len()
 }
 
-func (options *Html) DocumentFooter(out *bytes.Buffer, first bool) {
+func (options *html) DocumentFooter(out *bytes.Buffer, first bool) {
 	if !first {
 		return
 	}
@@ -740,11 +740,11 @@ func (options *Html) DocumentFooter(out *bytes.Buffer, first bool) {
 	}
 }
 
-func (options *Html) DocumentMatter(out *bytes.Buffer, matter int) {
+func (options *html) DocumentMatter(out *bytes.Buffer, matter int) {
 	// not used in the Html output
 }
 
-func (options *Html) TocHeaderWithAnchor(text []byte, level int, anchor string) {
+func (options *html) TocHeaderWithAnchor(text []byte, level int, anchor string) {
 	for level > options.currentLevel {
 		switch {
 		case bytes.HasSuffix(options.toc.Bytes(), []byte("</li>\n")):
@@ -785,11 +785,11 @@ func (options *Html) TocHeaderWithAnchor(text []byte, level int, anchor string) 
 	options.toc.WriteString("</a></li>\n")
 }
 
-func (options *Html) TocHeader(text []byte, level int) {
+func (options *html) TocHeader(text []byte, level int) {
 	options.TocHeaderWithAnchor(text, level, "")
 }
 
-func (options *Html) TocFinalize() {
+func (options *html) TocFinalize() {
 	for options.currentLevel > 1 {
 		options.toc.WriteString("</ul></li>\n")
 		options.currentLevel--
@@ -800,11 +800,11 @@ func (options *Html) TocFinalize() {
 	}
 }
 
-func (options *Html) SetInlineAttr(i *InlineAttr) {
+func (options *html) SetInlineAttr(i *InlineAttr) {
 	options.ial = i
 }
 
-func (options *Html) InlineAttr() *InlineAttr {
+func (options *html) InlineAttr() *InlineAttr {
 	if options.ial == nil {
 		return newInlineAttr()
 	}
