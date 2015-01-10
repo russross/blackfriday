@@ -270,7 +270,7 @@ type parser struct {
 // The supplied Renderer is used to format the output, and extensions dictates
 // which non-standard extensions are enabled.
 //
-// To use the supplied Html or XML renderers, see HtmlRendereri, XmlRenderer and
+// To use the supplied Html or XML renderers, see HtmlRenderer, XmlRenderer and
 // Xml2Renderer, respectively.
 func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	// no point in parsing if we can't render
