@@ -10,7 +10,7 @@ import (
 
 func runMarkdownReference(input string, flag int) string {
 	renderer := HtmlRenderer(0, "", "")
-	return Markdown([]byte(input), renderer, flag).String()
+	return Parse([]byte(input), renderer, flag).String()
 }
 
 func doTestsReference(t *testing.T, files []string, flag int) {

@@ -265,9 +265,10 @@ type parser struct {
 	anchors map[string]int
 }
 
-// Markiedown is an io.Writer. Writing a buffer with markdown text will be converted to
-// the output format the renderer outputs.
-type Markiedown struct {
+// Markdown is an io.Writer. Writing a buffer with markdown text will be converted to
+// the output format the renderer outputs. Note that the conversion only takes place
+// when String() or Bytes() is called.
+type Markdown struct {
 	renderer   Renderer
 	extensions int
 	in         *bytes.Buffer
@@ -276,37 +277,37 @@ type Markiedown struct {
 	renderedSinceLastWrite bool
 }
 
-func NewMarkdown(renderer Renderer, extensions int) *Markiedown {
-	return &Markiedown{renderer, extensions, &bytes.Buffer{}, &bytes.Buffer{}, false}
+func NewMarkdown(renderer Renderer, extensions int) *Markdown {
+	return &Markdown{renderer, extensions, &bytes.Buffer{}, &bytes.Buffer{}, false}
 }
 
-func (m *Markiedown) Write(p []byte) (n int, err error) {
+func (m *Markdown) Write(p []byte) (n int, err error) {
 	m.renderedSinceLastWrite = false
 	return m.in.Write(p)
 }
 
-func (m *Markiedown) String() string { m.render(); return m.out.String() }
-func (m *Markiedown) Bytes() []byte  { m.render(); return m.out.Bytes() }
+func (m *Markdown) String() string { m.render(); return m.out.String() }
+func (m *Markdown) Bytes() []byte  { m.render(); return m.out.Bytes() }
 
-func (m *Markiedown) render() {
+func (m *Markdown) render() {
 	if m.renderer == nil {
 		// default to Html renderer
 	}
 	if m.renderedSinceLastWrite {
 		return
 	}
-	m.out = Markdown(m.in.Bytes(), m.renderer, m.extensions)
+	m.out = Parse(m.in.Bytes(), m.renderer, m.extensions)
 	m.renderedSinceLastWrite = true
 }
 
-// Markdown is the main rendering function.
+// Parse is the main rendering function.
 // It parses and renders a block of markdown-encoded text.
 // The supplied Renderer is used to format the output, and extensions dictates
 // which non-standard extensions are enabled.
 //
 // To use the supplied Html or XML renderers, see HtmlRenderer, XmlRenderer and
 // Xml2Renderer, respectively.
-func Markdown(input []byte, renderer Renderer, extensions int) *bytes.Buffer {
+func Parse(input []byte, renderer Renderer, extensions int) *bytes.Buffer {
 	// no point in parsing if we can't render
 	if renderer == nil {
 		return nil

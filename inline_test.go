@@ -16,7 +16,7 @@ func runMarkdownInline(input string, extensions, htmlFlags int, params HtmlRende
 
 	renderer := HtmlRendererWithParameters(htmlFlags, "", "", params)
 
-	return Markdown([]byte(input), renderer, extensions).String()
+	return Parse([]byte(input), renderer, extensions).String()
 }
 
 func doTestsInline(t *testing.T, tests []string) {
@@ -956,7 +956,7 @@ func runMarkdownInlineXML(input string, extensions, xmlFlags int) string {
 
 	renderer := XmlRenderer(xmlFlags)
 
-	return Markdown([]byte(input), renderer, extensions).String()
+	return Parse([]byte(input), renderer, extensions).String()
 }
 
 func doTestsInlineXML(t *testing.T, tests []string) {

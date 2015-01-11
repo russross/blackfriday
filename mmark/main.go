@@ -154,7 +154,7 @@ func main() {
 	var output []byte
 	for i := 0; i < repeat; i++ {
 		// TODO(miek): io.Copy
-		output = mmark.Markdown(input, renderer, extensions).Bytes()
+		output = mmark.Parse(input, renderer, extensions).Bytes()
 	}
 
 	// output the result

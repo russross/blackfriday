@@ -14,7 +14,7 @@ func runMarkdownBlock(input string, extensions int) string {
 
 	renderer := HtmlRenderer(htmlFlags, "", "")
 
-	return Markdown([]byte(input), renderer, extensions).String()
+	return Parse([]byte(input), renderer, extensions).String()
 }
 
 func runMarkdownBlockXML(input string, extensions int) string {
@@ -24,7 +24,7 @@ func runMarkdownBlockXML(input string, extensions int) string {
 	extensions |= EXTENSION_UNIQUE_HEADER_IDS
 	renderer := XmlRenderer(xmlFlags)
 
-	return Markdown([]byte(input), renderer, extensions).String()
+	return Parse([]byte(input), renderer, extensions).String()
 }
 
 func doTestsBlock(t *testing.T, tests []string, extensions int) {
