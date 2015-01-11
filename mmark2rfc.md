@@ -147,7 +147,7 @@ After a quote (a paragraph prefixed with `> `) you can add a caption:
     Quote: Name -- URI for attribution
 
 In v3 this is used in the block quote attributes, for v2 it is discarded. If you need
-the string 'Quote:` after an quote, escape the colon: `Quote\:`.
+the string `Quote: ` after an quote, escape the colon: `Quote\: `.
 
 ## Tables
 
@@ -224,7 +224,6 @@ letters. When using roman numbers and letter you **MUST** use two spaces after t
 underscore signals a space here):
 
     a)__
-    II.__
     A)__
 
 Note that mmark (just as @pandoc) pays attention to the starting number of a list (when using decimal numbers), thus
@@ -237,7 +236,7 @@ Will use for `4` as the starting number.
 
 ## Unordered Lists
 
-Unordered lists can be started with `*`, `+` or `-` and follow the normal markdown syntax rules. <!-- *-->
+Unordered lists can be started with `*`, `+` or `-` and follow the normal markdown syntax rules. <!-- * -->
 
 ## Definition Lists
 
