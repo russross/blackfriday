@@ -16,7 +16,7 @@ package blackfriday
 import (
 	"bytes"
 
-	"github.com/shurcooL/go/github_flavored_markdown/sanitized_anchor_name"
+	"github.com/shurcooL/sanitized_anchor_name"
 )
 
 // Parse block-level data.
