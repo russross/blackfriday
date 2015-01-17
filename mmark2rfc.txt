@@ -63,8 +63,8 @@ Internet-Draft                  mmark2rfc                  December 2014
 
 Table of Contents
 
-   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
-   2.  Mmark Syntax  . . . . . . . . . . . . . . . . . . . . . . . .   3
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   3
+   2.  Mmark Syntax  . . . . . . . . . . . . . . . . . . . . . . . .   4
    3.  TOML header . . . . . . . . . . . . . . . . . . . . . . . . .   4
    4.  Citations . . . . . . . . . . . . . . . . . . . . . . . . . .   4
    5.  Internal References . . . . . . . . . . . . . . . . . . . . .   4
@@ -81,31 +81,31 @@ Table of Contents
      11.2.  Unordered Lists  . . . . . . . . . . . . . . . . . . . .   7
      11.3.  Definition Lists . . . . . . . . . . . . . . . . . . . .   7
      11.4.  Example Lists  . . . . . . . . . . . . . . . . . . . . .   7
-   12. Miscellaneous Features  . . . . . . . . . . . . . . . . . . .   8
-     12.1.  HTML Comment . . . . . . . . . . . . . . . . . . . . . .   8
-     12.2.  Including Files  . . . . . . . . . . . . . . . . . . . .   8
-     12.3.  Including Code Fragments . . . . . . . . . . . . . . . .   8
-   13. XML2RFC V3 features . . . . . . . . . . . . . . . . . . . . .   8
-     13.1.  Asides . . . . . . . . . . . . . . . . . . . . . . . . .   8
-     13.2.  Notes  . . . . . . . . . . . . . . . . . . . . . . . . .   9
-     13.3.  RFC 2119 Keywords  . . . . . . . . . . . . . . . . . . .   9
-     13.4.  Super- and Subscripts  . . . . . . . . . . . . . . . . .   9
-     13.5.  Images . . . . . . . . . . . . . . . . . . . . . . . . .   9
-   14. Converting from RFC 7328 Syntax . . . . . . . . . . . . . . .   9
-   15. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  10
-   16. References  . . . . . . . . . . . . . . . . . . . . . . . . .  10
-     16.1.  Informative References . . . . . . . . . . . . . . . . .  10
-     16.2.  Normative References . . . . . . . . . . . . . . . . . .  10
-     16.3.  URIs . . . . . . . . . . . . . . . . . . . . . . . . . .  10
-   Appendix A.  Bugs . . . . . . . . . . . . . . . . . . . . . . . .  11
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  11
+   12. Figures and Images  . . . . . . . . . . . . . . . . . . . . .   8
+     12.1.  Proposal . . . . . . . . . . . . . . . . . . . . . . . .   8
+   13. Miscellaneous Features  . . . . . . . . . . . . . . . . . . .   9
+     13.1.  HTML Comment . . . . . . . . . . . . . . . . . . . . . .   9
+     13.2.  Including Files  . . . . . . . . . . . . . . . . . . . .   9
+     13.3.  Including Code Fragments . . . . . . . . . . . . . . . .   9
+   14. XML2RFC V3 features . . . . . . . . . . . . . . . . . . . . .  10
+     14.1.  Asides . . . . . . . . . . . . . . . . . . . . . . . . .  10
+     14.2.  Notes  . . . . . . . . . . . . . . . . . . . . . . . . .  10
+     14.3.  RFC 2119 Keywords  . . . . . . . . . . . . . . . . . . .  10
+     14.4.  Super- and Subscripts  . . . . . . . . . . . . . . . . .  10
+     14.5.  Images . . . . . . . . . . . . . . . . . . . . . . . . .  11
+   15. Converting from RFC 7328 Syntax . . . . . . . . . . . . . . .  11
+   16. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  11
+   17. References  . . . . . . . . . . . . . . . . . . . . . . . . .  11
+     17.1.  Informative References . . . . . . . . . . . . . . . . .  12
+     17.2.  Normative References . . . . . . . . . . . . . . . . . .  12
+     17.3.  URIs . . . . . . . . . . . . . . . . . . . . . . . . . .  12
+   Appendix A.  Bugs . . . . . . . . . . . . . . . . . . . . . . . .  13
+   Appendix B.  Changes  . . . . . . . . . . . . . . . . . . . . . .  13
+     B.1.  01  . . . . . . . . . . . . . . . . . . . . . . . . . . .  13
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  13
 
-1.  Introduction
 
-   Mmark [mmark] is a markdown processor.  It supports the markdown
-   syntax and has been extended with (syntax) features found in other
-   markdown implementations like kramdown [2], PHP markdown extra [3],
-   [pandoc], leanpub [4] and even asciidoc [5].  This allows mmark to be
+
 
 
 
@@ -114,8 +114,15 @@ Gieben                    Expires June 13, 2015                 [Page 2]
 Internet-Draft                  mmark2rfc                  December 2014
 
 
-   used to write larger, structured documents such as RFC and I-Ds or
-   even books, while not deviating too far from markdown.
+1.  Introduction
+
+   Mmark [mmark] is a markdown processor.  It supports the markdown
+   syntax and has been extended with (syntax) features found in other
+   markdown implementations like kramdown [2], PHP markdown extra [3],
+   [pandoc], [Scholarly markdown], leanpub [4] and even asciidoc [5].
+   This allows mmark to be used to write larger, structured documents
+   such as RFC and I-Ds or even books, while not deviating too far from
+   markdown.
 
    Mmark is a fork of blackfriday [blackfriday] and is written in Golang
    and very fast.  Input to mmark must be UTF-8, the output is also UTF-
@@ -153,13 +160,6 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    Note that kramdown-2629 [7] fills the same niche as mmark.
 
-2.  Mmark Syntax
-
-   In the following sections we go over some of the difference, and the
-   extra syntax features of mmark.
-
-
-
 
 
 
@@ -169,6 +169,11 @@ Gieben                    Expires June 13, 2015                 [Page 3]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
+
+2.  Mmark Syntax
+
+   In the following sections we go over some of the difference, and the
+   extra syntax features of mmark.
 
 3.  TOML header
 
@@ -216,11 +221,6 @@ Internet-Draft                  mmark2rfc                  December 2014
 
 
 
-
-
-
-
-
 Gieben                    Expires June 13, 2015                 [Page 4]
 
 Internet-Draft                  mmark2rfc                  December 2014
@@ -265,8 +265,8 @@ Internet-Draft                  mmark2rfc                  December 2014
                     Quote: Name -- URI for attribution
 
    In v3 this is used in the block quote attributes, for v2 it is
-   discarded.  If you need the string 'Quote:"after an quote, escape the
-   colon:"Quote:`.
+   discarded.  If you need the string "Quote:" after an quote, escape
+   the colon: "Quote\:".
 
 8.3.  Tables
 
@@ -355,7 +355,6 @@ Internet-Draft                  mmark2rfc                  December 2014
    brace (the underscore signals a space here):
 
                                    a)__
-                                   II.__
                                    A)__
 
    Note that mmark (just as [pandoc]) pays attention to the starting
@@ -389,25 +388,109 @@ Internet-Draft                  mmark2rfc                  December 2014
 
 
 
+
 Gieben                    Expires June 13, 2015                 [Page 7]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
 
-12.  Miscellaneous Features
+12.  Figures and Images
 
-12.1.  HTML Comment
+   When an figure has a caption it will be wrapped in "<figure"> tags.
+   A figure can wrap source code (v3) or artwork (v2/v3).  An image is
+   wrapped in a figure when the optional title syntax is used.  Only for
+   v3 output...
+
+   Multiple artworks/sources can be put in one figure.  This done by
+   prefixing the section containing the figures with a figure quote:
+   "F>".
+
+12.1.  Proposal
+
+   o  A Fenced Code Block will becomes a source code in v3 and artwork
+      in v2.  We can use the language to signal the type.
+
+                         ``` c
+                         printf("%s\n", "hello");
+                         ```
+
+   o  An Indented Code Block becomes artwork in v3 and artwork in v2.
+      The only way to indicate the type is by using an IAL.  So one has
+      to use:
+
+                            {type="ascii-art"}
+
+                                    +-----+
+                                    | ART |
+                                    +-----+
+
+      v3 allows the usage of a src= attribute to link to external files
+      with images.  In this proposal we use the image syntax for that.
+
+   o  An image "![Alt text](/path/to/img.jpg "Optional title")", will be
+      converted to an artwork with a "src" attribute in v3.  The
+      extension of the included image file will be used to generate the
+      "type" attribute (see the table below).If the "Optional title" is
+      specified the generated artwork will be wrapped in a figure with
+      name set to "Optional title"
+
+      *  txt, text, ..: ascii-art
+
+      *  hex: hex-dump
+
+      Creating an artwork with an anchor will become:
+
+                  {#fig:id}
+                  ![](/path/to/art.txt "Optional title")
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 8]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
+      For v2 this presents difficulties as there is no way to display
+      any of this.  The v2 renderer will output a warning and not output
+      anything in this case.
+
+   o  Grouping artworks and code blocks into figures.  Scholary markdown
+      has a neat syntax for this.  It uses a special section syntax and
+      all images in that section become subfigures of a larger figure.
+      Disadvantage of this syntax is that it can not be used in lists.
+      Hence we propose a quote like solution, just as asides and notes,
+      but for figures:Basic usage:
+
+       F>  {type="ascii-art"}
+       F>      +-----+
+       F>      | ART |
+       F>      +-----+
+       F>  Figure: This caption is ignored in v3, but used in v2.
+       F>
+       F>  ``` c
+       F>  printf("%s\n", "hello");
+       F>  ```
+       F>
+       Figure: Caption for both figures in v3 (in v2 it's ignored).
+
+      In v2 this is not supported so the above will result in two
+      figures.  Note that in v2 the inner captions _are_ used, but the
+      other one will be discarded as there is no way to typeset it.
+
+13.  Miscellaneous Features
+
+13.1.  HTML Comment
 
    If a HTML comment contains "--", it will be rendered as a "cref"
    comment in the resulting XML file.  Typically "<!-- Miek Gieben --
    you want to include the next paragraph? -->".
 
-12.2.  Including Files
+13.2.  Including Files
 
    Files can be included using "{{filename}}", "filename" is relative to
    the current working directory if it is not absolute.
 
-12.3.  Including Code Fragments
+13.3.  Including Code Fragments
 
    This borrows from the Go present tool, which got its inspiration from
    the Sam editor.  The syntax was gleaned from leanpub.  But the syntax
@@ -415,6 +498,13 @@ Internet-Draft                  mmark2rfc                  December 2014
    the syntax: "<{{program}}[address]" to include a code snippet.  The
    "address" identifier specifies what lines of code are to be included
    in the fragment.
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 9]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
 
    Any line in the program that ends with the four characters "OMIT" is
    deleted from the source before inclusion, making it easy to write
@@ -429,48 +519,54 @@ Internet-Draft                  mmark2rfc                  December 2014
                  interesting_code = fascinating_function()
                  // END OMIT
 
-13.  XML2RFC V3 features
+   To aid in including HTML or XML framents, where the "OMIT" key words
+   is probably embedded in comments, line the in in "OMIT -->" are
+   excluded as well.
+
+14.  XML2RFC V3 features
 
    The v3 syntax adds some new features, those can already be used in
    mmark (even for documents targeting v2 -- but there they will be
    faked with the limited constructs of v2 syntax).
 
-13.1.  Asides
+14.1.  Asides
 
    Any paragraph prefixed with "A>".  For v2 this becomes a indented
    paragraph.
 
-
-
-
-
-
-Gieben                    Expires June 13, 2015                 [Page 8]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
-
-13.2.  Notes
+14.2.  Notes
 
    Any paragraph prefixed with "N>".  For v2 this becomes a indented
    paragraph.
 
-13.3.  RFC 2119 Keywords
+14.3.  RFC 2119 Keywords
 
    Any [RFC2119] keyword used with strong emphasis _and_ in uppercase
    will be typeset within "bcp14" tags, that is "**MUST**" becomes
    "<bcp14>MUST</bcp14>", but "**must**" will not.  For v2 they are
    stripped of the emphasis and outputted as-is.
 
-13.4.  Super- and Subscripts
+14.4.  Super- and Subscripts
 
    Use H~2~O and 2^10^ is 1024.  In v2 these are outputted as-is.
 
-13.5.  Images
+
+
+
+
+
+
+
+Gieben                    Expires June 13, 2015                [Page 10]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
+14.5.  Images
 
    TODO
 
-14.  Converting from RFC 7328 Syntax
+15.  Converting from RFC 7328 Syntax
 
    Converting from an RFC 7328 ([RFC7328]) document can be done using
    the quick and dirty Perl script [12], which uses pandoc to output
@@ -497,15 +593,6 @@ Internet-Draft                  mmark2rfc                  December 2014
    "template.xml" file and will output a TOML titleblock, that can be
    used as a starting point.
 
-
-
-
-
-Gieben                    Expires June 13, 2015                 [Page 9]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
-
       Yes, this uses pandoc and Perl.. why?  Becasue if mmark could
       parse the file by itself, there wasn't much of problem.  Two
       things are holding this back: mmark cannot parse definition lists
@@ -515,11 +602,23 @@ Internet-Draft                  mmark2rfc                  December 2014
    For now the mmark parser will not get any features that makes it
    backwards compatible with pandoc2rfc.
 
-15.  Acknowledgements
+16.  Acknowledgements
 
-16.  References
+17.  References
 
-16.1.  Informative References
+
+
+
+
+
+
+
+Gieben                    Expires June 13, 2015                [Page 11]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
+17.1.  Informative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119, March 1997.
@@ -534,7 +633,7 @@ Internet-Draft                  mmark2rfc                  December 2014
    [pandoc]   MacFarlane, J., "Pandoc, a universal document converter",
               2006, <http://johnmacfarlane.net/pandoc/>.
 
-16.2.  Normative References
+17.2.  Normative References
 
    [RFC7328]  Gieben, R., "Writing I-Ds and RFCs Using Pandoc and a Bit
               of XML", RFC 7328, August 2014.
@@ -542,7 +641,7 @@ Internet-Draft                  mmark2rfc                  December 2014
    [toml]     Preston-Werner, T., "TOML git repository", March 2013,
               <https://github.com/toml-lang/toml>.
 
-16.3.  URIs
+17.3.  URIs
 
    [1] http://http://kramdown.gettalong.org/
 
@@ -553,14 +652,6 @@ Internet-Draft                  mmark2rfc                  December 2014
    [4] http://www.methods.co.nz/asciidoc/
 
    [5] http://commonmark.org/
-
-
-
-
-Gieben                    Expires June 13, 2015                [Page 10]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
 
    [6] https://github.com/cabo/kramdown-rfc2629
 
@@ -575,6 +666,13 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    [11] https://raw.githubusercontent.com/miekg/mmark/master/convert/
         parts.pl
+
+
+
+Gieben                    Expires June 13, 2015                [Page 12]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
 
    [12] https://raw.githubusercontent.com/miekg/mmark/master/convert/
         titleblock.pl
@@ -592,6 +690,16 @@ Appendix A.  Bugs
       lists.
 
    o  Mmark only passes about 60% of the tests of CommonMark.
+
+Appendix B.  Changes
+
+B.1.  01
+
+   o  Abstract are designated using a special header ".# Abstract"
+
+   o  Removed exercises and answers, this needs a better syntax.
+
+   o  Add math "$$".
 
 Author's Address
 
@@ -613,4 +721,8 @@ Author's Address
 
 
 
-Gieben                    Expires June 13, 2015                [Page 11]
+
+
+
+
+Gieben                    Expires June 13, 2015                [Page 13]
