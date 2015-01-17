@@ -242,7 +242,7 @@ Internet-Draft                  mmark2rfc                  December 2014
    In mmark you can put a caption under either a table, indented code
    block (even after a fenced code block) or even after a block quote.
    Referencing these elements (and thus creating an document "id" for
-   them), is done with an IAL (Section 10:
+   them), is done with an IAL (Section 10):
 
                               {#identifier}
                               Name    | Age

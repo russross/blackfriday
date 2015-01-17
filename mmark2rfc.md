@@ -126,7 +126,7 @@ in a `<figure>` and the caption text is put in a `<name>` tag for v3.
 In mmark you can put a
 caption under either a table, indented code block (even after a fenced code block) or even after a block quote.
 Referencing these elements (and thus
-creating an document `id` for them), is done with an IAL ([](#inline-attribute-lists):
+creating an document `id` for them), is done with an IAL ([](#inline-attribute-lists)):
 
     {#identifier}
     Name    | Age
