@@ -35,9 +35,10 @@ provides a good example.
 
 Mmark [@mmark] is a markdown processor. It supports the markdown syntax
 and has been extended with (syntax) features found in other markdown
-implementations like [kramdown], [PHP markdown extra], [@pandoc], [leanpub] and even
-[asciidoc]. This allows mmark to be used to write larger, structured documents
-such as RFC and I-Ds or even books, while not deviating too far from markdown.
+implementations like [kramdown], [PHP markdown extra], [@pandoc],
+[Scholarly markdown], [leanpub] and even [asciidoc]. This allows mmark to be used
+to write larger, structured documents such as RFC and I-Ds or even books, while
+not deviating too far from markdown.
 
 Mmark is a fork of blackfriday [@blackfriday] and is written in Golang and very fast.
 Input to mmark must be UTF-8, the output is also UTF-8. Mmark converts tabs to 4 spaces.
@@ -56,7 +57,6 @@ the CommonMark test suite is used when developing mmark. Currently mmark passes 
 Using Figure 1 from [@!RFC7328], mmark can be positioned as follows:
 
 {#fig:mmark align=left}
-
      +-------------------+   pandoc   +---------+
      | ALMOST PLAIN TEXT |   ------>  | DOCBOOK |
      +-------------------+            +---------+
@@ -423,3 +423,5 @@ For now the mmark parser will not get any features that makes it backwards compa
 [PHP markdown extra]: http://michelf.com/projects/php-markdown/extra/
 [pandoc]: http://johnmacfarlane.net/pandoc/
 [CommonMark]: http://commonmark.org/
+[Scholary markdown]: http://scholarlymarkdown.com/Scholarly-Markdown-Guide.html
+

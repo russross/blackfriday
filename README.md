@@ -168,7 +168,7 @@ implements the following extensions:
     // END OMIT
     ```
     To aid in including HTML or XML framents, where the `OMIT` key words is
-    probably embedded in comments, line the in in `OMIT -->` are also excluded.
+    probably embedded in comments, lines which end in `OMIT -->` are also excluded.
 
     Of course the captioning works here as well:
 
@@ -243,6 +243,13 @@ implements the following extensions:
     * Quote
 
 *  **Definitition lists**, the markdown extra syntax.
+
+        Apple
+        :   Pomaceous fruit of plants of the genus Malus in 
+            the family Rosaceae.
+
+        Orange
+        :   The fruit of an evergreen tree of the genus Citrus.
 
 *  **TOML TitleBlock**, add an extended title block prefixed with `%` in TOML.
 
