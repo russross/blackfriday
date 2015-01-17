@@ -63,18 +63,18 @@ An image is wrapped in a figure is the optional title is used.
 
     Basic usage:
 
-        .# Figure {#fig:id}
+            .# Figure {#fig:id}
 
-        {type="ascii-art"}
-            +-----+
-            | ART |
-            +-----+
-        Figure: The last caption specified will be used.
+            {type="ascii-art"}
+                +-----+
+                | ART |
+                +-----+
+            Figure: The last caption specified will be used.
 
-        ``` c
-        printf("%s\n", "hello");
-        ```
+            ``` c
+            printf("%s\n", "hello");
+            ```
 
-        Figure: Caption you will see, for both figures.
+            Figure: Caption you will see, for both figures.
 
     In v2 this is not supported so the above will result in two figures.
