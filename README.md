@@ -299,6 +299,14 @@ implements the following extensions:
 
 *   Renderers
     * HTML renderer is lagging behind the other renderers.
+    * Get all renderers into shape
+*   Create website where you can type can convert mmark markdown
+
+
+## Later
+
+*   Renderers
+    * HTML renderer is lagging behind the other renderers.
     * DocBook?
 *   fenced code blocks -> source code with language etc.
 *   indentend code blocks -> artwork
