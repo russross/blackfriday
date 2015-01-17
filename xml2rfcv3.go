@@ -336,6 +336,10 @@ func (options *xml) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 		out.Truncate(marker)
 		return
 	}
+	if marker+3 == out.Len() { // empty paragraph, suppress
+		out.Truncate(marker)
+		return
+	}
 	out.WriteString("</t>\n")
 }
 

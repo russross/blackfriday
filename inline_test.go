@@ -1014,7 +1014,7 @@ func TestCitationXML(t *testing.T) {
 		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t><xref target=\"RFC3024\"/></t>\n\n</middle>\n<back>\n<references title=\"Informative References\">\n<xi:include href=\"reference.RFC.3024.xml\"/>\n\n</back>\n</rfc>\n",
 
 		"[-@RFC3024]",
-		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t></t>\n\n</middle>\n<back>\n<references title=\"Informative References\">\n<xi:include href=\"reference.RFC.3024.xml\"/>\n\n</back>\n</rfc>\n",
+		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n</middle>\n<back>\n<references title=\"Informative References\">\n<xi:include href=\"reference.RFC.3024.xml\"/>\n\n</back>\n</rfc>\n",
 
 		"[@?I-D.6man-udpzero]",
 		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t><xref target=\"I-D.6man-udpzero\"/></t>\n\n</middle>\n<back>\n<references title=\"Informative References\">\n<xi:include href=\"reference.I-D.draft-6man-udpzero.xml\"/>\n\n</back>\n</rfc>\n",

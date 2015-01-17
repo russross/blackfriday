@@ -1307,7 +1307,7 @@ func TestIncludesXML(t *testing.T) {
 	}
 	var tests = []string{
 		"{{/dev/null}}",
-		"<t></t>\n",
+		"",
 
 		"<{{/dev/null}}",
 		"<t><artwork>\n\n</artwork>\n</t>\n",
@@ -1422,7 +1422,7 @@ func TestSubFiguresXML(t *testing.T) {
     F>  ~~~
     Figure: Caption you will see, for both figures.
 `,
-		"<ul>\n<li>Item1</li>\n<li><t>Item2</t>\n<t>Basic usage:</t>\n<figure>\n<name>Caption you will see, for both figures.</name>\n<t></t>\n<artwork type=\"ascii-art\">\n +-----+\n | ART |\n +-----+\n</artwork>\n\n<sourcecode type=\"c\">\nprintf(\"%s\\n\", \"hello\");\n</sourcecode>\n</figure></li>\n</ul>\n",
+		"<ul>\n<li>Item1</li>\n<li><t>Item2</t>\n<t>Basic usage:</t>\n<figure>\n<name>Caption you will see, for both figures.</name>\n<artwork type=\"ascii-art\">\n +-----+\n | ART |\n +-----+\n</artwork>\n\n<sourcecode type=\"c\">\nprintf(\"%s\\n\", \"hello\");\n</sourcecode>\n</figure></li>\n</ul>\n",
 		`
 And another one
 
@@ -1437,7 +1437,21 @@ F>  printf("%s\n", "hello");
 F>  ~~~
 F>
 Figure: Caption you will see, for both figures.`,
-		"<t>And another one</t>\n<figure>\n<name>Caption you will see, for both figures.</name>\n<t></t>\n<artwork type=\"ascii-art\">\n +-----+\n | ART |\n +-----+\n</artwork>\n\n<sourcecode type=\"c\">\nprintf(\"%s\\n\", \"hello\");\n</sourcecode>\n</figure>",
+		"<t>And another one</t>\n<figure>\n<name>Caption you will see, for both figures.</name>\n<artwork type=\"ascii-art\">\n +-----+\n | ART |\n +-----+\n</artwork>\n\n<sourcecode type=\"c\">\nprintf(\"%s\\n\", \"hello\");\n</sourcecode>\n</figure>",
+	}
+	doTestsBlockXML(t, tests, 0)
+}
+
+func TestIALXML(t *testing.T) {
+	var tests = []string{
+		"{#id}\n	Code\n",
+		"<artwork anchor=\"id\">\nCode\n</artwork>\n",
+
+		"{id}\n	Code\n",
+		"<t>{id}</t>\n<artwork>\nCode\n</artwork>\n",
+
+		"{#id}\n",
+		"",
 	}
 	doTestsBlockXML(t, tests, 0)
 }

@@ -2102,7 +2102,6 @@ func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 	if len(data) == 0 {
 		return
 	}
-
 	// trim leading spaces
 	beg := 0
 	for iswhitespace(data[beg]) {
