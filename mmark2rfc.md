@@ -279,22 +279,19 @@ section containing the figures with a figure quote: `F> `.
             | ART |
             +-----+
 
-    v3 allows the usage of a src= attribute to link to external files with images.
+    v3 allows the usage of a `src` attribute to link to external files with images.
     In this proposal we use the image syntax for that.
 
 *   An image `![Alt text](/path/to/img.jpg "Optional title")`, will be converted
-    to an artwork with a `src` attribute in v3. The extension of the included
-    image file will be used to generate the `type` attribute (see the table below).
+    to an artwork with a `src` attribute in v3. Again the type needs to be specified
+    as an IAL.
 
     If the "Optional title" is specified the generated artwork will be wrapped in a
     figure with name set to "Optional title"
 
-    * txt, text, ..: ascii-art
-    * hex: hex-dump
+    Creating an artwork with an anchor and type will become:
 
-    Creating an artwork with an anchor will become:
-
-        {#fig:id}
+        {#fig:id type="ascii-art"}
         ![](/path/to/art.txt "Optional title")
 
     For v2 this presents difficulties as there is no way to display any of this. The v2
@@ -320,8 +317,10 @@ section containing the figures with a figure quote: `F> `.
         F>
         Figure: Caption for both figures in v3 (in v2 it's ignored).
 
-    In v2 this is not supported so the above will result in two figures. Note that in v2
-    the inner captions *are* used, but the other one will be discarded as there is no
+    In v2 this is not supported so the above will result in one figure. Yes one, because
+    the fenced code block does not have a caption, so it will not be wrapped in a figure.
+    
+    So in v2 the inner captions *are* used, but the other one will be discarded as there is no
     way to typeset it.
 
 # Miscellaneous Features
