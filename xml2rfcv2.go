@@ -25,7 +25,8 @@ type xml2 struct {
 	sectionLevel   int  // current section level
 	docLevel       int  // frontmatter/mainmatter or backmatter
 	part           bool // parts cannot nest, if true a part has been opened
-	specialSection int  //
+	specialSection int  // are we in a special section
+	paraInList     bool // subsequent paras in lists are faked with vspace
 
 	// store the IAL we see for this block element
 	ial *inlineAttr
@@ -319,6 +320,7 @@ func (options *xml2) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	out.WriteString("<t>")
 	out.Write(text)
 	out.WriteString("</t>\n")
+	options.paraInList = false
 }
 
 func (options *xml2) Example(out *bytes.Buffer, index int) {
@@ -332,6 +334,10 @@ func (options *xml2) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
 	if flags&_LIST_TYPE_DEFINITION == 0 && flags&_LIST_INSIDE_LIST == 0 {
 		out.WriteString("<t>")
+	} else {
+		if options.paraInList {
+			out.WriteString("<vspace blankLines=\"1\" />\n")
+		}
 	}
 	if !text() {
 		out.Truncate(marker)
@@ -343,6 +349,8 @@ func (options *xml2) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	}
 	if flags&_LIST_TYPE_DEFINITION == 0 && flags&_LIST_INSIDE_LIST == 0 {
 		out.WriteString("</t>\n")
+	} else {
+		options.paraInList = true
 	}
 }
 

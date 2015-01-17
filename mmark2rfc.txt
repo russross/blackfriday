@@ -86,16 +86,16 @@ Table of Contents
    13. Miscellaneous Features  . . . . . . . . . . . . . . . . . . .   9
      13.1.  HTML Comment . . . . . . . . . . . . . . . . . . . . . .   9
      13.2.  Including Files  . . . . . . . . . . . . . . . . . . . .   9
-     13.3.  Including Code Fragments . . . . . . . . . . . . . . . .   9
+     13.3.  Including Code Fragments . . . . . . . . . . . . . . . .  10
    14. XML2RFC V3 features . . . . . . . . . . . . . . . . . . . . .  10
      14.1.  Asides . . . . . . . . . . . . . . . . . . . . . . . . .  10
      14.2.  Notes  . . . . . . . . . . . . . . . . . . . . . . . . .  10
      14.3.  RFC 2119 Keywords  . . . . . . . . . . . . . . . . . . .  10
-     14.4.  Super- and Subscripts  . . . . . . . . . . . . . . . . .  10
+     14.4.  Super- and Subscripts  . . . . . . . . . . . . . . . . .  11
      14.5.  Images . . . . . . . . . . . . . . . . . . . . . . . . .  11
    15. Converting from RFC 7328 Syntax . . . . . . . . . . . . . . .  11
-   16. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  11
-   17. References  . . . . . . . . . . . . . . . . . . . . . . . . .  11
+   16. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  12
+   17. References  . . . . . . . . . . . . . . . . . . . . . . . . .  12
      17.1.  Informative References . . . . . . . . . . . . . . . . .  12
      17.2.  Normative References . . . . . . . . . . . . . . . . . .  12
      17.3.  URIs . . . . . . . . . . . . . . . . . . . . . . . . . .  12
@@ -430,9 +430,10 @@ Internet-Draft                  mmark2rfc                  December 2014
    o  An image "![Alt text](/path/to/img.jpg "Optional title")", will be
       converted to an artwork with a "src" attribute in v3.  The
       extension of the included image file will be used to generate the
-      "type" attribute (see the table below).If the "Optional title" is
-      specified the generated artwork will be wrapped in a figure with
-      name set to "Optional title"
+      "type" attribute (see the table below).
+
+      If the "Optional title" is specified the generated artwork will be
+      wrapped in a figure with name set to "Optional title"
 
       *  txt, text, ..: ascii-art
 
@@ -440,8 +441,7 @@ Internet-Draft                  mmark2rfc                  December 2014
 
       Creating an artwork with an anchor will become:
 
-                  {#fig:id}
-                  ![](/path/to/art.txt "Optional title")
+
 
 
 
@@ -449,6 +449,9 @@ Gieben                    Expires June 13, 2015                 [Page 8]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
+
+                  {#fig:id}
+                  ![](/path/to/art.txt "Optional title")
 
       For v2 this presents difficulties as there is no way to display
       any of this.  The v2 renderer will output a warning and not output
@@ -459,7 +462,9 @@ Internet-Draft                  mmark2rfc                  December 2014
       all images in that section become subfigures of a larger figure.
       Disadvantage of this syntax is that it can not be used in lists.
       Hence we propose a quote like solution, just as asides and notes,
-      but for figures:Basic usage:
+      but for figures:
+
+      Basic usage:
 
        F>  {type="ascii-art"}
        F>      +-----+
@@ -490,6 +495,17 @@ Internet-Draft                  mmark2rfc                  December 2014
    Files can be included using "{{filename}}", "filename" is relative to
    the current working directory if it is not absolute.
 
+
+
+
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 9]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
 13.3.  Including Code Fragments
 
    This borrows from the Go present tool, which got its inspiration from
@@ -498,13 +514,6 @@ Internet-Draft                  mmark2rfc                  December 2014
    the syntax: "<{{program}}[address]" to include a code snippet.  The
    "address" identifier specifies what lines of code are to be included
    in the fragment.
-
-
-
-Gieben                    Expires June 13, 2015                 [Page 9]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
 
    Any line in the program that ends with the four characters "OMIT" is
    deleted from the source before inclusion, making it easy to write
@@ -546,21 +555,16 @@ Internet-Draft                  mmark2rfc                  December 2014
    "<bcp14>MUST</bcp14>", but "**must**" will not.  For v2 they are
    stripped of the emphasis and outputted as-is.
 
-14.4.  Super- and Subscripts
-
-   Use H~2~O and 2^10^ is 1024.  In v2 these are outputted as-is.
-
-
-
-
-
-
 
 
 Gieben                    Expires June 13, 2015                [Page 10]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
+
+14.4.  Super- and Subscripts
+
+   Use H~2~O and 2^10^ is 1024.  In v2 these are outputted as-is.
 
 14.5.  Images
 
@@ -602,10 +606,6 @@ Internet-Draft                  mmark2rfc                  December 2014
    For now the mmark parser will not get any features that makes it
    backwards compatible with pandoc2rfc.
 
-16.  Acknowledgements
-
-17.  References
-
 
 
 
@@ -617,6 +617,10 @@ Gieben                    Expires June 13, 2015                [Page 11]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
+
+16.  Acknowledgements
+
+17.  References
 
 17.1.  Informative References
 
@@ -661,11 +665,7 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    [9] https://michelf.ca/projects/php-markdown/extra/#def-list
 
-   [10] http://johnmacfarlane.net/pandoc/README.html#extension-
-        example_lists
 
-   [11] https://raw.githubusercontent.com/miekg/mmark/master/convert/
-        parts.pl
 
 
 
@@ -673,6 +673,12 @@ Gieben                    Expires June 13, 2015                [Page 12]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
+
+   [10] http://johnmacfarlane.net/pandoc/README.html#extension-
+        example_lists
+
+   [11] https://raw.githubusercontent.com/miekg/mmark/master/convert/
+        parts.pl
 
    [12] https://raw.githubusercontent.com/miekg/mmark/master/convert/
         titleblock.pl
@@ -708,12 +714,6 @@ Author's Address
    Buckingham Palace Road
 
    Email: miek@google.com
-
-
-
-
-
-
 
 
 

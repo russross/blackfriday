@@ -1902,6 +1902,8 @@ func (p *parser) list(out *bytes.Buffer, data []byte, flags, start int, group []
 
 	if p.insideList > 1 {
 		flags |= _LIST_INSIDE_LIST
+	} else {
+		flags &= ^_LIST_INSIDE_LIST
 	}
 
 	p.r.List(out, work, flags, start, group)
@@ -2145,6 +2147,8 @@ func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 	}
 	if p.insideList > 0 {
 		flags |= _LIST_INSIDE_LIST // Not really, just in a list
+	} else {
+		flags &= ^_LIST_INSIDE_LIST // Not really, just in a list
 	}
 	p.r.Paragraph(out, work, flags)
 }
