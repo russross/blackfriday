@@ -54,27 +54,22 @@ An image is wrapped in a figure is the optional title is used.
 
 *   Grouping artworks and code blocks into figures. Scholary markdown has a neat syntax
     for this. It uses a special section syntax and all images in that section become
-    subfigures of a larger figure. As mmark already uses `.#` to start special section
-    we can do the same in a cleaner way. Start a special section use `.# Figure` and
-    place multiple figures and artworks in the section.
-
-    What do you do with non sourcecode/artwork elements in such a paragraph, just output
-    them (there are no non-compliant markdown documents).
+    subfigures of a larger figure. Disadvantage of this syntax is that it can not be
+    used in lists. Hence we propose a quote like solution, just as asides and notes,
+    but for figures:
 
     Basic usage:
 
-            .# Figure {#fig:id}
-
-            {type="ascii-art"}
-                +-----+
-                | ART |
-                +-----+
-            Figure: The last caption specified will be used.
-
-            ``` c
-            printf("%s\n", "hello");
-            ```
-
-            Figure: Caption you will see, for both figures.
+    F>  {type="ascii-art"}
+    F>      +-----+
+    F>      | ART |
+    F>      +-----+
+    F>  Figure: Caption are ignored
+    F>
+    F>  ``` c
+    F>  printf("%s\n", "hello");
+    F>  ```
+    F>
+    Figure: Caption you will see, for both figures.
 
     In v2 this is not supported so the above will result in two figures.
