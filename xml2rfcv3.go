@@ -65,7 +65,7 @@ func (options *xml) inlineAttr() *inlineAttr {
 }
 
 // render code chunks using verbatim, or listings if we have a language
-func (options *xml) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte) {
+func (options *xml) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool) {
 	s := ""
 	// Tick of language for sourcecode...
 	ial := options.inlineAttr()
@@ -74,7 +74,8 @@ func (options *xml) BlockCode(out *bytes.Buffer, text []byte, lang string, capti
 	}
 	s = ial.String()
 
-	if len(caption) > 0 {
+	// if in a figure quote suppress <figure> and caption use
+	if !subfigure && len(caption) > 0 {
 		out.WriteString("<figure" + s + ">\n")
 		s = ""
 		out.WriteString("<name>")
@@ -94,7 +95,7 @@ func (options *xml) BlockCode(out *bytes.Buffer, text []byte, lang string, capti
 	} else {
 		out.WriteString("</artwork>\n")
 	}
-	if len(caption) > 0 {
+	if !subfigure && len(caption) > 0 {
 		out.WriteString("</figure>\n")
 	}
 }
@@ -532,10 +533,22 @@ func (options *xml) Superscript(out *bytes.Buffer, text []byte) {
 	out.WriteString("</sup>")
 }
 
-func (options *xml) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
+func (options *xml) Figure(out *bytes.Buffer, text []byte, caption []byte) {
+	// add figure and caption
+	s := options.inlineAttr().String()
+	out.WriteString("<figure" + s + ">\n")
+	out.WriteString("<name>")
+	out.Write(caption)
+	out.WriteString("</name>\n")
+	out.Write(text)
+	out.WriteString("</figure>")
+}
+
+func (options *xml) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte, subfigure bool) {
 	// use title as caption is we have it and wrap everything in a figure
 	// check the extension of the local include to set the type of the thing.
 
+	// if subfigure, no <figure>
 	s := options.inlineAttr().String()
 	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
 		// link to external entity

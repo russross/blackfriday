@@ -57,7 +57,7 @@ func (options *xml2) inlineAttr() *inlineAttr {
 }
 
 // render code chunks using verbatim, or listings if we have a language
-func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte) {
+func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool) {
 	ial := options.inlineAttr()
 	ial.GetOrDefaultAttr("align", "center")
 	s := ial.String()
@@ -515,7 +515,12 @@ func (options *xml2) Superscript(out *bytes.Buffer, text []byte) {
 	out.WriteByte('^')
 }
 
-func (options *xml2) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
+func (options *xml2) Figure(out *bytes.Buffer, text []byte, caption []byte) {
+	// what about caption? -> discard
+	out.Write(text)
+}
+
+func (options *xml2) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte, subfigure bool) {
 	// convert to url
 	options.inlineAttr().String()
 	out.WriteString("<eref target=\"")

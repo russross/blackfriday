@@ -20,6 +20,7 @@ It adds the following syntax elements to [black friday](https://github.com/russr
 * Definition lists;
 * Table and codeblock captions;
 * Table footer;
+* Grouping multiple code blocks into a single figure;
 * Quote attribution;
 * Including other files;
 * [TOML][3] titleblock;
@@ -116,6 +117,10 @@ implements the following extensions:
     ```
 
     Note that the header and footer can't contain block level elements.
+
+*   **Subfigure**. Fenced code blocks and indented code block can be
+    grouped into a single figure containing both (or more) elements.
+    Use the special quote prefix `F>` for this.
 
 *   **Fenced code blocks**. In addition to the normal 4-space
     indentation to mark code blocks, you can explicitly mark them
@@ -245,7 +250,7 @@ implements the following extensions:
 *  **Definitition lists**, the markdown extra syntax.
 
         Apple
-        :   Pomaceous fruit of plants of the genus Malus in 
+        :   Pomaceous fruit of plants of the genus Malus in
             the family Rosaceae.
 
         Orange

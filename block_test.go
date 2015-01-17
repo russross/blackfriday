@@ -1404,6 +1404,44 @@ func testTitleBlockTOML(t *testing.T) {
 	doTestsBlockXML(t, tests, EXTENSION_TITLEBLOCK_TOML)
 }
 
+func TestSubFiguresXML(t *testing.T) {
+	var tests = []string{`
+*   Item1
+*   Item2
+
+    Basic usage:
+
+    F>  {type="ascii-art"}
+    F>      +-----+
+    F>      | ART |
+    F>      +-----+
+    F>  Figure: This caption is ignored.
+    F>
+    F>  ~~~ c
+    F>  printf("%s\n", "hello");
+    F>  ~~~
+    Figure: Caption you will see, for both figures.
+`,
+		"<ul>\n<li>Item1</li>\n<li><t>Item2</t>\n<t>Basic usage:</t>\n<figure>\n<name>Caption you will see, for both figures.</name>\n<t></t>\n<artwork type=\"ascii-art\">\n +-----+\n | ART |\n +-----+\n</artwork>\n\n<sourcecode type=\"c\">\nprintf(\"%s\\n\", \"hello\");\n</sourcecode>\n</figure></li>\n</ul>\n",
+		`
+And another one
+
+F>  {type="ascii-art"}
+F>      +-----+
+F>      | ART |
+F>      +-----+
+F>  Figure: This caption is ignored.
+F>
+F>  ~~~ c
+F>  printf("%s\n", "hello");
+F>  ~~~
+F>
+Figure: Caption you will see, for both figures.`,
+		"<t>And another one</t>\n<figure>\n<name>Caption you will see, for both figures.</name>\n<t></t>\n<artwork type=\"ascii-art\">\n +-----+\n | ART |\n +-----+\n</artwork>\n\n<sourcecode type=\"c\">\nprintf(\"%s\\n\", \"hello\");\n</sourcecode>\n</figure>",
+	}
+	doTestsBlockXML(t, tests, 0)
+}
+
 // TODO:
 // figure caption
 // table caption

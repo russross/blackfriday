@@ -64,12 +64,14 @@ An image is wrapped in a figure is the optional title is used.
     F>      +-----+
     F>      | ART |
     F>      +-----+
-    F>  Figure: Caption are ignored
+    F>  Figure: This caption is ignored in v3, but used in v2.
     F>
     F>  ``` c
     F>  printf("%s\n", "hello");
     F>  ```
     F>
-    Figure: Caption you will see, for both figures.
+    Figure: Caption you will see, for both figures in v3 (in v2 it's ignored).
 
-    In v2 this is not supported so the above will result in two figures.
+    In v2 this is not supported so the above will result in two figures. Note that in v2
+    the inner captions *are* used, but the other one will be discarded as there is no
+    way to typeset it.

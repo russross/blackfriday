@@ -162,6 +162,16 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			continue
 		}
 
+		// Figure "quote":
+		//
+		// F> ![](image)
+		// F> ![](image)
+		// Figure: Caption.
+		if p.figurePrefix(data) > 0 {
+			data = data[p.figure(out, data):]
+			continue
+		}
+
 		// block quote:
 		//
 		// > A big quote I found somewhere
@@ -1087,7 +1097,7 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 	}
 	if beg >= len(data) {
 		// only the marker and end of doc. CommonMark dictates this is valid
-		p.r.BlockCode(out, nil, "", nil)
+		p.r.BlockCode(out, nil, "", nil, p.insideFigure)
 		return len(data)
 	}
 
@@ -1140,7 +1150,7 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 	var caption bytes.Buffer
 	line := beg
 	j := beg
-	if bytes.HasPrefix(data[j:], []byte("Figure: ")) {
+	if bytes.HasPrefix(bytes.TrimSpace(data[j:]), []byte("Figure: ")) {
 		for line < len(data) {
 			j++
 			// find the end of this line
@@ -1164,7 +1174,7 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 		p.r.SetInlineAttr(p.ial)
 		p.ial = nil
 
-		p.r.BlockCode(out, work.Bytes(), syntax, caption.Bytes())
+		p.r.BlockCode(out, work.Bytes(), syntax, caption.Bytes(), p.insideFigure)
 	}
 
 	return j
@@ -1621,7 +1631,8 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 	var caption bytes.Buffer
 	line := i
 	j := i
-	if bytes.HasPrefix(data[j:], []byte("Figure: ")) {
+	// In the case of F> there may be spaces in front of it
+	if bytes.HasPrefix(bytes.TrimSpace(data[j:]), []byte("Figure: ")) {
 		for line < len(data) {
 			j++
 			// find the end of this line
@@ -1651,7 +1662,7 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 	p.r.SetInlineAttr(p.ial)
 	p.ial = nil
 
-	p.r.BlockCode(out, work.Bytes(), "", caption.Bytes())
+	p.r.BlockCode(out, work.Bytes(), "", caption.Bytes(), p.insideFigure)
 
 	return j
 }
@@ -2228,6 +2239,7 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 				p.dliPrefix(current) != 0 ||
 				p.quotePrefix(current) != 0 ||
 				p.notePrefix(current) != 0 ||
+				p.figurePrefix(current) != 0 ||
 				p.asidePrefix(current) != 0 ||
 				p.codePrefix(current) != 0 {
 				p.renderParagraph(out, data[:i])

@@ -680,7 +680,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			out.Truncate(outSize - 1)
 		}
 
-		p.r.Image(out, uLink, title, content.Bytes())
+		p.r.Image(out, uLink, title, content.Bytes(), p.insideFigure)
 
 	case linkInlineFootnote:
 		outSize := out.Len()

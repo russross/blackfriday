@@ -222,7 +222,7 @@ func (options *html) HRule(out *bytes.Buffer) {
 	out.WriteString(options.closeTag)
 }
 
-func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte) {
+func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool) {
 	doubleSpace(out)
 
 	// parse out the language names/classes
@@ -524,7 +524,11 @@ func (options *html) maybeWriteAbsolutePrefix(out *bytes.Buffer, link []byte) {
 	}
 }
 
-func (options *html) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
+func (options *html) Figure(out *bytes.Buffer, text []byte, caption []byte) {
+
+}
+
+func (options *html) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte, subfigure bool) {
 	if options.flags&HTML_SKIP_IMAGES != 0 {
 		return
 	}

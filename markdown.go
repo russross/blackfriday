@@ -90,6 +90,7 @@ const (
 	_LIST_ITEM_BEGINNING_OF_LIST
 	_LIST_ITEM_END_OF_LIST
 	_LIST_INSIDE_LIST
+	_INSIDE_FIGURE
 )
 
 // These are the possible flag values for the table cell renderer.
@@ -168,7 +169,7 @@ var blockTags = map[string]bool{
 // Currently Html, Latex and XML2RFCv3 implementations are provided.
 type Renderer interface {
 	// block-level callbacks
-	BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte)
+	BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool)
 	BlockQuote(out *bytes.Buffer, text []byte, attribution []byte)
 	BlockHtml(out *bytes.Buffer, text []byte)
 	CommentHtml(out *bytes.Buffer, text []byte)
@@ -188,6 +189,7 @@ type Renderer interface {
 	TitleBlockTOML(out *bytes.Buffer, data *title)
 	Aside(out *bytes.Buffer, text []byte)
 	Note(out *bytes.Buffer, text []byte)
+	Figure(out *bytes.Buffer, text []byte, caption []byte)
 
 	// Span-level callbacks
 	AutoLink(out *bytes.Buffer, link []byte, kind int)
@@ -196,7 +198,7 @@ type Renderer interface {
 	Emphasis(out *bytes.Buffer, text []byte)
 	Subscript(out *bytes.Buffer, text []byte)
 	Superscript(out *bytes.Buffer, text []byte)
-	Image(out *bytes.Buffer, link []byte, title []byte, alt []byte)
+	Image(out *bytes.Buffer, link []byte, title []byte, alt []byte, subfigure bool)
 	LineBreak(out *bytes.Buffer)
 	Link(out *bytes.Buffer, link []byte, title []byte, content []byte)
 	RawHtmlTag(out *bytes.Buffer, tag []byte)
@@ -247,6 +249,7 @@ type parser struct {
 	insideLink           bool
 	insideDefinitionList bool // when in def. list ... TODO(miek):doc
 	insideList           int  // list in list counter
+	insideFigure         bool // when inside a F> paragraph
 	displayMath          bool
 
 	// Footnotes need to be ordered as well as available to quickly check for
@@ -971,7 +974,7 @@ func (p *parser) codeInclude(out *bytes.Buffer, data []byte) int {
 	p.r.SetInlineAttr(p.ial)
 	p.ial = nil
 
-	p.r.BlockCode(out, code, "", caption.Bytes())
+	p.r.BlockCode(out, code, "", caption.Bytes(), p.insideFigure)
 
 	return end
 }
