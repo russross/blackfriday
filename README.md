@@ -20,7 +20,7 @@ It adds the following syntax elements to [black friday](https://github.com/russr
 * Definition lists;
 * Table and codeblock captions;
 * Table footer;
-* Grouping multiple code blocks into a single figure;
+* Subfigures;
 * Quote attribution;
 * Including other files;
 * [TOML][3] titleblock;
@@ -233,6 +233,9 @@ implements the following extensions:
 *  **Notes**, any parapgraph prefixed with `N>` .
 
 *  **Asides**, any paragraph prefixed with `A>` .
+
+*  **Subfigures**, any paraphgraph prefix with `F>` will wrap all images and code in a 
+    single figure.
 
 *  **{frontmatter}/{mainmatter}/{backmatter}** Create useful divisions in your document.
 
