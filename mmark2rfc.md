@@ -40,7 +40,7 @@ implementations like [kramdown], [PHP markdown extra], [@pandoc],
 to write larger, structured documents such as RFC and I-Ds or even books, while
 not deviating too far from markdown.
 
-Mmark is a fork of blackfriday [@blackfriday] and is written in Golang and very fast.
+Mmark is a fork of blackfriday [@blackfriday], is written in Golang and very fast.
 Input to mmark must be UTF-8, the output is also UTF-8. Mmark converts tabs to 4 spaces.
 
 The goals of mmark are:
@@ -49,10 +49,6 @@ The goals of mmark are:
 1. Self contained: a single file can be converted to XML2RFC v2 or (v3) or HTML5.
 2. Make the markdown "source code" look as natural as possible.
 3. Provide seemless upgrade path to XML2RFC v3.
-
-Mmark uses two scans when converting a document and does not build an internal AST of
-the document, this means it can not adhere 100% to the [CommonMark] specification, however
-the CommonMark test suite is used when developing mmark. Currently mmark passes ~60% of the tests.
 
 Using Figure 1 from [@!RFC7328], mmark can be positioned as follows:
 
@@ -71,6 +67,17 @@ Figure: Mmark skips the conversion to DOCBOOK and directly outputs XML2RFC XML (
 
 Note that [kramdown-2629](https://github.com/cabo/kramdown-rfc2629) fills the same niche as mmark.
 
+# Terminology
+
+The folloing terms are defined in this document:
+
+v2:
+:   Refers to XML2RFC version 2 [@!RFC2926] output created by mmark.
+
+v3:
+:   Refers  to XML2RFC version 2 [@!I-D.hoffman-xml2rfc,#15] output create by mmark.
+
+
 # Mmark Syntax
 
 In the following sections we go over some of the difference, and the extra syntax features of mmark.
@@ -86,17 +93,20 @@ A citation can be entered using the syntax from @pandoc: `[@reference]`,
 such a reference is "informative" by default. Making a reference informative or normative
 can be done with a `?` and `!` respectively: `[@!reference]` is a normative reference.
 
-For RFC and I-Ds the references are generated automatically, although for I-Ds you might
-need to include a draft version in the reference `[@?I-D.draft-blah,#06]`, creates an
-informative reference to the seventh version of draft-blah.
+For RFC and I-Ds the references are generated automatically, meaning you don't need to include
+an XML reference element in source of document.
+
+For I-Ds you might need to include a draft version in the reference
+`[@?I-D.blah,#06]`, creates an informative reference to the seventh version of
+draft-blah.
 
 Once a citation has been defined the brackets can be omited, so once `[@pandoc]` is used, you
 can just use `@pandoc`.
 
 If the need arises (usually when citing a document that is not in the XML2RFC database)
-an XML reference fragment can be included, note that this needs to happen
+an XML reference fragment should be included, note that this needs to happen
 *before* the back matter is started, because that is the point when the references are outputted
-(right now the implementation does not scan the entire file for citations, also see (#bugs).
+(right now the implementation does not scan the entire file for citations, also see (#bugs)).
 
 # Internal References
 
@@ -473,12 +483,16 @@ For now the mmark parser will not get any features that makes it backwards compa
 
 # Bugs
 
-*   Citations must be included in the text before the `{backmatter}` starts.
-    otherwise they are not available in the appendix.
-*   Inline Attribute Lists must be given *before* the block element.
-*   Mmark cannot parse @RFC728 markdown.
-*   Multiple terms and definitions are not supported in definition lists.
-*   Mmark only passes about 60% of the tests of CommonMark.
+*  Citations must be included in the text before the `{backmatter}` starts.
+   otherwise they are not available in the appendix.
+*  Inline Attribute Lists must be given *before* the block element.
+*  Mmark cannot parse @RFC728 markdown.
+*  Multiple terms and definitions are not supported in definition lists.
+*  Mmark only passes about 60% of the tests of CommonMark.
+*  Mmark uses two scans when converting a document and does not build an
+   internal AST of the document, this means it can not adhere 100% to the
+   [CommonMark] specification, however the CommonMark test suite is used when
+   developing mmark. Currently mmark passes ~60% of the tests.
 
 # Changes
 
