@@ -66,13 +66,12 @@ func (options *xml) inlineAttr() *inlineAttr {
 
 // render code chunks using verbatim, or listings if we have a language
 func (options *xml) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool) {
-	s := ""
 	// Tick of language for sourcecode...
 	ial := options.inlineAttr()
 	if lang != "" {
 		ial.GetOrDefaultAttr("type", lang)
 	}
-	s = ial.String()
+	s := ial.String()
 
 	// if in a figure quote suppress <figure> and caption use
 	if !subfigure && len(caption) > 0 {

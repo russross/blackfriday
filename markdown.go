@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"io/ioutil"
 	"log"
+	"path"
 	"unicode"
 	"unicode/utf8"
 )
@@ -921,9 +922,18 @@ func (p *parser) codeInclude(out *bytes.Buffer, data []byte) int {
 		return 0
 	}
 
+	lang := ""
 	// found <{{filename}}
 	// this could be the end, or we could have an option [address] -block attached
 	filename := data[i+3 : end-2]
+	// get the extension of the filename, if it is a member of a predefined set a
+	// language we use it as the lang (and we will emit <sourcecode>)
+	if x := path.Ext(string(filename)); x != "" {
+		// x includes the dot
+		if _, ok := codes[x[1:]]; ok {
+			lang = x[1:]
+		}
+	}
 
 	// Now a possible address in blockquotes
 	var address []byte
@@ -974,7 +984,7 @@ func (p *parser) codeInclude(out *bytes.Buffer, data []byte) int {
 	p.r.SetInlineAttr(p.ial)
 	p.ial = nil
 
-	p.r.BlockCode(out, code, "", caption.Bytes(), p.insideFigure)
+	p.r.BlockCode(out, code, lang, caption.Bytes(), p.insideFigure)
 
 	return end
 }

@@ -409,13 +409,13 @@ directory if it is not absolute.
 This borrows from the Go present tool, which got its inspiration from the Sam editor. The syntax was gleaned from leanpub.
 But the syntax presented here is more powerful than the one used by leanpub.
 Use the
-syntax: `<{{program}}[address]` to include a code snippet. The `address` identifier specifies
+syntax: `<{{file}}[address]` to include a code snippet. The `address` identifier specifies
 what lines of code are to be included in the fragment.
 
 Any line in the program that ends with the four characters `OMIT`
 is deleted from the source before inclusion, making it easy to write things like
 
-    <{{test.go}}[/START OMIT/,/END OMIT/}
+    <{{test.go}}[/START OMIT/,/END OMIT/]
 
 So you can include snippets like this:
 ~~~
@@ -427,6 +427,8 @@ interesting_code = fascinating_function()
 
 To aid in including HTML or XML framents, where the `OMIT` key words is probably embedded in
 comments, line the in in `OMIT -->` are excluded as well.
+Note that the default is put out an artwork, but if the extension of the included file matches
+a computer language, `<sourcecode>` will be emitted for v3.
 
 # XML2RFC V3 features
 

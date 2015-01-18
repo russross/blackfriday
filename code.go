@@ -17,6 +17,30 @@ import (
 	"unicode/utf8"
 )
 
+var codes = map[string]bool{
+	// from the draft
+	"abnf":       true,
+	"asn.1":      true,
+	"bash":       true,
+	"c++":        true,
+	"c":          true,
+	"cbor":       true,
+	"dtd":        true,
+	"java":       true,
+	"javascript": true,
+	"json":       true,
+	"mib":        true,
+	"perl":       true,
+	"pseudocode": true,
+	"python":     true,
+	"rnc":        true,
+	"xml":        true,
+	// from common sense
+	"go": true,
+	"py": true,
+	// TODO(miek): function to extend this
+}
+
 // parseCode parses a code address directive.
 func parseCode(addr []byte, file []byte) []byte {
 	bytes.TrimSpace(addr)
