@@ -49,6 +49,8 @@ The goals of mmark are:
 1. Self contained: a single file can be converted to XML2RFC v2 or (v3) or HTML5.
 2. Make the markdown "source code" look as natural as possible.
 3. Provide seemless upgrade path to XML2RFC v3.
+4. Consistent interface, aim to minimize the number of weird corner cases you need
+    to remember while typing.
 
 Using Figure 1 from [@!RFC7328], mmark can be positioned as follows:
 
@@ -223,7 +225,8 @@ Added an anchor to blockquote can be done like so:
     > A block quote
 
 You can specify classes with `.class` (although these are not used when converting to XML2RFC), and
-arbitrary key value pairs where each key/value becomes an attribute.
+arbitrary key value pairs where each key/value becomes an attribute. Different elements in the IAL
+must be seperated using spaces: `{#id lang=go}`.
 
 # Lists
 

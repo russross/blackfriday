@@ -312,17 +312,17 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	}
 
 	// TODO(miek): parse p. 23 parts here (title)
-	// [@!RFC2534,bib/reference.xml p. 23], normative
-	// [@?RFC2535,bib/reference.xml p. 23], informative
-	// [@[!|?]REF,#1 text]
+	// [@!RFC2534 p. 23], normative
+	// [@?RFC2535 p. 23], informative
+	// [@[!|?]draft#1 text]
 	// [-@RFC] : suppress output, but add to the citation list
 	if (t == linkCitation || data[1] == '@' || data[1] == '-') && p.flags&EXTENSION_CITATION != 0 {
 		var (
-			commaB, spaceB int
-			id             []byte
-			typ            byte
-			suppress       bool
-			seq            int = -1
+			spaceB   int
+			id       []byte
+			typ      byte
+			suppress bool
+			seq      int = -1
 		)
 		typ = 'i'
 		k := 1
@@ -340,46 +340,34 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		}
 
 		for j := k; j < txtE; j++ {
-			switch {
-			case data[j] == ',':
-				if commaB == 0 {
-					commaB = j
-					id = data[k:commaB]
-				}
-			case isspace(data[j]):
+			if isspace(data[j]) {
 				if spaceB == 0 {
 					spaceB = j
 					title = data[j+1 : txtE]
-					if commaB == 0 {
-						id = data[k:spaceB]
-					}
+					id = data[k:spaceB]
 				}
 			}
 		}
-		if commaB == 0 && spaceB == 0 {
+		if spaceB == 0 {
 			id = data[k:txtE]
 		}
-		if commaB > 0 {
-			end := txtE + 1 // hmmm
-			if spaceB > 0 {
-				end = spaceB + 1
-			}
-			for j := commaB + 1; j < end; j++ {
-				if data[j] == ',' || j == end-1 {
-					chunk := data[commaB+1 : j]
-					if len(chunk) > 1 && chunk[0] == '#' {
-						num, err := strconv.Atoi(string(chunk[1:]))
-						if err == nil {
-							seq = num
-						}
-					}
-					commaB = j
-				}
 
-			}
-		}
 		if id == nil {
 			id = data[k:txtE]
+		}
+		for j := 0; j < len(id); j++ {
+			if id[j] == '#' {
+				chunk := id[j:]
+				if len(chunk) > 1 {
+					num, err := strconv.Atoi(string(chunk[1:]))
+					if err == nil {
+						seq = num
+						id = id[:j]
+						break
+					}
+				}
+			}
+
 		}
 		// we might be liberal and check which item we got and update if we see new ones.
 		if c, ok := p.citations[string(id)]; !ok {

@@ -192,7 +192,7 @@ implements the following extensions:
 
     If you reference an RFC or I-D the reference will be contructed
     automatically. For I-Ds you may need to add a draft sequence number, which
-    can be done as such: `[@?I-D.draft-blah,#06]`. If you have other references
+    can be done as such: `[@?I-D.blah#06]`. If you have other references
     you can include the raw XML in the document (before the `{backmatter}`).
     Also see **XML references**.
 
