@@ -502,6 +502,12 @@ func (options *xml2) CodeSpan(out *bytes.Buffer, text []byte) {
 }
 
 func (options *xml2) DoubleEmphasis(out *bytes.Buffer, text []byte) {
+	// Check for 2119 Keywords, strip emphasis from them.
+	s := string(text)
+	if _, ok := words2119[s]; ok {
+		out.Write(text)
+		return
+	}
 	out.WriteString("<spanx style=\"strong\">")
 	out.Write(text)
 	out.WriteString("</spanx>")

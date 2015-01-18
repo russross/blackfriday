@@ -71,18 +71,21 @@ Note that [kramdown-2629](https://github.com/cabo/kramdown-rfc2629) fills the sa
 
 # Terminology
 
-The folloing terms are defined in this document:
+The folloing terms are used in this document:
 
 v2:
 :   Refers to XML2RFC version 2 [@!RFC2926] output created by mmark.
 
 v3:
-:   Refers  to XML2RFC version 2 [@!I-D.hoffman-xml2rfc,#15] output create by mmark.
+:   Refers  to XML2RFC version 2 [@!I-D.hoffman-xml2rfc#15] output created by mmark.
 
 
 # Mmark Syntax
 
-In the following sections we go over some of the difference, and the extra syntax features of mmark.
+In the following sections we go over some of the differences, and the extra syntax features of mmark.
+
+Note that there are no wrong markdown documents, but once converted to XML may lead to
+an invalid doc, case in point: having a table in a list and converting to v2.
 
 # TOML header
 
@@ -150,7 +153,7 @@ An empty line between the IAL and the table or indented code block is allowed.
 
 ## Figures
 
-Any text directly after the figure starting with `Figure: ` is used as the caption.
+Any text directly after the code block/fenced code block starting with `Figure: ` is used as the caption.
 
 ## Quotes
 
@@ -164,8 +167,6 @@ the string `Quote: ` after an quote, escape the colon: `Quote\: `.
 ## Tables
 
 A table caption is signalled by using `Table: ` directly after the table.
-The table syntax used that one of
-[Markdown Extra](https://michelf.ca/projects/php-markdown/extra/#table).
 
 # Tables
 
@@ -213,6 +214,8 @@ syntax. In the example below we include a list in one of the cells.
 ```
 
 Note that the header and footer can't contain block level elements.
+The table syntax used that one of
+[Markdown Extra](https://michelf.ca/projects/php-markdown/extra/#table).
 
 # Inline Attribute Lists
 
@@ -227,6 +230,19 @@ Added an anchor to blockquote can be done like so:
 You can specify classes with `.class` (although these are not used when converting to XML2RFC), and
 arbitrary key value pairs where each key/value becomes an attribute. Different elements in the IAL
 must be seperated using spaces: `{#id lang=go}`.
+
+For the following elements a IAL is processed:
+
+* Table
+* Code Block
+* Fenced Code Block
+* List (any type)
+* Section Header
+* Image
+* Quote
+* ...
+
+For all other elements they are ignored.
 
 # Lists
 
@@ -269,13 +285,15 @@ to example lists work as well. Note that an example list always needs to have an
 
 When an figure has a caption it will be wrapped in `<figure`> tags. A figure can
 wrap source code (v3) or artwork (v2/v3).
-An image is wrapped in a figure when the optional title syntax is used. Only for
-v3 output...
+
+An image is wrapped in a figure when the optional title syntax is used. But images
+are only useful when outputting v3. For v2 the actual image can not be shown, so the
+following stop gap output is given instead: XXX TODO: there is none yet.
 
 Multiple artworks/sources can be put in one figure. This done by prefixing the
 section containing the figures with a figure quote: `F> `.
 
-## Proposal
+## Details
 
 *   A Fenced Code Block will becomes a source code in v3 and artwork in v2.
     We can use the language to signal the type.
@@ -293,7 +311,7 @@ section containing the figures with a figure quote: `F> `.
             +-----+
 
     v3 allows the usage of a `src` attribute to link to external files with images.
-    In this proposal we use the image syntax for that.
+    we use the image syntax for that.
 
 *   An image `![Alt text](/path/to/img.jpg "Optional title")`, will be converted
     to an artwork with a `src` attribute in v3. Again the type needs to be specified
@@ -307,14 +325,15 @@ section containing the figures with a figure quote: `F> `.
         {#fig:id type="ascii-art"}
         ![](/path/to/art.txt "Optional title")
 
-    For v2 this presents difficulties as there is no way to display any of this. The v2
-    renderer will output a warning and not output anything in this case.
+    For v2 this presents difficulties as there is no way to display any of this, see
+    (#images-in-v2) for a treatment on how to deal with that.
 
-*   Grouping artworks and code blocks into figures. Scholary markdown has a neat syntax
+*   To group artworks and code blocks into figures, we need an extra syntax element.
+    [Scholary markdown] has a neat syntax
     for this. It uses a special section syntax and all images in that section become
     subfigures of a larger figure. Disadvantage of this syntax is that it can not be
-    used in lists. Hence we propose a quote like solution, just as asides and notes,
-    but for figures:
+    used in lists. Hence we we a quote like solution, just as asides and notes,
+    but for figures: we prefix the entire paragraph with 'F> ' .
 
     Basic usage:
 
@@ -332,9 +351,13 @@ section containing the figures with a figure quote: `F> `.
 
     In v2 this is not supported so the above will result in one figure. Yes one, because
     the fenced code block does not have a caption, so it will not be wrapped in a figure.
-    
-    So in v2 the inner captions *are* used, but the other one will be discarded as there is no
-    way to typeset it.
+
+    To summerize in v2 the inner captions *are* used and the outer one is discarded, for v3 it
+    is the other way around.
+
+## Images in v2
+
+TODO
 
 # Miscellaneous Features
 
@@ -394,10 +417,6 @@ For v2 they are stripped of the emphasis and outputted as-is.
 ## Super- and Subscripts
 
 Use H~2~O and 2^10^ is 1024. In v2 these are outputted as-is.
-
-## Images
-
-TODO
 
 # Converting from RFC 7328 Syntax
 
@@ -489,9 +508,8 @@ For now the mmark parser will not get any features that makes it backwards compa
 *  Citations must be included in the text before the `{backmatter}` starts.
    otherwise they are not available in the appendix.
 *  Inline Attribute Lists must be given *before* the block element.
-*  Mmark cannot parse @RFC728 markdown.
+*  Mmark cannot correctly parse @RFC728 markdown.
 *  Multiple terms and definitions are not supported in definition lists.
-*  Mmark only passes about 60% of the tests of CommonMark.
 *  Mmark uses two scans when converting a document and does not build an
    internal AST of the document, this means it can not adhere 100% to the
    [CommonMark] specification, however the CommonMark test suite is used when
@@ -499,7 +517,7 @@ For now the mmark parser will not get any features that makes it backwards compa
 
 # Changes
 
-## 01
+## xx
 
 * Abstract are designated using a special header `.# Abstract`
 * Removed exercises and answers, this needs a better syntax.

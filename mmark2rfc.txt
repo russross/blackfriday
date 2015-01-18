@@ -68,41 +68,41 @@ Table of Contents
    3.  Mmark Syntax  . . . . . . . . . . . . . . . . . . . . . . . .   4
    4.  TOML header . . . . . . . . . . . . . . . . . . . . . . . . .   4
    5.  Citations . . . . . . . . . . . . . . . . . . . . . . . . . .   4
-   6.  Internal References . . . . . . . . . . . . . . . . . . . . .   4
+   6.  Internal References . . . . . . . . . . . . . . . . . . . . .   5
    7.  Document divisions  . . . . . . . . . . . . . . . . . . . . .   5
    8.  Abstract  . . . . . . . . . . . . . . . . . . . . . . . . . .   5
    9.  Captions  . . . . . . . . . . . . . . . . . . . . . . . . . .   5
-     9.1.  Figures . . . . . . . . . . . . . . . . . . . . . . . . .   5
-     9.2.  Quotes  . . . . . . . . . . . . . . . . . . . . . . . . .   5
+     9.1.  Figures . . . . . . . . . . . . . . . . . . . . . . . . .   6
+     9.2.  Quotes  . . . . . . . . . . . . . . . . . . . . . . . . .   6
      9.3.  Tables  . . . . . . . . . . . . . . . . . . . . . . . . .   6
    10. Tables  . . . . . . . . . . . . . . . . . . . . . . . . . . .   6
    11. Inline Attribute Lists  . . . . . . . . . . . . . . . . . . .   7
-   12. Lists . . . . . . . . . . . . . . . . . . . . . . . . . . . .   7
-     12.1.  Ordered Lists  . . . . . . . . . . . . . . . . . . . . .   7
+   12. Lists . . . . . . . . . . . . . . . . . . . . . . . . . . . .   8
+     12.1.  Ordered Lists  . . . . . . . . . . . . . . . . . . . . .   8
      12.2.  Unordered Lists  . . . . . . . . . . . . . . . . . . . .   8
      12.3.  Definition Lists . . . . . . . . . . . . . . . . . . . .   8
      12.4.  Example Lists  . . . . . . . . . . . . . . . . . . . . .   8
    13. Figures and Images  . . . . . . . . . . . . . . . . . . . . .   8
-     13.1.  Proposal . . . . . . . . . . . . . . . . . . . . . . . .   8
+     13.1.  Details  . . . . . . . . . . . . . . . . . . . . . . . .   9
+     13.2.  Images in v2 . . . . . . . . . . . . . . . . . . . . . .  10
    14. Miscellaneous Features  . . . . . . . . . . . . . . . . . . .  10
      14.1.  HTML Comment . . . . . . . . . . . . . . . . . . . . . .  10
      14.2.  Including Files  . . . . . . . . . . . . . . . . . . . .  10
      14.3.  Including Code Fragments . . . . . . . . . . . . . . . .  10
-   15. XML2RFC V3 features . . . . . . . . . . . . . . . . . . . . .  10
+   15. XML2RFC V3 features . . . . . . . . . . . . . . . . . . . . .  11
      15.1.  Asides . . . . . . . . . . . . . . . . . . . . . . . . .  11
      15.2.  Notes  . . . . . . . . . . . . . . . . . . . . . . . . .  11
      15.3.  RFC 2119 Keywords  . . . . . . . . . . . . . . . . . . .  11
-     15.4.  Super- and Subscripts  . . . . . . . . . . . . . . . . .  11
-     15.5.  Images . . . . . . . . . . . . . . . . . . . . . . . . .  11
-   16. Converting from RFC 7328 Syntax . . . . . . . . . . . . . . .  11
+     15.4.  Super- and Subscripts  . . . . . . . . . . . . . . . . .  12
+   16. Converting from RFC 7328 Syntax . . . . . . . . . . . . . . .  12
    17. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  12
    18. References  . . . . . . . . . . . . . . . . . . . . . . . . .  12
-     18.1.  Informative References . . . . . . . . . . . . . . . . .  12
-     18.2.  Normative References . . . . . . . . . . . . . . . . . .  12
+     18.1.  Informative References . . . . . . . . . . . . . . . . .  13
+     18.2.  Normative References . . . . . . . . . . . . . . . . . .  13
      18.3.  URIs . . . . . . . . . . . . . . . . . . . . . . . . . .  13
-   Appendix A.  Bugs . . . . . . . . . . . . . . . . . . . . . . . .  13
+   Appendix A.  Bugs . . . . . . . . . . . . . . . . . . . . . . . .  14
    Appendix B.  Changes  . . . . . . . . . . . . . . . . . . . . . .  14
-     B.1.  01  . . . . . . . . . . . . . . . . . . . . . . . . . . .  14
+     B.1.  xx  . . . . . . . . . . . . . . . . . . . . . . . . . . .  14
    Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  14
 
 
@@ -130,12 +130,15 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    The goals of mmark are:
 
-   (I)     Self contained: a single file can be converted to XML2RFC v2
-           or (v3) or HTML5.
+   (I)    Self contained: a single file can be converted to XML2RFC v2
+          or (v3) or HTML5.
 
-   (II)    Make the markdown "source code" look as natural as possible.
+   (II)   Make the markdown "source code" look as natural as possible.
 
-   (III)   Provide seemless upgrade path to XML2RFC v3.
+   (III)  Provide seemless upgrade path to XML2RFC v3.
+
+   (IV)   Consistent interface, aim to minimize the number of weird
+          corner cases you need to remember while typing.
 
    Using Figure 1 from [RFC7328], mmark can be positioned as follows:
 
@@ -156,12 +159,9 @@ Internet-Draft                  mmark2rfc                  December 2014
 
 2.  Terminology
 
-   The folloing terms are defined in this document:
+   The folloing terms are used in this document:
 
    v2:  Refers to XML2RFC version 2 [RFC2926] output created by mmark.
-
-   v3:
-
 
 
 
@@ -170,13 +170,19 @@ Gieben                    Expires June 13, 2015                 [Page 3]
 Internet-Draft                  mmark2rfc                  December 2014
 
 
-      Refers to XML2RFC version 2 [I-D.hoffman-xml2rfc] output create by
-      mmark.
+   v3:
+
+      Refers to XML2RFC version 2 [I-D.hoffman-xml2rfc] output created
+      by mmark.
 
 3.  Mmark Syntax
 
-   In the following sections we go over some of the difference, and the
+   In the following sections we go over some of the differences, and the
    extra syntax features of mmark.
+
+   Note that there are no wrong markdown documents, but once converted
+   to XML may lead to an invalid doc, case in point: having a table in a
+   list and converting to v2.
 
 4.  TOML header
 
@@ -190,8 +196,11 @@ Internet-Draft                  mmark2rfc                  December 2014
    a reference informative or normative can be done with a "?" and "!"
    respectively: "[@!reference]" is a normative reference.
 
-   For RFC and I-Ds the references are generated automatically, although
-   for I-Ds you might need to include a draft version in the reference
+   For RFC and I-Ds the references are generated automatically, meaning
+   you don't need to include an XML reference element in source of
+   document.
+
+   For I-Ds you might need to include a draft version in the reference
    "[@?I-D.blah,#06]", creates an informative reference to the seventh
    version of draft-blah.
 
@@ -199,20 +208,11 @@ Internet-Draft                  mmark2rfc                  December 2014
    "[@pandoc]" is used, you can just use "@pandoc".
 
    If the need arises (usually when citing a document that is not in the
-   XML2RFC database) an XML reference fragment can be included, note
+   XML2RFC database) an XML reference fragment should be included, note
    that this needs to happen _before_ the back matter is started,
    because that is the point when the references are outputted (right
    now the implementation does not scan the entire file for citations,
-   also see Appendix A.
-
-6.  Internal References
-
-   The cross reference syntax is "[](#id)", which allows for an optional
-   title between the brackets.  Usually this is left empty, for this use
-   case mmark allows the shortcut form "(#id)" which omits the brackets
-   in its entirely.
-
-   The external reference syntax is "[](url)".
+   also see Appendix A).
 
 
 
@@ -225,6 +225,15 @@ Gieben                    Expires June 13, 2015                 [Page 4]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
+
+6.  Internal References
+
+   The cross reference syntax is "[](#id)", which allows for an optional
+   title between the brackets.  Usually this is left empty, for this use
+   case mmark allows the shortcut form "(#id)" which omits the brackets
+   in its entirely.
+
+   The external reference syntax is "[](url)".
 
 7.  Document divisions
 
@@ -261,16 +270,7 @@ Internet-Draft                  mmark2rfc                  December 2014
    An empty line between the IAL and the table or indented code block is
    allowed.
 
-9.1.  Figures
 
-   Any text directly after the figure starting with "Figure:" is used as
-   the caption.
-
-9.2.  Quotes
-
-   After a quote (a paragraph prefixed with ">") you can add a caption:
-
-                    Quote: Name -- URI for attribution
 
 
 
@@ -282,6 +282,17 @@ Gieben                    Expires June 13, 2015                 [Page 5]
 Internet-Draft                  mmark2rfc                  December 2014
 
 
+9.1.  Figures
+
+   Any text directly after the code block/fenced code block starting
+   with "Figure:" is used as the caption.
+
+9.2.  Quotes
+
+   After a quote (a paragraph prefixed with ">") you can add a caption:
+
+                    Quote: Name -- URI for attribution
+
    In v3 this is used in the block quote attributes, for v2 it is
    discarded.  If you need the string "Quote:" after an quote, escape
    the colon: "Quote\:".
@@ -289,7 +300,7 @@ Internet-Draft                  mmark2rfc                  December 2014
 9.3.  Tables
 
    A table caption is signalled by using "Table:" directly after the
-   table.  The table syntax used that one of Markdown Extra [7].
+   table.
 
 10.  Tables
 
@@ -322,17 +333,6 @@ Internet-Draft                  mmark2rfc                  December 2014
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 Gieben                    Expires June 13, 2015                 [Page 6]
 
 Internet-Draft                  mmark2rfc                  December 2014
@@ -352,6 +352,7 @@ Internet-Draft                  mmark2rfc                  December 2014
             |-----------------+------------+-----------------|
 
    Note that the header and footer can't contain block level elements.
+   The table syntax used that one of Markdown Extra [7].
 
 11.  Inline Attribute Lists
 
@@ -364,7 +365,36 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    You can specify classes with ".class" (although these are not used
    when converting to XML2RFC), and arbitrary key value pairs where each
-   key/value becomes an attribute.
+   key/value becomes an attribute.  Different elements in the IAL must
+   be seperated using spaces: "{#id lang=go}".
+
+   For the following elements a IAL is processed:
+
+   o  Table
+
+   o  Code Block
+
+   o  Fenced Code Block
+
+   o  List (any type)
+
+   o  Section Header
+
+   o  Image
+
+   o  Quote
+
+   o  ...
+
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 7]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
+   For all other elements they are ignored.
 
 12.  Lists
 
@@ -372,8 +402,8 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    The are several ways to start an ordered lists.  You can use numbers,
    roman numbers, letters and uppercase letters.  When using roman
-   numbers and letter you *MUST* use two spaces after the dot or the
-   brace (the underscore signals a space here):
+   numbers and letter you MUST use two spaces after the dot or the brace
+   (the underscore signals a space here):
 
                                    a)__
                                    A)__
@@ -386,13 +416,6 @@ Internet-Draft                  mmark2rfc                  December 2014
                                  5) Item5
 
    Will use for "4" as the starting number.
-
-
-
-Gieben                    Expires June 13, 2015                 [Page 7]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
 
 12.2.  Unordered Lists
 
@@ -415,19 +438,28 @@ Internet-Draft                  mmark2rfc                  December 2014
 13.  Figures and Images
 
    When an figure has a caption it will be wrapped in "<figure"> tags.
-   A figure can wrap source code (v3) or artwork (v2/v3).  An image is
-   wrapped in a figure when the optional title syntax is used.  Only for
-   v3 output...
+   A figure can wrap source code (v3) or artwork (v2/v3).
+
+   An image is wrapped in a figure when the optional title syntax is
+   used.  But images are only useful when outputting v3.  For v2 the
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 8]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
+   actual image can not be shown, so the following stop gap output is
+   given instead: XXX TODO: there is none yet.
 
    Multiple artworks/sources can be put in one figure.  This done by
    prefixing the section containing the figures with a figure quote:
    "F>".
 
-13.1.  Proposal
+13.1.  Details
 
-   o
-
-      A Fenced Code Block will becomes a source code in v3 and artwork
+   o  A Fenced Code Block will becomes a source code in v3 and artwork
       in v2.  We can use the language to signal the type.
 
                          ``` c
@@ -440,22 +472,12 @@ Internet-Draft                  mmark2rfc                  December 2014
 
                             {type="ascii-art"}
 
-
-
-
-
-
-Gieben                    Expires June 13, 2015                 [Page 8]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
-
                                     +-----+
                                     | ART |
                                     +-----+
 
       v3 allows the usage of a "src" attribute to link to external files
-      with images.  In this proposal we use the image syntax for that.
+      with images.  we use the image syntax for that.
 
    o  An image "![Alt text](/path/to/img.jpg "Optional title")", will be
       converted to an artwork with a "src" attribute in v3.  Again the
@@ -470,15 +492,24 @@ Internet-Draft                  mmark2rfc                  December 2014
                   ![](/path/to/art.txt "Optional title")
 
       For v2 this presents difficulties as there is no way to display
-      any of this.  The v2 renderer will output a warning and not output
-      anything in this case.
+      any of this, see Section 13.2 for a treatment on how to deal with
+      that.
 
-   o  Grouping artworks and code blocks into figures.  Scholary markdown
-      has a neat syntax for this.  It uses a special section syntax and
-      all images in that section become subfigures of a larger figure.
-      Disadvantage of this syntax is that it can not be used in lists.
-      Hence we propose a quote like solution, just as asides and notes,
-      but for figures:
+   o  To group artworks and code blocks into figures, we need an extra
+      syntax element.  Scholary markdown [11] has a neat syntax for
+      this.  It uses a special section syntax and all images in that
+
+
+
+Gieben                    Expires June 13, 2015                 [Page 9]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
+      section become subfigures of a larger figure.  Disadvantage of
+      this syntax is that it can not be used in lists.  Hence we we a
+      quote like solution, just as asides and notes, but for figures: we
+      prefix the entire paragraph with 'F> ' .
 
       Basic usage:
 
@@ -498,16 +529,12 @@ Internet-Draft                  mmark2rfc                  December 2014
       figure.  Yes one, because the fenced code block does not have a
       caption, so it will not be wrapped in a figure.
 
+      To summerize in v2 the inner captions _are_ used and the outer one
+      is discarded, for v3 it is the other way around.
 
+13.2.  Images in v2
 
-
-Gieben                    Expires June 13, 2015                 [Page 9]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
-
-      So in v2 the inner captions _are_ used, but the other one will be
-      discarded as there is no way to typeset it.
+   TODO
 
 14.  Miscellaneous Features
 
@@ -527,6 +554,14 @@ Internet-Draft                  mmark2rfc                  December 2014
    This borrows from the Go present tool, which got its inspiration from
    the Sam editor.  The syntax was gleaned from leanpub.  But the syntax
    presented here is more powerful than the one used by leanpub.  Use
+
+
+
+Gieben                    Expires June 13, 2015                [Page 10]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
    the syntax: "<{{program}}[address]" to include a code snippet.  The
    "address" identifier specifies what lines of code are to be included
    in the fragment.
@@ -554,14 +589,6 @@ Internet-Draft                  mmark2rfc                  December 2014
    mmark (even for documents targeting v2 -- but there they will be
    faked with the limited constructs of v2 syntax).
 
-
-
-
-Gieben                    Expires June 13, 2015                [Page 10]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
-
 15.1.  Asides
 
    Any paragraph prefixed with "A>".  For v2 this becomes a indented
@@ -579,18 +606,26 @@ Internet-Draft                  mmark2rfc                  December 2014
    "<bcp14>MUST</bcp14>", but "**must**" will not.  For v2 they are
    stripped of the emphasis and outputted as-is.
 
+
+
+
+
+
+
+
+Gieben                    Expires June 13, 2015                [Page 11]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
 15.4.  Super- and Subscripts
 
    Use H~2~O and 2^10^ is 1024.  In v2 these are outputted as-is.
 
-15.5.  Images
-
-   TODO
-
 16.  Converting from RFC 7328 Syntax
 
    Converting from an RFC 7328 ([RFC7328]) document can be done using
-   the quick and dirty Perl script [11], which uses pandoc to output
+   the quick and dirty Perl script [12], which uses pandoc to output
    markdown PHP extra and converts that into proper mmark: (mmark is
    more like markdown PHP extra, than like pandoc).
 
@@ -610,15 +645,7 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    o  Probably has other bugs, so a manual review should be in order.
 
-
-
-
-Gieben                    Expires June 13, 2015                [Page 11]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
-
-   There is also titleblock.pl [12] which can be given an [RFC7328]
+   There is also titleblock.pl [13] which can be given an [RFC7328]
    "template.xml" file and will output a TOML titleblock, that can be
    used as a starting point.
 
@@ -634,6 +661,18 @@ Internet-Draft                  mmark2rfc                  December 2014
 17.  Acknowledgements
 
 18.  References
+
+
+
+
+
+
+
+
+Gieben                    Expires June 13, 2015                [Page 12]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
 
 18.1.  Informative References
 
@@ -666,14 +705,6 @@ Internet-Draft                  mmark2rfc                  December 2014
    [toml]     Preston-Werner, T., "TOML git repository", March 2013,
               <https://github.com/toml-lang/toml>.
 
-
-
-
-Gieben                    Expires June 13, 2015                [Page 12]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
-
 18.3.  URIs
 
    [1] http://http://kramdown.gettalong.org/
@@ -692,16 +723,25 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    [8] https://michelf.ca/projects/php-markdown/extra/#def-list
 
+
+
+Gieben                    Expires June 13, 2015                [Page 13]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
    [9] http://johnmacfarlane.net/pandoc/README.html#extension-
        example_lists
 
-   [10] https://raw.githubusercontent.com/miekg/mmark/master/convert/
-        parts.pl
+   [10] http://scholarlymarkdown.com/Scholarly-Markdown-Guide.html
 
    [11] https://raw.githubusercontent.com/miekg/mmark/master/convert/
+        parts.pl
+
+   [12] https://raw.githubusercontent.com/miekg/mmark/master/convert/
         titleblock.pl
 
-   [12] http://commonmark.org/
+   [13] http://commonmark.org/
 
 Appendix A.  Bugs
 
@@ -710,29 +750,20 @@ Appendix A.  Bugs
 
    o  Inline Attribute Lists must be given _before_ the block element.
 
-   o  Mmark cannot parse @RFC728 markdown.
+   o  Mmark cannot correctly parse @RFC728 markdown.
 
    o  Multiple terms and definitions are not supported in definition
       lists.
 
-   o  Mmark only passes about 60% of the tests of CommonMark.
-
    o  Mmark uses two scans when converting a document and does not build
       an internal AST of the document, this means it can not adhere 100%
-      to the CommonMark [13] specification, however the CommonMark test
+      to the CommonMark [14] specification, however the CommonMark test
       suite is used when developing mmark.  Currently mmark passes ~60%
       of the tests.
 
-
-
-Gieben                    Expires June 13, 2015                [Page 13]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
-
 Appendix B.  Changes
 
-B.1.  01
+B.1.  xx
 
    o  Abstract are designated using a special header ".# Abstract"
 
@@ -747,37 +778,6 @@ Author's Address
    Buckingham Palace Road
 
    Email: miek@google.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

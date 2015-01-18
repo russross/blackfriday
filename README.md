@@ -234,7 +234,7 @@ implements the following extensions:
 
 *  **Asides**, any paragraph prefixed with `A>` .
 
-*  **Subfigures**, any paraphgraph prefix with `F>` will wrap all images and code in a 
+*  **Subfigures**, any paraphgraph prefix with `F>` will wrap all images and code in a
     single figure.
 
 *  **{frontmatter}/{mainmatter}/{backmatter}** Create useful divisions in your document.
@@ -242,13 +242,14 @@ implements the following extensions:
 *  **IAL**, kramdown's Inline Attribute List syntax, but took the CommonMark
     proposal, thus without the colon after the brace `{#id .class key=value key="value"}`.
     IALs are used for the following (block) elements:
-    * ...
     * Table
     * Code Block
+    * Fenced Code Block
     * List (any type)
-    * Section Headers
+    * Section Header
     * Image
     * Quote
+    * ...
 
 *  **Definitition lists**, the markdown extra syntax.
 
