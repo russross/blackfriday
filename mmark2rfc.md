@@ -378,7 +378,17 @@ So `![](/path/to/art.txt "Optional title")` will be converted to:
       </postamble>
     </figure>
 
-If a image does not have a title, the `figure` is dropped and only the link remains.
+If a image does not have a title, the `figure` is dropped and only the link remains. The default
+is to center the entire element. Note that is you don't give the image an anchor, `xml2rfc` won't
+typeset it with a `Figure X`, so for an optional "image" rendering, you should use the folowing:
+
+    {#fig:id}
+    ![](/path/to/art.txt "Optional title")
+
+Which when rendered becomes:
+
+{#fig:id}
+![](/path/to/art.txt "Optional title")
 
 # Miscellaneous Features
 
@@ -418,8 +428,8 @@ comments, line the in in `OMIT -->` are excluded as well.
 
 # XML2RFC V3 features
 
-The v3 syntax adds some new features, those can already be used in mmark (even for documents targeting
-v2 -- but there they will be faked with the limited constructs of v2 syntax).
+The v3 syntax adds some new features and those can already be used in mmark (even for documents targeting
+v2 -- but there they will be faked with the limited constructs of the v2 syntax).
 
 ## Asides
 
@@ -447,7 +457,7 @@ which uses pandoc to output markdown PHP extra and converts that into proper mma
 (mmark is more like markdown PHP extra, than like pandoc).
 
     for i in middle.mkd back.mkd; do \
-        pandoc --atx-headers -t markdown_phpextra < $i |
+        pandoc --atx-headers -t markdown_phpextra < $i |\
         ./parts.pl
     done
 

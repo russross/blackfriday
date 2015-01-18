@@ -539,13 +539,27 @@ func (options *xml2) Figure(out *bytes.Buffer, text []byte, caption []byte) {
 }
 
 func (options *xml2) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte, subfigure bool) {
-	// convert to url
-	options.inlineAttr().String()
+	// convert to url or image wrapped in figure
+	ial := options.inlineAttr()
+	ial.GetOrDefaultAttr("align", "center")
+	s := options.inlineAttr().String()
+	if len(title) != 0 {
+		out.WriteString("<figure" + s + " title=\"")
+		out.Write(title)
+		out.WriteString("\">\n")
+		// empty artwork
+		out.WriteString("<artwork" + ial.Key("align") + "></artwork>\n")
+		out.WriteString("<postamble>")
+	}
 	out.WriteString("<eref target=\"")
 	out.Write(link)
 	out.WriteString("\">")
-	out.Write(alt) // or title
+	out.Write(alt)
 	out.WriteString("</eref>")
+	if len(title) != 0 {
+		out.WriteString("</postamble>\n")
+		out.WriteString("</figure>\n")
+	}
 }
 
 func (options *xml2) LineBreak(out *bytes.Buffer) {

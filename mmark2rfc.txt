@@ -98,9 +98,9 @@ Table of Contents
    17. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  13
    18. References  . . . . . . . . . . . . . . . . . . . . . . . . .  13
      18.1.  Informative References . . . . . . . . . . . . . . . . .  13
-     18.2.  Normative References . . . . . . . . . . . . . . . . . .  13
+     18.2.  Normative References . . . . . . . . . . . . . . . . . .  14
      18.3.  URIs . . . . . . . . . . . . . . . . . . . . . . . . . .  14
-   Appendix A.  Bugs . . . . . . . . . . . . . . . . . . . . . . . .  14
+   Appendix A.  Bugs . . . . . . . . . . . . . . . . . . . . . . . .  15
    Appendix B.  Changes  . . . . . . . . . . . . . . . . . . . . . .  15
      B.1.  xx  . . . . . . . . . . . . . . . . . . . . . . . . . . .  15
    Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  15
@@ -571,7 +571,19 @@ Internet-Draft                  mmark2rfc                  December 2014
                    </figure>
 
    If a image does not have a title, the "figure" is dropped and only
-   the link remains.
+   the link remains.  The default is to center the entire element.  Note
+   that is you don't give the image an anchor, "xml2rfc" won't typeset
+   it with a "Figure X", so for an optional "image" rendering, you
+   should use the folowing:
+
+                  {#fig:id}
+                  ![](/path/to/art.txt "Optional title")
+
+   Which when rendered becomes:
+
+                                   [12]
+
+                         Figure 2: Optional title
 
 14.  Miscellaneous Features
 
@@ -599,6 +611,13 @@ Internet-Draft                  mmark2rfc                  December 2014
    deleted from the source before inclusion, making it easy to write
    things like
 
+
+
+Gieben                    Expires June 13, 2015                [Page 11]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
                    <{{test.go}}[/START OMIT/,/END OMIT/}
 
    So you can include snippets like this:
@@ -608,25 +627,15 @@ Internet-Draft                  mmark2rfc                  December 2014
                  interesting_code = fascinating_function()
                  // END OMIT
 
-
-
-
-
-
-Gieben                    Expires June 13, 2015                [Page 11]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
-
    To aid in including HTML or XML framents, where the "OMIT" key words
    is probably embedded in comments, line the in in "OMIT -->" are
    excluded as well.
 
 15.  XML2RFC V3 features
 
-   The v3 syntax adds some new features, those can already be used in
+   The v3 syntax adds some new features and those can already be used in
    mmark (even for documents targeting v2 -- but there they will be
-   faked with the limited constructs of v2 syntax).
+   faked with the limited constructs of the v2 syntax).
 
 15.1.  Asides
 
@@ -652,9 +661,18 @@ Internet-Draft                  mmark2rfc                  December 2014
 16.  Converting from RFC 7328 Syntax
 
    Converting from an RFC 7328 ([RFC7328]) document can be done using
-   the quick and dirty Perl script [12], which uses pandoc to output
+   the quick and dirty Perl script [13], which uses pandoc to output
    markdown PHP extra and converts that into proper mmark: (mmark is
    more like markdown PHP extra, than like pandoc).
+
+
+
+
+
+Gieben                    Expires June 13, 2015                [Page 12]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
 
            for i in middle.mkd back.mkd; do \
                pandoc --atx-headers -t markdown_phpextra < $i |
@@ -667,19 +685,12 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    o  Makes all RFC references normative;
 
-
-
-Gieben                    Expires June 13, 2015                [Page 12]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
-
    o  Handles all figure and table captions and adds references (if
       appropriate);
 
    o  Probably has other bugs, so a manual review should be in order.
 
-   There is also titleblock.pl [13] which can be given an [RFC7328]
+   There is also titleblock.pl [14] which can be given an [RFC7328]
    "template.xml" file and will output a TOML titleblock, that can be
    used as a starting point.
 
@@ -711,6 +722,14 @@ Internet-Draft                  mmark2rfc                  December 2014
    [pandoc]   MacFarlane, J., "Pandoc, a universal document converter",
               2006, <http://johnmacfarlane.net/pandoc/>.
 
+
+
+
+Gieben                    Expires June 13, 2015                [Page 13]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
 18.2.  Normative References
 
    [I-D.hoffman-xml2rfc]
@@ -720,15 +739,6 @@ Internet-Draft                  mmark2rfc                  December 2014
    [RFC2926]  Kempf, J., Moats, R., and P. St. Pierre, "Conversion of
               LDAP Schemas to and from SLP Templates", RFC 2926,
               September 2000.
-
-
-
-
-
-Gieben                    Expires June 13, 2015                [Page 13]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
 
    [RFC7328]  Gieben, R., "Writing I-Ds and RFCs Using Pandoc and a Bit
               of XML", RFC 7328, August 2014.
@@ -759,13 +769,22 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    [10] http://scholarlymarkdown.com/Scholarly-Markdown-Guide.html
 
-   [11] https://raw.githubusercontent.com/miekg/mmark/master/convert/
-        parts.pl
+   [11] /path/to/art.txt
 
    [12] https://raw.githubusercontent.com/miekg/mmark/master/convert/
+        parts.pl
+
+   [13] https://raw.githubusercontent.com/miekg/mmark/master/convert/
         titleblock.pl
 
-   [13] http://commonmark.org/
+   [14] http://commonmark.org/
+
+
+
+Gieben                    Expires June 13, 2015                [Page 14]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
 
 Appendix A.  Bugs
 
@@ -779,16 +798,9 @@ Appendix A.  Bugs
    o  Multiple terms and definitions are not supported in definition
       lists.
 
-
-
-Gieben                    Expires June 13, 2015                [Page 14]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
-
    o  Mmark uses two scans when converting a document and does not build
       an internal AST of the document, this means it can not adhere 100%
-      to the CommonMark [14] specification, however the CommonMark test
+      to the CommonMark [15] specification, however the CommonMark test
       suite is used when developing mmark.  Currently mmark passes ~60%
       of the tests.
 
@@ -809,18 +821,6 @@ Author's Address
    Buckingham Palace Road
 
    Email: miek@google.com
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
