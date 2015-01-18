@@ -390,6 +390,8 @@ Which when rendered becomes:
 {#fig:id}
 ![](/path/to/art.txt "Optional title")
 
+Note that ideas to improve/change on this are welcome.
+
 # Miscellaneous Features
 
 ## HTML Comment
@@ -416,7 +418,7 @@ is deleted from the source before inclusion, making it easy to write things like
     <{{test.go}}[/START OMIT/,/END OMIT/}
 
 So you can include snippets like this:
-~~~ go
+~~~
 tedious_code = boring_function()
 // START OMIT
 interesting_code = fascinating_function()
