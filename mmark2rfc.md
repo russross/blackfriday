@@ -151,6 +151,11 @@ creating an document `id` for them), is done with an IAL ([](#inline-attribute-l
 
 An empty line between the IAL and the table or indented code block is allowed.
 
+## Tables
+
+A table caption is signalled by using `Table: ` directly after the table.
+
+
 ## Figures
 
 Any text directly after the code block/fenced code block starting with `Figure: ` is used as the caption.
@@ -163,10 +168,6 @@ After a quote (a paragraph prefixed with `> `) you can add a caption:
 
 In v3 this is used in the block quote attributes, for v2 it is discarded. If you need
 the string `Quote: ` after an quote, escape the colon: `Quote\: `.
-
-## Tables
-
-A table caption is signalled by using `Table: ` directly after the table.
 
 # Tables
 
@@ -281,14 +282,20 @@ This is the example list syntax
 to example lists work as well. Note that an example list always needs to have an identifier,
 `(@good)` works, `(@)` does not.
 
+Example:
+
+    @good)  This is a good example.
+
+    As (@good) illustrates, ...
+
 # Figures and Images
 
 When an figure has a caption it will be wrapped in `<figure`> tags. A figure can
 wrap source code (v3) or artwork (v2/v3).
 
 An image is wrapped in a figure when the optional title syntax is used. But images
-are only useful when outputting v3. For v2 the actual image can not be shown, so the
-following stop gap output is given instead: XXX TODO: there is none yet.
+are only useful when outputting v3. For v2 the actual image can not be shown, see
+(#images-in-v2) for this.
 
 Multiple artworks/sources can be put in one figure. This done by prefixing the
 section containing the figures with a figure quote: `F> `.
@@ -311,7 +318,7 @@ section containing the figures with a figure quote: `F> `.
             +-----+
 
     v3 allows the usage of a `src` attribute to link to external files with images.
-    we use the image syntax for that.
+    We use the image syntax for that.
 
 *   An image `![Alt text](/path/to/img.jpg "Optional title")`, will be converted
     to an artwork with a `src` attribute in v3. Again the type needs to be specified
@@ -357,7 +364,21 @@ section containing the figures with a figure quote: `F> `.
 
 ## Images in v2
 
-TODO
+Images (real images, not ascii-art) are non-existent in v2, but are allowed in v3. To allow
+writers to use images *and* output v2 and v3 formats, the following hack is used in v2 output.
+Any image will be converted to a figure with an title attribute set to the "Optional title".
+And the url in the image will be type set as a link in the postamble.
+So `![](/path/to/art.txt "Optional title")` will be converted to:
+
+    <figure title="Optional title">
+     <artwork>
+     </artwork>
+      <postamble>
+       <eref target="/path/to/art.txt"/>
+      </postamble>
+    </figure>
+
+If a image does not have a title, the `figure` is dropped and only the link remains.
 
 # Miscellaneous Features
 
