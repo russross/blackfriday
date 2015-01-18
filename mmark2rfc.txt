@@ -94,7 +94,7 @@ Table of Contents
      15.2.  Notes  . . . . . . . . . . . . . . . . . . . . . . . . .  12
      15.3.  RFC 2119 Keywords  . . . . . . . . . . . . . . . . . . .  12
      15.4.  Super- and Subscripts  . . . . . . . . . . . . . . . . .  12
-   16. Converting from RFC 7328 Syntax . . . . . . . . . . . . . . .  12
+   16. Converting from RFC 7328 Syntax . . . . . . . . . . . . . . .  13
    17. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  13
    18. References  . . . . . . . . . . . . . . . . . . . . . . . . .  13
      18.1.  Informative References . . . . . . . . . . . . . . . . .  13
@@ -585,6 +585,8 @@ Internet-Draft                  mmark2rfc                  December 2014
 
                          Figure 2: Optional title
 
+   Note that ideas to improve/change on this are welcome.
+
 14.  Miscellaneous Features
 
 14.1.  HTML Comment
@@ -603,13 +605,11 @@ Internet-Draft                  mmark2rfc                  December 2014
    This borrows from the Go present tool, which got its inspiration from
    the Sam editor.  The syntax was gleaned from leanpub.  But the syntax
    presented here is more powerful than the one used by leanpub.  Use
-   the syntax: "<{{program}}[address]" to include a code snippet.  The
+   the syntax: "<{{file}}[address]" to include a code snippet.  The
    "address" identifier specifies what lines of code are to be included
    in the fragment.
 
-   Any line in the program that ends with the four characters "OMIT" is
-   deleted from the source before inclusion, making it easy to write
-   things like
+
 
 
 
@@ -618,7 +618,11 @@ Gieben                    Expires June 13, 2015                [Page 11]
 Internet-Draft                  mmark2rfc                  December 2014
 
 
-                   <{{test.go}}[/START OMIT/,/END OMIT/}
+   Any line in the program that ends with the four characters "OMIT" is
+   deleted from the source before inclusion, making it easy to write
+   things like
+
+                   <{{test.go}}[/START OMIT/,/END OMIT/]
 
    So you can include snippets like this:
 
@@ -629,7 +633,9 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    To aid in including HTML or XML framents, where the "OMIT" key words
    is probably embedded in comments, line the in in "OMIT -->" are
-   excluded as well.
+   excluded as well.  Note that the default is put out an artwork, but
+   if the extension of the included file matches a computer language,
+   "<sourcecode>" will be emitted for v3.
 
 15.  XML2RFC V3 features
 
@@ -658,12 +664,6 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    Use H~2~O and 2^10^ is 1024.  In v2 these are outputted as-is.
 
-16.  Converting from RFC 7328 Syntax
-
-   Converting from an RFC 7328 ([RFC7328]) document can be done using
-   the quick and dirty Perl script [13], which uses pandoc to output
-   markdown PHP extra and converts that into proper mmark: (mmark is
-   more like markdown PHP extra, than like pandoc).
 
 
 
@@ -674,8 +674,15 @@ Gieben                    Expires June 13, 2015                [Page 12]
 Internet-Draft                  mmark2rfc                  December 2014
 
 
+16.  Converting from RFC 7328 Syntax
+
+   Converting from an RFC 7328 ([RFC7328]) document can be done using
+   the quick and dirty Perl script [13], which uses pandoc to output
+   markdown PHP extra and converts that into proper mmark: (mmark is
+   more like markdown PHP extra, than like pandoc).
+
            for i in middle.mkd back.mkd; do \
-               pandoc --atx-headers -t markdown_phpextra < $i |
+               pandoc --atx-headers -t markdown_phpextra < $i |\
                ./parts.pl
            done
 
@@ -716,19 +723,18 @@ Internet-Draft                  mmark2rfc                  December 2014
               "Blackfriday git repository", November 2011,
               <http://github.com/russross/blackfriday>.
 
-   [mmark]    Gieben, R., "Mmark git repository", December 2014,
-              <http://github.com/miekg/mmark>.
-
-   [pandoc]   MacFarlane, J., "Pandoc, a universal document converter",
-              2006, <http://johnmacfarlane.net/pandoc/>.
-
-
 
 
 Gieben                    Expires June 13, 2015                [Page 13]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
+
+   [mmark]    Gieben, R., "Mmark git repository", December 2014,
+              <http://github.com/miekg/mmark>.
+
+   [pandoc]   MacFarlane, J., "Pandoc, a universal document converter",
+              2006, <http://johnmacfarlane.net/pandoc/>.
 
 18.2.  Normative References
 
@@ -771,13 +777,7 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    [11] /path/to/art.txt
 
-   [12] https://raw.githubusercontent.com/miekg/mmark/master/convert/
-        parts.pl
 
-   [13] https://raw.githubusercontent.com/miekg/mmark/master/convert/
-        titleblock.pl
-
-   [14] http://commonmark.org/
 
 
 
@@ -785,6 +785,14 @@ Gieben                    Expires June 13, 2015                [Page 14]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
+
+   [12] https://raw.githubusercontent.com/miekg/mmark/master/convert/
+        parts.pl
+
+   [13] https://raw.githubusercontent.com/miekg/mmark/master/convert/
+        titleblock.pl
+
+   [14] http://commonmark.org/
 
 Appendix A.  Bugs
 
@@ -821,14 +829,6 @@ Author's Address
    Buckingham Palace Road
 
    Email: miek@google.com
-
-
-
-
-
-
-
-
 
 
 
