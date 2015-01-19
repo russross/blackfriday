@@ -320,6 +320,8 @@ implements the following extensions:
 *   Renderers
     * HTML renderer is lagging behind the other renderers.
     * Get all renderers into shape
+*   Polish, make xml2rfc v2 and v3 output perfect. And create
+    a way to validate the v3 output against the latest draft.
 *   Create website where you can type can convert mmark markdown
 
 
