@@ -394,7 +394,9 @@ Gieben                    Expires June 13, 2015                 [Page 7]
 Internet-Draft                  mmark2rfc                  December 2014
 
 
-   For all other elements they are ignored.
+   For all other elements they are ignored, but not disgarded.  This
+   means they will be applied to the next element that does use the
+   IALs.
 
 12.  Lists
 
@@ -440,8 +442,6 @@ Internet-Draft                  mmark2rfc                  December 2014
                       @good)  This is a good example.
 
                       As (@good) illustrates, ...
-
-
 
 
 
