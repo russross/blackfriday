@@ -1005,28 +1005,28 @@ func TestIndexXML(t *testing.T) {
 func TestCitationXML(t *testing.T) {
 	var tests = []string{
 		"[@RFC2525]",
-		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t><xref target=\"RFC2525\"/></t>\n\n</middle>\n<back>\n<references title=\"Informative References\">\n<xi:include href=\"reference.RFC.2525.xml\"/>\n\n</back>\n</rfc>\n",
+		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t><xref target=\"RFC2525\"/></t>\n\n</middle>\n<back>\n<references title=\"Informative References\">\n<xi:include href=\"reference.RFC.2525.xml\"/>\n</references>\n\n</back>\n</rfc>\n",
 
 		"[@!RFC1024]",
 		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t><xref target=\"RFC1024\"/></t>\n\n</middle>\n<back>\n<references title=\"Normative References\">\n<xi:include href=\"reference.RFC.1024.xml\"/>\n</references>\n\n</back>\n</rfc>\n",
 
 		"[@?RFC3024]",
-		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t><xref target=\"RFC3024\"/></t>\n\n</middle>\n<back>\n<references title=\"Informative References\">\n<xi:include href=\"reference.RFC.3024.xml\"/>\n\n</back>\n</rfc>\n",
+		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t><xref target=\"RFC3024\"/></t>\n\n</middle>\n<back>\n<references title=\"Informative References\">\n<xi:include href=\"reference.RFC.3024.xml\"/>\n</references>\n\n</back>\n</rfc>\n",
 
 		"[-@RFC3024]",
-		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n</middle>\n<back>\n<references title=\"Informative References\">\n<xi:include href=\"reference.RFC.3024.xml\"/>\n\n</back>\n</rfc>\n",
+		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n</middle>\n<back>\n<references title=\"Informative References\">\n<xi:include href=\"reference.RFC.3024.xml\"/>\n</references>\n\n</back>\n</rfc>\n",
 
 		"[@?I-D.6man-udpzero]",
-		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t><xref target=\"I-D.6man-udpzero\"/></t>\n\n</middle>\n<back>\n<references title=\"Informative References\">\n<xi:include href=\"reference.I-D.draft-6man-udpzero.xml\"/>\n\n</back>\n</rfc>\n",
+		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t><xref target=\"I-D.6man-udpzero\"/></t>\n\n</middle>\n<back>\n<references title=\"Informative References\">\n<xi:include href=\"reference.I-D.draft-6man-udpzero.xml\"/>\n</references>\n\n</back>\n</rfc>\n",
 
 		"[@?I-D.6man-udpzero#06]",
-		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t><xref target=\"I-D.6man-udpzero\"/></t>\n\n</middle>\n<back>\n<references title=\"Informative References\">\n<xi:include href=\"reference.I-D.draft-6man-udpzero-06.xml\"/>\n\n</back>\n</rfc>\n",
+		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t><xref target=\"I-D.6man-udpzero\"/></t>\n\n</middle>\n<back>\n<references title=\"Informative References\">\n<xi:include href=\"reference.I-D.draft-6man-udpzero-06.xml\"/>\n</references>\n\n</back>\n</rfc>\n",
 
 		"[@?I-D.6man-udpzero p. 23]",
-		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t><xref target=\"I-D.6man-udpzero\" section=\"p. 23\"/></t>\n\n</middle>\n<back>\n<references title=\"Informative References\">\n<xi:include href=\"reference.I-D.draft-6man-udpzero.xml\"/>\n\n</back>\n</rfc>\n",
+		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t><xref target=\"I-D.6man-udpzero\" section=\"p. 23\"/></t>\n\n</middle>\n<back>\n<references title=\"Informative References\">\n<xi:include href=\"reference.I-D.draft-6man-udpzero.xml\"/>\n</references>\n\n</back>\n</rfc>\n",
 
 		"[@RFC2525], as you can see from @RFC2525, as @miekg says",
-		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t><xref target=\"RFC2525\"/>, as you can see from <xref target=\"RFC2525\"/>, as @miekg says</t>\n\n</middle>\n<back>\n<references title=\"Informative References\">\n<xi:include href=\"reference.RFC.2525.xml\"/>\n\n</back>\n</rfc>\n",
+		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t><xref target=\"RFC2525\"/>, as you can see from <xref target=\"RFC2525\"/>, as @miekg says</t>\n\n</middle>\n<back>\n<references title=\"Informative References\">\n<xi:include href=\"reference.RFC.2525.xml\"/>\n</references>\n\n</back>\n</rfc>\n",
 	}
 	doTestsInlineParamXML(t, tests, 0, XML_STANDALONE)
 }
