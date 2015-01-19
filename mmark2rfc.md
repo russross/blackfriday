@@ -540,7 +540,11 @@ For now the mmark parser will not get any features that makes it backwards compa
 
 # Tips and Tricks
 
-How do I ---
+How do I type set:
+
+Multiple paragraphs in a list:
+:   Indent the list with four spaces. Text indented with three spaces will
+    be seen as a new paragraph that breaks the list.
 
 # Bugs
 

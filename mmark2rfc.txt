@@ -100,11 +100,11 @@ Table of Contents
      18.1.  Informative References . . . . . . . . . . . . . . . . .  13
      18.2.  Normative References . . . . . . . . . . . . . . . . . .  14
      18.3.  URIs . . . . . . . . . . . . . . . . . . . . . . . . . .  14
-   Appendix A.  Bugs . . . . . . . . . . . . . . . . . . . . . . . .  15
-   Appendix B.  Changes  . . . . . . . . . . . . . . . . . . . . . .  15
-     B.1.  xx  . . . . . . . . . . . . . . . . . . . . . . . . . . .  15
+   Appendix A.  Tips and Tricks  . . . . . . . . . . . . . . . . . .  15
+   Appendix B.  Bugs . . . . . . . . . . . . . . . . . . . . . . . .  15
+   Appendix C.  Changes  . . . . . . . . . . . . . . . . . . . . . .  15
+     C.1.  xx  . . . . . . . . . . . . . . . . . . . . . . . . . . .  15
    Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  15
-
 
 
 
@@ -212,7 +212,7 @@ Internet-Draft                  mmark2rfc                  December 2014
    that this needs to happen _before_ the back matter is started,
    because that is the point when the references are outputted (right
    now the implementation does not scan the entire file for citations,
-   also see Appendix A).
+   also see Appendix B).
 
 
 
@@ -358,7 +358,7 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    This borrows from kramdown [8], with the difference that the colon is
    dropped and each IAL must be typeset _before_ the block element (see
-   Appendix A).  Added an anchor to blockquote can be done like so:
+   Appendix B).  Added an anchor to blockquote can be done like so:
 
                               {#quote:ref1}
                               > A block quote
@@ -794,7 +794,11 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    [14] http://commonmark.org/
 
-Appendix A.  Bugs
+Appendix A.  Tips and Tricks
+
+   How do I ---
+
+Appendix B.  Bugs
 
    o  Citations must be included in the text before the "{backmatter}"
       starts.  otherwise they are not available in the appendix.
@@ -812,9 +816,9 @@ Appendix A.  Bugs
       suite is used when developing mmark.  Currently mmark passes ~60%
       of the tests.
 
-Appendix B.  Changes
+Appendix C.  Changes
 
-B.1.  xx
+C.1.  xx
 
    o  Abstract are designated using a special header ".# Abstract"
 
@@ -829,10 +833,6 @@ Author's Address
    Buckingham Palace Road
 
    Email: miek@google.com
-
-
-
-
 
 
 

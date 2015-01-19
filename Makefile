@@ -1,4 +1,4 @@
-all:
+all:	mmark2rfc.txt
 	( cd mmark; go build )
 
 mmark2rfc.txt: mmark2rfc.md
