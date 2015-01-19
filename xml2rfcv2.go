@@ -199,10 +199,10 @@ func (options *xml2) Abstract(out *bytes.Buffer, text func() bool, id string) {
 		}
 	}
 
-	//ial := options.InlineAttr()
-	//ial.GetOrDefaultId(id)
+	ial := options.inlineAttr()
+	ial.GetOrDefaultId(id)
 
-	out.WriteString("\n<abstract>\n")
+	out.WriteString("\n<abstract" + ial.String() + ">\n")
 	options.sectionLevel = 0
 	options.specialSection = _ABSTRACT
 	return
@@ -227,7 +227,7 @@ func (options *xml2) Header(out *bytes.Buffer, text func() bool, level int, id s
 	// new section
 	out.WriteString("\n<section" + ial.String())
 	out.WriteString(" title=\"")
-	text() // check bool here
+	text()
 	out.WriteString("\">\n")
 	options.sectionLevel = level
 	options.specialSection = 0

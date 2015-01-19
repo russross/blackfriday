@@ -235,18 +235,17 @@ func (options *xml) Abstract(out *bytes.Buffer, text func() bool, id string) {
 	ial := options.inlineAttr()
 	ial.GetOrDefaultId(id)
 
-	out.WriteString("\n<abstract" + ial.String())
-	out.WriteByte('\n')
+	out.WriteString("\n<abstract" + ial.String() + ">\n")
 	options.sectionLevel = 0
 	options.specialSection = _ABSTRACT
 	return
 }
 
 func (options *xml) Header(out *bytes.Buffer, text func() bool, level int, id string) {
-	// set amount of open in options, so we know what to close after we finish
-	// parsing the doc.
-	//marker := out.Len()
-	//out.Truncate(marker)
+	switch options.specialSection {
+	case _ABSTRACT:
+		out.WriteString("</abstract>\n\n")
+	}
 	if level <= options.sectionLevel {
 		// close previous ones
 		for i := options.sectionLevel - level + 1; i > 0; i-- {
@@ -260,9 +259,10 @@ func (options *xml) Header(out *bytes.Buffer, text func() bool, level int, id st
 	// new section
 	out.WriteString("\n<section" + ial.String() + ">")
 	out.WriteString("<name>")
-	text() // check bool here
+	text()
 	out.WriteString("</name>\n")
 	options.sectionLevel = level
+	options.specialSection = 0
 	return
 }
 
@@ -457,6 +457,7 @@ func (options *xml) References(out *bytes.Buffer, citations map[string]*citation
 					out.WriteString("<xi:include href=\"" + f + "\"/>\n")
 				}
 			}
+			out.WriteString("</references>\n")
 		}
 		if refn > 0 {
 			out.WriteString("<references title=\"Normative References\">\n")
@@ -660,6 +661,10 @@ func (options *xml) DocumentMatter(out *bytes.Buffer, matter int) {
 	if options.flags&XML_STANDALONE == 0 {
 		return
 	}
+	switch options.specialSection {
+	case _ABSTRACT:
+		out.WriteString("</abstract>\n\n")
+	}
 	// we default to frontmatter already openened in the documentHeader
 	for i := options.sectionLevel; i > 0; i-- {
 		out.WriteString("</section>\n")
@@ -676,6 +681,7 @@ func (options *xml) DocumentMatter(out *bytes.Buffer, matter int) {
 		out.WriteString("<back>\n")
 	}
 	options.docLevel = matter
+	options.specialSection = 0
 }
 
 var entityConvert = map[byte][]byte{
