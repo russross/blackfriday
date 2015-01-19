@@ -201,7 +201,7 @@ Internet-Draft                  mmark2rfc                  December 2014
    document.
 
    For I-Ds you might need to include a draft version in the reference
-   "[@?I-D.blah,#06]", creates an informative reference to the seventh
+   "[@?I-D.blah#06]", creates an informative reference to the seventh
    version of draft-blah.
 
    Once a citation has been defined the brackets can be omited, so once
