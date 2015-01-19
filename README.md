@@ -49,16 +49,27 @@ There is no pretty printed output if you need that pipe the output through `xmll
 
 ## Usage
 
-For basic usage, it is as simple as getting your input into a byte
-slice and calling:
+In the mmark subdirectory you can build the mmark tool:
 
-    output := mmark.MarkdownBasic(input)
+    % cd mmark
+    % go build
+    % ./mmark -h
+    Mmark Markdown Processor v1.0
+    ...
 
-This renders it with no extensions enabled. To get a more useful
-feature set, use this instead:
+To output v2 xml just give it a markdown file and:
 
-    output := mmark.MarkdownCommon(input)
+    % ./mmark/mmark -xml2 -page mmark2rfc.md
 
+Making a draft in text form:
+
+    % ./mmark/mmark -xml2 -page mmark2rfc.md > x.xml \
+    && xml2rfc --text x.xml \
+    && rm x.xml && mv x.txt mmark2rfc.txt
+
+Outputing v3 xml is done with the `-xml` switch. There is not yet
+a processor for this XML, but you should be able to validate the
+resulting XML against the schema from the XML2RFC v3 draft.
 
 # Extensions
 
