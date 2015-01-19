@@ -54,7 +54,7 @@ The goals of mmark are:
 
 Using Figure 1 from [@!RFC7328], mmark can be positioned as follows:
 
-{#fig:mmark align=left}
+{#fig-mmark align=left}
      +-------------------+   pandoc   +---------+
      | ALMOST PLAIN TEXT |   ------>  | DOCBOOK |
      +-------------------+            +---------+
@@ -330,7 +330,7 @@ section containing the figures with a figure quote: `F> `.
 
     Creating an artwork with an anchor and type will become:
 
-        {#fig:id type="ascii-art"}
+        {#fig-id type="ascii-art"}
         ![](/path/to/art.txt "Optional title")
 
     For v2 this presents difficulties as there is no way to display any of this, see
@@ -383,12 +383,12 @@ If a image does not have a title, the `figure` is dropped and only the link rema
 is to center the entire element. Note that is you don't give the image an anchor, `xml2rfc` won't
 typeset it with a `Figure X`, so for an optional "image" rendering, you should use the folowing:
 
-    {#fig:id}
+    {#fig-id}
     ![](/path/to/art.txt "Optional title")
 
 Which when rendered becomes:
 
-{#fig:id}
+{#fig-id}
 ![](/path/to/art.txt "Optional title")
 
 Note that ideas to improve/change on this are welcome.
