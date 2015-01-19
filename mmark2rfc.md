@@ -243,7 +243,8 @@ For the following elements a IAL is processed:
 * Quote
 * ...
 
-For all other elements they are ignored.
+For all other elements they are ignored, but not disgarded. This means they will be applied to the
+next element that does use the IALs.
 
 # Lists
 

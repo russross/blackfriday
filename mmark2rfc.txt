@@ -104,7 +104,7 @@ Table of Contents
    Appendix B.  Bugs . . . . . . . . . . . . . . . . . . . . . . . .  15
    Appendix C.  Changes  . . . . . . . . . . . . . . . . . . . . . .  15
      C.1.  xx  . . . . . . . . . . . . . . . . . . . . . . . . . . .  15
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  15
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  16
 
 
 
@@ -796,7 +796,11 @@ Internet-Draft                  mmark2rfc                  December 2014
 
 Appendix A.  Tips and Tricks
 
-   How do I ---
+   How do I type set:
+
+   Multiple paragraphs in a list:  Indent the list with four spaces.
+      Text indented with three spaces will be seen as a new paragraph
+      that breaks the list.
 
 Appendix B.  Bugs
 
@@ -826,6 +830,18 @@ C.1.  xx
 
    o  Add math "$$".
 
+
+
+
+
+
+
+
+Gieben                    Expires June 13, 2015                [Page 15]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
 Author's Address
 
    R. (Miek) Gieben
@@ -837,4 +853,44 @@ Author's Address
 
 
 
-Gieben                    Expires June 13, 2015                [Page 15]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Gieben                    Expires June 13, 2015                [Page 16]

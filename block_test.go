@@ -1447,11 +1447,17 @@ func TestIALXML(t *testing.T) {
 		"{#id}\n	Code\n",
 		"<artwork anchor=\"id\">\nCode\n</artwork>\n",
 
-		"{id}\n	Code\n",
+		"{id}\n    Code\n",
 		"<t>{id}</t>\n<artwork>\nCode\n</artwork>\n",
 
 		"{#id}\n",
 		"",
+
+		"{#id}\n{type=\"go\"}\n    Code\n",
+		"<artwork anchor=\"id\" type=\"go\">\nCode\n</artwork>\n",
+
+		"{#id \n    Code\n",
+		"<t>{#id</t>\n<artwork>\nCode\n</artwork>\n",
 	}
 	doTestsBlockXML(t, tests, 0)
 }
@@ -1460,4 +1466,3 @@ func TestIALXML(t *testing.T) {
 // figure caption
 // table caption
 // frontmatter
-// broken IALs
