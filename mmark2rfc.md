@@ -102,7 +102,7 @@ For RFC and I-Ds the references are generated automatically, meaning you don't n
 an XML reference element in source of document.
 
 For I-Ds you might need to include a draft version in the reference
-`[@?I-D.blah,#06]`, creates an informative reference to the seventh version of
+`[@?I-D.blah#06]`, creates an informative reference to the seventh version of
 draft-blah.
 
 Once a citation has been defined the brackets can be omited, so once `[@pandoc]` is used, you
