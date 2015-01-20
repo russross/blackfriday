@@ -454,7 +454,8 @@ func (options *xml) References(out *bytes.Buffer, citations map[string]*citation
 	// we construct one for RFCNNNN and I-D.something something.
 	if refi+refn > 0 {
 		if refi > 0 {
-			out.WriteString("<references>\n")
+			// This needs an anchor
+			out.WriteString("<references anchor=\"xxx-references-informative\">\n")
 			out.WriteString("<name>Informative References</name>\n")
 			for _, c := range citations {
 				if c.typ == 'i' {
@@ -471,7 +472,7 @@ func (options *xml) References(out *bytes.Buffer, citations map[string]*citation
 			out.WriteString("</references>\n")
 		}
 		if refn > 0 {
-			out.WriteString("<references>\n")
+			out.WriteString("<references anchor=\"xxx-references-normative\">\n")
 			out.WriteString("<name>Normative References</name>\n")
 			for _, c := range citations {
 				if c.typ == 'n' {
