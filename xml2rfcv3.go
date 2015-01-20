@@ -111,6 +111,25 @@ func (options *xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	out.WriteString("<title abbrev=\"" + options.titleBlock.Abbrev + "\">")
 	out.WriteString(options.titleBlock.Title + "</title>\n\n")
 
+	for _, a := range options.titleBlock.Author {
+		out.WriteString("<author")
+		if a.Role != "" {
+			out.WriteString(" role=\"" + a.Role + "\"")
+		}
+		if a.Ascii != "" {
+			out.WriteString(" ascii=\"" + a.Ascii + "\"")
+		}
+		out.WriteString(" initials=\"" + a.Initials + "\"")
+		out.WriteString(" surname=\"" + a.Surname + "\"")
+		out.WriteString(" fullname=\"" + a.Fullname + "\">")
+
+		out.WriteString("<organization>" + a.Organization + "</organization>\n")
+		out.WriteString("<address>\n")
+		out.WriteString("<email>" + a.Address.Email + "</email>\n")
+		out.WriteString("</address>\n")
+		out.WriteString("</author>\n")
+	}
+	out.WriteString("\n")
 	year := ""
 	if options.titleBlock.Date.Year() > 0 {
 		year = " year=\"" + strconv.Itoa(options.titleBlock.Date.Year()) + "\""
@@ -124,27 +143,13 @@ func (options *xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 		day = " day=\"" + strconv.Itoa(options.titleBlock.Date.Day()) + "\""
 	}
 	out.WriteString("<date" + year + month + day + "/>\n\n")
-
 	out.WriteString("<area>" + options.titleBlock.Area + "</area>\n")
 	out.WriteString("<workgroup>" + options.titleBlock.Workgroup + "</workgroup>\n")
+
 	for _, k := range options.titleBlock.Keyword {
 		out.WriteString("<keyword>" + k + "</keyword>\n")
 	}
-	for _, a := range options.titleBlock.Author {
-		out.WriteString("<author")
-		out.WriteString(" initials=\"" + a.Initials + "\"")
-		out.WriteString(" surname=\"" + a.Surname + "\"")
-		out.WriteString(" fullname=\"" + a.Fullname + "\">")
 
-		out.WriteString("<organization>" + a.Organization + "</organization>\n")
-		out.WriteString("<address>\n")
-		out.WriteString("<email>" + a.Address.Email + "</email>\n")
-		out.WriteString("</address>\n")
-		out.WriteString("<role>" + a.Role + "</role>\n")
-		out.WriteString("<ascii>" + a.Ascii + "</ascii>\n")
-		out.WriteString("</author>\n")
-	}
-	out.WriteString("\n")
 }
 
 func (options *xml) BlockQuote(out *bytes.Buffer, text []byte, attribution []byte) {
@@ -233,7 +238,6 @@ func (options *xml) Abstract(out *bytes.Buffer, text func() bool, id string) {
 	}
 
 	ial := options.inlineAttr()
-	ial.GetOrDefaultId(id)
 
 	out.WriteString("\n<abstract" + ial.String() + ">\n")
 	options.sectionLevel = 0

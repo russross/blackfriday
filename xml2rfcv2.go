@@ -200,7 +200,6 @@ func (options *xml2) Abstract(out *bytes.Buffer, text func() bool, id string) {
 	}
 
 	ial := options.inlineAttr()
-	ial.GetOrDefaultId(id)
 
 	out.WriteString("\n<abstract" + ial.String() + ">\n")
 	options.sectionLevel = 0

@@ -12,6 +12,7 @@
 % initials="R."
 % surname="Gieben"
 % fullname="R. (Miek) Gieben"
+% #role="editor"
 % organization = "Google"
 %   [author.address]
 %   email = "miek@google.com"
@@ -54,7 +55,7 @@ The goals of mmark are:
 
 Using Figure 1 from [@!RFC7328], mmark can be positioned as follows:
 
-{#fig-mmark align=left}
+{#fig:mmark align=left}
      +-------------------+   pandoc   +---------+
      | ALMOST PLAIN TEXT |   ------>  | DOCBOOK |
      +-------------------+            +---------+
