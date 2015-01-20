@@ -454,7 +454,8 @@ func (options *xml) References(out *bytes.Buffer, citations map[string]*citation
 	// we construct one for RFCNNNN and I-D.something something.
 	if refi+refn > 0 {
 		if refi > 0 {
-			out.WriteString("<references title=\"Informative References\">\n")
+			out.WriteString("<references>\n")
+			out.WriteString("<name>Informative References</name>\n")
 			for _, c := range citations {
 				if c.typ == 'i' {
 					// if we have raw xml, output that
@@ -470,7 +471,8 @@ func (options *xml) References(out *bytes.Buffer, citations map[string]*citation
 			out.WriteString("</references>\n")
 		}
 		if refn > 0 {
-			out.WriteString("<references title=\"Normative References\">\n")
+			out.WriteString("<references>\n")
+			out.WriteString("<name>Normative References</name>\n")
 			for _, c := range citations {
 				if c.typ == 'n' {
 					if c.xml != nil {
