@@ -463,7 +463,7 @@ func (options *xml) References(out *bytes.Buffer, citations map[string]*citation
 	if refi+refn > 0 {
 		if refi > 0 {
 			// This needs an anchor
-			out.WriteString("<references anchor=\"xxx-references-informative\">\n")
+			out.WriteString("<references>\n")
 			out.WriteString("<name>Informative References</name>\n")
 			for _, c := range citations {
 				if c.typ == 'i' {
@@ -480,7 +480,7 @@ func (options *xml) References(out *bytes.Buffer, citations map[string]*citation
 			out.WriteString("</references>\n")
 		}
 		if refn > 0 {
-			out.WriteString("<references anchor=\"xxx-references-normative\">\n")
+			out.WriteString("<references>\n")
 			out.WriteString("<name>Normative References</name>\n")
 			for _, c := range citations {
 				if c.typ == 'n' {

@@ -1003,7 +1003,8 @@ func TestIndexXML(t *testing.T) {
 }
 
 // Off for now, too much changes going on.
-func testCitationXML(t *testing.T) {
+// Move title -> name
+func TestCitationXML(t *testing.T) {
 	var tests = []string{
 		"[@RFC2525]",
 		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t><xref target=\"RFC2525\"/></t>\n\n</middle>\n<back>\n<references title=\"Informative References\">\n<xi:include href=\"reference.RFC.2525.xml\"/>\n</references>\n\n</back>\n</rfc>\n",
