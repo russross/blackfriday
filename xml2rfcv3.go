@@ -457,6 +457,12 @@ func (options *xml) References(out *bytes.Buffer, citations map[string]*citation
 			out.WriteString("<references title=\"Informative References\">\n")
 			for _, c := range citations {
 				if c.typ == 'i' {
+					// if we have raw xml, output that
+					if c.xml != nil {
+						out.Write(c.xml)
+						out.WriteByte('\n')
+						continue
+					}
 					f := referenceFile(c)
 					out.WriteString("<xi:include href=\"" + f + "\"/>\n")
 				}
@@ -467,6 +473,11 @@ func (options *xml) References(out *bytes.Buffer, citations map[string]*citation
 			out.WriteString("<references title=\"Normative References\">\n")
 			for _, c := range citations {
 				if c.typ == 'n' {
+					if c.xml != nil {
+						out.Write(c.xml)
+						out.WriteByte('\n')
+						continue
+					}
 					f := referenceFile(c)
 					out.WriteString("<xi:include href=\"" + f + "\"/>\n")
 				}
