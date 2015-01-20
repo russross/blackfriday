@@ -11,6 +11,9 @@ mmark2rfc2.txt: mmark2rfc.md mmark/mmark
 mmark2rfc3.xml: mmark2rfc.md mmark/mmark
 	./mmark/mmark -xml -page mmark2rfc.md > mmark2rfc3.xml
 
+mmark2rfc2.xml: mmark2rfc.md mmark/mmark
+	./mmark/mmark -xml -page mmark2rfc.md > mmark2rfc2.xml
+
 .PHONY:
 clean:
 	rm -f mmark2rfc3.xml mmark2rfc2.txt
