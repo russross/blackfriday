@@ -1,5 +1,6 @@
 namespace a = "http://relaxng.org/ns/compatibility/annotations/1.0"
 
+# xml2rfc Version 3 grammar
 rfc =
   element rfc {
     attribute number { text }?,
@@ -190,8 +191,10 @@ t =
     attribute anchor { xsd:ID }?,
     attribute hangText { text }?,
     attribute pn { text }?,
-    [ a:defaultValue = "false" ] attribute keepwithnext { "false" | "true" }?,
-    [ a:defaultValue = "false" ] attribute keepwithprevious { "false" | "true" }?,
+    [ a:defaultValue = "false" ]
+    attribute keepwithnext { "false" | "true" }?,
+    [ a:defaultValue = "false" ]
+    attribute keepwithprevious { "false" | "true" }?,
     (text
      | b
      | bcp14
@@ -264,7 +267,7 @@ li =
   element li {
     attribute anchor { xsd:ID }?,
     attribute pn { text }?,
-    (t+
+    ((t | artwork | figure | sourcecode)+
      | (text
         | b
         | bcp14
@@ -670,8 +673,10 @@ displayreference =
   }
 references =
   element references {
-    attribute anchor { xsd:ID },
-    name,
+    attribute anchor { xsd:ID }?,
+    attribute title { text }?,
+    attribute pn { text }?,
+    name?,
     (reference | referencegroup)*
   }
 reference =
