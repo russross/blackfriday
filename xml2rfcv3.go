@@ -45,6 +45,7 @@ type xml struct {
 	docLevel       int  // frontmatter/mainmatter or backmatter
 	part           bool // parts cannot nest, if true a part has been opened
 	specialSection int
+	para           bool // when true we're in a para, artworks need to close it first then.
 
 	// Store the IAL we see for this block element
 	ial *inlineAttr
@@ -74,6 +75,12 @@ func (options *xml) inlineAttr() *inlineAttr {
 
 // render code chunks using verbatim, or listings if we have a language
 func (options *xml) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool) {
+	if options.para {
+		// close it
+		out.WriteString("</t>")
+		defer out.WriteString("<t>")
+	}
+
 	// Tick of language for sourcecode...
 	ial := options.inlineAttr()
 	if lang != "" {
@@ -342,7 +349,9 @@ func (options *xml) Example(out *bytes.Buffer, index int) {
 
 func (options *xml) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
-	out.WriteString("<t>")
+	options.para = true
+	defer func() { options.para = false }()
+	out.WriteString("<t>\n")
 	if !text() {
 		out.Truncate(marker)
 		return
@@ -351,6 +360,7 @@ func (options *xml) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 		out.Truncate(marker)
 		return
 	}
+	out.WriteByte('\n')
 	out.WriteString("</t>\n")
 }
 
@@ -571,12 +581,17 @@ func (options *xml) Figure(out *bytes.Buffer, text []byte, caption []byte) {
 	out.Write(caption)
 	out.WriteString("</name>\n")
 	out.Write(text)
-	out.WriteString("</figure>")
+	out.WriteString("</figure>\n")
 }
 
 func (options *xml) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte, subfigure bool) {
 	// use title as caption is we have it and wrap everything in a figure
 	// check the extension of the local include to set the type of the thing.
+	if options.para {
+		// close it
+		out.WriteString("</t>")
+		defer out.WriteString("<t>")
+	}
 
 	// if subfigure, no <figure>
 	s := options.inlineAttr().String()

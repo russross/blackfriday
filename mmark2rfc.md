@@ -364,6 +364,21 @@ section containing the figures with a figure quote: `F> `.
     To summerize in v2 the inner captions *are* used and the outer one is discarded, for v3 it
     is the other way around.
 
+    The usage from above will be rendered as:
+
+    F> {type="ascii-art"}
+    F>      +-----+
+    F>      | ART |
+    F>      +-----+
+    F>  Figure: This caption is ignored in v3, but used in v2.
+    F>
+    F>  ``` c
+    F>  printf("%s\n", "hello");
+    F>  ```
+    F>
+    Figure: Caption for both figures in v3 (in v2 it's ignored).
+
+
 ## Images in v2
 
 Images (real images, not ascii-art) are non-existent in v2, but are allowed in v3. To allow

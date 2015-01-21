@@ -346,6 +346,7 @@ func (options *xml2) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 		out.Truncate(marker)
 		return
 	}
+	out.WriteByte('\n')
 	if flags&_LIST_TYPE_DEFINITION == 0 && flags&_LIST_INSIDE_LIST == 0 {
 		out.WriteString("</t>\n")
 	} else {
