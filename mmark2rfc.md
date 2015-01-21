@@ -3,10 +3,11 @@
 % category = "info"
 % docName = "draft-gieben-mmark2rfc-00"
 % ipr= "trust200902"
-% date = 2014-12-10T00:00:00Z
 % area = "Internet"
 % workgroup = ""
 % keyword = ["markdown", "xml", "mmark"]
+%
+% date = 2014-12-10T00:00:00Z
 %
 % [[author]]
 % initials="R."
