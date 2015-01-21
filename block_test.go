@@ -1274,7 +1274,7 @@ func TestDefinitionListXML(t *testing.T) {
 
 Orange and *Apples*
 :   The thing of an evergreen tree of the genus Citrus.`,
-		"<dl>\n<dt>Apple</dt>\n<dd><t>Pomaceous fruit of plants of the genus Malus in\nthe family Rosaceae.</t></dd>\n<dt>Orange and <em>Apples</em></dt>\n<dd><t>The thing of an evergreen tree of the genus Citrus.</t></dd>\n</dl>\n",
+		"<dl>\n<dt>Apple</dt>\n<dd><t>\nPomaceous fruit of plants of the genus Malus in\nthe family Rosaceae.\n</t></dd>\n<dt>Orange and <em>Apples</em></dt>\n<dd><t>\nThe thing of an evergreen tree of the genus Citrus.\n</t></dd>\n</dl>\n",
 	}
 	doTestsBlockXML(t, tests, 0)
 }
@@ -1282,13 +1282,13 @@ Orange and *Apples*
 func TestAbstractNoteAsideXML(t *testing.T) {
 	var tests = []string{
 		".# Abstract\nbegin of abstract\n\nthis is an abstract\n",
-		"\n<abstract>\n<t>begin of abstract</t>\n<t>this is an abstract</t>\n</abstract>\n\n",
+		"\n<abstract>\n<t>\nbegin of abstract\n</t>\n<t>\nthis is an abstract\n</t>\n</abstract>\n\n",
 
 		"N> begin of note\nN> this is a note\n",
-		"<note>\n<t>begin of note\nthis is a note</t>\n</note>\n",
+		"<note>\n<t>\nbegin of note\nthis is a note\n</t>\n</note>\n",
 
 		"A> begin of aside\nA> this is an aside\n",
-		"<aside>\n<t>begin of aside\nthis is an aside</t>\n</aside>\n",
+		"<aside>\n<t>\nbegin of aside\nthis is an aside\n</t>\n</aside>\n",
 	}
 	doTestsBlockXML(t, tests, 0)
 }
@@ -1296,7 +1296,7 @@ func TestAbstractNoteAsideXML(t *testing.T) {
 func TestOrderedListStartXML(t *testing.T) {
 	var tests = []string{
 		"1. hello\n1. hello\n\ndivide\n\n4. hello\n5. hello\n\ndivide\n\n 7. hello\n5. hello\n",
-		"<ol>\n<li>hello</li>\n<li>hello</li>\n</ol>\n<t>divide</t>\n<ol start=\"4\">\n<li>hello</li>\n<li>hello</li>\n</ol>\n<t>divide</t>\n<ol>\n<li>hello</li>\n<li>hello</li>\n</ol>\n",
+		"<ol>\n<li>hello</li>\n<li>hello</li>\n</ol>\n<t>\ndivide\n</t>\n<ol start=\"4\">\n<li>hello</li>\n<li>hello</li>\n</ol>\n<t>\ndivide\n</t>\n<ol>\n<li>hello</li>\n<li>hello</li>\n</ol>\n",
 	}
 	doTestsBlockXML(t, tests, 0)
 }
@@ -1307,22 +1307,22 @@ func TestIncludesXML(t *testing.T) {
 	}
 	var tests = []string{
 		"{{/dev/null}}",
-		"",
+		"<t>\n\n</t>\n",
 
 		"<{{/dev/null}}",
-		"<t><artwork>\n\n</artwork>\n</t>\n",
+		"<t>\n</t><artwork>\n\n</artwork>\n<t>\n</t>\n",
 
 		"  <{{/dev/null}}",
-		"<t><artwork>\n\n</artwork>\n</t>\n",
+		"<t>\n</t><artwork>\n\n</artwork>\n<t>\n</t>\n",
 
 		"`{{does-not-exist}}`",
-		"<t><tt>{{does-not-exist}}</tt></t>\n",
+		"<t>\n<tt>{{does-not-exist}}</tt>\n</t>\n",
 
 		"    {{does-not-exist}}",
 		"<artwork>\n{{does-not-exist}}\n</artwork>\n",
 
 		"`<{{prog-not-exist}}`",
-		"<t><tt>&lt;{{prog-not-exist}}</tt></t>\n",
+		"<t>\n<tt>&lt;{{prog-not-exist}}</tt>\n</t>\n",
 
 		`1. This is item1
 2. This is item2.
@@ -1342,7 +1342,7 @@ interesting_code = fascinating_function()
 // END OMIT`), 0644)
 
 		t1 := "Include some code\n <{{" + f.Name() + "}}[/START OMIT/,/END OMIT/]\n"
-		e1 := "<t>Include some code\n <artwork>\ninteresting_code = fascinating_function()\n</artwork>\n</t>\n"
+		e1 := "<t>\nInclude some code\n </t><artwork>\ninteresting_code = fascinating_function()\n</artwork>\n<t>\n</t>\n"
 		tests = append(tests, []string{t1, e1}...)
 	}
 
@@ -1352,7 +1352,7 @@ interesting_code = fascinating_function()
 func TestInlineAttrXML(t *testing.T) {
 	var tests = []string{
 		"{attribution=\"BLA BLA\" .green}\n{bla=BLA}\n{more=\"ALB ALB\" #ref:quote .yellow}\n> Hallo2\n> Hallo3\n\nThis is no one `{source='BLEIP'}` on of them\n\n{evenmore=\"BLE BLE\"}\n> Hallo6\n> Hallo7",
-		"<blockquote anchor=\"ref:quote\" class=\"green yellow\" attribution=\"BLA BLA\" bla=\"BLA\" more=\"ALB ALB\">\n<t>Hallo2\nHallo3</t>\n</blockquote>\n<t>This is no one <tt>{source='BLEIP'}</tt> on of them</t>\n<blockquote evenmore=\"BLE BLE\">\n<t>Hallo6\nHallo7</t>\n</blockquote>\n",
+		"<blockquote anchor=\"ref:quote\" class=\"green yellow\" attribution=\"BLA BLA\" bla=\"BLA\" more=\"ALB ALB\">\n<t>\nHallo2\nHallo3\n</t>\n</blockquote>\n<t>\nThis is no one <tt>{source='BLEIP'}</tt> on of them\n</t>\n<blockquote evenmore=\"BLE BLE\">\n<t>\nHallo6\nHallo7\n</t>\n</blockquote>\n",
 
 		"{style=\"format REQ(%c)\" start=\"4\"}\n1. Term1\n2. Term2",
 		"<ol start=\"4\" style=\"format REQ(%c)\">\n<li>Term1</li>\n<li>Term2</li>\n</ol>\n",
@@ -1386,7 +1386,7 @@ As this illustrates
 
 As we can see from (@good) some things never change. Some we do not when we reference (@good1).
 `,
-		"<ol group=\"good\">\n<li><t>Example1</t></li>\n<li><t>Example2</t></li>\n</ol>\n<t>As this illustrates</t>\n<ol group=\"good\">\n<li>Example3</li>\n</ol>\n<t>As we can see from (2) some things never change. Some we do not when we reference (@good1).</t>\n",
+		"<ol group=\"good\">\n<li><t>\nExample1\n</t></li>\n<li><t>\nExample2\n</t></li>\n</ol>\n<t>\nAs this illustrates\n</t>\n<ol group=\"good\">\n<li>Example3</li>\n</ol>\n<t>\nAs we can see from (2) some things never change. Some we do not when we reference (@good1).\n</t>\n",
 	}
 	doTestsBlockXML(t, tests, 0)
 }
@@ -1422,7 +1422,7 @@ func TestSubFiguresXML(t *testing.T) {
     F>  ~~~
     Figure: Caption you will see, for both figures.
 `,
-		"<ul>\n<li>Item1</li>\n<li><t>Item2</t>\n<t>Basic usage:</t>\n<figure>\n<name>Caption you will see, for both figures.</name>\n<artwork type=\"ascii-art\">\n +-----+\n | ART |\n +-----+\n</artwork>\n\n<sourcecode type=\"c\">\nprintf(\"%s\\n\", \"hello\");\n</sourcecode>\n</figure></li>\n</ul>\n",
+		"<ul>\n<li>Item1</li>\n<li><t>\nItem2\n</t>\n<t>\nBasic usage:\n</t>\n<figure>\n<name>Caption you will see, for both figures.</name>\n<t>\n\n</t>\n<artwork type=\"ascii-art\">\n +-----+\n | ART |\n +-----+\n</artwork>\n\n<sourcecode type=\"c\">\nprintf(\"%s\\n\", \"hello\");\n</sourcecode>\n</figure></li>\n</ul>\n",
 		`
 And another one
 
@@ -1437,7 +1437,7 @@ F>  printf("%s\n", "hello");
 F>  ~~~
 F>
 Figure: Caption you will see, for both figures.`,
-		"<t>And another one</t>\n<figure>\n<name>Caption you will see, for both figures.</name>\n<artwork type=\"ascii-art\">\n +-----+\n | ART |\n +-----+\n</artwork>\n\n<sourcecode type=\"c\">\nprintf(\"%s\\n\", \"hello\");\n</sourcecode>\n</figure>",
+		"<t>\nAnd another one\n</t>\n<figure>\n<name>Caption you will see, for both figures.</name>\n<t>\n\n</t>\n<artwork type=\"ascii-art\">\n +-----+\n | ART |\n +-----+\n</artwork>\n\n<sourcecode type=\"c\">\nprintf(\"%s\\n\", \"hello\");\n</sourcecode>\n</figure>\n",
 	}
 	doTestsBlockXML(t, tests, 0)
 }
@@ -1448,7 +1448,7 @@ func TestIALXML(t *testing.T) {
 		"<artwork anchor=\"id\">\nCode\n</artwork>\n",
 
 		"{id}\n    Code\n",
-		"<t>{id}</t>\n<artwork>\nCode\n</artwork>\n",
+		"<t>\n{id}\n</t>\n<artwork>\nCode\n</artwork>\n",
 
 		"{#id}\n",
 		"",
@@ -1457,7 +1457,7 @@ func TestIALXML(t *testing.T) {
 		"<artwork anchor=\"id\" type=\"go\">\nCode\n</artwork>\n",
 
 		"{#id \n    Code\n",
-		"<t>{#id</t>\n<artwork>\nCode\n</artwork>\n",
+		"<t>\n{#id\n</t>\n<artwork>\nCode\n</artwork>\n",
 	}
 	doTestsBlockXML(t, tests, 0)
 }
