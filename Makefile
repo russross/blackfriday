@@ -17,7 +17,7 @@ mmark2rfc3.xml: mmark2rfc.md mmark/mmark
 
 .PHONY:
 clean:
-	rm -f mmark2rfc2.xml mmark2rfc3.xml mmark2rfc2.txt
+	rm -f mmark2rfc2.xml mmark2rfc3.xml mmark2rfc2.txt x.xml
 
 .PHONY:
 validate: mmark2rfc3.xml
