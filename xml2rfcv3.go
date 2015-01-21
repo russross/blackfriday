@@ -28,6 +28,14 @@ var words2119 = map[string]bool{
 	"OPTIONAL":    true,
 }
 
+// Make a flag for it
+var (
+	citationsID  = "http://xml.resource.org/public/rfc/bibxml3/"
+	citationsRFC = "http://xml.resource.org/public/rfc/bibxml/"
+)
+
+// ... more ...
+
 // Xml is a type that implements the Renderer interface for XML2RFV3 output.
 //
 // Do not create this directly, instead use the XmlRenderer function.
@@ -454,9 +462,17 @@ func (options *xml) References(out *bytes.Buffer, citations map[string]*citation
 	// we construct one for RFCNNNN and I-D.something something.
 	if refi+refn > 0 {
 		if refi > 0 {
-			out.WriteString("<references title=\"Informative References\">\n")
+			// This needs an anchor
+			out.WriteString("<references>\n")
+			out.WriteString("<name>Informative References</name>\n")
 			for _, c := range citations {
 				if c.typ == 'i' {
+					// if we have raw xml, output that
+					if c.xml != nil {
+						out.Write(c.xml)
+						out.WriteByte('\n')
+						continue
+					}
 					f := referenceFile(c)
 					out.WriteString("<xi:include href=\"" + f + "\"/>\n")
 				}
@@ -464,9 +480,15 @@ func (options *xml) References(out *bytes.Buffer, citations map[string]*citation
 			out.WriteString("</references>\n")
 		}
 		if refn > 0 {
-			out.WriteString("<references title=\"Normative References\">\n")
+			out.WriteString("<references>\n")
+			out.WriteString("<name>Normative References</name>\n")
 			for _, c := range citations {
 				if c.typ == 'n' {
+					if c.xml != nil {
+						out.Write(c.xml)
+						out.WriteByte('\n')
+						continue
+					}
 					f := referenceFile(c)
 					out.WriteString("<xi:include href=\"" + f + "\"/>\n")
 				}
@@ -483,13 +505,13 @@ func referenceFile(c *citation) string {
 	}
 	switch string(c.link[:3]) {
 	case "RFC":
-		return "reference.RFC." + string(c.link[3:]) + ".xml"
+		return citationsRFC + "reference.RFC." + string(c.link[3:]) + ".xml"
 	case "I-D":
 		seq := ""
 		if c.seq != -1 {
 			seq = "-" + fmt.Sprintf("%02d", c.seq)
 		}
-		return "reference.I-D.draft-" + string(c.link[4:]) + seq + ".xml"
+		return citationsID + "reference.I-D.draft-" + string(c.link[4:]) + seq + ".xml"
 	}
 	return ""
 }
