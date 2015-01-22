@@ -91,7 +91,8 @@ an invalid doc, case in point: having a table in a list and converting to v2.
 # TOML header
 
 Mmark uses TOML [@!toml] document header to specify the document's meta data. Each line of this
-header must start with an `% `.
+header must start with an `% `. The document header is also different in v3, for instance the
+`docName` is not used anymore. 
 
 # Citations
 
@@ -364,7 +365,7 @@ section containing the figures with a figure quote: `F> `.
     To summerize in v2 the inner captions *are* used and the outer one is discarded, for v3 it
     is the other way around.
 
-    The usage from above will be rendered as:
+    The figure from above will be rendered as:
 
     F> {type="ascii-art"}
     F>      +-----+
