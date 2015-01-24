@@ -340,7 +340,7 @@ section containing the figures with a figure quote: `F> `.
     (#images-in-v2) for a treatment on how to deal with that.
 
 *   To group artworks and code blocks into figures, we need an extra syntax element.
-    [Scholary markdown] has a neat syntax
+    [Scholarly markdown] has a neat syntax
     for this. It uses a special section syntax and all images in that section become
     subfigures of a larger figure. Disadvantage of this syntax is that it can not be
     used in lists. Hence we we a quote like solution, just as asides and notes,
@@ -591,5 +591,5 @@ Multiple paragraphs in a list:
 [PHP markdown extra]: http://michelf.com/projects/php-markdown/extra/
 [pandoc]: http://johnmacfarlane.net/pandoc/
 [CommonMark]: http://commonmark.org/
-[Scholary markdown]: http://scholarlymarkdown.com/Scholarly-Markdown-Guide.html
+[Scholarly markdown]: http://scholarlymarkdown.com/Scholarly-Markdown-Guide.html
 

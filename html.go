@@ -5,7 +5,6 @@ package mmark
 import (
 	"bytes"
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 )
@@ -32,9 +31,6 @@ var (
 		"right",
 		"center",
 	}
-
-	// TODO: improve this regexp to catch all possible entities:
-	htmlEntity = regexp.MustCompile(`&[a-z]{2,5};`)
 )
 
 type HtmlRendererParameters struct {
