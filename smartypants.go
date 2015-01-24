@@ -263,9 +263,10 @@ func smartBacktick(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, 
 }
 
 func smartNumberGeneric(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
-	if wordBoundary(previousChar) && len(text) >= 3 {
+	if wordBoundary(previousChar) && previousChar != '/' && len(text) >= 3 {
 		// is it of the form digits/digits(word boundary)?, i.e., \d+/\d+\b
 		// note: check for regular slash (/) or fraction slash (⁄, 0x2044, or 0xe2 81 84 in utf-8)
+		//       and avoid changing dates like 1/23/2005 into fractions.
 		numEnd := 0
 		for len(text) > numEnd && isdigit(text[numEnd]) {
 			numEnd++
@@ -289,7 +290,7 @@ func smartNumberGeneric(out *bytes.Buffer, smrt *smartypantsData, previousChar b
 			out.WriteByte(text[0])
 			return 0
 		}
-		if len(text) == denEnd || wordBoundary(text[denEnd]) {
+		if len(text) == denEnd || wordBoundary(text[denEnd]) && text[denEnd] != '/' {
 			out.WriteString("<sup>")
 			out.Write(text[:numEnd])
 			out.WriteString("</sup>&frasl;<sub>")
@@ -304,23 +305,23 @@ func smartNumberGeneric(out *bytes.Buffer, smrt *smartypantsData, previousChar b
 }
 
 func smartNumber(out *bytes.Buffer, smrt *smartypantsData, previousChar byte, text []byte) int {
-	if wordBoundary(previousChar) && len(text) >= 3 {
+	if wordBoundary(previousChar) && previousChar != '/' && len(text) >= 3 {
 		if text[0] == '1' && text[1] == '/' && text[2] == '2' {
-			if len(text) < 4 || wordBoundary(text[3]) {
+			if len(text) < 4 || wordBoundary(text[3]) && text[3] != '/' {
 				out.WriteString("&frac12;")
 				return 2
 			}
 		}
 
 		if text[0] == '1' && text[1] == '/' && text[2] == '4' {
-			if len(text) < 4 || wordBoundary(text[3]) || (len(text) >= 5 && tolower(text[3]) == 't' && tolower(text[4]) == 'h') {
+			if len(text) < 4 || wordBoundary(text[3]) && text[3] != '/' || (len(text) >= 5 && tolower(text[3]) == 't' && tolower(text[4]) == 'h') {
 				out.WriteString("&frac14;")
 				return 2
 			}
 		}
 
 		if text[0] == '3' && text[1] == '/' && text[2] == '4' {
-			if len(text) < 4 || wordBoundary(text[3]) || (len(text) >= 6 && tolower(text[3]) == 't' && tolower(text[4]) == 'h' && tolower(text[5]) == 's') {
+			if len(text) < 4 || wordBoundary(text[3]) && text[3] != '/' || (len(text) >= 6 && tolower(text[3]) == 't' && tolower(text[4]) == 'h' && tolower(text[5]) == 's') {
 				out.WriteString("&frac34;")
 				return 2
 			}

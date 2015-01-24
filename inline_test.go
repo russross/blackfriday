@@ -839,3 +839,21 @@ func TestSmartAngledDoubleQuotes(t *testing.T) {
 
 	doTestsInlineParam(t, tests, 0, HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_ANGLED_QUOTES, HtmlRendererParameters{})
 }
+
+func TestSmartFractions(t *testing.T) {
+	var tests = []string{
+		"1/2, 1/4 and 3/4; 1/4th and 3/4ths\n",
+		"<p>&frac12;, &frac14; and &frac34;; &frac14;th and &frac34;ths</p>\n",
+		"1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.\n",
+		"<p>1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.</p>\n"}
+
+	doTestsInlineParam(t, tests, 0, HTML_USE_SMARTYPANTS, HtmlRendererParameters{})
+
+	tests = []string{
+		"1/2, 2/3, 81/100 and 1000000/1048576.\n",
+		"<p><sup>1</sup>&frasl;<sub>2</sub>, <sup>2</sup>&frasl;<sub>3</sub>, <sup>81</sup>&frasl;<sub>100</sub> and <sup>1000000</sup>&frasl;<sub>1048576</sub>.</p>\n",
+		"1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.\n",
+		"<p>1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.</p>\n"}
+
+	doTestsInlineParam(t, tests, 0, HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_FRACTIONS, HtmlRendererParameters{})
+}
