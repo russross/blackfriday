@@ -166,7 +166,7 @@ func (i *inlineAttr) String() (s string) {
 	return s
 }
 
-// GetOrDefaultAttr set the value under key if is is not set or
+// GetOrDefaultAttr sets the value under key if is is not set or
 // use the value already in there. The boolean returns indicates
 // if the value has been overwritten.
 func (i *inlineAttr) GetOrDefaultAttr(key, def string) bool {
@@ -181,7 +181,8 @@ func (i *inlineAttr) GetOrDefaultAttr(key, def string) bool {
 	return true
 }
 
-//
+// GetOrDefaultID sets the id in i if it is not set. The boolean
+// indicates if the id as set in i.
 func (i *inlineAttr) GetOrDefaultId(id string) bool {
 	if i.id != "" {
 		return false
@@ -194,10 +195,18 @@ func (i *inlineAttr) GetOrDefaultId(id string) bool {
 }
 
 // Return the value of a specific key as a ' key="value"' string. If not found
-// an string containing a space is  returned.
+// an string containing a space is returned.
 func (i *inlineAttr) Key(key string) string {
 	if v, ok := i.attr[key]; ok {
 		return " " + key + "=\"" + v + "\""
 	}
 	return " "
+}
+
+// DropAttr will drop the attribute under key from i.
+// The returned boolean indicates if the key was found in i.
+func (i *inlineAttr) DropAttr(key string) bool {
+	_, ok := i.attr[key]
+	delete(i.attr, key)
+	return ok
 }

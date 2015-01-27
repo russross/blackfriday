@@ -61,6 +61,7 @@ func (options *xml2) inlineAttr() *inlineAttr {
 func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool) {
 	ial := options.inlineAttr()
 	ial.GetOrDefaultAttr("align", "center")
+	ial.DropAttr("type")
 	s := ial.String()
 
 	out.WriteString("\n<figure" + s + "><artwork" + ial.Key("align") + ">\n")
@@ -542,13 +543,14 @@ func (options *xml2) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 	// convert to url or image wrapped in figure
 	ial := options.inlineAttr()
 	ial.GetOrDefaultAttr("align", "center")
+	ial.DropAttr("type") // type may be set, but is not valid in xml 2 syntax
 	s := options.inlineAttr().String()
 	if len(title) != 0 {
 		out.WriteString("<figure" + s + " title=\"")
 		out.Write(title)
 		out.WriteString("\">\n")
 		// empty artwork
-		out.WriteString("<artwork" + ial.Key("align") + "></artwork>\n")
+		out.WriteString("<artwork" + ial.Key("align") + ">" + string(link) + "</artwork>\n")
 		out.WriteString("<postamble>")
 	}
 	out.WriteString("<eref target=\"")
