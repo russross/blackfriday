@@ -61,6 +61,10 @@ func (options *xml2) inlineAttr() *inlineAttr {
 func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool) {
 	ial := options.inlineAttr()
 	ial.GetOrDefaultAttr("align", "center")
+	// subfigure stuff. TODO(miek): check
+	if len(caption) > 0 {
+		ial.GetOrDefaultAttr("title", string(caption))
+	}
 	ial.DropAttr("type")
 	s := ial.String()
 

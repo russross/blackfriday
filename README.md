@@ -193,6 +193,14 @@ implements the following extensions:
 
     The address may be omitted: `<{{test.go}}` is legal as well.
 
+    Note that the special `prefix` attribute can be set in an IAL and it
+    will be used to prefix each line with the value of `prefix`.
+    
+    {prefix="S"}
+        <{{test.go}}
+
+    Will cause `test.go` to be included with each line being prefixed with `S`.
+
 *   **Indices**, using `(((item, subitem)))` syntax. To make `item` primary, use
     an `!`: `(((!item, subitem)))`.
 
