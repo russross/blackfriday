@@ -340,7 +340,7 @@ section containing the figures with a figure quote: `F> `.
     (#images-in-v2) for a treatment on how to deal with that.
 
 *   To group artworks and code blocks into figures, we need an extra syntax element.
-    [Scholary markdown] has a neat syntax
+    [Scholarly markdown] has a neat syntax
     for this. It uses a special section syntax and all images in that section become
     subfigures of a larger figure. Disadvantage of this syntax is that it can not be
     used in lists. Hence we we a quote like solution, just as asides and notes,
@@ -448,6 +448,16 @@ To aid in including HTML or XML framents, where the `OMIT` key words is probably
 comments, line the in in `OMIT -->` are excluded as well.
 Note that the default is put out an artwork, but if the extension of the included file matches
 a computer language, `<sourcecode>` will be emitted for v3.
+
+Note that the attribute `prefix` (which you can specify with an IAL) can be used to prefix
+all lines of the code to be included to prefixed with the value of the attribute, so
+
+```
+{prefix="C:"}
+    <{{test.go}}[/START OMIT/,/END OMIT/]
+```
+
+Will prefix all lines of test.go with 'C:' when included.
 
 # XML2RFC V3 features
 
@@ -591,5 +601,5 @@ Multiple paragraphs in a list:
 [PHP markdown extra]: http://michelf.com/projects/php-markdown/extra/
 [pandoc]: http://johnmacfarlane.net/pandoc/
 [CommonMark]: http://commonmark.org/
-[Scholary markdown]: http://scholarlymarkdown.com/Scholarly-Markdown-Guide.html
+[Scholarly markdown]: http://scholarlymarkdown.com/Scholarly-Markdown-Guide.html
 
