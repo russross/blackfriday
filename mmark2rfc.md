@@ -449,6 +449,16 @@ comments, line the in in `OMIT -->` are excluded as well.
 Note that the default is put out an artwork, but if the extension of the included file matches
 a computer language, `<sourcecode>` will be emitted for v3.
 
+Note that the attribute `prefix` (which you can specify with an IAL) can be used to prefix
+all lines of the code to be included to prefixed with the value of the attribute, so
+
+```
+{prefix="C:"}
+    <{{test.go}}[/START OMIT/,/END OMIT/]
+```
+
+Will prefix all lines of test.go with 'C:' when included.
+
 # XML2RFC V3 features
 
 The v3 syntax adds some new features and those can already be used in mmark (even for documents targeting
