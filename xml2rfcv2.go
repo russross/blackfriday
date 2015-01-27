@@ -341,13 +341,12 @@ func (options *xml2) Example(out *bytes.Buffer, index int) {
 	out.WriteByte(')')
 }
 
-// Needs flags int, for in-list-detection xml2rfc v2
 func (options *xml2) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
 	if flags&_LIST_TYPE_DEFINITION == 0 && flags&_LIST_INSIDE_LIST == 0 {
 		out.WriteString("<t>")
 	} else {
-		if options.paraInList {
+		if options.paraInList && flags&_LIST_ITEM_BEGINNING_OF_LIST != 0 {
 			out.WriteString("<vspace blankLines=\"1\" />\n")
 		}
 	}
