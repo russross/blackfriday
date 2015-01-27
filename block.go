@@ -1730,10 +1730,15 @@ func (p *parser) aliPrefix(data []byte) int {
 		i++
 	}
 
-	// we need >= 1 letter followed by a dot and  two spaces
+	// we need >= 1 letter followed by a dot and two spaces
 	if start == i || (data[i] != '.' && data[i] != ')') || !iswhitespace(data[i+1]) || !iswhitespace(data[i+2]) {
 		return 0
 	}
+	if i-start > 4 {
+		// crazy list
+		return 0
+	}
+
 	return i + 3
 }
 
@@ -1757,6 +1762,10 @@ func (p *parser) aliPrefixU(data []byte) int {
 
 	// we need >= 1 letter followed by a dot and  two spaces
 	if start == i || (data[i] != '.' && data[i] != ')') || !iswhitespace(data[i+1]) || !iswhitespace(data[i+2]) {
+		return 0
+	}
+	if i-start > 4 {
+		// crazy list
 		return 0
 	}
 	return i + 3
