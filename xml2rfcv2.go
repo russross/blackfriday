@@ -61,9 +61,22 @@ func (options *xml2) inlineAttr() *inlineAttr {
 func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool) {
 	ial := options.inlineAttr()
 	ial.GetOrDefaultAttr("align", "center")
+
+	prefix := ial.Value("prefix")
+	ial.DropAttr("prefix") // it's a fake attribute, so drop it
+	// subfigure stuff. TODO(miek): check
+	if len(caption) > 0 {
+		ial.GetOrDefaultAttr("title", string(caption))
+	}
+	ial.DropAttr("type")
 	s := ial.String()
 
 	out.WriteString("\n<figure" + s + "><artwork" + ial.Key("align") + ">\n")
+	if prefix != "" {
+		text = bytes.Replace(text, []byte{'\n'}, []byte("\n"+prefix), -1)
+		// add prefix at the start as well
+		text = append([]byte(prefix), text...)
+	}
 	writeEntity(out, text)
 	out.WriteString("</artwork></figure>\n")
 }
@@ -542,13 +555,14 @@ func (options *xml2) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 	// convert to url or image wrapped in figure
 	ial := options.inlineAttr()
 	ial.GetOrDefaultAttr("align", "center")
+	ial.DropAttr("type") // type may be set, but is not valid in xml 2 syntax
 	s := options.inlineAttr().String()
 	if len(title) != 0 {
 		out.WriteString("<figure" + s + " title=\"")
 		out.Write(title)
 		out.WriteString("\">\n")
 		// empty artwork
-		out.WriteString("<artwork" + ial.Key("align") + "></artwork>\n")
+		out.WriteString("<artwork" + ial.Key("align") + ">" + string(link) + "</artwork>\n")
 		out.WriteString("<postamble>")
 	}
 	out.WriteString("<eref target=\"")
@@ -605,7 +619,8 @@ func (options *xml2) Entity(out *bytes.Buffer, entity []byte) {
 }
 
 func (options *xml2) NormalText(out *bytes.Buffer, text []byte) {
-	out.Write(text)
+	attrEscape(out, text)
+	//out.Write(text)
 }
 
 // header and footer

@@ -93,11 +93,11 @@ Table of Contents
      15.1.  Asides . . . . . . . . . . . . . . . . . . . . . . . . .  12
      15.2.  Notes  . . . . . . . . . . . . . . . . . . . . . . . . .  12
      15.3.  RFC 2119 Keywords  . . . . . . . . . . . . . . . . . . .  12
-     15.4.  Super- and Subscripts  . . . . . . . . . . . . . . . . .  12
+     15.4.  Super- and Subscripts  . . . . . . . . . . . . . . . . .  13
    16. Converting from RFC 7328 Syntax . . . . . . . . . . . . . . .  13
    17. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  13
    18. References  . . . . . . . . . . . . . . . . . . . . . . . . .  13
-     18.1.  Informative References . . . . . . . . . . . . . . . . .  13
+     18.1.  Informative References . . . . . . . . . . . . . . . . .  14
      18.2.  Normative References . . . . . . . . . . . . . . . . . .  14
      18.3.  URIs . . . . . . . . . . . . . . . . . . . . . . . . . .  14
    Appendix A.  Tips and Tricks  . . . . . . . . . . . . . . . . . .  15
@@ -187,7 +187,9 @@ Internet-Draft                  mmark2rfc                  December 2014
 4.  TOML header
 
    Mmark uses TOML [toml] document header to specify the document's meta
-   data.  Each line of this header must start with an "%".
+   data.  Each line of this header must start with an "%".  The document
+   header is also different in v3, for instance the "docName" is not
+   used anymore.
 
 5.  Citations
 
@@ -213,8 +215,6 @@ Internet-Draft                  mmark2rfc                  December 2014
    because that is the point when the references are outputted (right
    now the implementation does not scan the entire file for citations,
    also see Appendix B).
-
-
 
 
 
@@ -539,6 +539,14 @@ Internet-Draft                  mmark2rfc                  December 2014
       To summerize in v2 the inner captions _are_ used and the outer one
       is discarded, for v3 it is the other way around.
 
+      The figure from above will be rendered as:
+
+                                  +-----+
+                                  | ART |
+                                  +-----+
+
+                         printf("%s\n", "hello");
+
 13.2.  Images in v2
 
    Images (real images, not ascii-art) are non-existent in v2, but are
@@ -546,14 +554,6 @@ Internet-Draft                  mmark2rfc                  December 2014
    formats, the following hack is used in v2 output.  Any image will be
    converted to a figure with an title attribute set to the "Optional
    title".  And the url in the image will be type set as a link in the
-   postamble.  So "![](/path/to/art.txt "Optional title")" will be
-   converted to:
-
-
-
-
-
-
 
 
 
@@ -561,6 +561,9 @@ Gieben                    Expires June 13, 2015                [Page 10]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
+
+   postamble.  So "![](/path/to/art.txt "Optional title")" will be
+   converted to:
 
                    <figure title="Optional title">
                     <artwork>
@@ -580,6 +583,8 @@ Internet-Draft                  mmark2rfc                  December 2014
                   ![](/path/to/art.txt "Optional title")
 
    Which when rendered becomes:
+
+                             /path/to/art.txt
 
                                    [12]
 
@@ -605,11 +610,6 @@ Internet-Draft                  mmark2rfc                  December 2014
    This borrows from the Go present tool, which got its inspiration from
    the Sam editor.  The syntax was gleaned from leanpub.  But the syntax
    presented here is more powerful than the one used by leanpub.  Use
-   the syntax: "<{{file}}[address]" to include a code snippet.  The
-   "address" identifier specifies what lines of code are to be included
-   in the fragment.
-
-
 
 
 
@@ -617,6 +617,10 @@ Gieben                    Expires June 13, 2015                [Page 11]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
+
+   the syntax: "<{{file}}[address]" to include a code snippet.  The
+   "address" identifier specifies what lines of code are to be included
+   in the fragment.
 
    Any line in the program that ends with the four characters "OMIT" is
    deleted from the source before inclusion, making it easy to write
@@ -660,10 +664,6 @@ Internet-Draft                  mmark2rfc                  December 2014
    "<bcp14>MUST</bcp14>", but "**must**" will not.  For v2 they are
    stripped of the emphasis and outputted as-is.
 
-15.4.  Super- and Subscripts
-
-   Use H~2~O and 2^10^ is 1024.  In v2 these are outputted as-is.
-
 
 
 
@@ -673,6 +673,10 @@ Gieben                    Expires June 13, 2015                [Page 12]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
+
+15.4.  Super- and Subscripts
+
+   Use H~2~O and 2^10^ is 1024.  In v2 these are outputted as-is.
 
 16.  Converting from RFC 7328 Syntax
 
@@ -714,6 +718,18 @@ Internet-Draft                  mmark2rfc                  December 2014
 
 18.  References
 
+
+
+
+
+
+
+
+Gieben                    Expires June 13, 2015                [Page 13]
+
+Internet-Draft                  mmark2rfc                  December 2014
+
+
 18.1.  Informative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
@@ -722,13 +738,6 @@ Internet-Draft                  mmark2rfc                  December 2014
    [blackfriday]
               "Blackfriday git repository", November 2011,
               <http://github.com/russross/blackfriday>.
-
-
-
-Gieben                    Expires June 13, 2015                [Page 13]
-
-Internet-Draft                  mmark2rfc                  December 2014
-
 
    [mmark]    Gieben, R., "Mmark git repository", December 2014,
               <http://github.com/miekg/mmark>.
@@ -770,21 +779,19 @@ Internet-Draft                  mmark2rfc                  December 2014
 
    [8] https://michelf.ca/projects/php-markdown/extra/#def-list
 
-   [9] http://johnmacfarlane.net/pandoc/README.html#extension-
-       example_lists
-
-   [10] http://scholarlymarkdown.com/Scholarly-Markdown-Guide.html
-
-   [11] /path/to/art.txt
-
-
-
 
 
 Gieben                    Expires June 13, 2015                [Page 14]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
+
+   [9] http://johnmacfarlane.net/pandoc/README.html#extension-
+       example_lists
+
+   [10] http://scholarlymarkdown.com/Scholarly-Markdown-Guide.html
+
+   [11] /path/to/art.txt
 
    [12] https://raw.githubusercontent.com/miekg/mmark/master/convert/
         parts.pl
@@ -828,19 +835,14 @@ C.1.  xx
 
    o  Removed exercises and answers, this needs a better syntax.
 
-   o  Add math "$$".
-
-
-
-
-
-
 
 
 Gieben                    Expires June 13, 2015                [Page 15]
 
 Internet-Draft                  mmark2rfc                  December 2014
 
+
+   o  Add math "$$".
 
 Author's Address
 
@@ -849,8 +851,6 @@ Author's Address
    Buckingham Palace Road
 
    Email: miek@google.com
-
-
 
 
 
