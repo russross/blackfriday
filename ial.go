@@ -194,13 +194,24 @@ func (i *inlineAttr) GetOrDefaultId(id string) bool {
 	return true
 }
 
-// Return the value of a specific key as a ' key="value"' string. If not found
+// This returning a " "  is not particularly nice...
+
+// Key returns the value of a specific key as a ' key="value"' string. If not found
 // an string containing a space is returned.
 func (i *inlineAttr) Key(key string) string {
 	if v, ok := i.attr[key]; ok {
 		return " " + key + "=\"" + v + "\""
 	}
 	return " "
+}
+
+// Value returns the value of a specific key as value.  If not found
+// an empty string containing a space is returned.
+func (i *inlineAttr) Value(key string) string {
+	if v, ok := i.attr[key]; ok {
+		return v
+	}
+	return ""
 }
 
 // DropAttr will drop the attribute under key from i.

@@ -61,6 +61,9 @@ func (options *xml2) inlineAttr() *inlineAttr {
 func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool) {
 	ial := options.inlineAttr()
 	ial.GetOrDefaultAttr("align", "center")
+
+	prefix := ial.Value("prefix")
+	ial.DropAttr("prefix") // it's a fake attribute, so drop it
 	// subfigure stuff. TODO(miek): check
 	if len(caption) > 0 {
 		ial.GetOrDefaultAttr("title", string(caption))
@@ -69,6 +72,11 @@ func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 	s := ial.String()
 
 	out.WriteString("\n<figure" + s + "><artwork" + ial.Key("align") + ">\n")
+	if prefix != "" {
+		text = bytes.Replace(text, []byte{'\n'}, []byte("\n"+prefix), -1)
+		// add prefix at the start as well
+		text = append([]byte(prefix), text...)
+	}
 	writeEntity(out, text)
 	out.WriteString("</artwork></figure>\n")
 }
