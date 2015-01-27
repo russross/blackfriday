@@ -471,13 +471,11 @@ func (options *xml) References(out *bytes.Buffer, citations map[string]*citation
 	// output <xi:include href="<references file>.xml"/>, we use file it its not empty, otherwise
 	// we construct one for RFCNNNN and I-D.something something.
 	if refi+refn > 0 {
-		if refi > 0 {
-			// This needs an anchor
+		if refn > 0 {
 			out.WriteString("<references>\n")
-			out.WriteString("<name>Informative References</name>\n")
+			out.WriteString("<name>Normative References</name>\n")
 			for _, c := range citations {
-				if c.typ == 'i' {
-					// if we have raw xml, output that
+				if c.typ == 'n' {
 					if c.xml != nil {
 						out.Write(c.xml)
 						out.WriteByte('\n')
@@ -489,11 +487,13 @@ func (options *xml) References(out *bytes.Buffer, citations map[string]*citation
 			}
 			out.WriteString("</references>\n")
 		}
-		if refn > 0 {
+		if refi > 0 {
+			// This needs an anchor
 			out.WriteString("<references>\n")
-			out.WriteString("<name>Normative References</name>\n")
+			out.WriteString("<name>Informative References</name>\n")
 			for _, c := range citations {
-				if c.typ == 'n' {
+				if c.typ == 'i' {
+					// if we have raw xml, output that
 					if c.xml != nil {
 						out.Write(c.xml)
 						out.WriteByte('\n')
