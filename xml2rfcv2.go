@@ -620,7 +620,6 @@ func (options *xml2) Entity(out *bytes.Buffer, entity []byte) {
 
 func (options *xml2) NormalText(out *bytes.Buffer, text []byte) {
 	attrEscape(out, text)
-	//out.Write(text)
 }
 
 // header and footer
