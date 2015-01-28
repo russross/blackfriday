@@ -18,6 +18,7 @@ engines could be easily added.
 It adds the following syntax elements to [black friday](https://github.com/russross/blackfriday/blob/master/README.md):
 
 * Definition lists;
+* More enumerated lists;
 * Table and codeblock captions;
 * Table footer;
 * Subfigures;
@@ -279,6 +280,12 @@ implements the following extensions:
         Orange
         :   The fruit of an evergreen tree of the genus Citrus.
 
+*  **Enumerated lists**, roman, uppercase roman and normal letters can be used
+    to start lists. Note that you'll need two space after the list counter:
+
+        a.  Item2
+        b.  Item2
+
 *  **TOML TitleBlock**, add an extended title block prefixed with `%` in TOML.
 
 *  **Unique anchors**, make anchors unique by adding sequence numbers (-1, -2, etc.) to them.
@@ -288,7 +295,7 @@ implements the following extensions:
     the document. First use is rendered `(1)`, the second one `(2)` and so on. You can reference
     the last item of the list with `(@good)`.
 
-*  **HTML comments** An HTML comment in the form of `<!-- Miek Gieben: really
+*  **HTML comments** An HTML comment in the form of `<!-- Miek Gieben -- really
     -->` is detected and will be converted to a `cref` with the `source` attribute
     set to "Miek Gieben" and the comment text set to "really".
 
