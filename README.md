@@ -197,8 +197,8 @@ implements the following extensions:
     Note that the special `prefix` attribute can be set in an IAL and it
     will be used to prefix each line with the value of `prefix`.
     
-    {prefix="S"}
-        <{{test.go}}
+        {prefix="S"}
+            <{{test.go}}
 
     Will cause `test.go` to be included with each line being prefixed with `S`.
 

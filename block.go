@@ -1734,7 +1734,7 @@ func (p *parser) aliPrefix(data []byte) int {
 	if start == i || (data[i] != '.' && data[i] != ')') || !iswhitespace(data[i+1]) || !iswhitespace(data[i+2]) {
 		return 0
 	}
-	if i-start > 4 {
+	if i-start > 2 {
 		// crazy list
 		return 0
 	}
@@ -1764,7 +1764,7 @@ func (p *parser) aliPrefixU(data []byte) int {
 	if start == i || (data[i] != '.' && data[i] != ')') || !iswhitespace(data[i+1]) || !iswhitespace(data[i+2]) {
 		return 0
 	}
-	if i-start > 4 {
+	if i-start > 2 {
 		// crazy list
 		return 0
 	}
