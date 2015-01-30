@@ -93,7 +93,7 @@ an invalid doc, case in point: having a table in a list and converting to v2.
 
 Mmark uses TOML [@!toml] document header to specify the document's meta data. Each line of this
 header must start with an `% `. The document header is also different in v3, for instance the
-`docName` is not used anymore. 
+`docName` is not used anymore.
 
 # Citations
 
@@ -358,7 +358,7 @@ section containing the figures with a figure quote: `F> `.
         F>  printf("%s\n", "hello");
         F>  ```
         F>
-        Figure: Caption for both figures in v3 (in v2 it's ignored).
+        Figure: Caption for both figures in v3 (in v2 this is ignored).
 
     In v2 this is not supported so the above will result in one figure. Yes one, because
     the fenced code block does not have a caption, so it will not be wrapped in a figure.
