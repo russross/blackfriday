@@ -167,7 +167,7 @@ var blockTags = map[string]bool{
 // If the callback returns false, the rendering function should reset the
 // output buffer as though it had never been called.
 //
-// Currently Html, Latex and XML2RFCv3 implementations are provided.
+// Currently Html, XML2RFCv3 and XML2RFC v2 implementations are provided.
 type Renderer interface {
 	// block-level callbacks
 	BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool)
