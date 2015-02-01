@@ -343,8 +343,8 @@ section containing the figures with a figure quote: `F> `.
     [Scholarly markdown] has a neat syntax
     for this. It uses a special section syntax and all images in that section become
     subfigures of a larger figure. Disadvantage of this syntax is that it can not be
-    used in lists. Hence we we a quote like solution, just as asides and notes,
-    but for figures: we prefix the entire paragraph with 'F> ' .
+    used in lists. Hence we use a quote like solution, just like asides and notes,
+    but for figures: we prefix the entire paragraph with `F>` .
 
     Basic usage:
 

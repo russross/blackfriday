@@ -574,7 +574,7 @@ func (options *xml) Superscript(out *bytes.Buffer, text []byte) {
 }
 
 func (options *xml) Figure(out *bytes.Buffer, text []byte, caption []byte) {
-	// add figure and caption
+	// add figure and typeset the caption
 	s := options.inlineAttr().String()
 	out.WriteString("<figure" + s + ">\n")
 	out.WriteString("<name>")

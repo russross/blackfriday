@@ -547,7 +547,7 @@ func (options *xml2) Superscript(out *bytes.Buffer, text []byte) {
 }
 
 func (options *xml2) Figure(out *bytes.Buffer, text []byte, caption []byte) {
-	// what about caption? -> discard
+	// the caption is discarded here.
 	out.Write(text)
 }
 
