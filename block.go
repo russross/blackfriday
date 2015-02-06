@@ -1097,6 +1097,9 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 	}
 	if beg >= len(data) {
 		// only the marker and end of doc. CommonMark dictates this is valid
+		p.r.SetInlineAttr(p.ial)
+		p.ial = nil
+
 		p.r.BlockCode(out, nil, "", nil, p.insideFigure)
 		return len(data)
 	}
