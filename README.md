@@ -17,30 +17,31 @@ engines could be easily added.
 
 It adds the following syntax elements to [black friday](https://github.com/russross/blackfriday/blob/master/README.md):
 
-* Definition lists;
-* More enumerated lists;
-* Table and codeblock captions;
-* Table footer;
-* Subfigures;
-* Quote attribution;
-* Including other files;
-* [TOML][3] titleblock;
-* Inline Attribute Lists;
-* Indices;
-* Citations;
-* Abstract;
-* Asides;
-* Notes;
-* Main-, middle- and backmatter divisions;
-* Example lists;
-* HTML Comment parsing;
-* BCP14 (RFC2119) keyword detection;
-* Include raw XML references;
-* Abbreviations;
-* Super- and subscript;
-* HTML renderer uses HTML5 (TODO);
-* Exercises and answers;
+* Definition lists.
+* More enumerated lists.
+* Table and codeblock captions.
+* Table footer.
+* Subfigures.
+* Quote attribution.
+* Including other files.
+* [TOML][3] titleblock.
+* Inline Attribute Lists.
+* Indices.
+* Citations.
+* Abstract.
+* Asides.
+* Notes.
+* Main-, middle- and backmatter divisions.
+* Example lists.
+* HTML Comment parsing.
+* BCP14 (RFC2119) keyword detection.
+* Include raw XML references.
+* Abbreviations.
+* Super- and subscript.
+* HTML renderer uses HTML5 (TODO).
+* Exercises and answers.
 * Allow document to have parts.
+* Callouts in code blocks.
 
 Mmark is forked from blackfriday which started out as a translation from C of [upskirt][4].
 
@@ -196,7 +197,7 @@ implements the following extensions:
 
     Note that the special `prefix` attribute can be set in an IAL and it
     will be used to prefix each line with the value of `prefix`.
-    
+
         {prefix="S"}
             <{{test.go}}
 
@@ -329,6 +330,21 @@ implements the following extensions:
 *  **Math support**, use `$$` as the delimiter. If the math is part of a paragraph it will
     be displayed inline, if the entire paragraph consists out of math it considered display
     math. No attempt is made to parse what is between the `$$`.
+
+*  **Callouts**, in codeblocks you can use `<number>` to create a callout, later you can
+    reference it:
+
+            This is some code <1>
+            More code <2>
+            There is no \<3>
+
+        As you can <1> we talk about code. In <2> we consider...
+        There is no <3> so this will stay `<3>` as does \<2>.
+
+    Note the callouts are only identified if they end a line, a callout that
+    starts with a backslash isn't a callout, the backslash will be removed
+    in the output. The callout identifiers will remembered until they are
+
 
 # Todo
 

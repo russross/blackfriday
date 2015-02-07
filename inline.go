@@ -719,6 +719,16 @@ func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	return end
 }
 
+// '<' for callouts in code
+func callouts(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+	//	if p.flags&EXTENSION_CALLOUTS == 0 {
+	//		return 0
+	//	}
+	i := offset
+	println("CALL", string(data[i]))
+	return 0
+}
+
 // '{' IAL or *matter, {{ is handled in the first pass
 func leftBrace(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]

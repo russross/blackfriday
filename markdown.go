@@ -42,6 +42,7 @@ const (
 	EXTENSION_TABLES                     // render tables
 	EXTENSION_TITLEBLOCK_TOML            // Titleblock in TOML
 	EXTENSION_UNIQUE_HEADER_IDS          // When detecting identical anchors add a sequence number -1, -2 etc.
+	EXTENSION_CALLOUTS                   // Callouts in codeblocks
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML
@@ -195,6 +196,7 @@ type Renderer interface {
 	// Span-level callbacks
 	AutoLink(out *bytes.Buffer, link []byte, kind int)
 	CodeSpan(out *bytes.Buffer, text []byte)
+	//	Callout(out *bytes.Buffer, index int, id []string, code true)
 	DoubleEmphasis(out *bytes.Buffer, text []byte)
 	Emphasis(out *bytes.Buffer, text []byte)
 	Subscript(out *bytes.Buffer, text []byte)
