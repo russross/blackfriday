@@ -724,9 +724,41 @@ func callouts(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	//	if p.flags&EXTENSION_CALLOUTS == 0 {
 	//		return 0
 	//	}
+	// generate IDs
 	i := offset
-	println("CALL", string(data[i]))
+	for i < len(data) {
+		if data[i] == '\\' && i < len(data)-1 && data[i+1] == '<' {
+			// skip \\
+			i++
+			continue
+		}
+
+		if data[i] == '<' {
+			if x := leftAngleCode(data[i:]); x > 0 {
+				println("LEFT", string(data[i+1:i+x]))
+			}
+		}
+
+		out.WriteByte(data[i])
+		i++
+	}
 	return 0
+}
+
+// return > 0 if <xxx> if found where xxx is a number > 0
+// should be called when on a '<'
+func leftAngleCode(data []byte) int {
+	i := 1
+	for i < len(data) {
+		if data[i] == '>' {
+			break
+		}
+		if !isnum(data[i]) {
+			return 0
+		}
+		i++
+	}
+	return i
 }
 
 // '{' IAL or *matter, {{ is handled in the first pass

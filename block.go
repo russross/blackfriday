@@ -1668,7 +1668,7 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 	var callout bytes.Buffer
 	callouts(p, &callout, work.Bytes(), 0)
 
-	p.r.BlockCode(out, work.Bytes(), "", caption.Bytes(), p.insideFigure)
+	p.r.BlockCode(out, callout.Bytes(), "", caption.Bytes(), p.insideFigure)
 
 	return j
 }
