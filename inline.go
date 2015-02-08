@@ -4,6 +4,7 @@ package mmark
 
 import (
 	"bytes"
+	"fmt"
 	"regexp"
 	"strconv"
 	"unicode/utf8"
@@ -693,6 +694,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 }
 
 // '<' when tags or autolinks are allowed
+// Also detect callouts when len(p.callouts) > 0
 func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	if p.flags&EXTENSION_INCLUDE != 0 {
 		if j := p.codeInclude(out, data[offset:]); j > 0 {
@@ -705,6 +707,19 @@ func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	end := tagLength(data, &altype)
 
 	if end > 2 {
+		allnum := 0
+		for j := 1; j < end-1; j++ {
+			if isnum(data[j]) {
+				allnum++
+			}
+		}
+		if allnum+2 == end {
+			// all numeric: a callout
+			index, _ := strconv.Atoi(string(data[1 : end-1]))
+			p.r.Callout(out, index, p.callouts[index], false)
+			return end
+		}
+
 		if altype != _LINK_TYPE_NOT_AUTOLINK {
 			var uLink bytes.Buffer
 			unescapeText(&uLink, data[1:end+1-2])
@@ -720,12 +735,15 @@ func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 }
 
 // '<' for callouts in code
-func callouts(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+func callouts(p *parser, out *bytes.Buffer, data []byte, offset int) {
 	//	if p.flags&EXTENSION_CALLOUTS == 0 {
 	//		return 0
 	//	}
 	// generate IDs
+	p.codeBlock++
+	p.callouts = make(map[int][]string)
 	i := offset
+	j := 0
 	for i < len(data) {
 		if data[i] == '\\' && i < len(data)-1 && data[i+1] == '<' {
 			// skip \\
@@ -735,14 +753,20 @@ func callouts(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 		if data[i] == '<' {
 			if x := leftAngleCode(data[i:]); x > 0 {
-				println("LEFT", string(data[i+1:i+x]))
+				j++
+				id := fmt.Sprintf("co%d-%d", p.codeBlock, j)
+				index, _ := strconv.Atoi(string(data[i+1 : i+x]))
+				p.callouts[index] = append(p.callouts[index], id)
+				p.r.Callout(out, index, p.callouts[index], true)
+				i += x + 1
+				continue
 			}
 		}
 
 		out.WriteByte(data[i])
 		i++
 	}
-	return 0
+	return
 }
 
 // return > 0 if <xxx> if found where xxx is a number > 0

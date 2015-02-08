@@ -343,8 +343,8 @@ implements the following extensions:
 
     Note the callouts are only identified if they end a line, a callout that
     starts with a backslash isn't a callout, the backslash will be removed
-    in the output. The callout identifiers will be remembered until they are
-    overwritten.
+    in the output. The callout identifiers will be remembered until the next
+    code block.
 
 
 # Todo

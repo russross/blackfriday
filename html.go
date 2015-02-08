@@ -218,6 +218,18 @@ func (options *html) HRule(out *bytes.Buffer) {
 	out.WriteString(options.closeTag)
 }
 
+func (options *html) Callout(out *bytes.Buffer, index int, id []string, code bool) {
+	if code {
+		out.WriteByte('<')
+		out.WriteString(strconv.Itoa(index))
+		out.WriteByte('>')
+		return
+	}
+	out.WriteByte('(')
+	out.WriteString(strconv.Itoa(index))
+	out.WriteByte(')')
+}
+
 func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool) {
 	doubleSpace(out)
 
