@@ -1662,9 +1662,16 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 
 	work.WriteByte('\n')
 
+	co := ""
+	if p.ial != nil {
+		// enabled
+		co = p.ial.Value("callouts")
+	}
+
 	p.r.SetInlineAttr(p.ial)
 	p.ial = nil
 
+	println("CALLOUTS", co)
 	if p.flags&EXTENSION_CALLOUTS != 0 {
 		var callout bytes.Buffer
 		callouts(p, &callout, work.Bytes(), 0)
