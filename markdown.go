@@ -197,8 +197,9 @@ type Renderer interface {
 	AutoLink(out *bytes.Buffer, link []byte, kind int)
 	CodeSpan(out *bytes.Buffer, text []byte)
 	// Callout is use to render the callout in code (code is true), when code is false,
-	// the callout is references in the text with the index, id holds the references
-	// the callouts in the code.
+	// the callout is referenced in the text by index, id holds the references (there
+	// may be multiple) of the callouts in the code. When code is true, this is called
+	// to typeset the reference in code.
 	Callout(out *bytes.Buffer, index int, id []int, code bool)
 	DoubleEmphasis(out *bytes.Buffer, text []byte)
 	Emphasis(out *bytes.Buffer, text []byte)

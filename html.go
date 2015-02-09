@@ -143,6 +143,31 @@ func attrEscape(out *bytes.Buffer, src []byte) {
 	}
 }
 
+func attrEscapeInCode(r Renderer, out *bytes.Buffer, src []byte) {
+	var prev byte
+	j := 0
+	for i := 0; i < len(src); i++ {
+		ch := src[i]
+		if ch == '<' && prev != '\\' {
+			if x := leftAngleCode(src[i:]); x > 0 {
+				j++
+				i += x
+				prev = ch
+				// Call the renderer's
+				r.Callout(out, j, nil, true)
+				continue
+			}
+		}
+		if entity, ok := escapeSingleChar(ch); ok {
+			out.WriteString(entity)
+			prev = ch
+			continue
+		}
+		out.WriteByte(ch)
+		prev = ch
+	}
+}
+
 func entityEscapeWithSkip(out *bytes.Buffer, src []byte, skipRanges [][]int) {
 	end := 0
 	for _, rang := range skipRanges {
@@ -262,7 +287,7 @@ func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 		out.WriteString("\">")
 	}
 
-	attrEscape(out, text)
+	attrEscapeInCode(options, out, text)
 	out.WriteString("</code></pre>\n")
 }
 

@@ -1665,10 +1665,13 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 	p.r.SetInlineAttr(p.ial)
 	p.ial = nil
 
-	var callout bytes.Buffer
-	callouts(p, &callout, work.Bytes(), 0)
-
-	p.r.BlockCode(out, callout.Bytes(), "", caption.Bytes(), p.insideFigure)
+	if p.flags&EXTENSION_CALLOUTS != 0 {
+		var callout bytes.Buffer
+		callouts(p, &callout, work.Bytes(), 0)
+		p.r.BlockCode(out, callout.Bytes(), "", caption.Bytes(), p.insideFigure)
+	} else {
+		p.r.BlockCode(out, work.Bytes(), "", caption.Bytes(), p.insideFigure)
+	}
 
 	return j
 }
