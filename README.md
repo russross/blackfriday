@@ -334,18 +334,24 @@ implements the following extensions:
 *  **Callouts**, in codeblocks you can use `<number>` to create a callout, later you can
     reference it:
 
-            This is some code <1>
-            More code <2>
-            Even more code <2>
-            There is no \<3>
+            Code  \<1>
+            More  \<1>
+            Not a callout \\<3>
 
-        As you can <1> we talk about code. In <2> we consider...
-        There is no <3> so this will stay `<3>` as does \<2>.
+        As you can see in \<1> but not in \\<1>. There is no \<3>.
 
     Note the callouts are only identified if it's a number in less than and greater than: `<number>`.
     A callout that starts with a backslash isn't a callout, the backslash will be removed
     in the output (both in sourcecode and text). The callout identifiers will be remembered until
-    the next code block.
+    the next code block. The above would render as:
+
+            This is some code
+
+                Code <1>
+                Code <2>
+                Not a callout <3>
+
+            As you can see in (1, 2) but not in <1>. There is no <3>.
 
 
 # Todo

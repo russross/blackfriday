@@ -260,7 +260,7 @@ func (options *html) CalloutText(out *bytes.Buffer, id string, ids []string) {
 	out.WriteByte('(')
 	for i, k := range ids {
 		out.WriteString(k)
-		if i < len(id)-1 {
+		if i < len(ids)-1 {
 			out.WriteString(", ")
 		}
 	}
