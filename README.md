@@ -340,11 +340,9 @@ implements the following extensions:
 
         As you can see in <1> but not in \<1>. There is no <3>.
 
-    A callout that starts with a backslash isn't a callout, the backslash will be removed
+    You can escape a callout with a backslash. The backslash will be removed
     in the output (both in sourcecode and text). The callout identifiers will be remembered until
     the next code block. The above would render as:
-
-            This is some code
 
                 Code <1>
                 Code <2>
