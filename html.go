@@ -158,6 +158,11 @@ func attrEscapeInCode(r Renderer, out *bytes.Buffer, src []byte) {
 				continue
 			}
 		}
+		if ch == '\\' && i < len(src)-1 && src[i+1] == '<' {
+			// skip \\ here
+			prev = ch
+			continue
+		}
 		if entity, ok := escapeSingleChar(ch); ok {
 			out.WriteString(entity)
 			prev = ch

@@ -336,15 +336,16 @@ implements the following extensions:
 
             This is some code <1>
             More code <2>
+            Even more code <2>
             There is no \<3>
 
         As you can <1> we talk about code. In <2> we consider...
         There is no <3> so this will stay `<3>` as does \<2>.
 
-    Note the callouts are only identified if they end a line, a callout that
-    starts with a backslash isn't a callout, the backslash will be removed
-    in the output. The callout identifiers will be remembered until the next
-    code block.
+    Note the callouts are only identified if it's a number in less than and greater than: `<number>`.
+    A callout that starts with a backslash isn't a callout, the backslash will be removed
+    in the output (both in sourcecode and text). The callout identifiers will be remembered until
+    the next code block.
 
 
 # Todo

@@ -715,8 +715,11 @@ func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		if allnum+2 == end && p.flags&EXTENSION_CALLOUTS != 0 {
 			// all numeric: a callout
 			index, _ := strconv.Atoi(string(data[1 : end-1]))
-			p.r.Callout(out, index, p.callouts[index], false)
-			return end
+			// Only known indices are callouts
+			if _, ok := p.callouts[index]; ok {
+				p.r.Callout(out, index, p.callouts[index], false)
+				return end
+			}
 		}
 
 		if altype != _LINK_TYPE_NOT_AUTOLINK {
@@ -733,7 +736,7 @@ func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	return end
 }
 
-// '<' for callouts in code
+// '<' for callouts in code.
 func callouts(p *parser, out *bytes.Buffer, data []byte, offset int) {
 	if p.flags&EXTENSION_CALLOUTS == 0 {
 		return
@@ -745,11 +748,12 @@ func callouts(p *parser, out *bytes.Buffer, data []byte, offset int) {
 	for i < len(data) {
 		if data[i] == '\\' && i < len(data)-1 && data[i+1] == '<' {
 			// skip \\
+			out.WriteByte(data[i])
 			i++
 			continue
 		}
 
-		if data[i] == '<' {
+		if data[i] == '<' && i > 0 && data[i-1] != '\\' {
 			if x := leftAngleCode(data[i:]); x > 0 {
 				j++
 				index, _ := strconv.Atoi(string(data[i+1 : i+x]))
