@@ -114,9 +114,8 @@ func (options *xml) BlockCode(out *bytes.Buffer, text []byte, lang string, capti
 	}
 }
 
-func (options *xml) Callout(out *bytes.Buffer, index int, id []int, code bool) {
-
-}
+func (options *xml) CalloutCode(out *bytes.Buffer, index, id string)          {}
+func (options *xml) CalloutText(out *bytes.Buffer, index string, id []string) {}
 
 func (options *xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	if options.flags&XML_STANDALONE == 0 {

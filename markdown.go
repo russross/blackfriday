@@ -196,11 +196,13 @@ type Renderer interface {
 	// Span-level callbacks
 	AutoLink(out *bytes.Buffer, link []byte, kind int)
 	CodeSpan(out *bytes.Buffer, text []byte)
-	// Callout is use to render the callout in code (code is true), when code is false,
-	// the callout is referenced in the text by index, id holds the references (there
-	// may be multiple) of the callouts in the code. When code is true, this is called
-	// to typeset the reference in code.
-	Callout(out *bytes.Buffer, index int, id []int, code bool)
+	// CalloutText is called when a callout is seen in the text. Id is the text
+	// seen between < and > and ids holds reference the numbers of callouts this references
+	// too.
+	CalloutText(out *bytes.Buffer, id string, ids []string)
+	// Called when a callout is seen in a code block. Index is a callout counter, id
+	// is the number seen between < and >.
+	CalloutCode(out *bytes.Buffer, index, id string)
 	DoubleEmphasis(out *bytes.Buffer, text []byte)
 	Emphasis(out *bytes.Buffer, text []byte)
 	Subscript(out *bytes.Buffer, text []byte)
@@ -249,7 +251,7 @@ type parser struct {
 	citations            map[string]*citation
 	abbreviations        map[string]*abbreviation
 	examples             map[string]int
-	callouts             map[int][]int
+	callouts             map[string][]string
 	codeBlock            int // count codeblock for callout ID generation
 	inlineCallback       [256]inlineParser
 	flags                int

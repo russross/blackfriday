@@ -713,11 +713,9 @@ func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			}
 		}
 		if allnum+2 == end && p.flags&EXTENSION_CALLOUTS != 0 {
-			// all numeric: a callout
-			index, _ := strconv.Atoi(string(data[1 : end-1]))
-			// Only known indices are callouts
+			index := string(data[1 : end-1])
 			if _, ok := p.callouts[index]; ok {
-				p.r.Callout(out, index, p.callouts[index], false)
+				p.r.CalloutText(out, index, p.callouts[index])
 				return end
 			}
 		}
@@ -742,7 +740,7 @@ func callouts(p *parser, out *bytes.Buffer, data []byte, offset int) {
 		return
 	}
 	p.codeBlock++
-	p.callouts = make(map[int][]int)
+	p.callouts = make(map[string][]string)
 	i := offset
 	j := 0
 	for i < len(data) {
@@ -756,8 +754,8 @@ func callouts(p *parser, out *bytes.Buffer, data []byte, offset int) {
 		if data[i] == '<' && i > 0 && data[i-1] != '\\' {
 			if x := leftAngleCode(data[i:]); x > 0 {
 				j++
-				index, _ := strconv.Atoi(string(data[i+1 : i+x]))
-				p.callouts[index] = append(p.callouts[index], j)
+				index := string(data[i+1 : i+x])
+				p.callouts[index] = append(p.callouts[index], strconv.Itoa(j))
 			}
 		}
 

@@ -151,10 +151,10 @@ func attrEscapeInCode(r Renderer, out *bytes.Buffer, src []byte) {
 		if ch == '<' && prev != '\\' {
 			if x := leftAngleCode(src[i:]); x > 0 {
 				j++
+				// Call the renderer's CalloutCode
+				r.CalloutCode(out, strconv.Itoa(j), string(src[i:i+x+1]))
 				i += x
 				prev = ch
-				// Call the renderer's
-				r.Callout(out, j, nil, true)
 				continue
 			}
 		}
@@ -248,16 +248,18 @@ func (options *html) HRule(out *bytes.Buffer) {
 	out.WriteString(options.closeTag)
 }
 
-func (options *html) Callout(out *bytes.Buffer, index int, id []int, code bool) {
-	if code {
-		out.WriteByte('<')
-		out.WriteString(strconv.Itoa(index))
-		out.WriteByte('>')
-		return
-	}
+func (options *html) CalloutCode(out *bytes.Buffer, index, id string) {
+	// Should link to id
+	out.WriteByte('<')
+	out.WriteString(index)
+	out.WriteByte('>')
+	return
+}
+
+func (options *html) CalloutText(out *bytes.Buffer, id string, ids []string) {
 	out.WriteByte('(')
-	for i, k := range id {
-		out.WriteString(strconv.Itoa(k))
+	for i, k := range ids {
+		out.WriteString(k)
 		if i < len(id)-1 {
 			out.WriteString(", ")
 		}

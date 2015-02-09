@@ -82,9 +82,8 @@ func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 	out.WriteString("</artwork></figure>\n")
 }
 
-func (options *xml2) Callout(out *bytes.Buffer, index int, id []int, code bool) {
-
-}
+func (options *xml2) CalloutCode(out *bytes.Buffer, index, id string)          {}
+func (options *xml2) CalloutText(out *bytes.Buffer, index string, id []string) {}
 
 func (options *xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	if options.flags&XML2_STANDALONE == 0 {
