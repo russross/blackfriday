@@ -1095,6 +1095,13 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 	if beg == 0 {
 		return 0
 	}
+
+	co := ""
+	if p.ial != nil {
+		// enabled, any non-empty value
+		co = p.ial.Value("callout")
+	}
+
 	if beg >= len(data) {
 		// only the marker and end of doc. CommonMark dictates this is valid
 		p.r.SetInlineAttr(p.ial)
@@ -1176,8 +1183,14 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 	if doRender {
 		p.r.SetInlineAttr(p.ial)
 		p.ial = nil
-
-		p.r.BlockCode(out, work.Bytes(), syntax, caption.Bytes(), p.insideFigure, false)
+		if co != "" {
+			var callout bytes.Buffer
+			callouts(p, &callout, work.Bytes(), 0)
+			p.r.BlockCode(out, callout.Bytes(), syntax, caption.Bytes(), p.insideFigure, true)
+		} else {
+			p.callouts = nil
+			p.r.BlockCode(out, work.Bytes(), syntax, caption.Bytes(), p.insideFigure, false)
+		}
 	}
 
 	return j
@@ -1664,19 +1677,19 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 
 	co := ""
 	if p.ial != nil {
-		// enabled
-		co = p.ial.Value("callouts")
+		// enabled, any non-empty value
+		co = p.ial.Value("callout")
 	}
 
 	p.r.SetInlineAttr(p.ial)
 	p.ial = nil
 
-	println("CALLOUTS", co)
-	if p.flags&EXTENSION_CALLOUTS != 0 {
+	if co != "" {
 		var callout bytes.Buffer
 		callouts(p, &callout, work.Bytes(), 0)
 		p.r.BlockCode(out, callout.Bytes(), "", caption.Bytes(), p.insideFigure, true)
 	} else {
+		p.callouts = nil
 		p.r.BlockCode(out, work.Bytes(), "", caption.Bytes(), p.insideFigure, false)
 	}
 

@@ -693,7 +693,6 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 }
 
 // '<' when tags or autolinks are allowed
-// Also detect callouts when len(p.callouts) > 0
 func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	if p.flags&EXTENSION_INCLUDE != 0 {
 		if j := p.codeInclude(out, data[offset:]); j > 0 {
@@ -712,11 +711,13 @@ func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 				allnum++
 			}
 		}
-		if allnum+2 == end && p.flags&EXTENSION_CALLOUTS != 0 {
+		if allnum+2 == end {
 			index := string(data[1 : end-1])
 			if _, ok := p.callouts[index]; ok {
 				p.r.CalloutText(out, index, p.callouts[index])
 				return end
+			} else {
+				return 0
 			}
 		}
 
@@ -736,9 +737,6 @@ func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 // '<' for callouts in code.
 func callouts(p *parser, out *bytes.Buffer, data []byte, offset int) {
-	if p.flags&EXTENSION_CALLOUTS == 0 {
-		return
-	}
 	p.codeBlock++
 	p.callouts = make(map[string][]string)
 	i := offset

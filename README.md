@@ -334,13 +334,12 @@ implements the following extensions:
 *  **Callouts**, in codeblocks you can use `<number>` to create a callout, later you can
     reference it:
 
-            Code  \<1>
-            More  \<1>
-            Not a callout \\<3>
+            Code  <1>
+            More  <1>
+            Not a callout \<3>
 
-        As you can see in \<1> but not in \\<1>. There is no \<3>.
+        As you can see in <1> but not in \<1>. There is no <3>.
 
-    Note the callouts are only identified if it's a number in less than and greater than: `<number>`.
     A callout that starts with a backslash isn't a callout, the backslash will be removed
     in the output (both in sourcecode and text). The callout identifiers will be remembered until
     the next code block. The above would render as:
@@ -352,6 +351,9 @@ implements the following extensions:
                 Not a callout <3>
 
             As you can see in (1, 2) but not in <1>. There is no <3>.
+
+    Note that callouts are only detected with the IAL `{callout="yes"}` or any other
+    non-empty value is defined before the code block.
 
 
 # Todo

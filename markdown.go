@@ -42,7 +42,6 @@ const (
 	EXTENSION_TABLES                     // render tables
 	EXTENSION_TITLEBLOCK_TOML            // Titleblock in TOML
 	EXTENSION_UNIQUE_HEADER_IDS          // When detecting identical anchors add a sequence number -1, -2 etc.
-	EXTENSION_CALLOUTS                   // Callouts in codeblocks
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML
@@ -992,10 +991,22 @@ func (p *parser) codeInclude(out *bytes.Buffer, data []byte) int {
 		end = j - 1
 	}
 
+	co := ""
+	if p.ial != nil {
+		co = p.ial.Value("callout")
+	}
+
 	p.r.SetInlineAttr(p.ial)
 	p.ial = nil
 
-	p.r.BlockCode(out, code, lang, caption.Bytes(), p.insideFigure, false)
+	if co != "" {
+		var callout bytes.Buffer
+		callouts(p, &callout, code, 0)
+		p.r.BlockCode(out, callout.Bytes(), lang, caption.Bytes(), p.insideFigure, true)
+	} else {
+		p.callouts = nil
+		p.r.BlockCode(out, code, lang, caption.Bytes(), p.insideFigure, false)
+	}
 
 	return end
 }
