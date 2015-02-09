@@ -82,7 +82,7 @@ func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 	out.WriteString("</artwork></figure>\n")
 }
 
-func (options *xml2) Callout(out *bytes.Buffer, index int, id []string, code bool) {
+func (options *xml2) Callout(out *bytes.Buffer, index int, id []int, code bool) {
 
 }
 

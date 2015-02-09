@@ -4,7 +4,6 @@ package mmark
 
 import (
 	"bytes"
-	"fmt"
 	"regexp"
 	"strconv"
 	"unicode/utf8"
@@ -739,9 +738,8 @@ func callouts(p *parser, out *bytes.Buffer, data []byte, offset int) {
 	//	if p.flags&EXTENSION_CALLOUTS == 0 {
 	//		return 0
 	//	}
-	// generate IDs
 	p.codeBlock++
-	p.callouts = make(map[int][]string)
+	p.callouts = make(map[int][]int)
 	i := offset
 	j := 0
 	for i < len(data) {
@@ -754,10 +752,9 @@ func callouts(p *parser, out *bytes.Buffer, data []byte, offset int) {
 		if data[i] == '<' {
 			if x := leftAngleCode(data[i:]); x > 0 {
 				j++
-				id := fmt.Sprintf("co%d-%d", p.codeBlock, j)
 				index, _ := strconv.Atoi(string(data[i+1 : i+x]))
-				p.callouts[index] = append(p.callouts[index], id)
-				p.r.Callout(out, index, p.callouts[index], true)
+				p.callouts[index] = append(p.callouts[index], j)
+				p.r.Callout(out, j, p.callouts[index], true)
 				i += x + 1
 				continue
 			}

@@ -218,7 +218,7 @@ func (options *html) HRule(out *bytes.Buffer) {
 	out.WriteString(options.closeTag)
 }
 
-func (options *html) Callout(out *bytes.Buffer, index int, id []string, code bool) {
+func (options *html) Callout(out *bytes.Buffer, index int, id []int, code bool) {
 	if code {
 		out.WriteByte('<')
 		out.WriteString(strconv.Itoa(index))
@@ -226,7 +226,12 @@ func (options *html) Callout(out *bytes.Buffer, index int, id []string, code boo
 		return
 	}
 	out.WriteByte('(')
-	out.WriteString(strconv.Itoa(index))
+	for i, k := range id {
+		out.WriteString(strconv.Itoa(k))
+		if i < len(id)-1 {
+			out.WriteString(", ")
+		}
+	}
 	out.WriteByte(')')
 }
 

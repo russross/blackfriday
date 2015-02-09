@@ -199,7 +199,7 @@ type Renderer interface {
 	// Callout is use to render the callout in code (code is true), when code is false,
 	// the callout is references in the text with the index, id holds the references
 	// the callouts in the code.
-	Callout(out *bytes.Buffer, index int, id []string, code bool)
+	Callout(out *bytes.Buffer, index int, id []int, code bool)
 	DoubleEmphasis(out *bytes.Buffer, text []byte)
 	Emphasis(out *bytes.Buffer, text []byte)
 	Subscript(out *bytes.Buffer, text []byte)
@@ -248,7 +248,7 @@ type parser struct {
 	citations            map[string]*citation
 	abbreviations        map[string]*abbreviation
 	examples             map[string]int
-	callouts             map[int][]string
+	callouts             map[int][]int
 	codeBlock            int // count codeblock for callout ID generation
 	inlineCallback       [256]inlineParser
 	flags                int
@@ -332,7 +332,7 @@ func Parse(input []byte, renderer Renderer, extensions int) *bytes.Buffer {
 	p.abbreviations = make(map[string]*abbreviation)
 	p.anchors = make(map[string]int)
 	p.examples = make(map[string]int)
-	// newly create in func callouts
+	// newly created in 'callouts'
 	p.maxNesting = 16
 	p.insideLink = false
 

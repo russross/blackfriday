@@ -114,7 +114,7 @@ func (options *xml) BlockCode(out *bytes.Buffer, text []byte, lang string, capti
 	}
 }
 
-func (options *xml) Callout(out *bytes.Buffer, index int, id []string, code bool) {
+func (options *xml) Callout(out *bytes.Buffer, index int, id []int, code bool) {
 
 }
 
