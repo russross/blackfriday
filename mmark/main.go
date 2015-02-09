@@ -110,7 +110,7 @@ func main() {
 	extensions |= mmark.EXTENSION_SHORT_REF
 	extensions |= mmark.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
 	extensions |= mmark.EXTENSION_INCLUDE
-	//	extensions |= mmark.EXTENSION_CALLOUTS
+	extensions |= mmark.EXTENSION_CALLOUTS
 
 	if commonmark {
 		extensions &= ^mmark.EXTENSION_AUTO_HEADER_IDS
