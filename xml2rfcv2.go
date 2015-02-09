@@ -58,7 +58,7 @@ func (options *xml2) inlineAttr() *inlineAttr {
 }
 
 // render code chunks using verbatim, or listings if we have a language
-func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool) {
+func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure, callouts bool) {
 	ial := options.inlineAttr()
 	ial.GetOrDefaultAttr("align", "center")
 

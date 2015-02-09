@@ -1100,7 +1100,7 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 		p.r.SetInlineAttr(p.ial)
 		p.ial = nil
 		// Data here?
-		p.r.BlockCode(out, nil, "", nil, p.insideFigure)
+		p.r.BlockCode(out, nil, "", nil, p.insideFigure, false)
 		return len(data)
 	}
 
@@ -1177,7 +1177,7 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 		p.r.SetInlineAttr(p.ial)
 		p.ial = nil
 
-		p.r.BlockCode(out, work.Bytes(), syntax, caption.Bytes(), p.insideFigure)
+		p.r.BlockCode(out, work.Bytes(), syntax, caption.Bytes(), p.insideFigure, false)
 	}
 
 	return j
@@ -1668,9 +1668,9 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 	if p.flags&EXTENSION_CALLOUTS != 0 {
 		var callout bytes.Buffer
 		callouts(p, &callout, work.Bytes(), 0)
-		p.r.BlockCode(out, callout.Bytes(), "", caption.Bytes(), p.insideFigure)
+		p.r.BlockCode(out, callout.Bytes(), "", caption.Bytes(), p.insideFigure, true)
 	} else {
-		p.r.BlockCode(out, work.Bytes(), "", caption.Bytes(), p.insideFigure)
+		p.r.BlockCode(out, work.Bytes(), "", caption.Bytes(), p.insideFigure, false)
 	}
 
 	return j

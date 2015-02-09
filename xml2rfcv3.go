@@ -74,7 +74,7 @@ func (options *xml) inlineAttr() *inlineAttr {
 }
 
 // render code chunks using verbatim, or listings if we have a language
-func (options *xml) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool) {
+func (options *xml) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure, callout bool) {
 	if options.para {
 		// close it
 		out.WriteString("</t>")

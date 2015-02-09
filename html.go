@@ -260,7 +260,7 @@ func (options *html) Callout(out *bytes.Buffer, index int, id []int, code bool) 
 	out.WriteByte(')')
 }
 
-func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool) {
+func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool, callout bool) {
 	doubleSpace(out)
 
 	// parse out the language names/classes
@@ -286,8 +286,11 @@ func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 	} else {
 		out.WriteString("\">")
 	}
-
-	attrEscapeInCode(options, out, text)
+	if callout {
+		attrEscapeInCode(options, out, text)
+	} else {
+		attrEscape(out, text)
+	}
 	out.WriteString("</code></pre>\n")
 }
 

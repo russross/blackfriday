@@ -171,7 +171,7 @@ var blockTags = map[string]bool{
 // Currently Html, XML2RFCv3 and XML2RFC v2 implementations are provided.
 type Renderer interface {
 	// block-level callbacks
-	BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool)
+	BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool, callouts bool)
 	BlockQuote(out *bytes.Buffer, text []byte, attribution []byte)
 	BlockHtml(out *bytes.Buffer, text []byte)
 	CommentHtml(out *bytes.Buffer, text []byte)
@@ -993,7 +993,7 @@ func (p *parser) codeInclude(out *bytes.Buffer, data []byte) int {
 	p.r.SetInlineAttr(p.ial)
 	p.ial = nil
 
-	p.r.BlockCode(out, code, lang, caption.Bytes(), p.insideFigure)
+	p.r.BlockCode(out, code, lang, caption.Bytes(), p.insideFigure, false)
 
 	return end
 }
