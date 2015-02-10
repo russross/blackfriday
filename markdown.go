@@ -196,10 +196,9 @@ type Renderer interface {
 	AutoLink(out *bytes.Buffer, link []byte, kind int)
 	CodeSpan(out *bytes.Buffer, text []byte)
 	// CalloutText is called when a callout is seen in the text. Id is the text
-	// seen between < and > and ids holds reference the numbers of callouts this references
-	// too.
+	// seen between < and > and ids references the callout counter(s) in the code.
 	CalloutText(out *bytes.Buffer, id string, ids []string)
-	// Called when a callout is seen in a code block. Index is a callout counter, id
+	// Called when a callout is seen in a code block. Index is the callout counter, id
 	// is the number seen between < and >.
 	CalloutCode(out *bytes.Buffer, index, id string)
 	DoubleEmphasis(out *bytes.Buffer, text []byte)
