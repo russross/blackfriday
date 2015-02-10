@@ -74,7 +74,7 @@ func (options *xml) inlineAttr() *inlineAttr {
 }
 
 // render code chunks using verbatim, or listings if we have a language
-func (options *xml) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool) {
+func (options *xml) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure, callout bool) {
 	if options.para {
 		// close it
 		out.WriteString("</t>")
@@ -113,6 +113,9 @@ func (options *xml) BlockCode(out *bytes.Buffer, text []byte, lang string, capti
 		out.WriteString("</figure>\n")
 	}
 }
+
+func (options *xml) CalloutCode(out *bytes.Buffer, index, id string)          {}
+func (options *xml) CalloutText(out *bytes.Buffer, index string, id []string) {}
 
 func (options *xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	if options.flags&XML_STANDALONE == 0 {

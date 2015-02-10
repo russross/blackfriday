@@ -58,7 +58,7 @@ func (options *xml2) inlineAttr() *inlineAttr {
 }
 
 // render code chunks using verbatim, or listings if we have a language
-func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool) {
+func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure, callouts bool) {
 	ial := options.inlineAttr()
 	ial.GetOrDefaultAttr("align", "center")
 
@@ -81,6 +81,9 @@ func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 	writeEntity(out, text)
 	out.WriteString("</artwork></figure>\n")
 }
+
+func (options *xml2) CalloutCode(out *bytes.Buffer, index, id string)          {}
+func (options *xml2) CalloutText(out *bytes.Buffer, index string, id []string) {}
 
 func (options *xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	if options.flags&XML2_STANDALONE == 0 {

@@ -705,6 +705,22 @@ func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	end := tagLength(data, &altype)
 
 	if end > 2 {
+		allnum := 0
+		for j := 1; j < end-1; j++ {
+			if isnum(data[j]) {
+				allnum++
+			}
+		}
+		if allnum+2 == end {
+			index := string(data[1 : end-1])
+			if _, ok := p.callouts[index]; ok {
+				p.r.CalloutText(out, index, p.callouts[index])
+				return end
+			} else {
+				return 0
+			}
+		}
+
 		if altype != _LINK_TYPE_NOT_AUTOLINK {
 			var uLink bytes.Buffer
 			unescapeText(&uLink, data[1:end+1-2])
@@ -717,6 +733,50 @@ func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	}
 
 	return end
+}
+
+// '<' for callouts in code.
+func callouts(p *parser, out *bytes.Buffer, data []byte, offset int) {
+	p.codeBlock++
+	p.callouts = make(map[string][]string)
+	i := offset
+	j := 0
+	for i < len(data) {
+		if data[i] == '\\' && i < len(data)-1 && data[i+1] == '<' {
+			// skip \\
+			out.WriteByte(data[i])
+			i++
+			continue
+		}
+
+		if data[i] == '<' && i > 0 && data[i-1] != '\\' {
+			if x := leftAngleCode(data[i:]); x > 0 {
+				j++
+				index := string(data[i+1 : i+x])
+				p.callouts[index] = append(p.callouts[index], strconv.Itoa(j))
+			}
+		}
+
+		out.WriteByte(data[i])
+		i++
+	}
+	return
+}
+
+// return > 0 if <xxx> if found where xxx is a number > 0
+// should be called when on a '<'
+func leftAngleCode(data []byte) int {
+	i := 1
+	for i < len(data) {
+		if data[i] == '>' {
+			break
+		}
+		if !isnum(data[i]) {
+			return 0
+		}
+		i++
+	}
+	return i
 }
 
 // '{' IAL or *matter, {{ is handled in the first pass

@@ -206,7 +206,7 @@ func (i *inlineAttr) Key(key string) string {
 }
 
 // Value returns the value of a specific key as value.  If not found
-// an empty string containing a space is returned.
+// an empty string is returned. TODO(miek): should be " " or change Key() above.
 func (i *inlineAttr) Value(key string) string {
 	if v, ok := i.attr[key]; ok {
 		return v

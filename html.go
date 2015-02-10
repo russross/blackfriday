@@ -143,6 +143,36 @@ func attrEscape(out *bytes.Buffer, src []byte) {
 	}
 }
 
+func attrEscapeInCode(r Renderer, out *bytes.Buffer, src []byte) {
+	var prev byte
+	j := 0
+	for i := 0; i < len(src); i++ {
+		ch := src[i]
+		if ch == '<' && prev != '\\' {
+			if x := leftAngleCode(src[i:]); x > 0 {
+				j++
+				// Call the renderer's CalloutCode
+				r.CalloutCode(out, strconv.Itoa(j), string(src[i:i+x+1]))
+				i += x
+				prev = ch
+				continue
+			}
+		}
+		if ch == '\\' && i < len(src)-1 && src[i+1] == '<' {
+			// skip \\ here
+			prev = ch
+			continue
+		}
+		if entity, ok := escapeSingleChar(ch); ok {
+			out.WriteString(entity)
+			prev = ch
+			continue
+		}
+		out.WriteByte(ch)
+		prev = ch
+	}
+}
+
 func entityEscapeWithSkip(out *bytes.Buffer, src []byte, skipRanges [][]int) {
 	end := 0
 	for _, rang := range skipRanges {
@@ -218,7 +248,26 @@ func (options *html) HRule(out *bytes.Buffer) {
 	out.WriteString(options.closeTag)
 }
 
-func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool) {
+func (options *html) CalloutCode(out *bytes.Buffer, index, id string) {
+	// Should link to id
+	out.WriteByte('<')
+	out.WriteString(index)
+	out.WriteByte('>')
+	return
+}
+
+func (options *html) CalloutText(out *bytes.Buffer, id string, ids []string) {
+	out.WriteByte('(')
+	for i, k := range ids {
+		out.WriteString(k)
+		if i < len(ids)-1 {
+			out.WriteString(", ")
+		}
+	}
+	out.WriteByte(')')
+}
+
+func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool, callout bool) {
 	doubleSpace(out)
 
 	// parse out the language names/classes
@@ -244,8 +293,11 @@ func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 	} else {
 		out.WriteString("\">")
 	}
-
-	attrEscape(out, text)
+	if callout {
+		attrEscapeInCode(options, out, text)
+	} else {
+		attrEscape(out, text)
+	}
 	out.WriteString("</code></pre>\n")
 }
 

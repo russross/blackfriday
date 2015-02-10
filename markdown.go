@@ -170,7 +170,7 @@ var blockTags = map[string]bool{
 // Currently Html, XML2RFCv3 and XML2RFC v2 implementations are provided.
 type Renderer interface {
 	// block-level callbacks
-	BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool)
+	BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool, callouts bool)
 	BlockQuote(out *bytes.Buffer, text []byte, attribution []byte)
 	BlockHtml(out *bytes.Buffer, text []byte)
 	CommentHtml(out *bytes.Buffer, text []byte)
@@ -195,6 +195,12 @@ type Renderer interface {
 	// Span-level callbacks
 	AutoLink(out *bytes.Buffer, link []byte, kind int)
 	CodeSpan(out *bytes.Buffer, text []byte)
+	// CalloutText is called when a callout is seen in the text. Id is the text
+	// seen between < and > and ids references the callout counter(s) in the code.
+	CalloutText(out *bytes.Buffer, id string, ids []string)
+	// Called when a callout is seen in a code block. Index is the callout counter, id
+	// is the number seen between < and >.
+	CalloutCode(out *bytes.Buffer, index, id string)
 	DoubleEmphasis(out *bytes.Buffer, text []byte)
 	Emphasis(out *bytes.Buffer, text []byte)
 	Subscript(out *bytes.Buffer, text []byte)
@@ -243,6 +249,8 @@ type parser struct {
 	citations            map[string]*citation
 	abbreviations        map[string]*abbreviation
 	examples             map[string]int
+	callouts             map[string][]string
+	codeBlock            int // count codeblock for callout ID generation
 	inlineCallback       [256]inlineParser
 	flags                int
 	nesting              int
@@ -325,6 +333,7 @@ func Parse(input []byte, renderer Renderer, extensions int) *bytes.Buffer {
 	p.abbreviations = make(map[string]*abbreviation)
 	p.anchors = make(map[string]int)
 	p.examples = make(map[string]int)
+	// newly created in 'callouts'
 	p.maxNesting = 16
 	p.insideLink = false
 
@@ -981,10 +990,22 @@ func (p *parser) codeInclude(out *bytes.Buffer, data []byte) int {
 		end = j - 1
 	}
 
+	co := ""
+	if p.ial != nil {
+		co = p.ial.Value("callout")
+	}
+
 	p.r.SetInlineAttr(p.ial)
 	p.ial = nil
 
-	p.r.BlockCode(out, code, lang, caption.Bytes(), p.insideFigure)
+	if co != "" {
+		var callout bytes.Buffer
+		callouts(p, &callout, code, 0)
+		p.r.BlockCode(out, callout.Bytes(), lang, caption.Bytes(), p.insideFigure, true)
+	} else {
+		p.callouts = nil
+		p.r.BlockCode(out, code, lang, caption.Bytes(), p.insideFigure, false)
+	}
 
 	return end
 }
