@@ -72,7 +72,12 @@ func doTestsInlineParam(t *testing.T, tests []string, extensions, htmlFlags int,
 		input := tests[i]
 		candidate = input
 		expected := tests[i+1]
+		expected = strings.Replace(expected, "\r\n", "\n", -1)
+		expected = strings.Replace(expected, "\r", "\n", -1)
+
 		actual := runMarkdownInline(candidate, extensions, htmlFlags, params)
+		actual = strings.Replace(actual, "\r\n", "\n", -1)
+		actual = strings.Replace(actual, "\r", "\n", -1)
 		if actual != expected {
 			t.Errorf("\nInput   [%#v]\nExpected[%#v]\nActual  [%#v]",
 				candidate, expected, actual)
@@ -440,6 +445,12 @@ func TestInlineLink(t *testing.T) {
 
 		"[[t]](/t)\n",
 		"<p><a href=\"/t\">[t]</a></p>\n",
+
+		"[link](<./>)\n",
+		"<p><a href=\"./\">link</a></p>\n",
+
+		"[link](<../>)\n",
+		"<p><a href=\"../\">link</a></p>\n",
 	}
 	doLinkTestsInline(t, tests)
 
@@ -451,7 +462,19 @@ func TestNofollowLink(t *testing.T) {
 		"<p><a href=\"http://bar.com/foo/\" rel=\"nofollow\">foo</a></p>\n",
 
 		"[foo](/bar/)\n",
-		"<p><a href=\"/bar/\">foo</a></p>\n",
+		"<p><a href=\"/bar/\" rel=\"nofollow\">foo</a></p>\n",
+
+		"[foo](/)\n",
+		"<p><a href=\"/\" rel=\"nofollow\">foo</a></p>\n",
+
+		"[foo](./)\n",
+		"<p><a href=\"./\" rel=\"nofollow\">foo</a></p>\n",
+
+		"[foo](../)\n",
+		"<p><a href=\"../\" rel=\"nofollow\">foo</a></p>\n",
+
+		"[foo](../bar)\n",
+		"<p><a href=\"../bar\" rel=\"nofollow\">foo</a></p>\n",
 	}
 	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_NOFOLLOW_LINKS,
 		HtmlRendererParameters{})
@@ -462,6 +485,12 @@ func TestHrefTargetBlank(t *testing.T) {
 		// internal link
 		"[foo](/bar/)\n",
 		"<p><a href=\"/bar/\">foo</a></p>\n",
+
+		"[foo](./bar)\n",
+		"<p><a href=\"./bar\">foo</a></p>\n",
+
+		"[foo](../)\n",
+		"<p><a href=\"../\">foo</a></p>\n",
 
 		"[foo](http://example.com)\n",
 		"<p><a href=\"http://example.com\" target=\"_blank\">foo</a></p>\n",
