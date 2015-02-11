@@ -998,8 +998,11 @@ func (p *parser) isFencedCode(data []byte, syntax **string, oldmarker string) (s
 	skip = 0
 
 	// skip up to three spaces
-	for i < 3 && data[i] == ' ' {
+	for i < len(data) && i < 3 && data[i] == ' ' {
 		i++
+	}
+	if i >= len(data) {
+		return
 	}
 
 	// check for the marker characters: ~ or `
@@ -1010,14 +1013,20 @@ func (p *parser) isFencedCode(data []byte, syntax **string, oldmarker string) (s
 	c := data[i]
 
 	// the whole line must be the same char per CommonMark whitespace is not allowed
-	for data[i] == c {
+	for i < len(data) && data[i] == c {
 		size++
 		i++
 	}
+	if i >= len(data) {
+		return
+	}
 	// if we find spaces and them some more markers, this is not a fenced code block
 	j := i
-	for data[j] == ' ' {
+	for j < len(data) && data[j] == ' ' {
 		j++
+	}
+	if j >= len(data) {
+		return
 	}
 	if data[j] == c {
 		return
@@ -1038,8 +1047,11 @@ func (p *parser) isFencedCode(data []byte, syntax **string, oldmarker string) (s
 	if syntax != nil {
 		syn := 0
 
-		for data[i] == ' ' {
+		for i < len(data) && data[i] == ' ' {
 			i++
+		}
+		if i >= len(data) {
+			return
 		}
 
 		syntaxStart := i
@@ -1048,12 +1060,12 @@ func (p *parser) isFencedCode(data []byte, syntax **string, oldmarker string) (s
 			i++
 			syntaxStart++
 
-			for data[i] != '}' && data[i] != '\n' {
+			for i < len(data) && data[i] != '}' && data[i] != '\n' {
 				syn++
 				i++
 			}
 
-			if data[i] != '}' {
+			if i >= len(data) && data[i] != '}' {
 				return
 			}
 
@@ -1070,7 +1082,7 @@ func (p *parser) isFencedCode(data []byte, syntax **string, oldmarker string) (s
 
 			i++
 		} else {
-			for !isspace(data[i]) {
+			for i < len(data) && !isspace(data[i]) {
 				syn++
 				i++
 			}
@@ -1081,7 +1093,7 @@ func (p *parser) isFencedCode(data []byte, syntax **string, oldmarker string) (s
 	}
 
 	// CommonMark: skip garbage until end of line
-	for data[i] != '\n' {
+	for i < len(data) && data[i] != '\n' {
 		i++
 	}
 
@@ -1134,7 +1146,7 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 
 		// copy the current line
 		end := beg
-		for data[end] != '\n' {
+		for end < len(data) && data[end] != '\n' {
 			end++
 		}
 		end++
