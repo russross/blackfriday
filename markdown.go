@@ -405,8 +405,11 @@ func firstPass(p *parser, input []byte, depth int) *bytes.Buffer {
 		if p.flags&EXTENSION_FENCED_CODE != 0 {
 			// when last line was none blank and a fenced code block comes after
 			if beg >= lastFencedCodeBlockEnd {
+				// Keep the apppend '\n', other the tests fails.
+				// The original PR (149) didn't need this. I do need this
+				// prolly because of the CommonMark changes I made.
+				//if i := p.fencedCode(&out, input[beg:], false); i > 0 { // does not pass tests
 				if i := p.fencedCode(&out, append(input[beg:], '\n'), false); i > 0 {
-					//if i := p.fencedCode(&out, input[beg:], false); i > 0 { // does not pass tests
 					if !lastLineWasBlank {
 						out.WriteByte('\n') // need to inject additional linebreak
 					}
