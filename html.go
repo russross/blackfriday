@@ -951,8 +951,8 @@ func doubleSpace(out *bytes.Buffer) {
 func isRelativeLink(link []byte) (yes bool) {
 	yes = false
 
-	// a tag begin with '#'
-	if link[0] == '#' {
+	// a tag begin with '#' or '.'
+	if link[0] == '#' || link[0] == '.' {
 		yes = true
 	}
 
