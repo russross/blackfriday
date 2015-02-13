@@ -1659,7 +1659,7 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 			work.Write(data[beg:i])
 		}
 	}
-	var caption bytes.Buffer
+	caption := ""
 	line := i
 	j := i
 	// In the case of F> there may be spaces in front of it
@@ -1675,7 +1675,8 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 			}
 			line = j
 		}
-		p.inline(&caption, data[i+8:j-1]) // +8 for 'Figure: '
+		// save for later processing.
+		caption = string(data[i+8 : j-1]) // +8 for 'Figure: '
 	}
 
 	// trim all the \n off the end of work
@@ -1699,13 +1700,16 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 	p.r.SetInlineAttr(p.ial)
 	p.ial = nil
 
+	var capb bytes.Buffer
 	if co != "" {
 		var callout bytes.Buffer
 		callouts(p, &callout, work.Bytes(), 0)
-		p.r.BlockCode(out, callout.Bytes(), "", caption.Bytes(), p.insideFigure, true)
+		p.inline(&capb, []byte(caption))
+		p.r.BlockCode(out, callout.Bytes(), "", capb.Bytes(), p.insideFigure, true)
 	} else {
 		p.callouts = nil
-		p.r.BlockCode(out, work.Bytes(), "", caption.Bytes(), p.insideFigure, false)
+		p.inline(&capb, []byte(caption))
+		p.r.BlockCode(out, work.Bytes(), "", capb.Bytes(), p.insideFigure, false)
 	}
 
 	return j

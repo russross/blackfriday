@@ -69,6 +69,8 @@ Using Figure 1 from [@!RFC7328], mmark can be positioned as follows:
            +------------+             +---------+
 Figure: Mmark <1> skips the conversion to DOCBOOK and directly outputs XML2RFC XML (or HTML5).
 
+As you can see above mmark <1> picks up the ...
+
 Note that [kramdown-2629](https://github.com/cabo/kramdown-rfc2629) fills the same niche as mmark.
 
 # Terminology
