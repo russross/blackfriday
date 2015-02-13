@@ -58,12 +58,13 @@ func (options *xml2) inlineAttr() *inlineAttr {
 }
 
 // render code chunks using verbatim, or listings if we have a language
-func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure, callouts bool) {
+func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure, callout bool) {
 	ial := options.inlineAttr()
 	ial.GetOrDefaultAttr("align", "center")
 
 	prefix := ial.Value("prefix")
-	ial.DropAttr("prefix") // it's a fake attribute, so drop it
+	ial.DropAttr("prefix")  // it's a fake attribute, so drop it
+	ial.DropAttr("callout") // it's a fake attribute, so drop it
 	// subfigure stuff. TODO(miek): check
 	if len(caption) > 0 {
 		ial.GetOrDefaultAttr("title", string(caption))
@@ -78,12 +79,32 @@ func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 		// add prefix at the start as well
 		text = append([]byte(prefix), text...)
 	}
-	writeEntity(out, text)
+	if callout {
+		attrEscapeInCode(options, out, text)
+	} else {
+		writeEntity(out, text)
+	}
 	out.WriteString("</artwork></figure>\n")
 }
 
-func (options *xml2) CalloutCode(out *bytes.Buffer, index, id string)          {}
-func (options *xml2) CalloutText(out *bytes.Buffer, index string, id []string) {}
+func (options *xml2) CalloutCode(out *bytes.Buffer, index, id string) {
+	// Should link to id
+	attrEscape(out, []byte("<"))
+	out.WriteString(index)
+	attrEscape(out, []byte(">"))
+	return
+}
+
+func (options *xml2) CalloutText(out *bytes.Buffer, index string, id []string) {
+	out.WriteByte('(')
+	for i, k := range id {
+		out.WriteString(k)
+		if i < len(id)-1 {
+			out.WriteString(", ")
+		}
+	}
+	out.WriteByte(')')
+}
 
 func (options *xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	if options.flags&XML2_STANDALONE == 0 {

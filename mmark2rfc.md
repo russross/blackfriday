@@ -56,18 +56,18 @@ The goals of mmark are:
 
 Using Figure 1 from [@!RFC7328], mmark can be positioned as follows:
 
-{#fig:mmark align=left}
+{#fig:mmark align=left callout="true"}
      +-------------------+   pandoc   +---------+
      | ALMOST PLAIN TEXT |   ------>  | DOCBOOK |
      +-------------------+            +---------+
-                   |      \                 |
+                   |      \   <1>           |
      non-existent  |       \_________       | xsltproc
        faster way  |        *mmark*  \      |
                    v                  v     v
            +------------+    xml2rfc  +---------+
            | PLAIN TEXT |  <--------  |   XML   |
            +------------+             +---------+
-Figure: Mmark skips the conversion to DOCBOOK and directly outputs XML2RFC XML (or HTML5).
+Figure: Mmark <1> skips the conversion to DOCBOOK and directly outputs XML2RFC XML (or HTML5).
 
 Note that [kramdown-2629](https://github.com/cabo/kramdown-rfc2629) fills the same niche as mmark.
 
