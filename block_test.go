@@ -1462,6 +1462,21 @@ func TestIALXML(t *testing.T) {
 	doTestsBlockXML(t, tests, 0)
 }
 
+func testCalloutXML(t *testing.T) {
+	var tests = []string{`
+{callout="true"}
+    This is some code
+
+        Code  <1>
+        More  <1>
+        Not a callout \<3>
+
+As you can see in <1> we do some funky stuff above here.
+`,
+		""}
+	doTestsBlockXML(t, tests, 0)
+}
+
 // TODO:
 // figure caption
 // table caption
