@@ -16,6 +16,7 @@ package blackfriday
 import (
 	"io/ioutil"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -49,9 +50,14 @@ func doTestsReference(t *testing.T, files []string, flag int) {
 			continue
 		}
 		expected := string(expectedBytes)
+		expected = strings.Replace(expected, "\r\n", "\n", -1)
+		expected = strings.Replace(expected, "\r", "\n", -1)
 
 		// fmt.Fprintf(os.Stderr, "processing %s ...", filename)
 		actual := string(runMarkdownReference(input, flag))
+		actual = strings.Replace(actual, "\r\n", "\n", -1)
+		actual = strings.Replace(actual, "\r", "\n", -1)
+
 		if actual != expected {
 			t.Errorf("\n    [%#v]\nExpected[%#v]\nActual  [%#v]",
 				basename+".text", expected, actual)

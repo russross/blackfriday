@@ -476,7 +476,7 @@ func (options *Html) Emphasis(out *bytes.Buffer, text []byte) {
 }
 
 func (options *Html) maybeWriteAbsolutePrefix(out *bytes.Buffer, link []byte) {
-	if options.parameters.AbsolutePrefix != "" && isRelativeLink(link) {
+	if options.parameters.AbsolutePrefix != "" && isRelativeLink(link) && link[0] != '.' {
 		out.WriteString(options.parameters.AbsolutePrefix)
 		if link[0] != '/' {
 			out.WriteByte('/')
@@ -873,7 +873,7 @@ func isRelativeLink(link []byte) (yes bool) {
 	if len(link) == 1 && link[0] == '/' {
 		yes = true
 	}
-	
+
 	// current directory : begin with "./"
 	if len(link) >= 2 && link[0] == '.' && link[1] == '/' {
 		yes = true
@@ -883,7 +883,7 @@ func isRelativeLink(link []byte) (yes bool) {
 	if len(link) >= 3 && link[0] == '.' && link[1] == '.' && link[2] == '/' {
 		yes = true
 	}
-	
+
 	return
 }
 
