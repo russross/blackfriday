@@ -873,6 +873,17 @@ func isRelativeLink(link []byte) (yes bool) {
 	if len(link) == 1 && link[0] == '/' {
 		yes = true
 	}
+	
+	// current directory : begin with "./"
+	if len(link) >= 2 && link[0] == '.' && link[1] == '/' {
+		yes = true
+	}
+
+	// parent directory : begin with "../"
+	if len(link) >= 3 && link[0] == '.' && link[1] == '.' && link[2] == '/' {
+		yes = true
+	}
+	
 	return
 }
 
