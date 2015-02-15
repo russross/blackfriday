@@ -757,10 +757,15 @@ func isEndOfLink(char byte) bool {
 	return isspace(char) || char == '<'
 }
 
-var validUris = [][]byte{[]byte("http://"), []byte("https://"), []byte("ftp://"), []byte("mailto://"), []byte("/")}
+var validUris = [][]byte{[]byte("/"), []byte("./"), []byte("../"), []byte("http://"), []byte("https://"), []byte("ftp://"), []byte("mailto://")}
 
 func isSafeLink(link []byte) bool {
-	for _, prefix := range validUris {
+	for index, prefix := range validUris {
+		if index <= 2 {
+			if len(link) == len(prefix) && bytes.Equal(bytes.ToLower(link[:len(prefix)]), prefix) {
+				return true
+			}
+		}
 		// TODO: handle unicode here
 		// case-insensitive prefix test
 		if len(link) > len(prefix) && bytes.Equal(bytes.ToLower(link[:len(prefix)]), prefix) && isalnum(link[len(prefix)]) {
