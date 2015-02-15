@@ -72,12 +72,8 @@ func doTestsInlineParam(t *testing.T, tests []string, extensions, htmlFlags int,
 		input := tests[i]
 		candidate = input
 		expected := tests[i+1]
-		expected = strings.Replace(expected, "\r\n", "\n", -1)
-		expected = strings.Replace(expected, "\r", "\n", -1)
 
 		actual := runMarkdownInline(candidate, extensions, htmlFlags, params)
-		actual = strings.Replace(actual, "\r\n", "\n", -1)
-		actual = strings.Replace(actual, "\r", "\n", -1)
 		if actual != expected {
 			t.Errorf("\nInput   [%#v]\nExpected[%#v]\nActual  [%#v]",
 				candidate, expected, actual)
