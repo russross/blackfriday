@@ -446,6 +446,9 @@ func TestInlineLink(t *testing.T) {
 		"[[t]](/t)\n",
 		"<p><a href=\"/t\">[t]</a></p>\n",
 
+		"[link](</>)\n",
+		"<p><a href=\"/\">link</a></p>\n",
+
 		"[link](<./>)\n",
 		"<p><a href=\"./\">link</a></p>\n",
 
@@ -486,11 +489,20 @@ func TestHrefTargetBlank(t *testing.T) {
 		"[foo](/bar/)\n",
 		"<p><a href=\"/bar/\">foo</a></p>\n",
 
+		"[foo](/)\n",
+		"<p><a href=\"/\">foo</a></p>\n",
+
+		"[foo](./)\n",
+		"<p><a href=\"./\">foo</a></p>\n",
+
 		"[foo](./bar)\n",
 		"<p><a href=\"./bar\">foo</a></p>\n",
 
 		"[foo](../)\n",
 		"<p><a href=\"../\">foo</a></p>\n",
+
+		"[foo](../bar)\n",
+		"<p><a href=\"../bar\">foo</a></p>\n",
 
 		"[foo](http://example.com)\n",
 		"<p><a href=\"http://example.com\" target=\"_blank\">foo</a></p>\n",
@@ -502,6 +514,15 @@ func TestSafeInlineLink(t *testing.T) {
 	var tests = []string{
 		"[foo](/bar/)\n",
 		"<p><a href=\"/bar/\">foo</a></p>\n",
+
+		"[foo](/)\n",
+		"<p><a href=\"/\">foo</a></p>\n",
+
+		"[foo](./)\n",
+		"<p><a href=\"./\">foo</a></p>\n",
+
+		"[foo](../)\n",
+		"<p><a href=\"../\">foo</a></p>\n",
 
 		"[foo](http://bar/)\n",
 		"<p><a href=\"http://bar/\">foo</a></p>\n",
@@ -550,6 +571,9 @@ func TestReferenceLink(t *testing.T) {
 
 		"[ref]\n   [ref]: /url/ \"title\"\n",
 		"<p><a href=\"/url/\" title=\"title\">ref</a></p>\n",
+
+		"[ref]\n   [ref]: ../url/ \"title\"\n",
+		"<p><a href=\"../url/\" title=\"title\">ref</a></p>\n",
 	}
 	doLinkTestsInline(t, tests)
 }
