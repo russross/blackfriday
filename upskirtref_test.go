@@ -16,7 +16,6 @@ package blackfriday
 import (
 	"io/ioutil"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
