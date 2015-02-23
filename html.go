@@ -418,7 +418,8 @@ func (options *html) List(out *bytes.Buffer, text func() bool, flags, start int,
 	marker := out.Len()
 	doubleSpace(out)
 
-	if flags&_LIST_TYPE_ORDERED != 0 {
+	switch {
+	case flags&_LIST_TYPE_ORDERED != 0:
 		switch {
 		case flags&_LIST_TYPE_ORDERED_ALPHA_LOWER != 0:
 			out.WriteString("<ol type=\"a\">")
@@ -431,16 +432,21 @@ func (options *html) List(out *bytes.Buffer, text func() bool, flags, start int,
 		default:
 			out.WriteString("<ol>")
 		}
-	} else {
+	case flags&_LIST_TYPE_DEFINITION != 0:
+		out.WriteString("<dl>")
+	default:
 		out.WriteString("<ul>")
 	}
 	if !text() {
 		out.Truncate(marker)
 		return
 	}
-	if flags&_LIST_TYPE_ORDERED != 0 {
+	switch {
+	case flags&_LIST_TYPE_ORDERED != 0:
 		out.WriteString("</ol>\n")
-	} else {
+	case flags&_LIST_TYPE_DEFINITION != 0:
+		out.WriteString("</dl>\n")
+	default:
 		out.WriteString("</ul>\n")
 	}
 }
@@ -448,6 +454,18 @@ func (options *html) List(out *bytes.Buffer, text func() bool, flags, start int,
 func (options *html) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	if flags&_LIST_ITEM_CONTAINS_BLOCK != 0 || flags&_LIST_ITEM_BEGINNING_OF_LIST != 0 {
 		doubleSpace(out)
+	}
+	if flags&_LIST_TYPE_DEFINITION != 0 && flags&_LIST_TYPE_TERM == 0 {
+		out.WriteString("<dd>")
+		out.Write(text)
+		out.WriteString("</dd>\n")
+		return
+	}
+	if flags&_LIST_TYPE_TERM != 0 {
+		out.WriteString("<dt>")
+		out.Write(text)
+		out.WriteString("</dt>")
+		return
 	}
 	out.WriteString("<li>")
 	out.Write(text)
