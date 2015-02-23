@@ -1572,7 +1572,7 @@ func crossReference(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			i++
 			continue
 		}
-		if data[i] == '_' || data[i] == '-' {
+		if data[i] == '_' || data[i] == '-' || data[i] == ':' {
 			i++
 			continue
 		}
