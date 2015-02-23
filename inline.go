@@ -736,11 +736,15 @@ func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 }
 
 // '<' for callouts in code.
-func callouts(p *parser, out *bytes.Buffer, data []byte, offset int) {
+func callouts(p *parser, out *bytes.Buffer, data []byte, offset int, comment string) {
 	p.codeBlock++
 	p.callouts = make(map[string][]string)
 	i := offset
 	j := 0
+	if comment != ";" && comment != "#" && comment != "//" {
+		comment = ""
+	}
+
 	for i < len(data) {
 		if data[i] == '\\' && i < len(data)-1 && data[i+1] == '<' {
 			// skip \\
@@ -748,12 +752,60 @@ func callouts(p *parser, out *bytes.Buffer, data []byte, offset int) {
 			i++
 			continue
 		}
-
-		if data[i] == '<' && i > 0 && data[i-1] != '\\' {
-			if x := leftAngleCode(data[i:]); x > 0 {
-				j++
-				index := string(data[i+1 : i+x])
-				p.callouts[index] = append(p.callouts[index], strconv.Itoa(j))
+		switch comment {
+		case "#":
+			if data[i] == '#' {
+				if i+1 > len(data) {
+					out.WriteByte(data[i])
+					return
+				}
+				i++
+			}
+			if data[i] == '<' && i > 0 && data[i-1] != '\\' {
+				if x := leftAngleCode(data[i:]); x > 0 {
+					j++
+					index := string(data[i+1 : i+x])
+					p.callouts[index] = append(p.callouts[index], strconv.Itoa(j))
+				}
+			}
+		case ";":
+			if data[i] == ';' {
+				if i+1 > len(data) {
+					out.WriteByte(data[i])
+					return
+				}
+				i++
+			}
+			if data[i] == '<' && i > 0 && data[i-1] != '\\' {
+				if x := leftAngleCode(data[i:]); x > 0 {
+					j++
+					index := string(data[i+1 : i+x])
+					p.callouts[index] = append(p.callouts[index], strconv.Itoa(j))
+				}
+			}
+		case "//":
+			if data[i] == '/' && i < len(data) && data[i+1] == '/' {
+				if i+2 > len(data) {
+					out.WriteByte(data[i])
+					out.WriteByte(data[i+1])
+					return
+				}
+				i += 2
+			}
+			if data[i] == '<' && i > 0 && data[i-1] != '\\' {
+				if x := leftAngleCode(data[i:]); x > 0 {
+					j++
+					index := string(data[i+1 : i+x])
+					p.callouts[index] = append(p.callouts[index], strconv.Itoa(j))
+				}
+			}
+		case "":
+			if data[i] == '<' && i > 0 && data[i-1] != '\\' {
+				if x := leftAngleCode(data[i:]); x > 0 {
+					j++
+					index := string(data[i+1 : i+x])
+					p.callouts[index] = append(p.callouts[index], strconv.Itoa(j))
+				}
 			}
 		}
 

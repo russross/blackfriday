@@ -352,6 +352,12 @@ implements the following extensions:
 
     Note that callouts are only detected with the IAL `{callout="yes"}` or any other
     non-empty value is defined before the code block.
+    Now, you don't usualy want to globber your sourcecode with callouts as this will
+    lead to code that does not compile. To fix this the callout needs to be placed
+    in a comment, but then your source show useless empty comments. To fix this mmark
+    can optionally detect (and remove!) the comment and the callout, leaving your
+    example pristine. This can be enabled by setting `{callout="//"}` for instance.
+    The allowed comment patterns are `//`, `#` and `;`.
 
 
 # Todo

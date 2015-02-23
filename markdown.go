@@ -1001,7 +1001,7 @@ func (p *parser) codeInclude(out *bytes.Buffer, data []byte) int {
 
 	if co != "" {
 		var callout bytes.Buffer
-		callouts(p, &callout, code, 0)
+		callouts(p, &callout, code, 0, co)
 		p.r.BlockCode(out, callout.Bytes(), lang, caption.Bytes(), p.insideFigure, true)
 	} else {
 		p.callouts = nil

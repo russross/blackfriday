@@ -1200,7 +1200,7 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 		p.ial = nil
 		if co != "" {
 			var callout bytes.Buffer
-			callouts(p, &callout, work.Bytes(), 0)
+			callouts(p, &callout, work.Bytes(), 0, co)
 			p.r.BlockCode(out, callout.Bytes(), syntax, caption.Bytes(), p.insideFigure, true)
 		} else {
 			p.callouts = nil
@@ -1703,7 +1703,7 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 	var capb bytes.Buffer
 	if co != "" {
 		var callout bytes.Buffer
-		callouts(p, &callout, work.Bytes(), 0)
+		callouts(p, &callout, work.Bytes(), 0, co)
 		p.inline(&capb, []byte(caption))
 		p.r.BlockCode(out, callout.Bytes(), "", capb.Bytes(), p.insideFigure, true)
 	} else {
