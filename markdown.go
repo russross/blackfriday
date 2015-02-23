@@ -903,6 +903,7 @@ func (p *parser) include(out *bytes.Buffer, data []byte) int {
 
 	var work bytes.Buffer
 	p.block(&work, first.Bytes())
+	out.Write(work.Bytes())
 	return end
 }
 
