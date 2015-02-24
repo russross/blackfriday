@@ -204,7 +204,7 @@ implements the following extensions:
     Will cause `test.go` to be included with each line being prefixed with `S`.
 
 *   **Indices**, using `(((item, subitem)))` syntax. To make `item` primary, use
-    an `!`: `(((!item, subitem)))`.
+    an `!`: `(((!item, subitem)))`. Just `(((item)))` is allowed as well.
 
 *   **Citations**, using the citation syntax from pandoc `[@RFC2535 p. 23]`, the
     citation can either be informative (default) or normative, this can be indicated

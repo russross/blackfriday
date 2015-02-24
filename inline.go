@@ -1252,14 +1252,18 @@ func index(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			comma = end
 		}
 	}
-	if comma == 0 || comma == 3 { // no commas or (((,
+	if comma == 3 { // just (((,
 		return 0
 	}
 	if i < 3 && end >= len(data) {
 		return 0
 	}
 	ret = end
-	// comma may be surrounded by whitespace, strip it
+	if comma == 0 {
+		comma = end
+	}
+
+	// may be surrounded by whitespace, strip it
 	primary := comma - 1
 	for i := comma - 1; i >= 0; i-- {
 		if !isspace(data[i]) {
@@ -1267,6 +1271,7 @@ func index(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		}
 		primary = i
 	}
+
 	secondary := comma + 1
 	for i := comma + 1; i < end; i++ {
 		if !isspace(data[i]) {
@@ -1279,10 +1284,14 @@ func index(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	prim := false
 	if data[i] == '!' {
 		// mark is primary
-		prim = false
+		prim = true
 		i++
 	}
 
+	if secondary > end-3 {
+		p.r.Index(out, data[i:primary+1], nil, prim)
+		return ret
+	}
 	p.r.Index(out, data[i:primary+1], data[secondary:end-3], prim)
 	return ret
 }
