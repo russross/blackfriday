@@ -853,11 +853,6 @@ func leftBrace(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	if j := p.isInlineAttr(data); j > 0 {
 		return j
 	}
-	if p.flags&EXTENSION_INCLUDE != 0 {
-		if j := p.include(out, data); j > 0 {
-			return j
-		}
-	}
 	return 0
 }
 

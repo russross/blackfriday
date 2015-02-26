@@ -377,6 +377,7 @@ func Parse(input []byte, renderer Renderer, extensions int) *bytes.Buffer {
 // - normalize newlines
 // - copy everything else
 // - add missing newlines before fenced code blocks
+// - include includes
 func firstPass(p *parser, input []byte, depth int) *bytes.Buffer {
 	var out bytes.Buffer
 	if depth > 8 {
@@ -424,6 +425,13 @@ func firstPass(p *parser, input []byte, depth int) *bytes.Buffer {
 			if end < lastFencedCodeBlockEnd { // Do not expand tabs while inside fenced code blocks.
 				out.Write(input[beg:end])
 			} else {
+				if p.flags&EXTENSION_INCLUDE != 0 {
+					if beg == 0 || beg > 0 && input[beg-1] == '\n' {
+						if j := p.include(&out, input[beg:end], depth); j > 0 {
+							beg += j
+						}
+					}
+				}
 				expandTabs(&out, input[beg:end], tabSize)
 			}
 		}
@@ -435,7 +443,6 @@ func firstPass(p *parser, input []byte, depth int) *bytes.Buffer {
 		if end < len(input) && input[end] == '\n' {
 			end++
 		}
-
 		beg = end
 	}
 
@@ -864,7 +871,7 @@ func isroman(digit byte, uppercase bool) bool {
 }
 
 // replace {{file.md}} with the contents of the file.
-func (p *parser) include(out *bytes.Buffer, data []byte) int {
+func (p *parser) include(out *bytes.Buffer, data []byte, depth int) int {
 	i := 0
 	if len(data) < 3 {
 		return 0
@@ -899,11 +906,8 @@ func (p *parser) include(out *bytes.Buffer, data []byte) int {
 	if input[len(input)-1] != '\n' {
 		input = append(input, '\n')
 	}
-	first := firstPass(p, input, 0)
-
-	var work bytes.Buffer
-	p.block(&work, first.Bytes())
-	out.Write(work.Bytes())
+	first := firstPass(p, input, depth+1)
+	out.Write(first.Bytes())
 	return end
 }
 
