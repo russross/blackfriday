@@ -1307,7 +1307,7 @@ func TestIncludesXML(t *testing.T) {
 	}
 	var tests = []string{
 		"{{/dev/null}}",
-		"<t>\n\n</t>\n",
+		"",
 
 		"<{{/dev/null}}",
 		"<t>\n</t><artwork>\n\n</artwork>\n<t>\n</t>\n",
