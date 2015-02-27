@@ -167,7 +167,8 @@ implements the following extensions:
     a new line. Another way to get a hard line break is to escape
     the newline with a `\`.
 
-*   **Includes**, support including files with `{{filename}}` syntax.
+*   **Includes**, support including files with `{{filename}}` syntax. This is only
+    done when include is started at the beginning of a line.
 
 *   **Code Block Includes**, use the syntax `<{{code/hello.c}}[address]`, where
     address is the syntax described in <https://godoc.org/golang.org/x/tools/present/>, the
