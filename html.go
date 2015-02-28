@@ -63,6 +63,14 @@ type html struct {
 	headerCount  int
 	currentLevel int
 	toc          *bytes.Buffer
+
+	// index, map idx to id
+	index      map[idx][]string
+	indexCount int
+}
+
+type idx struct {
+	primary, secondary string
 }
 
 const (
@@ -103,6 +111,8 @@ func HtmlRendererWithParameters(flags int, title string,
 		headerCount:  0,
 		currentLevel: 0,
 		toc:          new(bytes.Buffer),
+
+		index: make(map[idx][]string),
 	}
 }
 
@@ -714,10 +724,25 @@ func (options *html) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
 	out.WriteString(`</a></sup>`)
 }
 
-func (options *html) Index(out *bytes.Buffer, primary, secondary []byte, prim bool) {}
-func (options *html) Citation(out *bytes.Buffer, link, title []byte)                {}
-func (options *html) References(out *bytes.Buffer, citations map[string]*citation)  {}
-func (options *html) Entity(out *bytes.Buffer, entity []byte)                       { out.Write(entity) }
+func (options *html) Index(out *bytes.Buffer, primary, secondary []byte, prim bool) {
+	idx := idx{string(primary), string(secondary)}
+	id := ""
+	if ids, ok := options.index[idx]; ok {
+		// write id out and add it to the list
+		id = fmt.Sprintf("#idxref:%d-%d", options.indexCount, len(ids))
+		options.index[idx] = append(options.index[idx], id)
+	} else {
+		id = fmt.Sprintf("#idxref:%d-0", options.indexCount)
+		options.index[idx] = []string{id}
+	}
+	out.WriteString("<span class=\"index-ref\" id=\"" + id + "\"></span>")
+
+	options.indexCount++
+}
+
+func (options *html) Citation(out *bytes.Buffer, link, title []byte)               {}
+func (options *html) References(out *bytes.Buffer, citations map[string]*citation) {}
+func (options *html) Entity(out *bytes.Buffer, entity []byte)                      { out.Write(entity) }
 
 func (options *html) NormalText(out *bytes.Buffer, text []byte) {
 	attrEscape(out, text)
@@ -801,6 +826,17 @@ func (options *html) DocumentFooter(out *bytes.Buffer, first bool) {
 		// write out everything that came after it
 		if options.flags&HTML_OMIT_CONTENTS == 0 {
 			out.Write(temp.Bytes())
+		}
+	}
+	if len(options.index) > 0 {
+		out.WriteString("<h2>Index</h2>\n")
+		for k, v := range options.index {
+			out.WriteString(k.primary)
+			out.WriteString(k.secondary)
+			for i, r := range v {
+				out.WriteString("<a href=\"" + r + "\">" + strconv.Itoa(i) + "</a>")
+			}
+			out.WriteString("\n")
 		}
 	}
 

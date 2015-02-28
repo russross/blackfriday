@@ -1284,7 +1284,7 @@ func index(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	}
 
 	if secondary > end-3 {
-		p.r.Index(out, data[i:primary+1], nil, prim)
+		p.r.Index(out, data[i:primary-2], nil, prim)
 		return ret
 	}
 	p.r.Index(out, data[i:primary+1], data[secondary:end-3], prim)
