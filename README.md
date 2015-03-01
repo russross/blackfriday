@@ -158,7 +158,10 @@ implements the following extensions:
 *   **Short References**. Internal references use the syntax `[](#id)`,
     usually the need for the title within the brackets is not needed,
     so mmark has the shorter syntax (#id) to cross reference in the
-    document.
+    document. By default this creates a numbered link, i.e. see x.y,
+    where x.y is generated. If you want a named reference use
+    `(#!id)` which will use the title of the target in the reference:
+    see "Usage" above. Where `Usage` is generated.
 
 *   **Hard line breaks**. With this extension enabled (it is off by
     default in the `MarkdownBasic` and `MarkdownCommon` convenience
