@@ -65,6 +65,8 @@ type html struct {
 	currentLevel int
 	toc          *bytes.Buffer
 
+	// part and chapter counter
+
 	// index, map idx to id
 	index      map[idx][]string
 	indexCount int
@@ -200,7 +202,17 @@ func (options *html) Flags() int {
 
 func (options *html) TitleBlockTOML(out *bytes.Buffer, data *title) {}
 
-func (options *html) Part(out *bytes.Buffer, text func() bool, id string) {}
+func (options *html) Part(out *bytes.Buffer, text func() bool, id string) {
+	ch := "class=\"part\""
+	if id != "" {
+		out.WriteString(fmt.Sprintf("<h1 %s id=\"%s\">", ch, id))
+	} else {
+		out.WriteString(fmt.Sprintf("<h1 %s>", ch))
+	}
+	text()
+	out.WriteString(fmt.Sprintf("</h1>\n"))
+
+}
 
 func (options *html) Abstract(out *bytes.Buffer, text func() bool, id string) {
 	// Create header with abstract
@@ -210,13 +222,17 @@ func (options *html) Header(out *bytes.Buffer, text func() bool, level int, id s
 	marker := out.Len()
 	doubleSpace(out)
 
+	ch := ""
+	if level == 1 {
+		ch = "class=\"chapter\""
+	}
 	if id != "" {
-		out.WriteString(fmt.Sprintf("<h%d id=\"%s\">", level, id))
+		out.WriteString(fmt.Sprintf("<h%d %s id=\"%s\">", level, ch, id))
 	} else if options.flags&HTML_TOC != 0 {
 		// headerCount is incremented in htmlTocHeader
-		out.WriteString(fmt.Sprintf("<h%d id=\"toc_%d\">", level, options.headerCount))
+		out.WriteString(fmt.Sprintf("<h%d %s id=\"toc_%d\">", level, ch, options.headerCount))
 	} else {
-		out.WriteString(fmt.Sprintf("<h%d>", level))
+		out.WriteString(fmt.Sprintf("<h%d %s>", level, ch))
 	}
 
 	tocMarker := out.Len()
@@ -841,6 +857,7 @@ func (options *html) DocumentFooter(out *bytes.Buffer, first bool) {
 
 			buf.WriteString("<span class=\"index-ref-primary\">" + k.primary + "</span>")
 			buf.WriteString("<span class=\"index-ref-primary\">" + k.secondary + "</span>")
+			buf.WriteString("<span class=\"index-ref-space\"> </span>")
 			for i, r := range v {
 				buf.WriteString("<a class=\"index-ref-ref\" href=\"" + r + "\">" + strconv.Itoa(i+1) + "</a>")
 				if i+1 < len(v) {

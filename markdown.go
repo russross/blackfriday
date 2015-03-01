@@ -269,6 +269,9 @@ type parser struct {
 	appendix   bool // have we seen a {backmatter}?
 	titleblock bool // have we seen a titleblock
 
+	partCount    int // TODO, keep track of part counts (-#)
+	chapterCount int // TODO, keep track of chapter count (#)
+
 	// Placeholder IAL that can be added to blocklevel elements.
 	ial *inlineAttr
 
