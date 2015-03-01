@@ -850,9 +850,9 @@ func (options *html) DocumentFooter(out *bytes.Buffer, first bool) {
 			buf.WriteString("\n")
 		}
 		sort.Strings(idxSlice)
-		out.WriteString("<h2 id=\"index-ref-index\">Index</h2>\n")
+		out.WriteString("<h1 id=\"index-ref-index\">Index</h1>\n")
 		for _, s := range idxSlice {
-			out.WriteString("<span class=\"index-ref-char\">" + s + "</span>")
+			out.WriteString("<h2 class=\"index-ref-char\">" + s + "</h2>")
 			out.Write(idx[s].Bytes())
 
 		}
