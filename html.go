@@ -5,6 +5,7 @@ package mmark
 import (
 	"bytes"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -770,7 +771,7 @@ func (options *html) DocumentHeader(out *bytes.Buffer, first bool) {
 	out.WriteString("  <title>")
 	options.NormalText(out, []byte(options.title))
 	out.WriteString("</title>\n")
-	out.WriteString("  <meta name=\"GENERATOR\" content=\"Blackfriday Markdown Processor v")
+	out.WriteString("  <meta name=\"GENERATOR\" content=\"Mmark Markdown Processor v")
 	out.WriteString(VERSION)
 	out.WriteString("\"")
 	out.WriteString(ending)
@@ -828,15 +829,32 @@ func (options *html) DocumentFooter(out *bytes.Buffer, first bool) {
 			out.Write(temp.Bytes())
 		}
 	}
+	idx := make(map[string]*bytes.Buffer)
+	idxSlice := []string{}
 	if len(options.index) > 0 {
-		out.WriteString("<h2>Index</h2>\n")
 		for k, v := range options.index {
-			out.WriteString(k.primary)
-			out.WriteString(k.secondary)
-			for i, r := range v {
-				out.WriteString("<a href=\"" + r + "\">" + strconv.Itoa(i) + "</a>")
+			if _, ok := idx[string(k.primary[0])]; !ok {
+				idx[string(k.primary[0])] = new(bytes.Buffer)
+				idxSlice = append(idxSlice, string(k.primary[0]))
 			}
-			out.WriteString("\n")
+			buf := idx[string(k.primary[0])]
+
+			buf.WriteString("<span class=\"index-ref-primary\">" + k.primary + "</span>")
+			buf.WriteString("<span class=\"index-ref-primary\">" + k.secondary + "</span>")
+			for i, r := range v {
+				buf.WriteString("<a class=\"index-ref-ref\" href=\"" + r + "\">" + strconv.Itoa(i+1) + "</a>")
+				if i+1 < len(v) {
+					buf.WriteByte(',')
+				}
+			}
+			buf.WriteString("\n")
+		}
+		sort.Strings(idxSlice)
+		out.WriteString("<h2 id=\"index-ref-index\">Index</h2>\n")
+		for _, s := range idxSlice {
+			out.WriteString("<span class=\"index-ref-char\">" + s + "</span>")
+			out.Write(idx[s].Bytes())
+
 		}
 	}
 
