@@ -752,7 +752,7 @@ func (options *html) Index(out *bytes.Buffer, primary, secondary []byte, prim bo
 		id = fmt.Sprintf("#idxref:%d-0", options.indexCount)
 		options.index[idx] = []string{id}
 	}
-	out.WriteString("<span class=\"index-ref\" id=\"" + id + "\"></span>")
+	out.WriteString("<span class=\"index-ref\" id=\"" + id[1:] + "\"></span>")
 
 	options.indexCount++
 }
