@@ -35,23 +35,33 @@ function numberChapters() {
     var els = document.getElementsByTagName("h1");
     var chapCount = 1;
     var appxCount = 0;
-    var appendix='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    var appendix = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 Elements:
     for (var i = 0, l = els.length; i < l; i++) {
         var app = false;
+        var chp = false;
         var el = els[i];
         var classList = el.className.split(/\s+/);
         for (var k = 0; k < classList.length; k++) {
-            if (classList[k] == 'nonumber' || classList[k] != 'chapter' ) {
-                 continue Elements;
-            }
             if (classList[k] == 'appendix') {
                 app = true;
+                continue;
             }
+            if (classList[k] == 'chapter') {
+                chp = true;
+                continue;
+            }
+            if (classList[k] == 'nonumber') {
+                 continue Elements;
+            }
+        }
+        if (!app && !chp) {
+            alert("her");
+            continue Elements;
         }
         var span = document.createElement('span');
         if (app) {
-            var node = document.createTextNode(appendix.charAt[appxCount % 26]);
+            var node = document.createTextNode(appendix.charAt(appxCount % 26));
             appxCount++;
         } else {
             var node = document.createTextNode(chapCount);
