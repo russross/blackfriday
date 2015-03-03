@@ -65,7 +65,7 @@ type html struct {
 	currentLevel int
 	toc          *bytes.Buffer
 
-	// part and chapter counter
+	appendix bool
 
 	// index, map idx to id
 	index      map[idx][]string
@@ -224,7 +224,12 @@ func (options *html) Header(out *bytes.Buffer, text func() bool, level int, id s
 
 	ch := ""
 	if level == 1 {
-		ch = "class=\"chapter\""
+		ch = "class=\"chapter"
+	}
+	if options.appendix {
+		ch += " appendix\""
+	} else {
+		ch += "\""
 	}
 	if id != "" {
 		out.WriteString(fmt.Sprintf("<h%d %s id=\"%s\">", level, ch, id))
@@ -867,7 +872,7 @@ func (options *html) DocumentFooter(out *bytes.Buffer, first bool) {
 			buf.WriteString("\n")
 		}
 		sort.Strings(idxSlice)
-		out.WriteString("<h1 id=\"index-ref-index\">Index</h1>\n")
+		options.Header(out, func() bool { out.WriteString("Index"); return true }, 1, "index-ref-index")
 		for _, s := range idxSlice {
 			out.WriteString("<h2 class=\"index-ref-char\">" + s + "</h2>")
 			out.Write(idx[s].Bytes())
@@ -882,7 +887,9 @@ func (options *html) DocumentFooter(out *bytes.Buffer, first bool) {
 }
 
 func (options *html) DocumentMatter(out *bytes.Buffer, matter int) {
-	// not used in the Html output
+	if matter == _DOC_BACK_MATTER {
+		options.appendix = true
+	}
 }
 
 func (options *html) TocHeaderWithAnchor(text []byte, level int, anchor string) {
