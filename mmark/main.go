@@ -26,13 +26,12 @@ const DEFAULT_TITLE = ""
 
 func main() {
 	// parse command-line options
-	var page, toc, toconly, xhtml, xml, xml2, commonmark bool
+	var page, toc, toconly, xml, xml2, commonmark bool
 	var css, cpuprofile string
 	var repeat int
 	flag.BoolVar(&page, "page", false, "generate a standalone HTML page")
 	flag.BoolVar(&toc, "toc", false, "generate a table of contents (implies -xml=false)")
 	flag.BoolVar(&toconly, "toconly", false, "generate a table of contents only (implies -toc)")
-	flag.BoolVar(&xhtml, "xhtml", true, "use XHTML-style tags in HTML output")
 	flag.BoolVar(&xml, "xml", false, "generate XML2RFC v3 output")
 	flag.BoolVar(&xml2, "xml2", false, "generate XML2RFC v2 output")
 	flag.BoolVar(&commonmark, "commonmark", false, "input is commonmark")
@@ -133,9 +132,6 @@ func main() {
 	default:
 		// render the data into HTML
 		htmlFlags := 0
-		if xhtml {
-			htmlFlags |= mmark.HTML_USE_XHTML
-		}
 		title := ""
 		if page {
 			htmlFlags |= mmark.HTML_COMPLETE_PAGE

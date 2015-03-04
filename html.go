@@ -225,10 +225,9 @@ func (options *html) Header(out *bytes.Buffer, text func() bool, level int, id s
 	ch := ""
 	if level == 1 {
 		ch = "class=\"chapter"
-	}
-	if options.appendix {
-		ch += " appendix\""
-	} else {
+		if options.appendix {
+			ch += " appendix\""
+		}
 		ch += "\""
 	}
 	if id != "" {
