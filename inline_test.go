@@ -14,7 +14,7 @@ func runMarkdownInline(input string, extensions, htmlFlags int, params HtmlRende
 
 	htmlFlags |= HTML_USE_XHTML
 
-	renderer := HtmlRendererWithParameters(htmlFlags, "", "", params)
+	renderer := HtmlRendererWithParameters(htmlFlags, "", params)
 
 	return Parse([]byte(input), renderer, extensions).String()
 }
