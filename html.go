@@ -19,10 +19,8 @@ const (
 	HTML_SAFELINK                          // only link to trusted protocols
 	HTML_NOFOLLOW_LINKS                    // only link with rel="nofollow"
 	HTML_HREF_TARGET_BLANK                 // add a blank target
-	HTML_TOC                               // generate a table of contents
 	HTML_OMIT_CONTENTS                     // skip the main contents (for a standalone table of contents)
 	HTML_COMPLETE_PAGE                     // generate a complete HTML page
-	HTML_USE_XHTML                         // generate XHTML output instead of HTML
 	HTML_FOOTNOTE_RETURN_LINKS             // generate a link at the end of a footnote to return to the source
 )
 
@@ -62,7 +60,6 @@ type html struct {
 	parameters HtmlRendererParameters
 
 	// table of contents data
-	tocMarker    int
 	headerCount  int
 	currentLevel int
 	toc          *bytes.Buffer
@@ -81,10 +78,7 @@ type idx struct {
 	primary, secondary string
 }
 
-const (
-	xhtmlClose = " />\n"
-	htmlClose  = ">\n"
-)
+const htmlClose  = ">\n"
 
 // HtmlRenderer creates and configures an Html object, which
 // satisfies the Renderer interface.
@@ -98,9 +92,6 @@ func HtmlRenderer(flags int, css string) Renderer {
 func HtmlRendererWithParameters(flags int, css string, renderParameters HtmlRendererParameters) Renderer {
 	// configure the rendering engine
 	closeTag := htmlClose
-	if flags&HTML_USE_XHTML != 0 {
-		closeTag = xhtmlClose
-	}
 
 	if renderParameters.FootnoteReturnLinkContents == "" {
 		renderParameters.FootnoteReturnLinkContents = `<sup>[return]</sup>`
@@ -207,9 +198,6 @@ func (options *html) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	}
 	options.titleBlock = block
 	ending := ""
-	if options.flags&HTML_USE_XHTML != 0 {
-		ending = " /"
-	}
 	out.WriteString("<head>\n")
 	out.WriteString("  <title>")
 	options.NormalText(out, []byte(options.titleBlock.Title))
@@ -231,8 +219,6 @@ func (options *html) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	}
 	out.WriteString("</head>\n")
 	out.WriteString("<body>\n")
-
-	options.tocMarker = out.Len()
 }
 
 func (options *html) Part(out *bytes.Buffer, text func() bool, id string) {
@@ -265,22 +251,13 @@ func (options *html) Header(out *bytes.Buffer, text func() bool, level int, id s
 	}
 	if id != "" {
 		out.WriteString(fmt.Sprintf("<h%d %s id=\"%s\">", level, ch, id))
-	} else if options.flags&HTML_TOC != 0 {
-		// headerCount is incremented in htmlTocHeader
-		out.WriteString(fmt.Sprintf("<h%d %s id=\"toc_%d\">", level, ch, options.headerCount))
 	} else {
 		out.WriteString(fmt.Sprintf("<h%d%s>", level, ch))
 	}
 
-	tocMarker := out.Len()
 	if !text() {
 		out.Truncate(marker)
 		return
-	}
-
-	// are we building a table of contents?
-	if options.flags&HTML_TOC != 0 {
-		options.TocHeaderWithAnchor(out.Bytes()[tocMarker:], level, id)
 	}
 
 	out.WriteString(fmt.Sprintf("</h%d>\n", level))
@@ -810,52 +787,13 @@ func (options *html) DocumentHeader(out *bytes.Buffer, first bool) {
 		return
 	}
 
-	if options.flags&HTML_USE_XHTML != 0 {
-		out.WriteString("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" ")
-		out.WriteString("\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n")
-		out.WriteString("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n")
-	} else {
-		out.WriteString("<!DOCTYPE html>\n")
-		out.WriteString("<html>\n")
-	}
+	out.WriteString("<!DOCTYPE html>\n")
+	out.WriteString("<html>\n")
 }
 
 func (options *html) DocumentFooter(out *bytes.Buffer, first bool) {
 	if !first {
 		return
-	}
-	// finalize and insert the table of contents
-	if options.flags&HTML_TOC != 0 {
-		options.TocFinalize()
-
-		// now we have to insert the table of contents into the document
-		var temp bytes.Buffer
-
-		// start by making a copy of everything after the document header
-		temp.Write(out.Bytes()[options.tocMarker:])
-
-		// now clear the copied material from the main output buffer
-		out.Truncate(options.tocMarker)
-
-		// corner case spacing issue
-		if options.flags&HTML_COMPLETE_PAGE != 0 {
-			out.WriteByte('\n')
-		}
-
-		// insert the table of contents
-		out.WriteString("<nav>\n")
-		out.Write(options.toc.Bytes())
-		out.WriteString("</nav>\n")
-
-		// corner case spacing issue
-		if options.flags&HTML_COMPLETE_PAGE == 0 && options.flags&HTML_OMIT_CONTENTS == 0 {
-			out.WriteByte('\n')
-		}
-
-		// write out everything that came after it
-		if options.flags&HTML_OMIT_CONTENTS == 0 {
-			out.Write(temp.Bytes())
-		}
 	}
 	idx := make(map[string]*bytes.Buffer)
 	idxSlice := []string{}

@@ -12,8 +12,6 @@ import (
 func runMarkdownInline(input string, extensions, htmlFlags int, params HtmlRendererParameters) string {
 	extensions |= EXTENSION_AUTOLINK
 
-	htmlFlags |= HTML_USE_XHTML
-
 	renderer := HtmlRendererWithParameters(htmlFlags, "", params)
 
 	return Parse([]byte(input), renderer, extensions).String()

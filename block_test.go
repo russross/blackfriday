@@ -10,7 +10,6 @@ import (
 
 func runMarkdownBlock(input string, extensions int) string {
 	htmlFlags := 0
-	htmlFlags |= HTML_USE_XHTML
 
 	renderer := HtmlRenderer(htmlFlags, "")
 

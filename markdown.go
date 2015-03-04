@@ -43,8 +43,7 @@ const (
 	EXTENSION_TITLEBLOCK_TOML            // Titleblock in TOML
 	EXTENSION_UNIQUE_HEADER_IDS          // When detecting identical anchors add a sequence number -1, -2 etc.
 
-	commonHtmlFlags = 0 |
-		HTML_USE_XHTML
+	commonHtmlFlags = 0
 
 	commonExtensions = 0 |
 		EXTENSION_TABLES |

@@ -25,12 +25,10 @@ const DEFAULT_TITLE = ""
 
 func main() {
 	// parse command-line options
-	var page, toc, toconly, xml, xml2, commonmark bool
+	var page, xml, xml2, commonmark bool
 	var css, cpuprofile string
 	var repeat int
 	flag.BoolVar(&page, "page", false, "generate a standalone HTML page")
-	flag.BoolVar(&toc, "toc", false, "generate a table of contents (implies -xml=false)")
-	flag.BoolVar(&toconly, "toconly", false, "generate a table of contents only (implies -toc)")
 	flag.BoolVar(&xml, "xml", false, "generate XML2RFC v3 output")
 	flag.BoolVar(&xml2, "xml2", false, "generate XML2RFC v2 output")
 	flag.BoolVar(&commonmark, "commonmark", false, "input is commonmark")
@@ -55,12 +53,6 @@ func main() {
 	// enforce implied options
 	if css != "" {
 		page = true
-	}
-	if toconly {
-		toc = true
-	}
-	if toc {
-		xml = false
 	}
 
 	// turn on profiling?
@@ -133,12 +125,6 @@ func main() {
 		htmlFlags := 0
 		if page {
 			htmlFlags |= mmark.HTML_COMPLETE_PAGE
-		}
-		if toconly {
-			htmlFlags |= mmark.HTML_OMIT_CONTENTS
-		}
-		if toc {
-			htmlFlags |= mmark.HTML_TOC
 		}
 		renderer = mmark.HtmlRenderer(htmlFlags, css)
 	}
