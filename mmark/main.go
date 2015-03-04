@@ -17,7 +17,6 @@ import (
 	"io/ioutil"
 	"os"
 	"runtime/pprof"
-	"strings"
 
 	"github.com/miekg/mmark"
 )
@@ -132,10 +131,8 @@ func main() {
 	default:
 		// render the data into HTML
 		htmlFlags := 0
-		title := ""
 		if page {
 			htmlFlags |= mmark.HTML_COMPLETE_PAGE
-			title = getTitle(input)
 		}
 		if toconly {
 			htmlFlags |= mmark.HTML_OMIT_CONTENTS
@@ -143,7 +140,7 @@ func main() {
 		if toc {
 			htmlFlags |= mmark.HTML_TOC
 		}
-		renderer = mmark.HtmlRenderer(htmlFlags, title, css)
+		renderer = mmark.HtmlRenderer(htmlFlags, css)
 	}
 
 	// parse and render
@@ -169,53 +166,4 @@ func main() {
 		fmt.Fprintln(os.Stderr, "error writing output:", err)
 		os.Exit(-1)
 	}
-}
-
-// try to guess the title from the input buffer
-// just check if it starts with an <h1> element and use that
-func getTitle(input []byte) string {
-	i := 0
-
-	// skip blank lines
-	for i < len(input) && (input[i] == '\n' || input[i] == '\r') {
-		i++
-	}
-	if i >= len(input) {
-		return DEFAULT_TITLE
-	}
-	if input[i] == '\r' && i+1 < len(input) && input[i+1] == '\n' {
-		i++
-	}
-
-	// find the first line
-	start := i
-	for i < len(input) && input[i] != '\n' && input[i] != '\r' {
-		i++
-	}
-	line1 := input[start:i]
-	if input[i] == '\r' && i+1 < len(input) && input[i+1] == '\n' {
-		i++
-	}
-	i++
-
-	// check for a prefix header
-	if len(line1) >= 3 && line1[0] == '#' && (line1[1] == ' ' || line1[1] == '\t') {
-		return strings.TrimSpace(string(line1[2:]))
-	}
-
-	// check for an underlined header
-	if i >= len(input) || input[i] != '=' {
-		return DEFAULT_TITLE
-	}
-	for i < len(input) && input[i] == '=' {
-		i++
-	}
-	for i < len(input) && (input[i] == ' ' || input[i] == '\t') {
-		i++
-	}
-	if i >= len(input) || (input[i] != '\n' && input[i] != '\r') {
-		return DEFAULT_TITLE
-	}
-
-	return strings.TrimSpace(string(line1))
 }

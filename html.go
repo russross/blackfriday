@@ -51,11 +51,13 @@ type HtmlRendererParameters struct {
 type html struct {
 	flags    int    // HTML_* options
 	closeTag string // how to end singleton tags: either " />\n" or ">\n"
-	title    string // document title
 	css      string // optional css file url (used with HTML_COMPLETE_PAGE)
 
 	// store the IAL we see for this block element
 	ial *inlineAttr
+
+	// titleBlock in TOML
+	titleBlock *title
 
 	parameters HtmlRendererParameters
 
@@ -70,6 +72,9 @@ type html struct {
 	// index, map idx to id
 	index      map[idx][]string
 	indexCount int
+
+	// (@good) example list group counter
+	group map[string]int
 }
 
 type idx struct {
@@ -85,15 +90,12 @@ const (
 // satisfies the Renderer interface.
 //
 // flags is a set of HTML_* options ORed together.
-// title is the title of the document, and css is a URL for the document's
-// stylesheet.
-// title and css are only used when HTML_COMPLETE_PAGE is selected.
-func HtmlRenderer(flags int, title string, css string) Renderer {
-	return HtmlRendererWithParameters(flags, title, css, HtmlRendererParameters{})
+// css is a URL for the document's stylesheet.
+func HtmlRenderer(flags int, css string) Renderer {
+	return HtmlRendererWithParameters(flags, css, HtmlRendererParameters{})
 }
 
-func HtmlRendererWithParameters(flags int, title string,
-	css string, renderParameters HtmlRendererParameters) Renderer {
+func HtmlRendererWithParameters(flags int, css string, renderParameters HtmlRendererParameters) Renderer {
 	// configure the rendering engine
 	closeTag := htmlClose
 	if flags&HTML_USE_XHTML != 0 {
@@ -107,7 +109,6 @@ func HtmlRendererWithParameters(flags int, title string,
 	return &html{
 		flags:      flags,
 		closeTag:   closeTag,
-		title:      title,
 		css:        css,
 		parameters: renderParameters,
 
@@ -200,7 +201,39 @@ func (options *html) Flags() int {
 	return options.flags
 }
 
-func (options *html) TitleBlockTOML(out *bytes.Buffer, data *title) {}
+func (options *html) TitleBlockTOML(out *bytes.Buffer, block *title) {
+	if options.flags&HTML_COMPLETE_PAGE == 0 { // use STANDALONE
+		return
+	}
+	options.titleBlock = block
+	ending := ""
+	if options.flags&HTML_USE_XHTML != 0 {
+		ending = " /"
+	}
+	out.WriteString("<head>\n")
+	out.WriteString("  <title>")
+	options.NormalText(out, []byte(options.titleBlock.Title))
+	out.WriteString("</title>\n")
+	out.WriteString("  <meta name=\"GENERATOR\" content=\"Mmark Markdown Processor v")
+	out.WriteString(VERSION)
+	out.WriteString("\"")
+	out.WriteString(ending)
+	out.WriteString(">\n")
+	out.WriteString("  <meta charset=\"utf-8\"")
+	out.WriteString(ending)
+	out.WriteString(">\n")
+	if options.css != "" {
+		out.WriteString("  <link rel=\"stylesheet\" type=\"text/css\" href=\"")
+		attrEscape(out, []byte(options.css))
+		out.WriteString("\"")
+		out.WriteString(ending)
+		out.WriteString(">\n")
+	}
+	out.WriteString("</head>\n")
+	out.WriteString("<body>\n")
+
+	options.tocMarker = out.Len()
+}
 
 func (options *html) Part(out *bytes.Buffer, text func() bool, id string) {
 	ch := "class=\"part\""
@@ -224,11 +257,11 @@ func (options *html) Header(out *bytes.Buffer, text func() bool, level int, id s
 
 	ch := ""
 	if level == 1 {
-		ch = "class=\"chapter"
+		ch = "chapter"
 		if options.appendix {
-			ch += " appendix\""
+			ch += " appendix"
 		}
-		ch += "\""
+		ch = " class=\"" + ch + "\""
 	}
 	if id != "" {
 		out.WriteString(fmt.Sprintf("<h%d %s id=\"%s\">", level, ch, id))
@@ -236,7 +269,7 @@ func (options *html) Header(out *bytes.Buffer, text func() bool, level int, id s
 		// headerCount is incremented in htmlTocHeader
 		out.WriteString(fmt.Sprintf("<h%d %s id=\"toc_%d\">", level, ch, options.headerCount))
 	} else {
-		out.WriteString(fmt.Sprintf("<h%d %s>", level, ch))
+		out.WriteString(fmt.Sprintf("<h%d%s>", level, ch))
 	}
 
 	tocMarker := out.Len()
@@ -736,7 +769,7 @@ func (options *html) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
 	out.WriteString(`fnref:`)
 	out.WriteString(options.parameters.FootnoteAnchorPrefix)
 	out.Write(slug)
-	out.WriteString(`"><a rel="footnote" href="#`)
+	out.WriteString(`"><a class="footnote" href="#`)
 	out.WriteString(`fn:`)
 	out.WriteString(options.parameters.FootnoteAnchorPrefix)
 	out.Write(slug)
@@ -777,39 +810,14 @@ func (options *html) DocumentHeader(out *bytes.Buffer, first bool) {
 		return
 	}
 
-	ending := ""
 	if options.flags&HTML_USE_XHTML != 0 {
 		out.WriteString("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" ")
 		out.WriteString("\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n")
 		out.WriteString("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n")
-		ending = " /"
 	} else {
 		out.WriteString("<!DOCTYPE html>\n")
 		out.WriteString("<html>\n")
 	}
-	out.WriteString("<head>\n")
-	out.WriteString("  <title>")
-	options.NormalText(out, []byte(options.title))
-	out.WriteString("</title>\n")
-	out.WriteString("  <meta name=\"GENERATOR\" content=\"Mmark Markdown Processor v")
-	out.WriteString(VERSION)
-	out.WriteString("\"")
-	out.WriteString(ending)
-	out.WriteString(">\n")
-	out.WriteString("  <meta charset=\"utf-8\"")
-	out.WriteString(ending)
-	out.WriteString(">\n")
-	if options.css != "" {
-		out.WriteString("  <link rel=\"stylesheet\" type=\"text/css\" href=\"")
-		attrEscape(out, []byte(options.css))
-		out.WriteString("\"")
-		out.WriteString(ending)
-		out.WriteString(">\n")
-	}
-	out.WriteString("</head>\n")
-	out.WriteString("<body>\n")
-
-	options.tocMarker = out.Len()
 }
 
 func (options *html) DocumentFooter(out *bytes.Buffer, first bool) {
