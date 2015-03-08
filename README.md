@@ -137,7 +137,7 @@ implements the following extensions:
 
 *   **Fenced code blocks**. In addition to the normal 4-space
     indentation to mark code blocks, you can explicitly mark them
-    and supply a language (to make syntax highlighting simple). Just
+   :pand supply a language (to make syntax highlighting simple). Just
     mark it like this:
 
         ``` go
@@ -163,9 +163,8 @@ implements the following extensions:
     `(#!id)` which will use the title of the target in the reference:
     see "Usage" above. Where `Usage` is generated.
 
-*   **Hard line breaks**. With this extension enabled (it is off by
-    default in the `MarkdownBasic` and `MarkdownCommon` convenience
-    functions), newlines in the input translate into line breaks in
+*   **Hard line breaks**. With this extension enabled
+    newlines in the input translate into line breaks in
     the output. This is activate by using two trailing spaces before
     a new line. Another way to get a hard line break is to escape
     the newline with a `\`.

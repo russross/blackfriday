@@ -241,18 +241,10 @@ func (options *html) Header(out *bytes.Buffer, text func() bool, level int, id s
 	marker := out.Len()
 	doubleSpace(out)
 
-	ch := ""
-	if level == 1 {
-		ch = "chapter"
-		if options.appendix {
-			ch += " appendix"
-		}
-		ch = " class=\"" + ch + "\""
-	}
 	if id != "" {
-		out.WriteString(fmt.Sprintf("<h%d %s id=\"%s\">", level, ch, id))
+		out.WriteString(fmt.Sprintf("<h%d id=\"%s\">", level, id))
 	} else {
-		out.WriteString(fmt.Sprintf("<h%d%s>", level, ch))
+		out.WriteString(fmt.Sprintf("<h%d>", level))
 	}
 
 	if !text() {
