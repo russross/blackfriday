@@ -421,13 +421,13 @@ func TestCodeSpan(t *testing.T) {
 func TestLineBreak(t *testing.T) {
 	var tests = []string{
 		"this line  \nhas a break\n",
-		"<p>this line<br />\nhas a break</p>\n",
+		"<p>this line<br>\nhas a break</p>\n",
 
 		"this line \ndoes not\n",
 		"<p>this line\ndoes not</p>\n",
 
 		"this has an   \nextra space\n",
-		"<p>this has an<br />\nextra space</p>\n",
+		"<p>this has an<br>\nextra space</p>\n",
 	}
 	doTestsInline(t, tests)
 }
@@ -453,22 +453,22 @@ func TestInlineLink(t *testing.T) {
 		"<p>[foo]()</p>\n",
 
 		"![foo](/bar/)\n",
-		"<p><img src=\"/bar/\" alt=\"foo\" />\n</p>\n",
+		"<p><img src=\"/bar/\" alt=\"foo\">\n</p>\n",
 
 		"![foo with a title](/bar/ \"title\")\n",
-		"<p><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\" />\n</p>\n",
+		"<p><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\">\n</p>\n",
 
 		"![foo with a title](/bar/\t\"title\")\n",
-		"<p><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\" />\n</p>\n",
+		"<p><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\">\n</p>\n",
 
 		"![foo with a title](/bar/ \"title\"  )\n",
-		"<p><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\" />\n</p>\n",
+		"<p><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\">\n</p>\n",
 
 		"![foo with a title](/bar/ title with no quotes)\n",
-		"<p><img src=\"/bar/ title with no quotes\" alt=\"foo with a title\" />\n</p>\n",
+		"<p><img src=\"/bar/ title with no quotes\" alt=\"foo with a title\">\n</p>\n",
 
 		"![](img.jpg)\n",
-		"<p><img src=\"img.jpg\" alt=\"\" />\n</p>\n",
+		"<p><img src=\"img.jpg\" alt=\"\">\n</p>\n",
 
 		"[link](url)\n",
 		"<p><a href=\"url\">link</a></p>\n",
@@ -513,7 +513,7 @@ func TestInlineLink(t *testing.T) {
 		"<p><a href=\"with whitespace\">link</a></p>\n",
 
 		"[![image](someimage)](with image)\n",
-		"<p><a href=\"with image\"><img src=\"someimage\" alt=\"image\" />\n</a></p>\n",
+		"<p><a href=\"with image\"><img src=\"someimage\" alt=\"image\">\n</a></p>\n",
 
 		"[link](url \"one quote)\n",
 		"<p><a href=\"url &quot;one quote\">link</a></p>\n",
@@ -545,7 +545,7 @@ func TestInlineLink(t *testing.T) {
 
 		// Issue 116 in blackfriday
 		"![](http://www.broadgate.co.uk/Content/Upload/DetailImages/Cyclus700(1).jpg)",
-		"<p><img src=\"http://www.broadgate.co.uk/Content/Upload/DetailImages/Cyclus700(1).jpg\" alt=\"\" />\n</p>\n",
+		"<p><img src=\"http://www.broadgate.co.uk/Content/Upload/DetailImages/Cyclus700(1).jpg\" alt=\"\">\n</p>\n",
 
 		// no closing ), autolinking detects the url next
 		"[disambiguation](http://en.wikipedia.org/wiki/Disambiguation_(disambiguation) is the",
@@ -770,8 +770,8 @@ func TestAutoLink(t *testing.T) {
 		"(<a href=\"http://www.fancy.com/A_B\">http://www.fancy.com/A_B</a> (part two: <a href=\"http://www.fancy.com/A_B\">http://www.fancy.com/A_B</a>)).\n",
 		"<p>(<a href=\"http://www.fancy.com/A_B\">http://www.fancy.com/A_B</a> (part two: <a href=\"http://www.fancy.com/A_B\">http://www.fancy.com/A_B</a>)).</p>\n",
 
-		"http://www.foo.com<br />\n",
-		"<p><a href=\"http://www.foo.com\">http://www.foo.com</a><br /></p>\n",
+		"http://www.foo.com<br>\n",
+		"<p><a href=\"http://www.foo.com\">http://www.foo.com</a><br></p>\n",
 
 		"http://foo.com/viewtopic.php?f=18&amp;t=297",
 		"<p><a href=\"http://foo.com/viewtopic.php?f=18&amp;t=297\">http://foo.com/viewtopic.php?f=18&amp;t=297</a></p>\n",
@@ -787,10 +787,10 @@ func TestAutoLink(t *testing.T) {
 
 var footnoteTests = []string{
 	"testing footnotes.[^a]\n\n[^a]: This is the note\n",
-	`<p>testing footnotes.<sup class="footnote-ref" id="fnref:a"><a rel="footnote" href="#fn:a">1</a></sup></p>
+	`<p>testing footnotes.<sup class="footnote-ref" id="fnref:a"><a class="footnote" href="#fn:a">1</a></sup></p>
 <div class="footnotes">
 
-<hr />
+<hr>
 
 <ol>
 <li id="fn:a">This is the note
@@ -811,12 +811,12 @@ var footnoteTests = []string{
 
 No longer in the footnote
 `,
-	`<p>testing long<sup class="footnote-ref" id="fnref:b"><a rel="footnote" href="#fn:b">1</a></sup> notes.</p>
+	`<p>testing long<sup class="footnote-ref" id="fnref:b"><a class="footnote" href="#fn:b">1</a></sup> notes.</p>
 
 <p>No longer in the footnote</p>
 <div class="footnotes">
 
-<hr />
+<hr>
 
 <ol>
 <li id="fn:b"><p>Paragraph 1</p>
@@ -845,14 +845,14 @@ what happens here
 [note]: /link/c
 
 `,
-	`<p>testing<sup class="footnote-ref" id="fnref:c"><a rel="footnote" href="#fn:c">1</a></sup> multiple<sup class="footnote-ref" id="fnref:d"><a rel="footnote" href="#fn:d">2</a></sup> notes.</p>
+	`<p>testing<sup class="footnote-ref" id="fnref:c"><a class="footnote" href="#fn:c">1</a></sup> multiple<sup class="footnote-ref" id="fnref:d"><a class="footnote" href="#fn:d">2</a></sup> notes.</p>
 
 <p>omg</p>
 
 <p>what happens here</p>
 <div class="footnotes">
 
-<hr />
+<hr>
 
 <ol>
 <li id="fn:c">this is <a href="/link/c">note</a> c
@@ -864,10 +864,10 @@ what happens here
 `,
 
 	"testing inline^[this is the note] notes.\n",
-	`<p>testing inline<sup class="footnote-ref" id="fnref:this-is-the-note"><a rel="footnote" href="#fn:this-is-the-note">1</a></sup> notes.</p>
+	`<p>testing inline<sup class="footnote-ref" id="fnref:this-is-the-note"><a class="footnote" href="#fn:this-is-the-note">1</a></sup> notes.</p>
 <div class="footnotes">
 
-<hr />
+<hr>
 
 <ol>
 <li id="fn:this-is-the-note">this is the note</li>
@@ -876,10 +876,10 @@ what happens here
 `,
 
 	"testing multiple[^1] types^[inline note] of notes[^2]\n\n[^2]: the second deferred note\n[^1]: the first deferred note\n\n\twhich happens to be a block\n",
-	`<p>testing multiple<sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup> types<sup class="footnote-ref" id="fnref:inline-note"><a rel="footnote" href="#fn:inline-note">2</a></sup> of notes<sup class="footnote-ref" id="fnref:2"><a rel="footnote" href="#fn:2">3</a></sup></p>
+	`<p>testing multiple<sup class="footnote-ref" id="fnref:1"><a class="footnote" href="#fn:1">1</a></sup> types<sup class="footnote-ref" id="fnref:inline-note"><a class="footnote" href="#fn:inline-note">2</a></sup> of notes<sup class="footnote-ref" id="fnref:2"><a class="footnote" href="#fn:2">3</a></sup></p>
 <div class="footnotes">
 
-<hr />
+<hr>
 
 <ol>
 <li id="fn:1"><p>the first deferred note</p>
@@ -899,10 +899,10 @@ what happens here
 
     may be multiple paragraphs.
 `,
-	`<p>This is a footnote<sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup><sup class="footnote-ref" id="fnref:and-this-is-an-i"><a rel="footnote" href="#fn:and-this-is-an-i">2</a></sup></p>
+	`<p>This is a footnote<sup class="footnote-ref" id="fnref:1"><a class="footnote" href="#fn:1">1</a></sup><sup class="footnote-ref" id="fnref:and-this-is-an-i"><a class="footnote" href="#fn:and-this-is-an-i">2</a></sup></p>
 <div class="footnotes">
 
-<hr />
+<hr>
 
 <ol>
 <li id="fn:1"><p>the footnote text.</p>
@@ -915,7 +915,7 @@ what happens here
 `,
 
 	"empty footnote[^]\n\n[^]: fn text",
-	"<p>empty footnote<sup class=\"footnote-ref\" id=\"fnref:\"><a rel=\"footnote\" href=\"#fn:\">1</a></sup></p>\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:\">fn text\n</li>\n</ol>\n</div>\n",
+	"<p>empty footnote<sup class=\"footnote-ref\" id=\"fnref:\"><a class=\"footnote\" href=\"#fn:\">1</a></sup></p>\n<div class=\"footnotes\">\n\n<hr>\n\n<ol>\n<li id=\"fn:\">fn text\n</li>\n</ol>\n</div>\n",
 }
 
 func TestFootnotes(t *testing.T) {

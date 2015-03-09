@@ -346,7 +346,7 @@ func TestUnderlineHeaders(t *testing.T) {
 		"<h1>Header with <em>inline</em></h1>\n",
 
 		"*   List\n    * Sublist\n    Not a header\n    ------\n",
-		"<ul>\n<li>List\n\n<ul>\n<li>Sublist\nNot a header</li>\n</ul>\n\n<hr /></li>\n</ul>\n",
+		"<ul>\n<li>List\n\n<ul>\n<li>Sublist\nNot a header</li>\n</ul>\n\n<hr></li>\n</ul>\n",
 
 		"Paragraph\n\n\n\n\nHeader\n===\n",
 		"<p>Paragraph</p>\n\n<h1>Header</h1>\n",
@@ -416,10 +416,10 @@ func TestHorizontalRule(t *testing.T) {
 		"<p>--</p>\n",
 
 		"---\n",
-		"<hr />\n",
+		"<hr>\n",
 
 		"----\n",
-		"<hr />\n",
+		"<hr>\n",
 
 		"*\n",
 		"<p>*</p>\n",
@@ -428,10 +428,10 @@ func TestHorizontalRule(t *testing.T) {
 		"<p>**</p>\n",
 
 		"***\n",
-		"<hr />\n",
+		"<hr>\n",
 
 		"****\n",
-		"<hr />\n",
+		"<hr>\n",
 
 		"_\n",
 		"<p>_</p>\n",
@@ -440,34 +440,34 @@ func TestHorizontalRule(t *testing.T) {
 		"<p>__</p>\n",
 
 		"___\n",
-		"<hr />\n",
+		"<hr>\n",
 
 		"____\n",
-		"<hr />\n",
+		"<hr>\n",
 
 		"-*-\n",
 		"<p>-*-</p>\n",
 
 		"- - -\n",
-		"<hr />\n",
+		"<hr>\n",
 
 		"* * *\n",
-		"<hr />\n",
+		"<hr>\n",
 
 		"_ _ _\n",
-		"<hr />\n",
+		"<hr>\n",
 
 		"-----*\n",
 		"<p>-----*</p>\n",
 
 		"   ------   \n",
-		"<hr />\n",
+		"<hr>\n",
 
 		"Hello\n***\n",
-		"<p>Hello</p>\n\n<hr />\n",
+		"<p>Hello</p>\n\n<hr>\n",
 
 		"---\n***\n___\n",
-		"<hr />\n\n<hr />\n\n<hr />\n",
+		"<hr>\n\n<hr>\n\n<hr>\n",
 	}
 	doTestsBlock(t, tests, 0)
 }
@@ -715,7 +715,7 @@ func TestAbbreviation(t *testing.T) {
 		"<p>cool    <abbr title=\"aa\">H</abbr> is better yet some more words</p>\n",
 
 		"*[H] aa  \n cool    H is   ",
-		"<p>*[H] aa<br />\n cool    H is</p>\n",
+		"<p>*[H] aa<br>\n cool    H is</p>\n",
 
 		"*[HTML]: \"Hyper Text Markup Language\"\nHTML is cool",
 		"<p><abbr title=\"\"Hyper Text Markup Language\"\">HTML</abbr> is cool</p>\n",
