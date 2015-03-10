@@ -222,19 +222,23 @@ func (options *html) TitleBlockTOML(out *bytes.Buffer, block *title) {
 }
 
 func (options *html) Part(out *bytes.Buffer, text func() bool, id string) {
-	ch := "class=\"part\""
 	if id != "" {
-		out.WriteString(fmt.Sprintf("<h1 %s id=\"%s\">", ch, id))
+		out.WriteString(fmt.Sprintf("<h1 class=\"part\" id=\"%s\">", id))
 	} else {
-		out.WriteString(fmt.Sprintf("<h1 %s>", ch))
+		out.WriteString(fmt.Sprintf("<h1 class=\"part\""))
 	}
 	text()
 	out.WriteString(fmt.Sprintf("</h1>\n"))
-
 }
 
 func (options *html) Abstract(out *bytes.Buffer, text func() bool, id string) {
-	// Create header with abstract
+	if id != "" {
+		out.WriteString(fmt.Sprintf("<h1 class=\"abstract\" id=\"%s\">", id))
+	} else {
+		out.WriteString(fmt.Sprintf("<h1 class=\"abstract\""))
+	}
+	text()
+	out.WriteString(fmt.Sprintf("</h1>\n"))
 }
 
 func (options *html) Header(out *bytes.Buffer, text func() bool, level int, id string) {
