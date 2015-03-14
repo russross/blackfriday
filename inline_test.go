@@ -453,22 +453,22 @@ func TestInlineLink(t *testing.T) {
 		"<p>[foo]()</p>\n",
 
 		"![foo](/bar/)\n",
-		"<p><img src=\"/bar/\" alt=\"foo\">\n</p>\n",
+		"<p><figure><img src=\"/bar/\" alt=\"foo\">\n</p>\n",
 
 		"![foo with a title](/bar/ \"title\")\n",
-		"<p><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\">\n</p>\n",
+		"<p><figure><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\">\n</p>\n",
 
 		"![foo with a title](/bar/\t\"title\")\n",
-		"<p><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\">\n</p>\n",
+		"<p><figure><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\">\n</p>\n",
 
 		"![foo with a title](/bar/ \"title\"  )\n",
-		"<p><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\">\n</p>\n",
+		"<p><figure><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\">\n</p>\n",
 
 		"![foo with a title](/bar/ title with no quotes)\n",
-		"<p><img src=\"/bar/ title with no quotes\" alt=\"foo with a title\">\n</p>\n",
+		"<p><figure><img src=\"/bar/ title with no quotes\" alt=\"foo with a title\">\n</figure></p>\n",
 
 		"![](img.jpg)\n",
-		"<p><img src=\"img.jpg\" alt=\"\">\n</p>\n",
+		"<p><figure><img src=\"img.jpg\" alt=\"\">\n</figure></p>\n",
 
 		"[link](url)\n",
 		"<p><a href=\"url\">link</a></p>\n",
@@ -513,7 +513,7 @@ func TestInlineLink(t *testing.T) {
 		"<p><a href=\"with whitespace\">link</a></p>\n",
 
 		"[![image](someimage)](with image)\n",
-		"<p><a href=\"with image\"><img src=\"someimage\" alt=\"image\">\n</a></p>\n",
+		"<p><a href=\"with image\"><figure><img src=\"someimage\" alt=\"image\">\n</figure></a></p>\n",
 
 		"[link](url \"one quote)\n",
 		"<p><a href=\"url &quot;one quote\">link</a></p>\n",
@@ -545,7 +545,7 @@ func TestInlineLink(t *testing.T) {
 
 		// Issue 116 in blackfriday
 		"![](http://www.broadgate.co.uk/Content/Upload/DetailImages/Cyclus700(1).jpg)",
-		"<p><img src=\"http://www.broadgate.co.uk/Content/Upload/DetailImages/Cyclus700(1).jpg\" alt=\"\">\n</p>\n",
+		"<p><figure><img src=\"http://www.broadgate.co.uk/Content/Upload/DetailImages/Cyclus700(1).jpg\" alt=\"\">\n</figure></p>\n",
 
 		// no closing ), autolinking detects the url next
 		"[disambiguation](http://en.wikipedia.org/wiki/Disambiguation_(disambiguation) is the",
