@@ -565,13 +565,16 @@ func (options *html) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 func (options *html) Math(out *bytes.Buffer, text []byte, display bool) {
 	ial := options.inlineAttr()
 	s := ial.String()
+	oTag := "\\("
+	cTag := "\\)"
 	if display {
-		out.WriteString("<span " + s + " class=\"math display\">")
-	} else {
-		out.WriteString("<span " + s + " class=\"math\">")
-
+		oTag = "\\["
+		cTag = "\\]"
 	}
+	out.WriteString("<span " + s + " class=\"math\">")
+	out.WriteString(oTag)
 	out.Write(text)
+	out.WriteString(cTag)
 	out.WriteString("</span>")
 }
 
