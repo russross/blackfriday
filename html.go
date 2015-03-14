@@ -78,7 +78,7 @@ type idx struct {
 	primary, secondary string
 }
 
-const htmlClose  = ">\n"
+const htmlClose = ">\n"
 
 // HtmlRenderer creates and configures an Html object, which
 // satisfies the Renderer interface.
@@ -245,17 +245,16 @@ func (options *html) Header(out *bytes.Buffer, text func() bool, level int, id s
 	marker := out.Len()
 	doubleSpace(out)
 
-	if id != "" {
-		out.WriteString(fmt.Sprintf("<h%d id=\"%s\">", level, id))
-	} else {
-		out.WriteString(fmt.Sprintf("<h%d>", level))
-	}
+	ial := options.inlineAttr()
+	ial.GetOrDefaultId(id)
+
+	out.WriteString(fmt.Sprintf("<h%d %s>", level, ial.String()))
 
 	if !text() {
 		out.Truncate(marker)
 		return
 	}
-
+	// special section closing etc. etc. TODO(miek)
 	out.WriteString(fmt.Sprintf("</h%d>\n", level))
 }
 
@@ -339,9 +338,24 @@ func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 }
 
 func (options *html) BlockQuote(out *bytes.Buffer, text []byte, attribution []byte) {
+	// attribution can potentially be split on --: meta -- who
+	ial := options.inlineAttr()
+	parts := bytes.Split(attribution, []byte("--"))
+	for _, p := range parts {
+		bytes.TrimSpace(p)
+	}
 	doubleSpace(out)
-	out.WriteString("<blockquote>\n")
+	out.WriteString("<blockquote" + ial.String() + ">\n")
 	out.Write(text)
+	out.WriteString("<footer>")
+	if len(parts) == 2 {
+		out.WriteString("&mdash; ")
+		out.Write(parts[0])
+		out.WriteString("<span class=\"quote-who\">")
+		out.Write(parts[1])
+		out.WriteString("</span>")
+	}
+	out.WriteString("</footer>")
 	out.WriteString("</blockquote>\n")
 }
 
@@ -531,13 +545,13 @@ func (options *html) Math(out *bytes.Buffer, text []byte, display bool) {
 	ial := options.inlineAttr()
 	s := ial.String()
 	if display {
-		out.WriteString("<script " + s + "type=\"math/tex; mode=display\"> ")
+		out.WriteString("<span " + s + "class=\"math display\">")
 	} else {
-		out.WriteString("<script type=\"math/tex\"> ")
+		out.WriteString("<span " + s + "class=\"math\">")
 
 	}
 	out.Write(text)
-	out.WriteString("</script>")
+	out.WriteString("</span>")
 }
 
 func (options *html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
@@ -635,7 +649,8 @@ func (options *html) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 	if options.flags&HTML_SKIP_IMAGES != 0 {
 		return
 	}
-
+	// TODO: ial
+	out.WriteString("<figure>")
 	out.WriteString("<img src=\"")
 	options.maybeWriteAbsolutePrefix(out, link)
 	attrEscape(out, link)
@@ -647,9 +662,14 @@ func (options *html) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 		out.WriteString("\" title=\"")
 		attrEscape(out, title)
 	}
-
 	out.WriteByte('"')
 	out.WriteString(options.closeTag)
+	if len(title) > 0 {
+		out.WriteString("<figcaption>")
+		attrEscape(out, title)
+		out.WriteString("</figcaption>")
+	}
+	out.WriteString("</figure>")
 	return
 }
 
@@ -795,14 +815,17 @@ func (options *html) DocumentFooter(out *bytes.Buffer, first bool) {
 	idxSlice := []string{}
 	if len(options.index) > 0 {
 		for k, v := range options.index {
-			if _, ok := idx[string(k.primary[0])]; !ok {
-				idx[string(k.primary[0])] = new(bytes.Buffer)
-				idxSlice = append(idxSlice, string(k.primary[0]))
+			prim := false
+			if _, ok := idx[k.primary]; !ok {
+				idx[k.primary] = new(bytes.Buffer)
+				idxSlice = append(idxSlice, k.primary)
+				prim = true
 			}
-			buf := idx[string(k.primary[0])]
-
-			buf.WriteString("<span class=\"index-ref-primary\">" + k.primary + "</span>")
-			buf.WriteString("<span class=\"index-ref-primary\">" + k.secondary + "</span>")
+			buf := idx[k.primary]
+			if prim {
+				buf.WriteString("<span class=\"index-ref-primary\">" + k.primary + "</span>")
+			}
+			buf.WriteString("<span class=\"index-ref-secondary\">" + k.secondary + "</span>")
 			buf.WriteString("<span class=\"index-ref-space\"> </span>")
 			for i, r := range v {
 				buf.WriteString("<a class=\"index-ref-ref\" href=\"" + r + "\">" + strconv.Itoa(i+1) + "</a>")
@@ -815,7 +838,7 @@ func (options *html) DocumentFooter(out *bytes.Buffer, first bool) {
 		sort.Strings(idxSlice)
 		options.Header(out, func() bool { out.WriteString("Index"); return true }, 1, "index-ref-index")
 		for _, s := range idxSlice {
-			out.WriteString("<h2 class=\"index-ref-char\">" + s + "</h2>")
+			out.WriteString("<h3 class=\"index-ref-char\">" + string(s[0]) + "</h3>")
 			out.Write(idx[s].Bytes())
 
 		}
