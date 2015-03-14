@@ -1636,5 +1636,5 @@ func math(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		p.ial = nil
 	}
 	p.r.Math(out, data[i+1:end-2], p.displayMath)
-	return end
+	return end - offset
 }

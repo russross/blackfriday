@@ -586,6 +586,9 @@ func TestMath(t *testing.T) {
 
 		"$$ E = MC^2 $$ not so much $$ again yes $$",
 		"<p><span  class=\"math\"> E = MC^2 </span> not so much <span  class=\"math\"> again yes </span></p>\n",
+
+		"you can use $$\\Phi = \\Phi + 1$$ in your source code.",
+		"<p>you can use <span  class=\"math\">\\(\\Phi = \\Phi + 1\\)</span>in your source code.</p>\n",
 	}
 	doTestsInlineParam(t, tests, EXTENSION_MATH, 0, HtmlRendererParameters{})
 }
