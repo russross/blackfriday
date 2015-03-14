@@ -42,7 +42,7 @@ type xml2 struct {
 // satisfies the Renderer interface.
 //
 // flags is a set of XML2_* options ORed together
-func Xml2Renderer(flags int) Renderer { return &xml2{flags: flags, group: make(map[string]int)} }
+func Xml2Renderer(flags int) Renderer { anchorOrID="anchor"; return &xml2{flags: flags, group: make(map[string]int)} }
 func (options *xml2) Flags() int      { return options.flags }
 func (options *xml2) State() int      { return 0 }
 

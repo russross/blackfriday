@@ -576,7 +576,7 @@ func TestNofollowLink(t *testing.T) {
 func TestMath(t *testing.T) {
 	var tests = []string{
 		"{#eq1}\n $$ E = MC^2 $$",
-		"<p><span  anchor=\"eq1\" class=\"math display\"> E = MC^2 </span></p>\n",
+		"<p><span  id=\"eq1\" class=\"math display\"> E = MC^2 </span></p>\n",
 
 		"Another paragraph, with some inline math $$x^2$$",
 		"<p>Another paragraph, with some inline math <span  class=\"math\">x^2</span></p>\n",

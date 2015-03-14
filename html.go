@@ -97,6 +97,8 @@ func HtmlRendererWithParameters(flags int, css string, renderParameters HtmlRend
 		renderParameters.FootnoteReturnLinkContents = `<sup>[return]</sup>`
 	}
 
+	anchorOrID = "id" // use id= when seeing #id. Also see ial.go
+
 	return &html{
 		flags:      flags,
 		closeTag:   closeTag,
@@ -248,7 +250,7 @@ func (options *html) Header(out *bytes.Buffer, text func() bool, level int, id s
 	ial := options.inlineAttr()
 	ial.GetOrDefaultId(id)
 
-	out.WriteString(fmt.Sprintf("<h%d %s>", level, ial.String()))
+	out.WriteString(fmt.Sprintf("<h%d%s>", level, ial.String()))
 
 	if !text() {
 		out.Truncate(marker)

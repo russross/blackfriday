@@ -8,8 +8,10 @@ import (
 	"strings"
 )
 
-// One or more of these can be attached to block elements
+// Do we return an anchor= when we see an #id or an id=
+var anchorOrID = "anchor"
 
+// One or more of these can be attached to block elements
 type inlineAttr struct {
 	id    string            // #id
 	class map[string]bool   // 0 or more .class
@@ -138,7 +140,7 @@ func (i *inlineAttr) String() (s string) {
 
 	// some fluff needed to make this all sorted.
 	if i.id != "" {
-		s = " anchor=\"" + i.id + "\""
+		s = " " + anchorOrID + "=\"" + i.id + "\""
 	}
 
 	keys := make([]string, 0, len(i.class))

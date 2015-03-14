@@ -58,7 +58,7 @@ type xml struct {
 // satisfies the Renderer interface.
 //
 // flags is a set of XML_* options ORed together
-func XmlRenderer(flags int) Renderer { return &xml{flags: flags} }
+func XmlRenderer(flags int) Renderer { anchorOrID="anchor"; return &xml{flags: flags} }
 func (options *xml) Flags() int      { return options.flags }
 func (options *xml) State() int      { return 0 }
 
