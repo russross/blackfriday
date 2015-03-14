@@ -438,10 +438,14 @@ func (options *html) TableCell(out *bytes.Buffer, text []byte, align int) {
 }
 
 func (options *html) Footnotes(out *bytes.Buffer, text func() bool) {
-	options.ial = &inlineAttr{class: map[string]bool{"footnotes": true}}
-	options.Header(out, func() bool { out.WriteString("Footnotes"); return true }, 1, "footnotes")
+	if options.flags&HTML_COMPLETE_PAGE != 0 {
+		options.ial = &inlineAttr{class: map[string]bool{"footnotes": true}}
+		options.Header(out, func() bool { out.WriteString("Footnotes"); return true }, 1, "footnotes")
+	}
 	out.WriteString("<div class=\"footnotes\">\n")
-//	options.HRule(out)
+	if options.flags&HTML_COMPLETE_PAGE == 0 {
+		options.HRule(out)
+	}
 	options.List(out, text, _LIST_TYPE_ORDERED, 0, nil)
 	out.WriteString("</div>\n")
 }
