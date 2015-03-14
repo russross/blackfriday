@@ -300,22 +300,21 @@ func (options *html) HRule(out *bytes.Buffer) {
 }
 
 func (options *html) CalloutCode(out *bytes.Buffer, index, id string) {
-	// Should link to id
-	out.WriteByte('<')
+	out.WriteString("<span class=\"callout\">")
 	out.WriteString(index)
-	out.WriteByte('>')
+	out.WriteString("</span>")
 	return
 }
 
 func (options *html) CalloutText(out *bytes.Buffer, id string, ids []string) {
-	out.WriteByte('(')
 	for i, k := range ids {
+		out.WriteString("<span class=\"callout\">")
 		out.WriteString(k)
+		out.WriteString("</span>")
 		if i < len(ids)-1 {
-			out.WriteString(", ")
+			out.WriteString(" ")
 		}
 	}
-	out.WriteByte(')')
 }
 
 func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool, callout bool) {
