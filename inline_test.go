@@ -576,19 +576,19 @@ func TestNofollowLink(t *testing.T) {
 func TestMath(t *testing.T) {
 	var tests = []string{
 		"{#eq1}\n $$ E = MC^2 $$",
-		"<p><span  id=\"eq1\" class=\"math display\"> E = MC^2 </span></p>\n",
+		"<p><span  id=\"eq1\" class=\"math\">\\[ E = MC^2 \\]</span></p>\n",
 
 		"Another paragraph, with some inline math $$x^2$$",
-		"<p>Another paragraph, with some inline math <span  class=\"math\">x^2</span></p>\n",
+		"<p>Another paragraph, with some inline math <span  class=\"math\">\\(x^2\\)</span></p>\n",
 
 		"$$ E = MC^2 $$",
-		"<p><span  class=\"math display\"> E = MC^2 </span></p>\n",
+		"<p><span  class=\"math\">\\[ E = MC^2 \\]</span></p>\n",
 
 		"$$ E = MC^2 $$ not so much $$ again yes $$",
-		"<p><span  class=\"math\"> E = MC^2 </span> not so much <span  class=\"math\"> again yes </span></p>\n",
+		"<p><span  class=\"math\">\\( E = MC^2 \\)</span> not so much <span  class=\"math\">\\( again yes \\)</span></p>\n",
 
 		"you can use $$\\Phi = \\Phi + 1$$ in your source code.",
-		"<p>you can use <span  class=\"math\">\\(\\Phi = \\Phi + 1\\)</span>in your source code.</p>\n",
+		"<p>you can use <span  class=\"math\">\\(\\Phi = \\Phi + 1\\)</span> in your source code.</p>\n",
 	}
 	doTestsInlineParam(t, tests, EXTENSION_MATH, 0, HtmlRendererParameters{})
 }
