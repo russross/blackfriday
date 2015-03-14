@@ -438,8 +438,10 @@ func (options *html) TableCell(out *bytes.Buffer, text []byte, align int) {
 }
 
 func (options *html) Footnotes(out *bytes.Buffer, text func() bool) {
+	options.ial = &inlineAttr{class: map[string]bool{"footnotes": true}}
+	options.Header(out, func() bool { out.WriteString("Footnotes"); return true }, 1, "footnotes")
 	out.WriteString("<div class=\"footnotes\">\n")
-	options.HRule(out)
+//	options.HRule(out)
 	options.List(out, text, _LIST_TYPE_ORDERED, 0, nil)
 	out.WriteString("</div>\n")
 }
@@ -838,6 +840,7 @@ func (options *html) DocumentFooter(out *bytes.Buffer, first bool) {
 			buf.WriteString("\n")
 		}
 		sort.Strings(idxSlice)
+		options.ial = &inlineAttr{class: map[string]bool{"index": true}}
 		options.Header(out, func() bool { out.WriteString("Index"); return true }, 1, "index-ref-index")
 		for _, s := range idxSlice {
 			out.WriteString("<h3 class=\"index-ref-char\">" + string(s[0]) + "</h3>")
