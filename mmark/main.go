@@ -26,13 +26,14 @@ const DEFAULT_TITLE = ""
 func main() {
 	// parse command-line options
 	var page, xml, xml2, commonmark bool
-	var css, cpuprofile string
+	var css, head, cpuprofile string
 	var repeat int
 	flag.BoolVar(&page, "page", false, "generate a standalone HTML page")
 	flag.BoolVar(&xml, "xml", false, "generate XML2RFC v3 output")
 	flag.BoolVar(&xml2, "xml2", false, "generate XML2RFC v2 output")
 	flag.BoolVar(&commonmark, "commonmark", false, "input is commonmark")
 	flag.StringVar(&css, "css", "", "link to a CSS stylesheet (implies -page)")
+	flag.StringVar(&head, "head", "", "link to HTML to be included in head (implies -page)")
 	flag.StringVar(&cpuprofile, "cpuprofile", "", "write cpu profile to a file")
 	flag.IntVar(&repeat, "repeat", 1, "process the input multiple times (for benchmarking)")
 	flag.Usage = func() {
@@ -52,6 +53,9 @@ func main() {
 
 	// enforce implied options
 	if css != "" {
+		page = true
+	}
+	if head != "" {
 		page = true
 	}
 
@@ -126,7 +130,7 @@ func main() {
 		if page {
 			htmlFlags |= mmark.HTML_COMPLETE_PAGE
 		}
-		renderer = mmark.HtmlRenderer(htmlFlags, css)
+		renderer = mmark.HtmlRenderer(htmlFlags, css, head)
 	}
 
 	// parse and render

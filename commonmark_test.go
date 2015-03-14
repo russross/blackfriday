@@ -9,7 +9,7 @@ import (
 func runMarkdownCommonMark(input string, extensions int) string {
 	htmlFlags := 0
 
-	renderer := HtmlRenderer(htmlFlags, "")
+	renderer := HtmlRenderer(htmlFlags, "", "")
 
 	return Parse([]byte(input), renderer, extensions).String()
 }

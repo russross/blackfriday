@@ -5,6 +5,8 @@ package mmark
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"sort"
 	"strconv"
 	"strings"
@@ -50,6 +52,7 @@ type html struct {
 	flags    int    // HTML_* options
 	closeTag string // how to end singleton tags: either " />\n" or ">\n"
 	css      string // optional css file url (used with HTML_COMPLETE_PAGE)
+	head     string // option html file to be included
 
 	// store the IAL we see for this block element
 	ial *inlineAttr
@@ -85,11 +88,11 @@ const htmlClose = ">\n"
 //
 // flags is a set of HTML_* options ORed together.
 // css is a URL for the document's stylesheet.
-func HtmlRenderer(flags int, css string) Renderer {
-	return HtmlRendererWithParameters(flags, css, HtmlRendererParameters{})
+func HtmlRenderer(flags int, css, head string) Renderer {
+	return HtmlRendererWithParameters(flags, css, head, HtmlRendererParameters{})
 }
 
-func HtmlRendererWithParameters(flags int, css string, renderParameters HtmlRendererParameters) Renderer {
+func HtmlRendererWithParameters(flags int, css, head string, renderParameters HtmlRendererParameters) Renderer {
 	// configure the rendering engine
 	closeTag := htmlClose
 
@@ -103,6 +106,7 @@ func HtmlRendererWithParameters(flags int, css string, renderParameters HtmlRend
 		flags:      flags,
 		closeTag:   closeTag,
 		css:        css,
+		head:       head,
 		parameters: renderParameters,
 
 		headerCount:  0,
@@ -218,6 +222,15 @@ func (options *html) TitleBlockTOML(out *bytes.Buffer, block *title) {
 		out.WriteString("\"")
 		out.WriteString(ending)
 		out.WriteString(">\n")
+	}
+	if options.head != "" {
+		headBytes, err := ioutil.ReadFile(options.head)
+		if err != nil {
+			log.Printf("failed: `%s': %s", options.head, err)
+		} else {
+			out.Write(headBytes)
+		}
+
 	}
 	out.WriteString("</head>\n")
 	out.WriteString("<body>\n")
@@ -363,16 +376,16 @@ func (options *html) BlockQuote(out *bytes.Buffer, text []byte, attribution []by
 
 func (options *html) Aside(out *bytes.Buffer, text []byte) {
 	doubleSpace(out)
-	out.WriteString("<blockquote>\n")
+	out.WriteString("<aside>\n")
 	out.Write(text)
-	out.WriteString("</blockquote>\n")
+	out.WriteString("</aside>\n")
 }
 
 func (options *html) Note(out *bytes.Buffer, text []byte) {
 	doubleSpace(out)
-	out.WriteString("<blockquote>\n")
+	out.WriteString("<aside class=\"note\">\n")
 	out.Write(text)
-	out.WriteString("</blockquote>\n")
+	out.WriteString("</aside>\n")
 }
 
 func (options *html) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
