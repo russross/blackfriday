@@ -347,15 +347,15 @@ func (options *html) BlockQuote(out *bytes.Buffer, text []byte, attribution []by
 	doubleSpace(out)
 	out.WriteString("<blockquote" + ial.String() + ">\n")
 	out.Write(text)
-	out.WriteString("<footer>")
 	if len(parts) == 2 {
+		out.WriteString("<footer>")
 		out.WriteString("&mdash; ")
 		out.Write(parts[0])
 		out.WriteString("<span class=\"quote-who\">")
 		out.Write(parts[1])
 		out.WriteString("</span>")
+		out.WriteString("</footer>")
 	}
-	out.WriteString("</footer>")
 	out.WriteString("</blockquote>\n")
 }
 
@@ -545,9 +545,9 @@ func (options *html) Math(out *bytes.Buffer, text []byte, display bool) {
 	ial := options.inlineAttr()
 	s := ial.String()
 	if display {
-		out.WriteString("<span " + s + "class=\"math display\">")
+		out.WriteString("<span " + s + " class=\"math display\">")
 	} else {
-		out.WriteString("<span " + s + "class=\"math\">")
+		out.WriteString("<span " + s + " class=\"math\">")
 
 	}
 	out.Write(text)

@@ -576,16 +576,16 @@ func TestNofollowLink(t *testing.T) {
 func TestMath(t *testing.T) {
 	var tests = []string{
 		"{#eq1}\n $$ E = MC^2 $$",
-		"<p><script  anchor=\"eq1\"type=\"math/tex; mode=display\">  E = MC^2 </script></p>\n",
+		"<p><span  anchor=\"eq1\" class=\"math display\"> E = MC^2 </span></p>\n",
 
 		"Another paragraph, with some inline math $$x^2$$",
-		"<p>Another paragraph, with some inline math <script type=\"math/tex\"> x^2</script></p>\n",
+		"<p>Another paragraph, with some inline math <span  class=\"math\">x^2</span></p>\n",
 
 		"$$ E = MC^2 $$",
-		"<p><script type=\"math/tex; mode=display\">  E = MC^2 </script></p>\n",
+		"<p><span  class=\"math display\"> E = MC^2 </span></p>\n",
 
 		"$$ E = MC^2 $$ not so much $$ again yes $$",
-		"<p><script type=\"math/tex\">  E = MC^2 </script> not so much <script type=\"math/tex\">  again yes </script></p>\n",
+		"<p><span  class=\"math\"> E = MC^2 </span> not so much <span  class=\"math\"> again yes </span></p>\n",
 	}
 	doTestsInlineParam(t, tests, EXTENSION_MATH, 0, HtmlRendererParameters{})
 }
