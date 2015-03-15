@@ -716,6 +716,8 @@ func (p *parser) html(out *bytes.Buffer, data []byte, doRender bool) int {
 		if size := p.htmlHr(out, data, doRender); size > 0 {
 			return size
 		}
+
+		// check for an <reference>
 		if size := p.htmlReference(out, data, doRender); size > 0 {
 			return size
 		}
@@ -846,7 +848,7 @@ func (p *parser) htmlHr(out *bytes.Buffer, data []byte, doRender bool) int {
 	return 0
 }
 
-// HTML reference, actually xml, but keep in the spirit use call it html
+// HTML reference, actually xml, but keep the spirit and call it html
 func (p *parser) htmlReference(out *bytes.Buffer, data []byte, doRender bool) int {
 	if !bytes.HasPrefix(data, []byte("<reference ")) {
 		return 0

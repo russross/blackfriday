@@ -4,6 +4,7 @@ package mmark
 
 import (
 	"bytes"
+	xmllib "encoding/xml"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -810,9 +811,57 @@ func (options *html) Index(out *bytes.Buffer, primary, secondary []byte, prim bo
 	options.indexCount++
 }
 
-func (options *html) Citation(out *bytes.Buffer, link, title []byte)               {}
-func (options *html) References(out *bytes.Buffer, citations map[string]*citation) {}
-func (options *html) Entity(out *bytes.Buffer, entity []byte)                      { out.Write(entity) }
+func (options *html) Entity(out *bytes.Buffer, entity []byte) { out.Write(entity) }
+
+func (options *html) Citation(out *bytes.Buffer, link, title []byte) {
+	out.WriteString("[<a class=\"cite\" href=\"#")
+	out.Write(bytes.ToLower(link))
+	out.WriteString("\">")
+	out.Write(title)
+	out.WriteString("</a>]")
+}
+
+type RefAuthor struct {
+	Fullname string `xml:"fullname,attr"`
+	Initials string `xml:"initials,attr"`
+	Surname  string `xml:"surname,attr"`
+}
+
+type RefDate struct {
+	Year  string `xml:"year,attr,omitempty"`
+	Month string `xml:"month,attr,omitempty"`
+	Day   string `xml:"day,attr,omitempty"`
+}
+
+type RefFront struct {
+	Title  string    `xml:"title"`
+	Author RefAuthor `xml:"author"`
+	Date   RefDate   `xml:"date"`
+}
+
+type RefFormat struct {
+	Typ    string `xml:"type,attr,omitempty"`
+	Target string `xml:"target,attr"`
+}
+
+type RefXML struct {
+	Anchor string    `xml:"anchor,attr"`
+	Front  RefFront  `xml:"front"`
+	Format RefFormat `xml:"format"`
+}
+
+func (options *html) References(out *bytes.Buffer, citations map[string]*citation) {
+	for anchor, cite := range citations {
+		if len(cite.xml) > 0 {
+			var ref RefXML
+			if e := xmllib.Unmarshal(cite.xml, &ref); e != nil {
+				log.Printf("failed to unmarshal reference: `%s': %s", anchor, e)
+				log.Printf("%s\n", string(cite.xml))
+				continue
+			}
+		}
+	}
+}
 
 func (options *html) NormalText(out *bytes.Buffer, text []byte) {
 	attrEscape(out, text)
