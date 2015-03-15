@@ -183,6 +183,14 @@ func (i *inlineAttr) GetOrDefaultAttr(key, def string) bool {
 	return true
 }
 
+// GetOrDefaulClass sets the class class. The boolean returns indicates
+// if the value has been overwritten.
+func (i *inlineAttr) GetOrDefaultClass(class string) bool {
+	_, ok := i.class[class]
+	i.class[class] = true
+	return ok
+}
+
 // GetOrDefaultID sets the id in i if it is not set. The boolean
 // indicates if the id as set in i.
 func (i *inlineAttr) GetOrDefaultId(id string) bool {

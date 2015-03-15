@@ -263,6 +263,9 @@ func (options *html) Header(out *bytes.Buffer, text func() bool, level int, id s
 
 	ial := options.inlineAttr()
 	ial.GetOrDefaultId(id)
+	if options.appendix {
+		ial.GetOrDefaultClass("appendix")
+	}
 
 	out.WriteString(fmt.Sprintf("<h%d%s>", level, ial.String()))
 
@@ -814,11 +817,11 @@ func (options *html) Index(out *bytes.Buffer, primary, secondary []byte, prim bo
 func (options *html) Entity(out *bytes.Buffer, entity []byte) { out.Write(entity) }
 
 func (options *html) Citation(out *bytes.Buffer, link, title []byte) {
-	out.WriteString("[<a class=\"cite\" href=\"#")
+	out.WriteString("<a class=\"cite\" href=\"#")
 	out.Write(bytes.ToLower(link))
 	out.WriteString("\">")
 	out.Write(title)
-	out.WriteString("</a>]")
+	out.WriteString("</a>")
 }
 
 type RefAuthor struct {
@@ -851,16 +854,37 @@ type RefXML struct {
 }
 
 func (options *html) References(out *bytes.Buffer, citations map[string]*citation) {
+	if options.flags&HTML_COMPLETE_PAGE == 0 {
+		return
+	}
+	if len(citations) == 0 {
+		return
+	}
+	options.ial = &inlineAttr{class: map[string]bool{"bibliography": true}}
+	options.Header(out, func() bool { out.WriteString("Bibliography"); return true }, 1, "bibliography")
+	out.WriteString("<div class=\"bibliography\">\n")
+
+	// [1] Haskell Authors. Haskell.  http://www.haskell.org/ , 1990
+	// <span id=anchor>[x]</span>
+	i := 1
 	for anchor, cite := range citations {
 		if len(cite.xml) > 0 {
 			var ref RefXML
 			if e := xmllib.Unmarshal(cite.xml, &ref); e != nil {
 				log.Printf("failed to unmarshal reference: `%s': %s", anchor, e)
-				log.Printf("%s\n", string(cite.xml))
 				continue
 			}
+			out.WriteString("<div class=\"bibliography-item\">\n")
+			out.WriteString("  <span class=\"biblography-id\" id=\"" + ref.Anchor + "\">[" + strconv.Itoa(i) + "]</span>\n")
+			out.WriteString("  " + ref.Front.Author.Fullname + ". ")
+			out.WriteString(ref.Front.Title + ". ")
+			out.WriteString("<a href=\"" + ref.Format.Target + "\">" + ref.Format.Target + "</a>\n")
+			out.WriteString("  " + ref.Front.Date.Year + ".\n")
+			out.WriteString("</div>\n")
+			i++
 		}
 	}
+	out.WriteString("</div>\n")
 }
 
 func (options *html) NormalText(out *bytes.Buffer, text []byte) {
@@ -886,6 +910,7 @@ func (options *html) DocumentFooter(out *bytes.Buffer, first bool) {
 	idx := make(map[string]*bytes.Buffer)
 	idxSlice := []string{}
 	if len(options.index) > 0 {
+		out.WriteString("<div class=\"index\">\n")
 		for k, v := range options.index {
 			prim := false
 			if _, ok := idx[k.primary]; !ok {
@@ -895,7 +920,7 @@ func (options *html) DocumentFooter(out *bytes.Buffer, first bool) {
 			}
 			buf := idx[k.primary]
 			if prim {
-				buf.WriteString("<span class=\"index-ref-primary\">" + k.primary + "</span>")
+				buf.WriteString("<span class=\"index-ref-primary\">" + k.primary + "</span>\n")
 			}
 			buf.WriteString("<span class=\"index-ref-secondary\">" + k.secondary + "</span>")
 			buf.WriteString("<span class=\"index-ref-space\"> </span>")
@@ -911,10 +936,10 @@ func (options *html) DocumentFooter(out *bytes.Buffer, first bool) {
 		options.ial = &inlineAttr{class: map[string]bool{"index": true}}
 		options.Header(out, func() bool { out.WriteString("Index"); return true }, 1, "index-ref-index")
 		for _, s := range idxSlice {
-			out.WriteString("<h3 class=\"index-ref-char\">" + string(s[0]) + "</h3>")
+			out.WriteString("<h3 class=\"index-ref-char\">" + string(s[0]) + "</h3>\n")
 			out.Write(idx[s].Bytes())
-
 		}
+		out.WriteString("</div>")
 	}
 
 	if options.flags&HTML_COMPLETE_PAGE != 0 {
