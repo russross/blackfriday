@@ -445,15 +445,35 @@ func TestInlineLink(t *testing.T) {
 
 }
 
-func TestNofollowLink(t *testing.T) {
-	var tests = []string{
+func TestRelAttrLink(t *testing.T) {
+	var nofollowTests = []string{
 		"[foo](http://bar.com/foo/)\n",
 		"<p><a href=\"http://bar.com/foo/\" rel=\"nofollow\">foo</a></p>\n",
 
 		"[foo](/bar/)\n",
 		"<p><a href=\"/bar/\">foo</a></p>\n",
 	}
-	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_NOFOLLOW_LINKS,
+	doTestsInlineParam(t, nofollowTests, 0, HTML_SAFELINK|HTML_NOFOLLOW_LINKS,
+		HtmlRendererParameters{})
+
+	var noreferrerTests = []string{
+		"[foo](http://bar.com/foo/)\n",
+		"<p><a href=\"http://bar.com/foo/\" rel=\"noreferrer\">foo</a></p>\n",
+
+		"[foo](/bar/)\n",
+		"<p><a href=\"/bar/\">foo</a></p>\n",
+	}
+	doTestsInlineParam(t, noreferrerTests, 0, HTML_SAFELINK|HTML_NOREFERRER_LINKS,
+		HtmlRendererParameters{})
+
+	var nofollownoreferrerTests = []string{
+		"[foo](http://bar.com/foo/)\n",
+		"<p><a href=\"http://bar.com/foo/\" rel=\"nofollow noreferrer\">foo</a></p>\n",
+
+		"[foo](/bar/)\n",
+		"<p><a href=\"/bar/\">foo</a></p>\n",
+	}
+	doTestsInlineParam(t, nofollownoreferrerTests, 0, HTML_SAFELINK|HTML_NOFOLLOW_LINKS|HTML_NOREFERRER_LINKS,
 		HtmlRendererParameters{})
 }
 

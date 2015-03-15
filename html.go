@@ -31,6 +31,7 @@ const (
 	HTML_SKIP_LINKS                            // skip all links
 	HTML_SAFELINK                              // only link to trusted protocols
 	HTML_NOFOLLOW_LINKS                        // only link with rel="nofollow"
+	HTML_NOREFERRER_LINKS                      // only link with rel="noreferrer"
 	HTML_HREF_TARGET_BLANK                     // add a blank target
 	HTML_TOC                                   // generate a table of contents
 	HTML_OMIT_CONTENTS                         // skip the main contents (for a standalone table of contents)
@@ -429,9 +430,17 @@ func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 
 	entityEscapeWithSkip(out, link, skipRanges)
 
+	var relAttrs []string
 	if options.flags&HTML_NOFOLLOW_LINKS != 0 && !isRelativeLink(link) {
-		out.WriteString("\" rel=\"nofollow")
+		relAttrs = append(relAttrs, "nofollow")
 	}
+	if options.flags&HTML_NOREFERRER_LINKS != 0 && !isRelativeLink(link) {
+		relAttrs = append(relAttrs, "noreferrer")
+	}
+	if len(relAttrs) > 0 {
+		out.WriteString(fmt.Sprintf("\" rel=\"%s", strings.Join(relAttrs, " ")))
+	}
+
 	// blank target only add to external link
 	if options.flags&HTML_HREF_TARGET_BLANK != 0 && !isRelativeLink(link) {
 		out.WriteString("\" target=\"_blank")
@@ -535,9 +544,17 @@ func (options *Html) Link(out *bytes.Buffer, link []byte, title []byte, content 
 		out.WriteString("\" title=\"")
 		attrEscape(out, title)
 	}
+	var relAttrs []string
 	if options.flags&HTML_NOFOLLOW_LINKS != 0 && !isRelativeLink(link) {
-		out.WriteString("\" rel=\"nofollow")
+		relAttrs = append(relAttrs, "nofollow")
 	}
+	if options.flags&HTML_NOREFERRER_LINKS != 0 && !isRelativeLink(link) {
+		relAttrs = append(relAttrs, "noreferrer")
+	}
+	if len(relAttrs) > 0 {
+		out.WriteString(fmt.Sprintf("\" rel=\"%s", strings.Join(relAttrs, " ")))
+	}
+
 	// blank target only add to external link
 	if options.flags&HTML_HREF_TARGET_BLANK != 0 && !isRelativeLink(link) {
 		out.WriteString("\" target=\"_blank")
