@@ -453,16 +453,16 @@ func TestInlineLink(t *testing.T) {
 		"<p>[foo]()</p>\n",
 
 		"![foo](/bar/)\n",
-		"<p><figure><img src=\"/bar/\" alt=\"foo\">\n</p>\n",
+		"<p><figure><img src=\"/bar/\" alt=\"foo\">\n</figure></p>\n",
 
 		"![foo with a title](/bar/ \"title\")\n",
-		"<p><figure><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\">\n</p>\n",
+		"<p><figure><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\">\n<figcaption>title</figcaption></figure></p>\n",
 
 		"![foo with a title](/bar/\t\"title\")\n",
-		"<p><figure><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\">\n</p>\n",
+		"<p><figure><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\">\n<figcaption>title</figcaption></figure></p>\n",
 
 		"![foo with a title](/bar/ \"title\"  )\n",
-		"<p><figure><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\">\n</p>\n",
+		"<p><figure><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\">\n<figcaption>title</figcaption></figure></p>\n",
 
 		"![foo with a title](/bar/ title with no quotes)\n",
 		"<p><figure><img src=\"/bar/ title with no quotes\" alt=\"foo with a title\">\n</figure></p>\n",
