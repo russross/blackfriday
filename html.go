@@ -879,10 +879,10 @@ func (options *html) References(out *bytes.Buffer, citations map[string]*citatio
 			}
 			out.WriteString("<div class=\"bibliography-item\">\n")
 			out.WriteString("  <span class=\"biblography-id\" id=\"" + ref.Anchor + "\">[" + strconv.Itoa(i) + "]</span>\n")
-			out.WriteString("  " + ref.Front.Author.Fullname + ". ")
+			out.WriteString("  " + "<span class=\"bibliography-details\">" + ref.Front.Author.Fullname + ". ")
 			out.WriteString(ref.Front.Title + ". ")
 			out.WriteString("<a href=\"" + ref.Format.Target + "\">" + ref.Format.Target + "</a>\n")
-			out.WriteString("  " + ref.Front.Date.Year + ".\n")
+			out.WriteString("  " + ref.Front.Date.Year + ".</span>\n")
 			out.WriteString("</div>\n")
 			i++
 		}
