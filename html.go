@@ -367,7 +367,10 @@ func (options *html) BlockQuote(out *bytes.Buffer, text []byte, attribution []by
 	out.Write(text)
 	if len(parts) == 2 {
 		out.WriteString("<footer>")
+		if len(parts[0]) > 0 {
+			// could be left empty
 		out.WriteString("&mdash; ")
+		}
 		out.Write(parts[0])
 		out.WriteString("<span class=\"quote-who\">")
 		out.Write(parts[1])
@@ -913,12 +916,12 @@ func (options *html) DocumentFooter(out *bytes.Buffer, first bool) {
 		out.WriteString("<div class=\"index\">\n")
 		for k, v := range options.index {
 			prim := false
-			if _, ok := idx[k.primary]; !ok {
-				idx[k.primary] = new(bytes.Buffer)
-				idxSlice = append(idxSlice, k.primary)
+			if _, ok := idx[string(k.primary[0])]; !ok {
+				idx[string(k.primary[0])] = new(bytes.Buffer)
+				idxSlice = append(idxSlice, string(k.primary[0]))
 				prim = true
 			}
-			buf := idx[k.primary]
+			buf := idx[string(k.primary[0])]
 			if prim {
 				buf.WriteString("<span class=\"index-ref-primary\">" + k.primary + "</span>\n")
 			}
