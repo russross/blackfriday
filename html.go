@@ -395,8 +395,10 @@ func (options *html) Note(out *bytes.Buffer, text []byte) {
 }
 
 func (options *html) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
+	ial := options.inlineAttr()
+
 	doubleSpace(out)
-	out.WriteString("<table>\n")
+	out.WriteString("<table" + ial.String() + ">\n")
 	if len(caption) > 0 {
 		out.WriteString("<caption>\n")
 		out.Write(caption)
