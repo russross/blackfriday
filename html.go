@@ -865,11 +865,10 @@ func (options *html) References(out *bytes.Buffer, citations map[string]*citatio
 	}
 	options.ial = &inlineAttr{class: map[string]bool{"bibliography": true}}
 	options.Header(out, func() bool { out.WriteString("Bibliography"); return true }, 1, "bibliography")
-	out.WriteString("<div class=\"bibliography\">\n")
+	out.WriteString("<ol class=\"bibliography\">\n")
 
 	// [1] Haskell Authors. Haskell.  http://www.haskell.org/ , 1990
 	// <span id=anchor>[x]</span>
-	i := 1
 	for anchor, cite := range citations {
 		if len(cite.xml) > 0 {
 			var ref RefXML
@@ -877,17 +876,15 @@ func (options *html) References(out *bytes.Buffer, citations map[string]*citatio
 				log.Printf("failed to unmarshal reference: `%s': %s", anchor, e)
 				continue
 			}
-			out.WriteString("<div class=\"bibliography-item\">\n")
-			out.WriteString("  <span class=\"biblography-id\" id=\"" + ref.Anchor + "\">[" + strconv.Itoa(i) + "]</span>\n")
+			out.WriteString("<li class=\"bibliography\" id=\"" + ref.Anchor + "\">\n")
 			out.WriteString("  " + "<span class=\"bibliography-details\">" + ref.Front.Author.Fullname + ". ")
 			out.WriteString(ref.Front.Title + ". ")
 			out.WriteString("<a href=\"" + ref.Format.Target + "\">" + ref.Format.Target + "</a>\n")
 			out.WriteString("  " + ref.Front.Date.Year + ".</span>\n")
-			out.WriteString("</div>\n")
-			i++
+			out.WriteString("</li>\n")
 		}
 	}
-	out.WriteString("</div>\n")
+	out.WriteString("</ol>\n")
 }
 
 func (options *html) NormalText(out *bytes.Buffer, text []byte) {
