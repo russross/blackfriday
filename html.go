@@ -937,10 +937,13 @@ func (options *html) DocumentFooter(out *bytes.Buffer, first bool) {
 		sort.Strings(idxSlice)
 		options.ial = &inlineAttr{class: map[string]bool{"index": true}}
 		options.Header(out, func() bool { out.WriteString("Index"); return true }, 1, "index-ref-index")
+		char := ""
 		for _, s := range idxSlice {
-			// We print the char too many times now. TODO(miek)
-			out.WriteString("<h3 class=\"index-ref-char\">" + s + "</h3>\n")
+			if char != string(s[0]) {
+				out.WriteString("<h3 class=\"index-ref-char\">" + string(s[0]) + "</h3>\n")
+			}
 			out.Write(idx[s].Bytes())
+			char = string(s[0])
 		}
 		out.WriteString("</div>")
 	}
