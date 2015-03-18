@@ -247,11 +247,11 @@ func (options *html) Part(out *bytes.Buffer, text func() bool, id string) {
 	out.WriteString(fmt.Sprintf("</h1>\n"))
 }
 
-func (options *html) Abstract(out *bytes.Buffer, text func() bool, id string) {
+func (options *html) SpecialHeader(out *bytes.Buffer, what []byte, text func() bool, id string) {
 	if id != "" {
-		out.WriteString(fmt.Sprintf("<h1 class=\"abstract\" id=\"%s\">", id))
+		out.WriteString(fmt.Sprintf("<h1 class=\"" + string(what) + "\" id=\"%s\">", id))
 	} else {
-		out.WriteString(fmt.Sprintf("<h1 class=\"abstract\""))
+		out.WriteString(fmt.Sprintf("<h1 class=\"" + string(what) + "\""))
 	}
 	text()
 	out.WriteString(fmt.Sprintf("</h1>\n"))
