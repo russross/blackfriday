@@ -913,12 +913,12 @@ func (options *html) DocumentFooter(out *bytes.Buffer, first bool) {
 		out.WriteString("<div class=\"index\">\n")
 		for k, v := range options.index {
 			prim := false
-			if _, ok := idx[string(k.primary[0])]; !ok {
-				idx[string(k.primary[0])] = new(bytes.Buffer)
-				idxSlice = append(idxSlice, string(k.primary[0]))
+			if _, ok := idx[k.primary]; !ok {
+				idx[k.primary] = new(bytes.Buffer)
+				idxSlice = append(idxSlice, k.primary)
 				prim = true
 			}
-			buf := idx[string(k.primary[0])]
+			buf := idx[k.primary]
 			if prim {
 				buf.WriteString("<span class=\"index-ref-primary\">" + k.primary + "</span>\n")
 			}
@@ -936,7 +936,8 @@ func (options *html) DocumentFooter(out *bytes.Buffer, first bool) {
 		options.ial = &inlineAttr{class: map[string]bool{"index": true}}
 		options.Header(out, func() bool { out.WriteString("Index"); return true }, 1, "index-ref-index")
 		for _, s := range idxSlice {
-			out.WriteString("<h3 class=\"index-ref-char\">" + string(s[0]) + "</h3>\n")
+			// We print the char too many times now. TODO(miek)
+			out.WriteString("<h3 class=\"index-ref-char\">" + s + "</h3>\n")
 			out.Write(idx[s].Bytes())
 		}
 		out.WriteString("</div>")
