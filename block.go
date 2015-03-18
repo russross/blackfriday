@@ -568,24 +568,21 @@ func (p *parser) specialHeader(out *bytes.Buffer, data []byte) int {
 		p.ial = nil
 
 		name := bytes.ToLower(data[i:end])
-		switch {
-		case bytes.Compare(name, []byte("abstract")) == 0:
-			if id != "" {
-				if v, ok := p.anchors[id]; ok && p.flags&EXTENSION_UNIQUE_HEADER_IDS != 0 {
-					p.anchors[id]++
-					// anchor found
-					id += "-" + strconv.Itoa(v)
-				} else {
-					p.anchors[id] = 1
-				}
-			}
-
-			p.r.Abstract(out, work, id)
-		//case bytes.Compare(name, []byte("preface")) == 0:
-		default:
+		if bytes.Compare(name, []byte("abstract")) != 0 &&
+			bytes.Compare(name, []byte("preface")) != 0 {
 			return 0
-
 		}
+		if id != "" {
+			if v, ok := p.anchors[id]; ok && p.flags&EXTENSION_UNIQUE_HEADER_IDS != 0 {
+				p.anchors[id]++
+				// anchor found
+				id += "-" + strconv.Itoa(v)
+			} else {
+				p.anchors[id] = 1
+			}
+		}
+
+		p.r.SpecialHeader(out, name, work, id)
 	}
 	return skip + k
 }

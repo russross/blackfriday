@@ -228,7 +228,11 @@ func (options *xml2) BlockHtml(out *bytes.Buffer, text []byte) {
 
 func (options *xml2) Part(out *bytes.Buffer, text func() bool, id string) {}
 
-func (options *xml2) Abstract(out *bytes.Buffer, text func() bool, id string) {
+func (options *xml2) SpecialHeader(out *bytes.Buffer, what []byte, text func() bool, id string) {
+	if string(what) == "preface" {
+		// -ENOPREFACE in RFCs
+		return
+	}
 	level := 1
 	if level <= options.sectionLevel {
 		// close previous ones

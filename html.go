@@ -247,11 +247,11 @@ func (options *html) Part(out *bytes.Buffer, text func() bool, id string) {
 	out.WriteString(fmt.Sprintf("</h1>\n"))
 }
 
-func (options *html) Abstract(out *bytes.Buffer, text func() bool, id string) {
+func (options *html) SpecialHeader(out *bytes.Buffer, what []byte, text func() bool, id string) {
 	if id != "" {
-		out.WriteString(fmt.Sprintf("<h1 class=\"abstract\" id=\"%s\">", id))
+		out.WriteString(fmt.Sprintf("<h1 class=\"" + string(what) + "\" id=\"%s\">", id))
 	} else {
-		out.WriteString(fmt.Sprintf("<h1 class=\"abstract\""))
+		out.WriteString(fmt.Sprintf("<h1 class=\"" + string(what) + "\""))
 	}
 	text()
 	out.WriteString(fmt.Sprintf("</h1>\n"))
@@ -395,8 +395,10 @@ func (options *html) Note(out *bytes.Buffer, text []byte) {
 }
 
 func (options *html) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
+	ial := options.inlineAttr()
+
 	doubleSpace(out)
-	out.WriteString("<table>\n")
+	out.WriteString("<table" + ial.String() + ">\n")
 	if len(caption) > 0 {
 		out.WriteString("<caption>\n")
 		out.Write(caption)
