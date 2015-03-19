@@ -249,7 +249,7 @@ func (options *html) Part(out *bytes.Buffer, text func() bool, id string) {
 
 func (options *html) SpecialHeader(out *bytes.Buffer, what []byte, text func() bool, id string) {
 	if id != "" {
-		out.WriteString(fmt.Sprintf("<h1 class=\"" + string(what) + "\" id=\"%s\">", id))
+		out.WriteString(fmt.Sprintf("<h1 class=\""+string(what)+"\" id=\"%s\">", id))
 	} else {
 		out.WriteString(fmt.Sprintf("<h1 class=\"" + string(what) + "\""))
 	}
@@ -369,7 +369,7 @@ func (options *html) BlockQuote(out *bytes.Buffer, text []byte, attribution []by
 		out.WriteString("<footer>")
 		if len(parts[0]) > 0 {
 			// could be left empty
-		out.WriteString("&mdash; ")
+			out.WriteString("&mdash; ")
 		}
 		out.Write(parts[0])
 		out.WriteString("<span class=\"quote-who\">")
@@ -498,24 +498,36 @@ func (options *html) List(out *bytes.Buffer, text func() bool, flags, start int,
 	marker := out.Len()
 	doubleSpace(out)
 
+	ial := options.inlineAttr()
+	if start > 1 {
+		ial.GetOrDefaultAttr("start", strconv.Itoa(start))
+	}
+
 	switch {
 	case flags&_LIST_TYPE_ORDERED != 0:
 		switch {
 		case flags&_LIST_TYPE_ORDERED_ALPHA_LOWER != 0:
-			out.WriteString("<ol type=\"a\">")
+			ial.GetOrDefaultAttr("type", "a")
 		case flags&_LIST_TYPE_ORDERED_ALPHA_UPPER != 0:
-			out.WriteString("<ol type=\"A\">")
+			ial.GetOrDefaultAttr("type", "A")
 		case flags&_LIST_TYPE_ORDERED_ROMAN_LOWER != 0:
-			out.WriteString("<ol type=\"i\">")
+			ial.GetOrDefaultAttr("type", "i")
 		case flags&_LIST_TYPE_ORDERED_ROMAN_UPPER != 0:
-			out.WriteString("<ol type=\"I\">")
-		default:
-			out.WriteString("<ol>")
+			ial.GetOrDefaultAttr("type", "I")
+		case flags&_LIST_TYPE_ORDERED_GROUP != 0:
+			// check start as well
+			if group != nil {
+				options.group[string(group)]++
+				start := options.group[string(group)]
+				ial.GetOrDefaultAttr("start", strconv.Itoa(start))
+				ial.GetOrDefaultAttr("type", "I")
+			}
 		}
+		out.WriteString("<ol" + ial.String() + ">")
 	case flags&_LIST_TYPE_DEFINITION != 0:
-		out.WriteString("<dl>")
+		out.WriteString("<dl" + ial.String() + ">")
 	default:
-		out.WriteString("<ul>")
+		out.WriteString("<ul" + ial.String() + ">")
 	}
 	if !text() {
 		out.Truncate(marker)
