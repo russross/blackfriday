@@ -693,8 +693,8 @@ func (options *html) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 	if options.flags&HTML_SKIP_IMAGES != 0 {
 		return
 	}
-	// TODO: ial
-	out.WriteString("<figure>")
+	ial := options.inlineAttr()
+	out.WriteString("<figure" + ial.String()  + ">")
 	out.WriteString("<img src=\"")
 	options.maybeWriteAbsolutePrefix(out, link)
 	attrEscape(out, link)
