@@ -176,10 +176,35 @@ func (options *xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 }
 
 func (options *xml2) BlockQuote(out *bytes.Buffer, text []byte, attribution []byte) {
-	options.inlineAttr().String()
 	// Fake a list paragraph
+
+	// TODO(miek): IAL, clear them for now
+	options.inlineAttr()
+
 	out.WriteString("<t><list style=\"empty\">\n")
 	out.Write(text)
+
+	// check for "person -- URI" syntax use those if found
+	// need to strip tags because these are attributes
+	// TODO(miek): better
+	if len(attribution) != 0 {
+		parts := bytes.Split(attribution, []byte("-- "))
+		// TODO(miek): 1 part
+		if len(parts) > 0 {
+			cite := bytes.TrimSpace(parts[0])
+			var quotedFrom []byte
+			if len(parts) == 2 {
+				quotedFrom = sanitizeXML(bytes.TrimSpace(parts[1]))
+			}
+			out.WriteString("<t>--\n")
+			out.Write(cite)
+			if len(parts) == 2 {
+				out.WriteString(", ")
+				out.Write(quotedFrom)
+			}
+			out.WriteString("</t>\n")
+		}
+	}
 	out.WriteString("</list></t>\n")
 }
 
