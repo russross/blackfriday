@@ -405,7 +405,12 @@ func (options *xml2) Math(out *bytes.Buffer, text []byte, display bool) {
 }
 
 func (options *xml2) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
-	s := options.inlineAttr().String()
+	ial := options.inlineAttr()
+	if caption != nil {
+		ial.GetOrDefaultAttr("title", string(sanitizeXML(caption)))
+	}
+
+	s := ial.String()
 	out.WriteString("<texttable" + s + ">\n")
 	out.Write(header)
 	out.Write(body)
