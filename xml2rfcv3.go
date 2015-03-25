@@ -752,6 +752,8 @@ func writeEntity(out *bytes.Buffer, text []byte) {
 
 // use to strip XML from a string...
 func sanitizeXML(s string) string {
+	// This needs proper XML marshalling and unmarshalling support.
+	// TODO(miek)
 	s1 := strings.Replace(s, "<eref target=\"", "", 1)
 	s1 = strings.Replace(s1, "\"/>", "", 1)
 	return s1

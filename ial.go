@@ -231,3 +231,25 @@ func (i *inlineAttr) DropAttr(key string) bool {
 	delete(i.attr, key)
 	return ok
 }
+
+// KeepAttr will drop all attributes, except the ones listed under keys.
+func (i *inlineAttr) KeepAttr(keys []string) {
+	newattr := make(map[string]string)
+	for _, k := range keys {
+		if v, ok := i.attr[k]; ok {
+			newattr[k] = v
+		}
+	}
+	i.attr = newattr
+}
+
+// KeepClass will drop all classes, except the ones listed under keys.
+func (i *inlineAttr) KeepClass(keys []string) {
+	newclass := make(map[string]bool)
+	for _, k := range keys {
+		if v, ok := i.class[k]; ok {
+			newclass[k] = v
+		}
+	}
+	i.class = newclass
+}

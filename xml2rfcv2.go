@@ -4,6 +4,7 @@ package mmark
 
 import (
 	"bytes"
+	"log"
 	"strconv"
 	"time"
 )
@@ -42,9 +43,12 @@ type xml2 struct {
 // satisfies the Renderer interface.
 //
 // flags is a set of XML2_* options ORed together
-func Xml2Renderer(flags int) Renderer { anchorOrID="anchor"; return &xml2{flags: flags, group: make(map[string]int)} }
-func (options *xml2) Flags() int      { return options.flags }
-func (options *xml2) State() int      { return 0 }
+func Xml2Renderer(flags int) Renderer {
+	anchorOrID = "anchor"
+	return &xml2{flags: flags, group: make(map[string]int)}
+}
+func (options *xml2) Flags() int { return options.flags }
+func (options *xml2) State() int { return 0 }
 
 func (options *xml2) SetInlineAttr(i *inlineAttr) {
 	options.ial = i
@@ -230,8 +234,8 @@ func (options *xml2) Part(out *bytes.Buffer, text func() bool, id string) {}
 
 func (options *xml2) SpecialHeader(out *bytes.Buffer, what []byte, text func() bool, id string) {
 	if string(what) == "preface" {
-		// -ENOPREFACE in RFCs
-		return
+		log.Printf("handling preface like abstract")
+		what = []byte("abstract")
 	}
 	level := 1
 	if level <= options.sectionLevel {
@@ -264,6 +268,8 @@ func (options *xml2) Header(out *bytes.Buffer, text func() bool, level int, id s
 
 	ial := options.inlineAttr()
 	ial.GetOrDefaultId(id)
+	ial.KeepAttr([]string{"title", "toc"})
+	ial.KeepClass(nil)
 
 	// new section
 	out.WriteString("\n<section" + ial.String())
@@ -287,9 +293,8 @@ func (options *xml2) List(out *bytes.Buffer, text func() bool, flags, start int,
 	}
 
 	ial := options.inlineAttr()
-	if start > 1 {
-		ial.GetOrDefaultAttr("start", strconv.Itoa(start))
-	}
+	ial.KeepAttr([]string{"style", "counter"})
+	// start > 1 is not supported
 
 	// for group, fake a numbered format (if not already given and put a
 	// group -> current number in options
@@ -306,11 +311,11 @@ func (options *xml2) List(out *bytes.Buffer, text func() bool, flags, start int,
 		case flags&_LIST_TYPE_ORDERED_ROMAN_UPPER != 0:
 			ial.GetOrDefaultAttr("style", "format %I")
 		case flags&_LIST_TYPE_ORDERED_GROUP != 0:
-			// check start as well
+
 			if group != nil {
+				// don't think we need ++ this.
 				options.group[string(group)]++
-				start := options.group[string(group)]
-				ial.GetOrDefaultAttr("start", strconv.Itoa(start))
+				ial.GetOrDefaultAttr("counter", string(group))
 				ial.GetOrDefaultAttr("style", "format (%d)")
 			}
 		default:
@@ -354,7 +359,9 @@ func (options *xml2) ListItem(out *bytes.Buffer, text []byte, flags int) {
 		}
 		// close previous one?/
 		out.WriteString("<t hangText=\"")
-		out.Write(text)
+		// escape tags here, because we are in an attribute.
+		attrEscape(out, text)
+		// out.Write(text)
 		out.WriteString("\">\n")
 		return
 	}
@@ -424,9 +431,9 @@ func (options *xml2) TableHeaderCell(out *bytes.Buffer, text []byte, align int) 
 		a = " align=\"center\""
 	}
 	out.WriteString("<ttcol" + a + ">")
-	out.Write(text)
+	// defined as PCData
+	attrEscape(out, text)
 	out.WriteString("</ttcol>\n")
-
 }
 
 func (options *xml2) TableCell(out *bytes.Buffer, text []byte, align int) {
