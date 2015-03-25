@@ -359,9 +359,7 @@ func (options *xml2) ListItem(out *bytes.Buffer, text []byte, flags int) {
 		}
 		// close previous one?/
 		out.WriteString("<t hangText=\"")
-		// escape tags here, because we are in an attribute.
-		attrEscape(out, text)
-		// out.Write(text)
+		writeSanitizeXML(out, text)
 		out.WriteString("\">\n")
 		return
 	}
@@ -431,8 +429,7 @@ func (options *xml2) TableHeaderCell(out *bytes.Buffer, text []byte, align int) 
 		a = " align=\"center\""
 	}
 	out.WriteString("<ttcol" + a + ">")
-	// defined as PCData
-	attrEscape(out, text)
+	writeSanitizeXML(out, text)
 	out.WriteString("</ttcol>\n")
 }
 

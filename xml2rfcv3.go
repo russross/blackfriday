@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -58,7 +57,7 @@ type xml struct {
 // satisfies the Renderer interface.
 //
 // flags is a set of XML_* options ORed together
-func XmlRenderer(flags int) Renderer { anchorOrID="anchor"; return &xml{flags: flags} }
+func XmlRenderer(flags int) Renderer { anchorOrID = "anchor"; return &xml{flags: flags} }
 func (options *xml) Flags() int      { return options.flags }
 func (options *xml) State() int      { return 0 }
 
@@ -178,9 +177,9 @@ func (options *xml) BlockQuote(out *bytes.Buffer, text []byte, attribution []byt
 		parts := bytes.Split(attribution, []byte(" -- "))
 		if len(parts) == 2 {
 			cite := string(bytes.TrimSpace(parts[0]))
-			quotedFrom := sanitizeXML(string(bytes.TrimSpace(parts[1])))
+			quotedFrom := sanitizeXML(bytes.TrimSpace(parts[1]))
 			ial.GetOrDefaultAttr("cite", cite)
-			ial.GetOrDefaultAttr("quotedFrom", quotedFrom)
+			ial.GetOrDefaultAttr("quotedFrom", string(quotedFrom))
 		}
 	}
 
@@ -751,10 +750,40 @@ func writeEntity(out *bytes.Buffer, text []byte) {
 }
 
 // use to strip XML from a string...
-func sanitizeXML(s string) string {
-	// This needs proper XML marshalling and unmarshalling support.
-	// TODO(miek)
-	s1 := strings.Replace(s, "<eref target=\"", "", 1)
-	s1 = strings.Replace(s1, "\"/>", "", 1)
-	return s1
+func sanitizeXML(s []byte) []byte {
+	inTag := false
+	j := 0
+	for i := 0; i < len(s); i++ {
+		if s[i] == '<' {
+			inTag = true
+			continue
+		}
+		if s[i] == '>' {
+			inTag = false
+			continue
+		}
+		if !inTag {
+			s[j] = s[i]
+			j++
+		}
+	}
+	return s[:j]
+}
+
+// use to strip XML from a string...
+func writeSanitizeXML(out *bytes.Buffer, s []byte) {
+	inTag := false
+	for i := 0; i < len(s); i++ {
+		if s[i] == '<' {
+			inTag = true
+			continue
+		}
+		if s[i] == '>' {
+			inTag = false
+			continue
+		}
+		if !inTag {
+			out.WriteByte(s[i])
+		}
+	}
 }

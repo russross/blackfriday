@@ -694,7 +694,7 @@ func (options *html) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 		return
 	}
 	ial := options.inlineAttr()
-	out.WriteString("<figure" + ial.String()  + ">")
+	out.WriteString("<figure" + ial.String() + ">")
 	out.WriteString("<img src=\"")
 	options.maybeWriteAbsolutePrefix(out, link)
 	attrEscape(out, link)
