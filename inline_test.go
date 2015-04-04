@@ -919,6 +919,12 @@ what happens here
 
 	"empty footnote[^]\n\n[^]: fn text",
 	"<p>empty footnote<sup class=\"footnote-ref\" id=\"fnref:\"><a class=\"footnote\" href=\"#fn:\">1</a></sup></p>\n<div class=\"footnotes\">\n\n<hr>\n\n<ol>\n<li id=\"fn:\">fn text\n</li>\n</ol>\n</div>\n",
+
+	"Some text.[^note1]\n\n[^note1]: fn1",
+	"<p>Some text.<sup class=\"footnote-ref\" id=\"fnref:note1\"><a class=\"footnote\" href=\"#fn:note1\">1</a></sup></p>\n<div class=\"footnotes\">\n\n<hr>\n\n<ol>\n<li id=\"fn:note1\">fn1\n</li>\n</ol>\n</div>\n",
+
+	"Some text.[^note1][^note2]\n\n[^note1]: fn1\n[^note2]: fn2\n",
+	"<p>Some text.<sup class=\"footnote-ref\" id=\"fnref:note1\"><a class=\"footnote\" href=\"#fn:note1\">1</a></sup><sup class=\"footnote-ref\" id=\"fnref:note2\"><a class=\"footnote\" href=\"#fn:note2\">2</a></sup></p>\n<div class=\"footnotes\">\n\n<hr>\n\n<ol>\n<li id=\"fn:note1\">fn1\n</li>\n<li id=\"fn:note2\">fn2\n</li>\n</ol>\n</div>\n",
 }
 
 func TestFootnotes(t *testing.T) {

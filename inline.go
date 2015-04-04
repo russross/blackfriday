@@ -503,7 +503,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		i++
 
 	// reference style link
-	case i < len(data) && data[i] == '[':
+	case i < len(data)-1 && data[i] == '[' && data[i+1] != '^':
 		var id []byte
 
 		// look for the id
