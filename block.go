@@ -221,6 +221,9 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 		}
 	}
 	for end > 0 && data[end-1] == '#' {
+		if isBackslashEscaped(data, end-1) {
+			break
+		}
 		end--
 	}
 	for end > 0 && data[end-1] == ' ' {
@@ -733,7 +736,7 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 	return i
 }
 
-// check if the specified position is preceeded by an odd number of backslashes
+// check if the specified position is preceded by an odd number of backslashes
 func isBackslashEscaped(data []byte, i int) bool {
 	backslashes := 0
 	for i-backslashes-1 >= 0 && data[i-backslashes-1] == '\\' {

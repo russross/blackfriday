@@ -132,6 +132,15 @@ func TestPrefixHeaderNoExtensions(t *testing.T) {
 		"*   List\n    * Nested list\n    # Nested header\n",
 		"<ul>\n<li><p>List</p>\n\n<ul>\n<li><p>Nested list</p>\n\n" +
 			"<h1>Nested header</h1></li>\n</ul></li>\n</ul>\n",
+
+		"#Header 1 \\#\n",
+		"<h1>Header 1 #</h1>\n",
+
+		"#Header 1 \\# foo\n",
+		"<h1>Header 1 # foo</h1>\n",
+
+		"#Header 1 #\\##\n",
+		"<h1>Header 1 ##</h1>\n",
 	}
 	doTestsBlock(t, tests, 0)
 }
