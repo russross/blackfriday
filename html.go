@@ -248,6 +248,7 @@ func (options *html) Part(out *bytes.Buffer, text func() bool, id string) {
 }
 
 func (options *html) SpecialHeader(out *bytes.Buffer, what []byte, text func() bool, id string) {
+	options.inlineAttr() //reset the IAL
 	if id != "" {
 		out.WriteString(fmt.Sprintf("<h1 class=\""+string(what)+"\" id=\"%s\">", id))
 	} else {
@@ -463,6 +464,8 @@ func (options *html) Footnotes(out *bytes.Buffer, text func() bool) {
 		options.ial = &inlineAttr{class: map[string]bool{"footnotes": true}}
 		options.Header(out, func() bool { out.WriteString("Footnotes"); return true }, 1, "footnotes")
 	}
+	// reset now that the header is out
+	options.ial = nil
 	out.WriteString("<div class=\"footnotes\">\n")
 	if options.flags&HTML_COMPLETE_PAGE == 0 {
 		options.HRule(out)
