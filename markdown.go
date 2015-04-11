@@ -918,6 +918,7 @@ func (p *parser) include(out *bytes.Buffer, data []byte, depth int) int {
 // include and prefix the code with that number of spaces + 4, it returns the new bytes and a boolean
 // indicating we've detected a code include.
 func (p *parser) codeInclude(out *bytes.Buffer, data []byte) int {
+	// TODO: this is not an inline element
 	i := 0
 	l := len(data)
 	if l < 3 {
