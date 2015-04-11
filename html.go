@@ -874,34 +874,32 @@ func doubleSpace(out *bytes.Buffer) {
 }
 
 func isRelativeLink(link []byte) (yes bool) {
-	yes = false
-
 	// a tag begin with '#'
 	if link[0] == '#' {
-		yes = true
+		return true
 	}
 
 	// link begin with '/' but not '//', the second maybe a protocol relative link
 	if len(link) >= 2 && link[0] == '/' && link[1] != '/' {
-		yes = true
+		return true
 	}
 
 	// only the root '/'
 	if len(link) == 1 && link[0] == '/' {
-		yes = true
+		return true
 	}
 
 	// current directory : begin with "./"
-	if len(link) >= 2 && link[0] == '.' && link[1] == '/' {
-		yes = true
+	if bytes.HasPrefix(link, []byte("./")) {
+		return true
 	}
 
 	// parent directory : begin with "../"
-	if len(link) >= 3 && link[0] == '.' && link[1] == '.' && link[2] == '/' {
-		yes = true
+	if bytes.HasPrefix(link, []byte("../")) {
+		return true
 	}
 
-	return
+	return false
 }
 
 func (options *Html) ensureUniqueHeaderID(id string) string {
