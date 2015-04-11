@@ -325,6 +325,7 @@ func (options *html) CalloutText(out *bytes.Buffer, id string, ids []string) {
 func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool, callout bool) {
 	doubleSpace(out)
 
+	options.inlineAttr() // call it, not used yet, TODO(miek)
 	// parse out the language names/classes
 	count := 0
 	for _, elt := range strings.Fields(lang) {

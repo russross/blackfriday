@@ -1016,6 +1016,7 @@ func (p *parser) codeInclude(out *bytes.Buffer, data []byte) int {
 		p.callouts = nil
 		p.r.BlockCode(out, code, lang, caption.Bytes(), p.insideFigure, false)
 	}
+	p.r.SetInlineAttr(nil) // reset it again. TODO(miek): double check
 
 	return end
 }
