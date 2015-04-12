@@ -325,7 +325,16 @@ func (options *html) CalloutText(out *bytes.Buffer, id string, ids []string) {
 func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool, callout bool) {
 	doubleSpace(out)
 
-	options.inlineAttr() // call it, not used yet, TODO(miek)
+	ial := options.inlineAttr()
+	// TODO(miek): subfigure
+
+	// if theere is a caption we wrap the thing in the figure
+	if len(caption) > 0 {
+		out.WriteString("<figure" + ial.String() + ">\n<figcaption>")
+		out.Write(caption)
+		out.WriteString("</figcaption>\n")
+	}
+
 	// parse out the language names/classes
 	count := 0
 	for _, elt := range strings.Fields(lang) {
@@ -355,6 +364,9 @@ func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 		attrEscape(out, text)
 	}
 	out.WriteString("</code></pre>\n")
+	if len(caption) > 0 {
+		out.WriteString("</figure>\n")
+	}
 }
 
 func (options *html) BlockQuote(out *bytes.Buffer, text []byte, attribution []byte) {
