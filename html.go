@@ -330,7 +330,7 @@ func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 
 	// if theere is a caption we wrap the thing in the figure
 	if len(caption) > 0 {
-		out.WriteString("<figure" + ial.String() + ">\n<figcaption>")
+		out.WriteString("<figure" + ial.String() + "><figcaption>\n")
 		out.Write(caption)
 		out.WriteString("</figcaption>\n")
 	}
