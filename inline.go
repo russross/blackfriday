@@ -669,9 +669,12 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			out.Truncate(outSize - 1)
 		}
 
+		var cooked bytes.Buffer
+		p.inline(&cooked, title)
+
 		p.r.SetInlineAttr(p.ial)
 		p.ial = nil
-		p.r.Image(out, uLink, title, content.Bytes(), p.insideFigure)
+		p.r.Image(out, uLink, cooked.Bytes(), content.Bytes(), p.insideFigure)
 
 	case linkInlineFootnote:
 		outSize := out.Len()

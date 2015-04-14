@@ -729,7 +729,7 @@ func (options *html) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 	out.WriteString(options.closeTag)
 	if len(title) > 0 {
 		out.WriteString("<figcaption>")
-		attrEscape(out, title)
+		out.Write(title)
 		out.WriteString("</figcaption>")
 	}
 	out.WriteString("</figure>")
