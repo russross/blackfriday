@@ -235,6 +235,8 @@ func (options *html) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	}
 	out.WriteString("</head>\n")
 	out.WriteString("<body>\n")
+
+	// Write some elements of the TOML block in the doc as well.
 }
 
 func (options *html) Part(out *bytes.Buffer, text func() bool, id string) {

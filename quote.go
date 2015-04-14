@@ -162,12 +162,16 @@ func (p *parser) quote(out *bytes.Buffer, data []byte) int {
 		}
 		p.inline(&attribution, data[beg+7:j-1]) // +7 for 'Quote: '
 	}
+	ials := p.ial
+	p.ial = nil
 
+	// This set a new level of attributes, we could possible override what
+	// we have gotten above. TODO(miek): this might need to happen in more
+	// places.
 	var cooked bytes.Buffer
 	p.block(&cooked, raw.Bytes())
 
-	p.r.SetInlineAttr(p.ial)
-	p.ial = nil
+	p.r.SetInlineAttr(ials)
 
 	p.r.BlockQuote(out, cooked.Bytes(), attribution.Bytes())
 	return j
