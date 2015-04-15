@@ -955,6 +955,20 @@ func (options *html) DocumentFooter(out *bytes.Buffer, first bool) {
 			if prim {
 				buf.WriteString("<span class=\"index-ref-primary\">" + k.primary + "</span>\n")
 			}
+			if len(k.secondary) == 0 {
+				// if k.secondary is empty we should write the pointers here, because they are meant for
+				// the primary
+				buf.WriteString("<span class=\"index-ref-space\"> </span>")
+				for i, r := range v {
+					buf.WriteString("<a class=\"index-ref-ref\" href=\"" + r + "\">" + strconv.Itoa(i+1) + "</a>")
+					if i+1 < len(v) {
+						buf.WriteByte(',')
+					}
+				}
+				buf.WriteString("\n")
+				continue
+			}
+
 			buf.WriteString("<span class=\"index-ref-secondary\">" + k.secondary + "</span>")
 			buf.WriteString("<span class=\"index-ref-space\"> </span>")
 			for i, r := range v {
