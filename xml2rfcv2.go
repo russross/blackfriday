@@ -284,6 +284,10 @@ func (options *xml2) Header(out *bytes.Buffer, text func() bool, level int, id s
 		out.WriteString("</abstract>\n\n")
 	}
 
+	if level > options.sectionLevel+1 {
+		log.Printf("mmark: section jump from H%d to H%d, id: \"%s\"", options.sectionLevel, level, id)
+	}
+
 	if level <= options.sectionLevel {
 		// close previous ones
 		for i := options.sectionLevel - level + 1; i > 0; i-- {
