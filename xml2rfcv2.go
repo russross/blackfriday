@@ -71,7 +71,7 @@ func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 	ial.DropAttr("callout") // it's a fake attribute, so drop it
 	// subfigure stuff. TODO(miek): check
 	if len(caption) > 0 {
-		ial.GetOrDefaultAttr("title", string(caption))
+		ial.GetOrDefaultAttr("title", string(sanitizeXML(caption)))
 	}
 	ial.DropAttr("type")
 	s := ial.String()
@@ -621,7 +621,8 @@ func (options *xml2) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 	s := options.inlineAttr().String()
 	if len(title) != 0 {
 		out.WriteString("<figure" + s + " title=\"")
-		out.Write(title)
+		title1 := sanitizeXML(title)
+		out.Write(title1)
 		out.WriteString("\">\n")
 		// empty artwork
 		out.WriteString("<artwork" + ial.Key("align") + ">" + string(link) + "</artwork>\n")
