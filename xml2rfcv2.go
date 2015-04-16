@@ -259,7 +259,7 @@ func (options *xml2) Part(out *bytes.Buffer, text func() bool, id string) {}
 
 func (options *xml2) SpecialHeader(out *bytes.Buffer, what []byte, text func() bool, id string) {
 	if string(what) == "preface" {
-		log.Printf("handling preface like abstract")
+		log.Printf("mmark: handling preface like abstract")
 		what = []byte("abstract")
 	}
 	level := 1
