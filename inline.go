@@ -174,6 +174,9 @@ func lineBreak(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		return 0
 	}
 
+	if precededByBackslash && eol > 0 {
+		out.Truncate(eol - 1)
+	}
 	p.r.LineBreak(out)
 	return 1
 }
