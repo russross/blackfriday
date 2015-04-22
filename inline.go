@@ -167,9 +167,10 @@ func lineBreak(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	out.Truncate(eol)
 
 	precededByTwoSpaces := offset >= 2 && data[offset-2] == ' ' && data[offset-1] == ' '
+	precededByBackslash := offset >= 1 && data[offset-1] == '\\' // see http://spec.commonmark.org/0.18/#example-527
 
 	// should there be a hard line break here?
-	if p.flags&EXTENSION_HARD_LINE_BREAK == 0 && !precededByTwoSpaces {
+	if p.flags&EXTENSION_HARD_LINE_BREAK == 0 && !precededByTwoSpaces && !precededByBackslash {
 		return 0
 	}
 
