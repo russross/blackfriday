@@ -42,6 +42,7 @@ const (
 	EXTENSION_TABLES                     // render tables
 	EXTENSION_TITLEBLOCK_TOML            // Titleblock in TOML
 	EXTENSION_UNIQUE_HEADER_IDS          // When detecting identical anchors add a sequence number -1, -2 etc.
+	EXTENSION_BACKSLASH_LINE_BREAK       // translate trailing backslashes into line breaks
 
 	commonHtmlFlags = 0
 
@@ -52,7 +53,8 @@ const (
 		EXTENSION_SPACE_HEADERS |
 		EXTENSION_HEADER_IDS |
 		EXTENSION_ABBREVIATIONS |
-		EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK // CommonMark
+		EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK | // CommonMark
+		EXTENSION_BACKSLASH_LINE_BREAK // CommonMark
 
 	commonXmlExtensions = commonExtensions |
 		EXTENSION_UNIQUE_HEADER_IDS |
