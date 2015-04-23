@@ -42,6 +42,7 @@ const (
 	EXTENSION_HEADER_IDS                             // specify header IDs  with {#id}
 	EXTENSION_TITLEBLOCK                             // Titleblock ala pandoc
 	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text
+	EXTENSION_BACKSLASH_LINE_BREAK                   // translate trailing backslashes into line breaks
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML |
@@ -56,7 +57,8 @@ const (
 		EXTENSION_AUTOLINK |
 		EXTENSION_STRIKETHROUGH |
 		EXTENSION_SPACE_HEADERS |
-		EXTENSION_HEADER_IDS
+		EXTENSION_HEADER_IDS |
+		EXTENSION_BACKSLASH_LINE_BREAK
 )
 
 // These are the possible flag values for the link renderer.
