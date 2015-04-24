@@ -12,7 +12,7 @@ designed to write internet drafts and RFCs for the IETF. With mmark you can crea
 a single file that serves as input into the XML2RFC processor. But is also allows
 for writing large documents such as technical books.
 
-My [Learning Go book](https:/github.com/learninggo) is written in mmark and sample
+My [Learning Go book](https://github.com/learninggo) is written in mmark and sample
 xml2rfc output
 [be found here](https://gist.githubusercontent.com/miekg/0251f3e28652fa603a51/raw/7e0a7028506f7d2948e4ad3091f533711bf5f2a4/learninggo.txt). (It is not perfect due
 to limitations in xml2rfc v2).
