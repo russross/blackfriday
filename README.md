@@ -15,7 +15,7 @@ for writing large documents such as technical books.
 My [Learning Go book](https:/github.com/learninggo) is written in mmark and sample
 xml2rfc output
 [be found here](https://gist.githubusercontent.com/miekg/0251f3e28652fa603a51/raw/7e0a7028506f7d2948e4ad3091f533711bf5f2a4/learninggo.txt). (It is not perfect due
-to limitation in xml2rfc v2).
+to limitations in xml2rfc v2).
 
 It can currently output HTML5, XML2RFC v2 and XML2RFC v3 XML. Other output
 engines could be easily added.
