@@ -426,8 +426,8 @@ func TestLineBreak(t *testing.T) {
 		"this line \ndoes not\n",
 		"<p>this line\ndoes not</p>\n",
 
-		"this line\\\ndoes not\n",
-		"<p>this line\\\ndoes not</p>\n",
+		"this line\\\ndoes also!\n",
+		"<p>this line<br>\ndoes also!</p>\n",
 
 		"this line\\ \ndoes not\n",
 		"<p>this line\\\ndoes not</p>\n",
