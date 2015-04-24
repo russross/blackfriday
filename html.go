@@ -227,7 +227,7 @@ func (options *html) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	if options.head != "" {
 		headBytes, err := ioutil.ReadFile(options.head)
 		if err != nil {
-			log.Printf("failed: `%s': %s", options.head, err)
+			log.Printf("mmark: failed: `%s': %s", options.head, err)
 		} else {
 			out.Write(headBytes)
 		}
@@ -906,7 +906,7 @@ func (options *html) References(out *bytes.Buffer, citations map[string]*citatio
 		if len(cite.xml) > 0 {
 			var ref RefXML
 			if e := xmllib.Unmarshal(cite.xml, &ref); e != nil {
-				log.Printf("failed to unmarshal reference: `%s': %s", anchor, e)
+				log.Printf("mmark: failed to unmarshal reference: `%s': %s", anchor, e)
 				continue
 			}
 			out.WriteString("<li class=\"bibliography\" id=\"" + ref.Anchor + "\">\n")

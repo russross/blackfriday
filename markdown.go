@@ -386,7 +386,7 @@ func Parse(input []byte, renderer Renderer, extensions int) *bytes.Buffer {
 func firstPass(p *parser, input []byte, depth int) *bytes.Buffer {
 	var out bytes.Buffer
 	if depth > 8 {
-		log.Printf("nested includes depth > 8")
+		log.Printf("mmark: nested includes depth > 8")
 		out.WriteByte('\n')
 		return &out
 	}
@@ -901,7 +901,7 @@ func (p *parser) include(out *bytes.Buffer, data []byte, depth int) int {
 	name := string(data[i+2 : end-2])
 	input, err := ioutil.ReadFile(name)
 	if err != nil {
-		log.Printf("failed: `%s': %s", name, err)
+		log.Printf("mmark: failed: `%s': %s", name, err)
 		return end
 	}
 
