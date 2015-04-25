@@ -426,10 +426,34 @@ func TestLineBreak(t *testing.T) {
 		"this line \ndoes not\n",
 		"<p>this line\ndoes not</p>\n",
 
+		"this line\\\ndoes also!\n",
+		"<p>this line<br>\ndoes also!</p>\n",
+
+		"this line\\ \ndoes not\n",
+		"<p>this line\\\ndoes not</p>\n",
+
 		"this has an   \nextra space\n",
 		"<p>this has an<br>\nextra space</p>\n",
 	}
 	doTestsInline(t, tests)
+
+	tests = []string{
+		"this line  \nhas a break\n",
+		"<p>this line<br>\nhas a break</p>\n",
+
+		"this line \ndoes not\n",
+		"<p>this line\ndoes not</p>\n",
+
+		"this line\\\nhas a break\n",
+		"<p>this line<br>\nhas a break</p>\n",
+
+		"this line\\ \ndoes not\n",
+		"<p>this line\\\ndoes not</p>\n",
+
+		"this has an   \nextra space\n",
+		"<p>this has an<br>\nextra space</p>\n",
+	}
+	doTestsInlineParam(t, tests, EXTENSION_BACKSLASH_LINE_BREAK, 0, HtmlRendererParameters{})
 }
 
 func TestInlineLink(t *testing.T) {
