@@ -1171,6 +1171,16 @@ func TestOrderedList_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
 
 		"1. numbers\n1. are ignored\n",
 		"<ol>\n<li>numbers</li>\n<li>are ignored</li>\n</ol>\n",
+
+		"a.  List\nb.  Item\n",
+		"<ol type=\"a\">\n<li>List</li>\n<li>Item</li>\n</ol>\n",
+
+		"aa.  List\nbb.  Item\n",
+		"<ol type=\"a\">\n<li>List</li>\n<li>Item</li>\n</ol>\n",
+
+		"aaa.  List\aab.  Item\n",
+		"<p>aaa.  List\aab.  Item</p>\n",
+
 	}
 	doTestsBlock(t, tests, EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK)
 }

@@ -28,7 +28,8 @@ It adds the following syntax elements to [black friday](https://github.com/russr
 * Inline Attribute Lists.
 * Indices.
 * Citations.
-* Abstract.
+* Abstract/Preface.
+* Parts.
 * Asides.
 * Notes.
 * Main-, middle- and backmatter divisions.
@@ -137,7 +138,7 @@ implements the following extensions:
 
 *   **Fenced code blocks**. In addition to the normal 4-space
     indentation to mark code blocks, you can explicitly mark them
-   :pand supply a language (to make syntax highlighting simple). Just
+    and supply a language (to make syntax highlighting simple). Just
     mark it like this:
 
         ``` go
@@ -158,16 +159,14 @@ implements the following extensions:
 *   **Short References**. Internal references use the syntax `[](#id)`,
     usually the need for the title within the brackets is not needed,
     so mmark has the shorter syntax (#id) to cross reference in the
-    document. By default this creates a numbered link, i.e. see x.y,
-    where x.y is generated. If you want a named reference use
-    `(#!id)` which will use the title of the target in the reference:
-    see "Usage" above. Where `Usage` is generated.
+    document.
 
 *   **Hard line breaks**. With this extension enabled
     newlines in the input translate into line breaks in
     the output. This is activate by using two trailing spaces before
     a new line. Another way to get a hard line break is to escape
-    the newline with a `\`.
+    the newline with a \. And yet another another way to do this is
+    to use 2 backslashes it the end of the line.\\
 
 *   **Includes**, support including files with `{{filename}}` syntax. This is only
     done when include is started at the beginning of a line.
@@ -224,18 +223,18 @@ implements the following extensions:
     you can use @RFC2535 is a shortcut for the citation.
 
 *  **Captions**, table and figure/code block captions. For tables add the string
-    `Table: caption text` after the table, this will be rendered as an caption. For
-    code blocks you'll need to use `Figure: `
+   `Table: caption text` after the table, this will be rendered as an caption. For
+   code blocks you'll need to use `Figure: `
 
-    ```
-    Name    | Age
-    --------|-----:
-    Bob     | 27
-    Alice   | 23
-    Table: This is a table.
-    ```
+   ```
+   Name    | Age
+   --------|-----:
+   Bob     | 27
+   Alice   | 23
+   Table: This is a table.
+   ```
 
-    Or for a code block:
+   Or for a code block:
 
         ``` go
         func getTrue() bool {
@@ -245,21 +244,21 @@ implements the following extensions:
         Figure: Look! A Go function.
 
 *  **Quote attribution**, after a blockquote you can optionally use
-    `Quote: John Doe -- http://example.org`, where
-    the quote will be attributed to John Doe, pointing to the URL:
+   `Quote: John Doe -- http://example.org`, where
+   the quote will be attributed to John Doe, pointing to the URL:
 
         > Ability is nothing without opportunity.
         Quote: Napoleon Bonaparte -- http://example.com
 
 *  **Abstracts**, use the special header `.# Abstract`. Note that the header name, when lowercased,
-    must match 'abstract'.
+   must match 'abstract'.
 
 *  **Notes**, any parapgraph prefixed with `N>` .
 
 *  **Asides**, any paragraph prefixed with `A>` .
 
 *  **Subfigures**, any paraphgraph prefix with `F>` will wrap all images and code in a
-    single figure.
+   single figure.
 
 *  **{frontmatter}/{mainmatter}/{backmatter}** Create useful divisions in your document.
 

@@ -1782,7 +1782,7 @@ func (p *parser) aliPrefix(data []byte) int {
 		return 0
 	}
 	if i-start > 2 {
-		// crazy list
+		// crazy list, i.e. too many letters.
 		return 0
 	}
 
@@ -1812,7 +1812,7 @@ func (p *parser) aliPrefixU(data []byte) int {
 		return 0
 	}
 	if i-start > 2 {
-		// crazy list
+		// crazy list, i.e. too many letters.
 		return 0
 	}
 	return i + 3
