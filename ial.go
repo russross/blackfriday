@@ -2,8 +2,8 @@
 
 package mmark
 
-import "bytes"
 import (
+	"bytes"
 	"sort"
 	"strings"
 )
