@@ -860,29 +860,35 @@ func (options *html) Citation(out *bytes.Buffer, link, title []byte) {
 	out.WriteString("</a>")
 }
 
+// RefAuthor is the reference author, exported because we need to be able to parse
+// raw XML references when included in the document.
 type RefAuthor struct {
 	Fullname string `xml:"fullname,attr"`
 	Initials string `xml:"initials,attr"`
 	Surname  string `xml:"surname,attr"`
 }
 
+// RefDate is the reference date. See RefAuthor.
 type RefDate struct {
 	Year  string `xml:"year,attr,omitempty"`
 	Month string `xml:"month,attr,omitempty"`
 	Day   string `xml:"day,attr,omitempty"`
 }
 
+// RefFront the reference <front>. See RefAuthor.
 type RefFront struct {
 	Title  string    `xml:"title"`
 	Author RefAuthor `xml:"author"`
 	Date   RefDate   `xml:"date"`
 }
 
+// RefFormat is the reference format. See RefAuthor.
 type RefFormat struct {
 	Typ    string `xml:"type,attr,omitempty"`
 	Target string `xml:"target,attr"`
 }
 
+// RefXML is the entire structure. See RefAuthor.
 type RefXML struct {
 	Anchor string    `xml:"anchor,attr"`
 	Front  RefFront  `xml:"front"`
