@@ -216,10 +216,10 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
 
 	var (
-		i                        = 1
-		noteId                   int
-		title, link, alt_content []byte
-		textHasNl                = false
+		i                       = 1
+		noteId                  int
+		title, link, altContent []byte
+		textHasNl               = false
 	)
 
 	if t == linkDeferredFootnote {
@@ -355,7 +355,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	// reference style link
 	case i < len(data)-1 && data[i] == '[' && data[i+1] != '^':
 		var id []byte
-		alt_content_considered := false
+		altContentConsidered := false
 
 		// look for the id
 		i++
@@ -385,7 +385,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 				id = b.Bytes()
 			} else {
 				id = data[1:txtE]
-				alt_content_considered = true
+				altContentConsidered = true
 			}
 		} else {
 			id = data[linkB:linkE]
@@ -401,8 +401,8 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		// keep link and title from reference
 		link = lr.link
 		title = lr.title
-		if alt_content_considered {
-			alt_content = lr.text
+		if altContentConsidered {
+			altContent = lr.text
 		}
 		i++
 
@@ -513,8 +513,8 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	// call the relevant rendering function
 	switch t {
 	case linkNormal:
-		if len(alt_content) > 0 {
-			p.r.Link(out, uLink, title, alt_content)
+		if len(altContent) > 0 {
+			p.r.Link(out, uLink, title, altContent)
 		} else {
 			p.r.Link(out, uLink, title, content.Bytes())
 		}
