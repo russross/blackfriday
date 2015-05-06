@@ -216,10 +216,10 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
 
 	var (
-		i           = 1
-		noteId      int
-		title, link []byte
-		textHasNl   = false
+		i                        = 1
+		noteId                   int
+		title, link, alt_content []byte
+		textHasNl                = false
 	)
 
 	if t == linkDeferredFootnote {
@@ -355,6 +355,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	// reference style link
 	case i < len(data)-1 && data[i] == '[' && data[i+1] != '^':
 		var id []byte
+		alt_content_considered := false
 
 		// look for the id
 		i++
@@ -384,14 +385,14 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 				id = b.Bytes()
 			} else {
 				id = data[1:txtE]
+				alt_content_considered = true
 			}
 		} else {
 			id = data[linkB:linkE]
 		}
 
-		// find the reference with matching id (ids are case-insensitive)
-		key := string(bytes.ToLower(id))
-		lr, ok := p.refs[key]
+		// find the reference with matching id
+		lr, ok := p.getRef(string(id))
 		if !ok {
 			return 0
 
@@ -400,6 +401,9 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		// keep link and title from reference
 		link = lr.link
 		title = lr.title
+		if alt_content_considered {
+			alt_content = lr.text
+		}
 		i++
 
 	// shortcut reference style link or reference or inline footnote
@@ -428,7 +432,6 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			}
 		}
 
-		key := string(bytes.ToLower(id))
 		if t == linkInlineFootnote {
 			// create a new reference
 			noteId = len(p.notes) + 1
@@ -458,7 +461,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			title = ref.title
 		} else {
 			// find the reference with matching id
-			lr, ok := p.refs[key]
+			lr, ok := p.getRef(string(id))
 			if !ok {
 				return 0
 			}
@@ -510,7 +513,11 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	// call the relevant rendering function
 	switch t {
 	case linkNormal:
-		p.r.Link(out, uLink, title, content.Bytes())
+		if len(alt_content) > 0 {
+			p.r.Link(out, uLink, title, alt_content)
+		} else {
+			p.r.Link(out, uLink, title, content.Bytes())
+		}
 
 	case linkImg:
 		outSize := out.Len()
