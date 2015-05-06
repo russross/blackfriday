@@ -176,6 +176,9 @@ func TestReferenceOverride(t *testing.T) {
 
 		"test [!(*http.ServeMux).ServeHTTP][] complicated ref\n",
 		"<p>test <a href=\"http://localhost:6060/pkg/net/http/#ServeMux.ServeHTTP\" title=\"ServeHTTP docs\">!(*http.ServeMux).ServeHTTP</a> complicated ref</p>\n",
+
+		"test [ref5][]\n",
+		"<p>test <a href=\"http://www.ref5.com/\" title=\"Reference 5\">Moo</a></p>\n",
 	}
 	doTestsInlineParam(t, tests, Options{
 		ReferenceOverride: func(reference string) (rv *Reference, overridden bool) {
@@ -200,6 +203,12 @@ func TestReferenceOverride(t *testing.T) {
 				return &Reference{
 					Link:  "http://localhost:6060/pkg/net/http/#ServeMux.ServeHTTP",
 					Title: "ServeHTTP docs"}, true
+			case "ref5":
+				return &Reference{
+					Link:  "http://www.ref5.com/",
+					Title: "Reference 5",
+					Text:  "Moo",
+				}, true
 			}
 			return nil, false
 		}}, 0, HtmlRendererParameters{})
