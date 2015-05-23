@@ -39,7 +39,7 @@ const (
 	EXTENSION_HARD_LINE_BREAK                        // translate newlines into line breaks
 	EXTENSION_TAB_SIZE_EIGHT                         // expand tabs to eight spaces instead of four
 	EXTENSION_FOOTNOTES                              // Pandoc-style footnotes
-	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK             // No need to insert an empty line to start a (code, quote, order list, unorder list)block
+	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK             // No need to insert an empty line to start a (code, quote, ordered list, unordered list) block
 	EXTENSION_HEADER_IDS                             // specify header IDs  with {#id}
 	EXTENSION_TITLEBLOCK                             // Titleblock ala pandoc
 	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text

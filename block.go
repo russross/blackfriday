@@ -1119,7 +1119,7 @@ gatherlines:
 				break gatherlines
 			}
 
-			// is this the first item in the the nested list?
+			// is this the first item in the nested list?
 			if sublist == 0 {
 				sublist = raw.Len()
 			}
