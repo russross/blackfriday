@@ -203,7 +203,7 @@ Other renderers
 Blackfriday is structured to allow alternative rendering engines. Here
 are a few of note:
 
-*   [github_flavored_markdown](https://godoc.org/github.com/shurcooL/go/github_flavored_markdown):
+*   [github_flavored_markdown](https://godoc.org/github.com/shurcooL/github_flavored_markdown):
     provides a GitHub Flavored Markdown renderer with fenced code block
     highlighting, clickable header anchor links.
 
