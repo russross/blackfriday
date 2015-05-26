@@ -51,7 +51,7 @@ type HtmlRendererParameters struct {
 // Do not create this directly, instead use the HtmlRenderer function.
 type html struct {
 	flags    int    // HTML_* options
-	closeTag string // how to end singleton tags: either " />\n" or ">\n"
+	closeTag string // how to end singleton tags: either " />" or ">"
 	css      string // optional css file url (used with HTML_COMPLETE_PAGE)
 	head     string // option html file to be included
 
@@ -82,7 +82,7 @@ type idx struct {
 	primary, secondary string
 }
 
-const htmlClose = ">\n"
+const htmlClose = ">"
 
 // HtmlRenderer creates and configures an Html object, which
 // satisfies the Renderer interface.
@@ -304,6 +304,7 @@ func (options *html) HRule(out *bytes.Buffer) {
 	doubleSpace(out)
 	out.WriteString("<hr")
 	out.WriteString(options.closeTag)
+	out.WriteByte('\n')
 }
 
 func (options *html) CalloutCode(out *bytes.Buffer, index, id string) {
@@ -739,6 +740,7 @@ func (options *html) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 func (options *html) LineBreak(out *bytes.Buffer) {
 	out.WriteString("<br")
 	out.WriteString(options.closeTag)
+	out.WriteByte('\n')
 }
 
 func (options *html) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
