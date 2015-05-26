@@ -441,22 +441,22 @@ func TestInlineLink(t *testing.T) {
 		"<p>[foo]()</p>\n",
 
 		"![foo](/bar/)\n",
-		"<p><img src=\"/bar/\" alt=\"foo\" />\n</p>\n",
+		"<p><img src=\"/bar/\" alt=\"foo\" /></p>\n",
 
 		"![foo with a title](/bar/ \"title\")\n",
-		"<p><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\" />\n</p>\n",
+		"<p><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\" /></p>\n",
 
 		"![foo with a title](/bar/\t\"title\")\n",
-		"<p><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\" />\n</p>\n",
+		"<p><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\" /></p>\n",
 
 		"![foo with a title](/bar/ \"title\"  )\n",
-		"<p><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\" />\n</p>\n",
+		"<p><img src=\"/bar/\" alt=\"foo with a title\" title=\"title\" /></p>\n",
 
 		"![foo with a title](/bar/ title with no quotes)\n",
-		"<p><img src=\"/bar/ title with no quotes\" alt=\"foo with a title\" />\n</p>\n",
+		"<p><img src=\"/bar/ title with no quotes\" alt=\"foo with a title\" /></p>\n",
 
 		"![](img.jpg)\n",
-		"<p><img src=\"img.jpg\" alt=\"\" />\n</p>\n",
+		"<p><img src=\"img.jpg\" alt=\"\" /></p>\n",
 
 		"[link](url)\n",
 		"<p><a href=\"url\">link</a></p>\n",
@@ -501,7 +501,7 @@ func TestInlineLink(t *testing.T) {
 		"<p><a href=\"with whitespace\">link</a></p>\n",
 
 		"[![image](someimage)](with image)\n",
-		"<p><a href=\"with image\"><img src=\"someimage\" alt=\"image\" />\n</a></p>\n",
+		"<p><a href=\"with image\"><img src=\"someimage\" alt=\"image\" /></a></p>\n",
 
 		"[link](url \"one quote)\n",
 		"<p><a href=\"url &quot;one quote\">link</a></p>\n",

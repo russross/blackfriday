@@ -76,7 +76,7 @@ type HtmlRendererParameters struct {
 // Do not create this directly, instead use the HtmlRenderer function.
 type Html struct {
 	flags    int    // HTML_* options
-	closeTag string // how to end singleton tags: either " />\n" or ">\n"
+	closeTag string // how to end singleton tags: either " />" or ">"
 	title    string // document title
 	css      string // optional css file url (used with HTML_COMPLETE_PAGE)
 
@@ -95,8 +95,8 @@ type Html struct {
 }
 
 const (
-	xhtmlClose = " />\n"
-	htmlClose  = ">\n"
+	xhtmlClose = " />"
+	htmlClose  = ">"
 )
 
 // HtmlRenderer creates and configures an Html object, which
@@ -250,6 +250,7 @@ func (options *Html) HRule(out *bytes.Buffer) {
 	doubleSpace(out)
 	out.WriteString("<hr")
 	out.WriteString(options.closeTag)
+	out.WriteByte('\n')
 }
 
 func (options *Html) BlockCode(out *bytes.Buffer, text []byte, lang string) {
@@ -512,12 +513,12 @@ func (options *Html) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 
 	out.WriteByte('"')
 	out.WriteString(options.closeTag)
-	return
 }
 
 func (options *Html) LineBreak(out *bytes.Buffer) {
 	out.WriteString("<br")
 	out.WriteString(options.closeTag)
+	out.WriteByte('\n')
 }
 
 func (options *Html) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
