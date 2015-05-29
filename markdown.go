@@ -44,6 +44,7 @@ const (
 	EXTENSION_TITLEBLOCK                             // Titleblock ala pandoc
 	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text
 	EXTENSION_BACKSLASH_LINE_BREAK                   // translate trailing backslashes into line breaks
+	EXTENSION_DEFINITION_LISTS                       // render definition lists
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML |
@@ -59,7 +60,8 @@ const (
 		EXTENSION_STRIKETHROUGH |
 		EXTENSION_SPACE_HEADERS |
 		EXTENSION_HEADER_IDS |
-		EXTENSION_BACKSLASH_LINE_BREAK
+		EXTENSION_BACKSLASH_LINE_BREAK |
+		EXTENSION_DEFINITION_LISTS
 )
 
 // These are the possible flag values for the link renderer.
@@ -76,6 +78,8 @@ const (
 // These are mostly of interest if you are writing a new output format.
 const (
 	LIST_TYPE_ORDERED = 1 << iota
+	LIST_TYPE_DEFINITION
+	LIST_TYPE_TERM
 	LIST_ITEM_CONTAINS_BLOCK
 	LIST_ITEM_BEGINNING_OF_LIST
 	LIST_ITEM_END_OF_LIST
