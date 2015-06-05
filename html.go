@@ -42,6 +42,7 @@ const (
 	HTML_SMARTYPANTS_LATEX_DASHES              // enable LaTeX-style dashes (with HTML_USE_SMARTYPANTS)
 	HTML_SMARTYPANTS_ANGLED_QUOTES             // enable angled double quotes (with HTML_USE_SMARTYPANTS) for double quotes rendering
 	HTML_FOOTNOTE_RETURN_LINKS                 // generate a link at the end of a footnote to return to the source
+	HTML_ESCAPE_HTML                           // escape HTML code
 )
 
 var (
@@ -597,7 +598,11 @@ func (options *Html) RawHtmlTag(out *bytes.Buffer, text []byte) {
 	if options.flags&HTML_SKIP_IMAGES != 0 && isHtmlTag(text, "img") {
 		return
 	}
-	out.Write(text)
+	if options.flags&HTML_ESCAPE_HTML != 0 {
+		attrEscape(out, text)
+	} else {
+		out.Write(text)
+	}
 }
 
 func (options *Html) TripleEmphasis(out *bytes.Buffer, text []byte) {
