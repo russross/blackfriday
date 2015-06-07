@@ -820,6 +820,16 @@ func TestDefinitionList(t *testing.T) {
 			"<dd>Definition b</dd>\n" +
 			"</dl>\n",
 
+		"Term 1\n:   Definition a\n\nTerm 2\n:   Definition b\n\nTerm 3\n:   Definition c\n",
+		"<dl>\n" +
+			"<dt>Term 1</dt>\n" +
+			"<dd>Definition a</dd>\n" +
+			"<dt>Term 2</dt>\n" +
+			"<dd>Definition b</dd>\n" +
+			"<dt>Term 3</dt>\n" +
+			"<dd>Definition c</dd>\n" +
+			"</dl>\n",
+
 		"Term 1\n:   Definition a\n:   Definition b\n\nTerm 2\n:   Definition c\n",
 		"<dl>\n" +
 			"<dt>Term 1</dt>\n" +
@@ -877,6 +887,18 @@ func TestDefinitionList(t *testing.T) {
 			"<dd><p>Definition b</p></dd>\n" +
 			"</dl>\n" +
 			"\n<p>Text 1</p>\n",
+
+		"Term 1\n\n:   Definition a\n\nText 1\n\nTerm 2\n\n:   Definition b\n\nText 2",
+		"<dl>\n" +
+			"<dt>Term 1</dt>\n" +
+			"<dd><p>Definition a</p></dd>\n" +
+			"</dl>\n" +
+			"\n<p>Text 1</p>\n" +
+			"\n<dl>\n" +
+			"<dt>Term 2</dt>\n" +
+			"<dd><p>Definition b</p></dd>\n" +
+			"</dl>\n" +
+			"\n<p>Text 2</p>\n",
 	}
 	doTestsBlock(t, tests, EXTENSION_DEFINITION_LISTS)
 }
