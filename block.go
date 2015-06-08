@@ -1186,7 +1186,10 @@ gatherlines:
 				for data[next] != '\n' {
 					next++
 				}
-				if next < len(data)-2 && data[next+1] != ':' {
+				for next < len(data)-1 && data[next] == '\n' {
+					next++
+				}
+				if i < len(data)-1 && data[i] != ':' && data[next] != ':' {
 					*flags |= LIST_ITEM_END_OF_LIST
 				}
 			} else {
