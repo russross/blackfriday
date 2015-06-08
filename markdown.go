@@ -541,7 +541,7 @@ func isReference(p *parser, data []byte, tabSize int) int {
 	}
 	i++
 	if p.flags&EXTENSION_FOOTNOTES != 0 {
-		if data[i] == '^' {
+		if i < len(data) && data[i] == '^' {
 			// we can set it to anything here because the proper noteIds will
 			// be assigned later during the second pass. It just has to be != 0
 			noteId = 1
@@ -630,6 +630,9 @@ func scanLinkRef(p *parser, data []byte, i int) (linkOffset, linkEnd, titleOffse
 	linkOffset = i
 	for i < len(data) && data[i] != ' ' && data[i] != '\t' && data[i] != '\n' && data[i] != '\r' {
 		i++
+	}
+	if i == len(data) {
+		return
 	}
 	linkEnd = i
 	if data[linkOffset] == '<' && data[linkEnd-1] == '>' {
