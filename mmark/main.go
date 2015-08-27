@@ -46,8 +46,7 @@ func main() {
 			"\nAvailable at http://github.com/miekg/mmark\n\n"+
 			"Copyright © 2014 Miek Gieben <miek@miek.nl>\n"+
 			"Copyright © 2011 Russ Ross <russ@russross.com>\n"+
-			"Distributed under the Simplified BSD License\n"+
-			"See website for details\n\n"+
+			"Distributed under the Simplified BSD License\n\n"+
 			"Usage:\n"+
 			"  %s [options] [inputfile [outputfile]]\n\n"+
 			"Options:\n",
