@@ -1048,13 +1048,13 @@ func TestCitationXML(t *testing.T) {
 		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t>\n\n</t>\n\n</middle>\n<back>\n<references>\n<name>Informative References</name>\n<xi:include href=\"http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.3024.xml\"/>\n</references>\n\n</back>\n</rfc>\n",
 
 		"[@?I-D.6man-udpzero]",
-		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t>\n<xref target=\"I-D.6man-udpzero\"/>\n</t>\n\n</middle>\n<back>\n<references>\n<name>Informative References</name>\n<xi:include href=\"http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-6man-udpzero.xml\"/>\n</references>\n\n</back>\n</rfc>\n",
+		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t>\n<xref target=\"I-D.6man-udpzero\"/>\n</t>\n\n</middle>\n<back>\n<references>\n<name>Informative References</name>\n<xi:include href=\"http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.6man-udpzero.xml\"/>\n</references>\n\n</back>\n</rfc>\n",
 
 		"[@?I-D.6man-udpzero#06]",
 		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t>\n<xref target=\"I-D.6man-udpzero\"/>\n</t>\n\n</middle>\n<back>\n<references>\n<name>Informative References</name>\n<xi:include href=\"http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-6man-udpzero-06.xml\"/>\n</references>\n\n</back>\n</rfc>\n",
 
 		"[@?I-D.6man-udpzero p. 23]",
-		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t>\n<xref target=\"I-D.6man-udpzero\" section=\"p. 23\"/>\n</t>\n\n</middle>\n<back>\n<references>\n<name>Informative References</name>\n<xi:include href=\"http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-6man-udpzero.xml\"/>\n</references>\n\n</back>\n</rfc>\n",
+		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t>\n<xref target=\"I-D.6man-udpzero\" section=\"p. 23\"/>\n</t>\n\n</middle>\n<back>\n<references>\n<name>Informative References</name>\n<xi:include href=\"http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.6man-udpzero.xml\"/>\n</references>\n\n</back>\n</rfc>\n",
 
 		"[@RFC2525], as you can see from @RFC2525, as @miekg says",
 		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t>\n<xref target=\"RFC2525\"/>, as you can see from <xref target=\"RFC2525\"/>, as @miekg says\n</t>\n\n</middle>\n<back>\n<references>\n<name>Informative References</name>\n<xi:include href=\"http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2525.xml\"/>\n</references>\n\n</back>\n</rfc>\n",

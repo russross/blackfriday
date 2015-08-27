@@ -228,6 +228,9 @@ implements the following extensions:
     you can include the raw XML in the document (before the `{backmatter}`).
     Also see **XML references**.
 
+    If you reference an I-D without a sequence number it will create a reference
+    to the *last* I-D in citation index.
+
     Once a citation has been defined (i.e. the reference anchor is known to mmark)
     you can use @RFC2535 is a shortcut for the citation.
 

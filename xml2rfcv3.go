@@ -4,7 +4,6 @@ package mmark
 
 import (
 	"bytes"
-	"fmt"
 	"strconv"
 	"time"
 )
@@ -504,24 +503,6 @@ func (options *xml) References(out *bytes.Buffer, citations map[string]*citation
 			out.WriteString("</references>\n")
 		}
 	}
-}
-
-// create reference file
-func referenceFile(c *citation) string {
-	if len(c.link) < 4 {
-		return ""
-	}
-	switch string(c.link[:3]) {
-	case "RFC":
-		return CitationsRFC + "reference.RFC." + string(c.link[3:]) + ".xml"
-	case "I-D":
-		seq := ""
-		if c.seq != -1 {
-			seq = "-" + fmt.Sprintf("%02d", c.seq)
-		}
-		return CitationsID + "reference.I-D.draft-" + string(c.link[4:]) + seq + ".xml"
-	}
-	return ""
 }
 
 func (options *xml) AutoLink(out *bytes.Buffer, link []byte, kind int) {

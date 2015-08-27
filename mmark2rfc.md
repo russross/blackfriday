@@ -79,7 +79,7 @@ v2:
 :   Refers to XML2RFC version 2 [@!RFC2926] output created by mmark.
 
 v3:
-:   Refers  to XML2RFC version 2 [@!I-D.hoffman-xml2rfc#15] output created by mmark.
+:   Refers  to XML2RFC version 2 [@!I-D.hoffman-xml2rfc#21] output created by mmark.
 
 
 # Mmark Syntax
