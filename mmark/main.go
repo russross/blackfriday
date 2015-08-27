@@ -28,12 +28,17 @@ func main() {
 	var page, xml, xml2, commonmark bool
 	var css, head, cpuprofile string
 	var repeat int
+
 	flag.BoolVar(&page, "page", false, "generate a standalone HTML page")
 	flag.BoolVar(&xml, "xml", false, "generate XML2RFC v3 output")
 	flag.BoolVar(&xml2, "xml2", false, "generate XML2RFC v2 output")
 	flag.BoolVar(&commonmark, "commonmark", false, "input is commonmark")
 	flag.StringVar(&css, "css", "", "link to a CSS stylesheet (implies -page)")
 	flag.StringVar(&head, "head", "", "link to HTML to be included in head (implies -page)")
+
+	flag.StringVar(&mmark.CitationsID, "bib-id",mmark.CitationsID , "ID bibliography URL")
+	flag.StringVar(&mmark.CitationsRFC, "bib-rfc", mmark.CitationsRFC, "RFC bibliography URL")
+
 	flag.StringVar(&cpuprofile, "cpuprofile", "", "write cpu profile to a file")
 	flag.IntVar(&repeat, "repeat", 1, "process the input multiple times (for benchmarking)")
 	flag.Usage = func() {

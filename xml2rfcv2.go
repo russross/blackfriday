@@ -16,8 +16,6 @@ const (
 	XML2_STANDALONE = 1 << iota // create standalone document
 )
 
-// <meta name="GENERATOR" content="Blackfriday Markdown Processor v1.0" />
-
 // Xml2 is a type that implements the Renderer interface for XML2RFV3 output.
 //
 // Do not create this directly, instead use the Xml2Renderer function.
@@ -39,7 +37,7 @@ type xml2 struct {
 	group map[string]int
 }
 
-// Xml2Renderer creates and configures a Xml object, which
+// Xml2Renderer creates and configures a Xml2 object, which
 // satisfies the Renderer interface.
 //
 // flags is a set of XML2_* options ORed together

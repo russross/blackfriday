@@ -27,14 +27,6 @@ var words2119 = map[string]bool{
 	"OPTIONAL":    true,
 }
 
-// Make a flag for it
-var (
-	citationsID  = "http://xml.resource.org/public/rfc/bibxml3/"
-	citationsRFC = "http://xml.resource.org/public/rfc/bibxml/"
-)
-
-// ... more ...
-
 // Xml is a type that implements the Renderer interface for XML2RFV3 output.
 //
 // Do not create this directly, instead use the XmlRenderer function.
@@ -521,13 +513,13 @@ func referenceFile(c *citation) string {
 	}
 	switch string(c.link[:3]) {
 	case "RFC":
-		return citationsRFC + "reference.RFC." + string(c.link[3:]) + ".xml"
+		return CitationsRFC + "reference.RFC." + string(c.link[3:]) + ".xml"
 	case "I-D":
 		seq := ""
 		if c.seq != -1 {
 			seq = "-" + fmt.Sprintf("%02d", c.seq)
 		}
-		return citationsID + "reference.I-D.draft-" + string(c.link[4:]) + seq + ".xml"
+		return CitationsID + "reference.I-D.draft-" + string(c.link[4:]) + seq + ".xml"
 	}
 	return ""
 }
