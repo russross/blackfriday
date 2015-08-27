@@ -9,7 +9,7 @@ Mmark is a fork of blackfriday which is a [Markdown][1] processor implemented in
 [Go][2]. It supports a number of extensions, inspired by Leanpub, kramdown and
 Asciidoc, that allows for large documents to be written. It is specifically
 designed to write internet drafts and RFCs for the IETF. With mmark you can create
-a single file that serves as input into the XML2RFC processor. But is also allows
+a single file that serves as input into the XML2RFC processor. But it also allows
 for writing large documents such as technical books.
 
 My [Learning Go book](https://github.com/miekg/learninggo) is written in mmark and sample
@@ -77,7 +77,9 @@ Making a draft in text form:
 
 Outputing v3 xml is done with the `-xml` switch. There is not yet
 a processor for this XML, but you should be able to validate the
-resulting XML against the schema from the XML2RFC v3 draft.
+resulting XML against the schema from the XML2RFC v3 draft. I'm trying
+to stay current with the latest draft for the V3 spec:
+<https://tools.ietf.org/html/draft-hoffman-xml2rfc-21>
 
 # Extensions
 
@@ -155,7 +157,7 @@ implements the following extensions:
     You can use 3 or more backticks to mark the beginning of the
     block, and the same number to mark the end of the block.
 
-*   **Autolinking**. Blackfriday can find URLs that have not been
+*   **Autolinking**. Mmark can find URLs that have not been
     explicitly marked as links and turn them into links.
 
 *   **Strikethrough**. Use two tildes (`~~`) to mark text that
