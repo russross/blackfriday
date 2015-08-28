@@ -227,6 +227,7 @@ implements the following extensions:
     citation can either be informative (default) or normative, this can be indicated
     by using the `?` or `!` modifer: `[@!RFC2535]`. Use `[-@RFC1000]` to add the
     cication to the references, but suppress the output in the document.
+    The last modifier seen determines the final type.
 
     If you reference an RFC or I-D the reference will be contructed
     automatically. For I-Ds you may need to add a draft sequence number, which
