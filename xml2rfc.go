@@ -1,6 +1,9 @@
 package mmark
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+)
 
 // xml2rfc.go contains common code and variables that is shared
 // between xml2rfcv[23].go.
@@ -41,4 +44,62 @@ func referenceFile(c *citation) string {
 		return CitationsID + referenceIDLatest + string(c.link[4:]) + ext
 	}
 	return ""
+}
+
+var entityConvert = map[byte][]byte{
+	'<': []byte("&lt;"),
+	'>': []byte("&gt;"),
+	'&': []byte("&amp;"),
+	//	'\'': []byte("&apos;"),
+	//	'"': []byte("&quot;"),
+}
+
+func writeEntity(out *bytes.Buffer, text []byte) {
+	for i := 0; i < len(text); i++ {
+		if s, ok := entityConvert[text[i]]; ok {
+			out.Write(s)
+			continue
+		}
+		out.WriteByte(text[i])
+	}
+}
+
+// sanitizeXML strips XML from a string.
+func sanitizeXML(s []byte) []byte {
+	inTag := false
+	j := 0
+	for i := 0; i < len(s); i++ {
+		if s[i] == '<' {
+			inTag = true
+			continue
+		}
+		if s[i] == '>' {
+			inTag = false
+			continue
+		}
+		if !inTag {
+			s[j] = s[i]
+			j++
+		}
+	}
+	return s[:j]
+}
+
+// writeSanitizeXML strips XML from a string and writes
+// to out.
+func writeSanitizeXML(out *bytes.Buffer, s []byte) {
+	inTag := false
+	for i := 0; i < len(s); i++ {
+		if s[i] == '<' {
+			inTag = true
+			continue
+		}
+		if s[i] == '>' {
+			inTag = false
+			continue
+		}
+		if !inTag {
+			out.WriteByte(s[i])
+		}
+	}
 }
