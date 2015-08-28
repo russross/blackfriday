@@ -87,7 +87,7 @@ v3:
 In the following sections we go over some of the differences, and the extra syntax features of mmark.
 
 Note that there are no wrong markdown documents, but once converted to XML may lead to
-an invalid doc, case in point: having a table in a list and converting to v2.
+an invalid document. Case in point: having a table in a list and converting to v2.
 
 # TOML header
 
