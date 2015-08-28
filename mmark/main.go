@@ -16,7 +16,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"runtime/pprof"
 
 	"github.com/miekg/mmark"
 )
@@ -26,8 +25,7 @@ const DEFAULT_TITLE = ""
 func main() {
 	// parse command-line options
 	var page, xml, xml2, commonmark bool
-	var css, head, cpuprofile string
-	var repeat int
+	var css, head string
 
 	flag.BoolVar(&page, "page", false, "generate a standalone HTML page")
 	flag.BoolVar(&xml, "xml", false, "generate XML2RFC v3 output")
@@ -36,11 +34,9 @@ func main() {
 	flag.StringVar(&css, "css", "", "link to a CSS stylesheet (implies -page)")
 	flag.StringVar(&head, "head", "", "link to HTML to be included in head (implies -page)")
 
-	flag.StringVar(&mmark.CitationsID, "bib-id",mmark.CitationsID , "ID bibliography URL")
+	flag.StringVar(&mmark.CitationsID, "bib-id", mmark.CitationsID, "ID bibliography URL")
 	flag.StringVar(&mmark.CitationsRFC, "bib-rfc", mmark.CitationsRFC, "RFC bibliography URL")
 
-	flag.StringVar(&cpuprofile, "cpuprofile", "", "write cpu profile to a file")
-	flag.IntVar(&repeat, "repeat", 1, "process the input multiple times (for benchmarking)")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Mmark Markdown Processor v"+mmark.VERSION+
 			"\nAvailable at http://github.com/miekg/mmark\n\n"+
@@ -61,16 +57,6 @@ func main() {
 	}
 	if head != "" {
 		page = true
-	}
-
-	// turn on profiling?
-	if cpuprofile != "" {
-		f, err := os.Create(cpuprofile)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-		}
-		pprof.StartCPUProfile(f)
-		defer pprof.StopCPUProfile()
 	}
 
 	// read the input
@@ -138,11 +124,7 @@ func main() {
 	}
 
 	// parse and render
-	var output []byte
-	for i := 0; i < repeat; i++ {
-		// TODO(miek): io.Copy
-		output = mmark.Parse(input, renderer, extensions).Bytes()
-	}
+	output := mmark.Parse(input, renderer, extensions).Bytes()
 
 	// output the result
 	var out *os.File
