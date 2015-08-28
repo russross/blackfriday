@@ -3,6 +3,11 @@
 
 Everything that was true of [blackfriday][5], might not be true for mmark anymore.
 
+Write RFCs using wiki-style markup ('mmark markdown') Mmark (written in Go)
+provides an advanced markdown dialect that processes a single file to produce
+internet-drafts in XML format. Internet-drafts written in mmark can produce
+XML2RFC v2 *and* XML2RFC v3 output.
+
 # Mmark
 
 Mmark is a fork of blackfriday which is a [Markdown][1] processor implemented in
@@ -13,10 +18,10 @@ a single file that serves as input into the XML2RFC processor.
 
 It also allows for writing large documents such as technical books, like my
 [Learning Go book](https://github.com/miekg/learninggo).
-
-Sample text output (when rendered as an I-D) can
+Sample text output of this book (when rendered as an I-D) can
 [be found here](https://gist.githubusercontent.com/miekg/0251f3e28652fa603a51/raw/7e0a7028506f7d2948e4ad3091f533711bf5f2a4/learninggo.txt).
-It is not perfect due to limitations in xml2rfc version 2.
+It is not perfect due to limitations in xml2rfc version 2. Fully rendered
+HTML version [can be found here](http://miek.nl/go).
 
 See `mmark2rfc.md` as an example I-D for how to use mmark.
 
