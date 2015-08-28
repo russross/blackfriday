@@ -8,19 +8,20 @@ Everything that was true of [blackfriday][5], might not be true for mmark anymor
 Mmark is a fork of blackfriday which is a [Markdown][1] processor implemented in
 [Go][2]. It supports a number of extensions, inspired by Leanpub, kramdown and
 Asciidoc, that allows for large documents to be written. It is specifically
-designed to write internet drafts and RFCs for the IETF. With mmark you can create
-a single file that serves as input into the XML2RFC processor. But it also allows
-for writing large documents such as technical books.
+designed to write internet drafts (I-Ds) and RFCs for the IETF. With mmark you can create
+a single file that serves as input into the XML2RFC processor.
+
+It also allows for writing large documents such as technical books, like my
+[Learning Go book](https://github.com/miekg/learninggo).
+
+Sample text output (when rendered as an I-D) can
+[be found here](https://gist.githubusercontent.com/miekg/0251f3e28652fa603a51/raw/7e0a7028506f7d2948e4ad3091f533711bf5f2a4/learninggo.txt).
+It is not perfect due to limitations in xml2rfc version 2.
 
 See `mmark2rfc.md` as an example I-D for how to use mmark.
 
-My [Learning Go book](https://github.com/miekg/learninggo) is written in mmark and sample
-xml2rfc output
-[be found here](https://gist.githubusercontent.com/miekg/0251f3e28652fa603a51/raw/7e0a7028506f7d2948e4ad3091f533711bf5f2a4/learninggo.txt). (It is not perfect due
-to limitations in xml2rfc v2).
-
 It can currently output HTML5, XML2RFC v2 and XML2RFC v3 XML. Other output
-engines could be easily added.
+engines could be added.
 
 It adds the following syntax elements to [black friday](https://github.com/russross/blackfriday/blob/master/README.md):
 
@@ -167,7 +168,7 @@ implements the following extensions:
 
 *   **Short References**. Internal references use the syntax `[](#id)`,
     usually the need for the title within the brackets is not needed,
-    so mmark has the shorter syntax (#id) to cross reference in the
+    so mmark has the shorter syntax `(#id)` to cross reference in the
     document.
 
 *   **Hard line breaks**. With this extension enabled
@@ -262,8 +263,8 @@ implements the following extensions:
         > Ability is nothing without opportunity.
         Quote: Napoleon Bonaparte -- http://example.com
 
-*  **Abstracts**, use the special header `.# Abstract`. Note that the header name, when lowercased,
-   must match 'abstract'.
+*  **Abstracts**, use the special header `.# Abstract`. Note that the header
+   name, when lowercased, must match 'abstract'.
 
 *  **Notes**, any parapgraph prefixed with `N>` .
 
@@ -306,8 +307,8 @@ implements the following extensions:
 *  **Unique anchors**, make anchors unique by adding sequence numbers (-1, -2, etc.) to them.
     All numeric section get an anchor prefixed with `section-`.
 
-*  **Example lists**, a list that is started with `(@good)` is subsequently numbered throughout
-    the document. First use is rendered `(1)`, the second one `(2)` and so on. You can reference
+*  **Example lists**, a list that is started with `(@good)` is subsequently numbered
+i  throughout the document. First use is rendered `(1)`, the second one `(2)` and so on. You can reference
     the last item of the list with `(@good)`.
 
 *  **HTML comments** An HTML comment in the form of `<!-- Miek Gieben -- really

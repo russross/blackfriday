@@ -284,13 +284,24 @@ terms and definition syntax is *not* supported.
 This is the example list syntax
 [from pandoc](http://johnmacfarlane.net/pandoc/README.html#extension-example_lists). References
 to example lists work as well. Note that an example list always needs to have an identifier,
-`(@good)` works, `(@)` does not.
+`(@good)` works, `(@)` does not. You start an example list when the indentifier
+is the first word on a line.
 
 Example:
 
-    @good)  This is a good example.
+    (@good)  This is a good example.
 
     As (@good) illustrates, ...
+
+    (@good)  Another example.
+
+Outputs:
+
+(@good)  This is a good example.
+
+As (@good)  illustrates, ...
+
+(@good)  Another example.
 
 # Figures and Images
 
@@ -602,4 +613,3 @@ Multiple paragraphs in a list:
 [pandoc]: http://johnmacfarlane.net/pandoc/
 [CommonMark]: http://commonmark.org/
 [Scholarly markdown]: http://scholarlymarkdown.com/Scholarly-Markdown-Guide.html
-
