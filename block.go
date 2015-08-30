@@ -295,6 +295,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			data = data[p.list(out, data, _LIST_TYPE_ORDERED|_LIST_TYPE_ORDERED_GROUP, 0, group):]
 			continue
 		}
+
 		// anything else must look like a normal paragraph
 		// note: this finds underlined headers, too
 		data = data[p.paragraph(out, data):]
@@ -960,6 +961,7 @@ func (p *parser) isEmpty(data []byte) int {
 			return 0
 		}
 	}
+
 	return i + 1
 }
 
