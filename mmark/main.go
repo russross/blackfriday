@@ -15,6 +15,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 
 	"github.com/miekg/mmark"
@@ -66,17 +67,15 @@ func main() {
 	switch len(args) {
 	case 0:
 		if input, err = ioutil.ReadAll(os.Stdin); err != nil {
-			fmt.Fprintln(os.Stderr, "error reading from Stdin:", err)
-			os.Exit(-1)
+			log.Fatalf("error reading from Stdin:", err)
 		}
 	case 1, 2:
 		if input, err = ioutil.ReadFile(args[0]); err != nil {
-			fmt.Fprintln(os.Stderr, "error reading from", args[0], ":", err)
-			os.Exit(-1)
+			log.Fatalf("error reading from", args[0], ":", err)
 		}
 	default:
 		flag.Usage()
-		os.Exit(-1)
+		return
 	}
 
 	// set up options
@@ -127,19 +126,15 @@ func main() {
 	output := mmark.Parse(input, renderer, extensions).Bytes()
 
 	// output the result
-	var out *os.File
+	out := os.Stdout
 	if len(args) == 2 {
 		if out, err = os.Create(args[1]); err != nil {
-			fmt.Fprintf(os.Stderr, "error creating %s: %v", args[1], err)
-			os.Exit(-1)
+			log.Fatalf("error creating %s: %v", args[1], err)
 		}
 		defer out.Close()
-	} else {
-		out = os.Stdout
 	}
 
 	if _, err = out.Write(output); err != nil {
-		fmt.Fprintln(os.Stderr, "error writing output:", err)
-		os.Exit(-1)
+		log.Fatalf("error writing output:", err)
 	}
 }
