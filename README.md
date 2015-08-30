@@ -3,10 +3,9 @@
 
 Everything that was true of [blackfriday][5], might not be true for mmark anymore.
 
-Write RFCs using wiki-style markup ('mmark markdown') Mmark (written in Go)
-provides an advanced markdown dialect that processes a single file to produce
-internet-drafts in XML format. Internet-drafts written in mmark can produce
-XML2RFC v2 *and* XML2RFC v3 output.
+Write RFCs using markdown, mmark (written in Go) provides an advanced markdown
+dialect that processes a single file to produce internet-drafts in XML format.
+Internet-drafts written in mmark can produce XML2RFC v2 *and* XML2RFC v3 output.
 
 # Mmark
 
