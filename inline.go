@@ -379,17 +379,14 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		if c, ok := p.citations[string(id)]; !ok {
 			p.citations[string(id)] = &citation{link: id, title: title, typ: typ, seq: seq}
 		} else {
-			if c.link != nil {
-				c.link = id
-			}
-			if c.title != nil {
-				c.title = title
-			}
-			if c.seq == -1 && seq != -1 {
-				c.seq = seq
-			}
-			if c.typ == 0 {
+			switch c.typ {
+			case 0:
 				c.typ = typ
+			case 'i':
+				if typ == 'n' {
+					p.Printf("upgrading citation `%s' from informative to normative", string(id))
+					c.typ = typ
+				}
 			}
 		}
 

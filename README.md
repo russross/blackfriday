@@ -228,7 +228,8 @@ implements the following extensions:
     by using the `?` or `!` modifer: `[@!RFC2535]`. Use `[-@RFC1000]` to add the
     cication to the references, but suppress the output in the document.
     The highest modifier seen determines the final type, i.e. once a citation is
-    declared normative it will stay normative.
+    declared normative it will stay normative, but informative will be upgraded
+    to normative.
 
     If you reference an RFC or I-D the reference will be contructed
     automatically. For I-Ds you may need to add a draft sequence number, which

@@ -263,6 +263,8 @@ type parser struct {
 	insideFigure         bool // when inside a F> paragraph
 	displayMath          bool
 
+	lineNumber		int // Current line in the file we are processing
+
 	// Footnotes need to be ordered as well as available to quickly check for
 	// presence. If a ref is also a footnote, it's stored both in refs and here
 	// in notes. Slice is nil if footnotes not enabled.
