@@ -1058,6 +1058,12 @@ func TestCitationXML(t *testing.T) {
 
 		"[@RFC2525], as you can see from @RFC2525, as @miekg says",
 		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t>\n<xref target=\"RFC2525\"/>, as you can see from <xref target=\"RFC2525\"/>, as @miekg says\n</t>\n\n</middle>\n<back>\n<references>\n<name>Informative References</name>\n<xi:include href=\"http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2525.xml\"/>\n</references>\n\n</back>\n</rfc>\n",
+
+		"[@?RFC2525], as you can see from [@!RFC2525]",
+		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t>\n<xref target=\"RFC2525\"/>, as you can see from <xref target=\"RFC2525\"/>\n</t>\n\n</middle>\n<back>\n<references>\n<name>Normative References</name>\n<xi:include href=\"http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2525.xml\"/>\n</references>\n\n</back>\n</rfc>\n",
+
+		"[@!RFC2525], as you can see from [@?RFC2525]",
+		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t>\n<xref target=\"RFC2525\"/>, as you can see from <xref target=\"RFC2525\"/>\n</t>\n\n</middle>\n<back>\n<references>\n<name>Normative References</name>\n<xi:include href=\"http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2525.xml\"/>\n</references>\n\n</back>\n</rfc>\n",
 	}
 	doTestsInlineParamXML(t, tests, 0, XML_STANDALONE)
 }
