@@ -384,7 +384,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 				c.typ = typ
 			case 'i':
 				if typ == 'n' {
-					p.Printf("upgrading citation `%s' from informative to normative", string(id))
+					Printf(p, "upgrading citation `%s' from informative to normative", string(id))
 					c.typ = typ
 				}
 			}

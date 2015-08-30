@@ -4,6 +4,10 @@ package mmark
 
 import "log"
 
-func (p *parser) Printf(format string, v ...interface{}) {
-	log.Printf("%s: line %d: " + format, "mmark", p.lineNumber, v)
+func Printf(p *parser, format string, v ...interface{}) {
+	if p != nil {
+		log.Printf("%s: line %d: "+format, "mmark", p.lineNumber, v)
+		return
+	}
+	log.Printf("%s: "+format, "mmark", v)
 }

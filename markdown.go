@@ -8,7 +8,6 @@ package mmark
 import (
 	"bytes"
 	"io/ioutil"
-	"log"
 	"path"
 	"unicode"
 	"unicode/utf8"
@@ -263,7 +262,7 @@ type parser struct {
 	insideFigure         bool // when inside a F> paragraph
 	displayMath          bool
 
-	lineNumber		int // Current line in the file we are processing
+	lineNumber int // Current line in the file we are processing
 
 	// Footnotes need to be ordered as well as available to quickly check for
 	// presence. If a ref is also a footnote, it's stored both in refs and here
@@ -388,7 +387,7 @@ func Parse(input []byte, renderer Renderer, extensions int) *bytes.Buffer {
 func firstPass(p *parser, input []byte, depth int) *bytes.Buffer {
 	var out bytes.Buffer
 	if depth > 8 {
-		log.Printf("mmark: nested includes depth > 8")
+		Printf(p, "nested includes depth > 8")
 		out.WriteByte('\n')
 		return &out
 	}
@@ -903,7 +902,7 @@ func (p *parser) include(out *bytes.Buffer, data []byte, depth int) int {
 	name := string(data[i+2 : end-2])
 	input, err := ioutil.ReadFile(name)
 	if err != nil {
-		log.Printf("mmark: failed: `%s': %s", name, err)
+		Printf(p, "failed: `%s': %s", name, err)
 		return end
 	}
 

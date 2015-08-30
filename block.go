@@ -14,7 +14,7 @@ import (
 // the input buffer ends with a newline.
 func (p *parser) block(out *bytes.Buffer, data []byte) {
 	if len(data) == 0 || data[len(data)-1] != '\n' {
-		panic("block input is missing terminating newline")
+		panic("mmark: block input is missing terminating newline")
 	}
 
 	// this is called recursively: enforce a maximum depth

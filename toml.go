@@ -2,7 +2,6 @@ package mmark
 
 import (
 	"bytes"
-	"log"
 	"time"
 
 	"github.com/BurntSushi/toml"
@@ -56,7 +55,7 @@ func (p *parser) titleBlockTOML(out *bytes.Buffer, data []byte) title {
 	data = bytes.Replace(data, []byte("\n%"), []byte("\n"), -1)
 	var block title
 	if _, err := toml.Decode(string(data), &block); err != nil {
-		log.Printf("mmark: TOML titleblock: %s", err.Error())
+		Printf(p, "error in TOML titleblock: %s", err.Error())
 		return block // never an error when encoding markdown
 	}
 	return block

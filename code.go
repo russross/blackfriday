@@ -11,7 +11,6 @@ import (
 	"bytes"
 	"errors"
 	"io/ioutil"
-	"log"
 	"regexp"
 	"strconv"
 	"unicode/utf8"
@@ -47,13 +46,13 @@ func parseCode(addr []byte, file []byte) []byte {
 
 	textBytes, err := ioutil.ReadFile(string(file))
 	if err != nil {
-		log.Printf("mmark: failed: `%s': %s", string(file), err)
+		Printf(nil, "failed: `%s': %s", string(file), err)
 		return nil
 	}
 
 	lo, hi, err := addrToByteRange(string(addr), 0, textBytes)
 	if err != nil {
-		log.Printf("mmark: code include address: %s", err.Error())
+		Printf(nil, "code include address: %s", err.Error())
 		return textBytes
 	}
 
