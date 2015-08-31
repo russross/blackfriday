@@ -591,7 +591,7 @@ Multiple paragraphs in a list:
 *  Citations must be included in the text before the `{backmatter}` starts.
    otherwise they are not available in the appendix.
 *  Inline Attribute Lists must be given *before* the block element.
-*  Mmark cannot correctly parse @RFC728 markdown.
+*  Mmark cannot correctly parse @RFC7328 markdown.
 *  Multiple terms and definitions are not supported in definition lists.
 *  Mmark uses two scans when converting a document and does not build an
    internal AST of the document, this means it can not adhere 100% to the

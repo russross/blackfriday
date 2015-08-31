@@ -16,10 +16,10 @@ draft3:	mmark2rfc3.xml mmark/mmark
 mmark2rfc3.xml: mmark2rfc.md mmark/mmark
 	./mmark/mmark -xml -page mmark2rfc.md > mmark2rfc3.xml
 
-.PHONY:
+.PHONY: clean
 clean:
 	rm -f mmark2rfc2.xml mmark2rfc3.xml mmark2rfc2.txt x.xml
 
-.PHONY:
+.PHONY: validate
 validate: mmark2rfc3.xml
 	xmllint --xinclude mmark2rfc3.xml | jing -c xml2rfcv3.rnc /dev/stdin
