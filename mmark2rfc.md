@@ -598,14 +598,6 @@ Multiple paragraphs in a list:
    [CommonMark] specification, however the CommonMark test suite is used when
    developing mmark. Currently mmark passes ~60% of the tests.
 
-# Changes
-
-## xx
-
-* Abstract are designated using a special header `.# Abstract`
-* Removed exercises and answers, this needs a better syntax.
-* Add math `$$`.
-
 [kramdown]: http://http://kramdown.gettalong.org/
 [leanpub]: https://leanpub.com/help/manual
 [asciidoc]: http://www.methods.co.nz/asciidoc/
