@@ -114,6 +114,7 @@ func htmlRendererWithParameters(flags int, css, head string, renderParameters Ht
 		toc:          new(bytes.Buffer),
 
 		index: make(map[idx][]string),
+		group: make(map[string]int),
 	}
 }
 
