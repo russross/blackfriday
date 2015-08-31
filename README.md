@@ -382,11 +382,6 @@ i  throughout the document. First use is rendered `(1)`, the second one `(2)` an
     The allowed comment patterns are `//`, `#` and `;`.
 
 
-# Todo
-
-*   Create website where you can type can convert mmark markdown?
-
-
 # License
 
 Mmark is a fork of blackfriday, hence is shares it's license.

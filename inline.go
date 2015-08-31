@@ -375,7 +375,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			}
 
 		}
-		// we might be liberal and check which item we got and update if we see new ones.
+
 		if c, ok := p.citations[string(id)]; !ok {
 			p.citations[string(id)] = &citation{link: id, title: title, typ: typ, seq: seq}
 		} else {
@@ -1610,6 +1610,7 @@ func citationReference(p *parser, out *bytes.Buffer, data []byte, offset int) in
 		p.r.Citation(out, data[1:i], c.title)
 		return i
 	}
+	Printf(nil, "handling `%s' as normal text", string(data[:i]))
 	return 0
 }
 
