@@ -10,8 +10,7 @@ import (
 
 var (
 	// URLs where we can find the references for IDs and RFCs.
-	// These have been know to change. These are the current ones.
-	// (2015-08-27).
+	// These have been known to change, these are the current ones (2015-08-27).
 	CitationsID  = "http://xml2rfc.ietf.org/public/rfc/bibxml3/"
 	CitationsRFC = "http://xml2rfc.ietf.org/public/rfc/bibxml/"
 )

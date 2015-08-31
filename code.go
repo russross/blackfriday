@@ -16,7 +16,9 @@ import (
 	"unicode/utf8"
 )
 
-var codes = map[string]bool{
+// SourceCodeTypes are the different languages that are supported as
+// a type attribute in sourcecode, see Section 2.48.4 of XML2RFC v3 (-21).
+var SourceCodeTypes = map[string]bool{
 	// from the draft
 	"abnf":       true,
 	"asn.1":      true,
@@ -36,8 +38,6 @@ var codes = map[string]bool{
 	"xml":        true,
 	// from common sense
 	"go": true,
-	"py": true,
-	// TODO(miek): function to extend this
 }
 
 // parseCode parses a code address directive.
@@ -46,13 +46,13 @@ func parseCode(addr []byte, file []byte) []byte {
 
 	textBytes, err := ioutil.ReadFile(string(file))
 	if err != nil {
-		Printf(nil, "failed: `%s': %s", string(file), err)
+		printf(nil, "failed: `%s': %s", string(file), err)
 		return nil
 	}
 
 	lo, hi, err := addrToByteRange(string(addr), 0, textBytes)
 	if err != nil {
-		Printf(nil, "code include address: %s", err.Error())
+		printf(nil, "code include address: %s", err.Error())
 		return textBytes
 	}
 

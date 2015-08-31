@@ -256,7 +256,7 @@ func (options *xml2) Part(out *bytes.Buffer, text func() bool, id string) {}
 
 func (options *xml2) SpecialHeader(out *bytes.Buffer, what []byte, text func() bool, id string) {
 	if string(what) == "preface" {
-		Printf(nil, "handling preface like abstract")
+		printf(nil, "handling preface like abstract")
 		what = []byte("abstract")
 	}
 	level := 1
@@ -282,7 +282,7 @@ func (options *xml2) Header(out *bytes.Buffer, text func() bool, level int, id s
 	}
 
 	if level > options.sectionLevel+1 {
-		Printf(nil, "section jump from H%d to H%d, id: \"%s\"", options.sectionLevel, level, id)
+		printf(nil, "section jump from H%d to H%d, id: \"%s\"", options.sectionLevel, level, id)
 	}
 
 	if level <= options.sectionLevel {

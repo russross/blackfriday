@@ -13,7 +13,7 @@ import (
 	"unicode/utf8"
 )
 
-const VERSION = "1.0"
+const version = "1.0"
 
 // These are the supported markdown parsing extensions.
 // OR these values together to select multiple extensions.
@@ -167,7 +167,7 @@ var blockTags = map[string]bool{
 // If the callback returns false, the rendering function should reset the
 // output buffer as though it had never been called.
 //
-// Currently Html, XML2RFCv3 and XML2RFC v2 implementations are provided.
+// Currently Html, XML2RFC v3 and XML2RFC v2 implementations are provided.
 type Renderer interface {
 	// block-level callbacks
 	BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool, callouts bool)
@@ -385,7 +385,7 @@ func Parse(input []byte, renderer Renderer, extensions int) *bytes.Buffer {
 func firstPass(p *parser, input []byte, depth int) *bytes.Buffer {
 	var out bytes.Buffer
 	if depth > 8 {
-		Printf(p, "nested includes depth > 8")
+		printf(p, "nested includes depth > 8")
 		out.WriteByte('\n')
 		return &out
 	}
@@ -900,7 +900,7 @@ func (p *parser) include(out *bytes.Buffer, data []byte, depth int) int {
 	name := string(data[i+2 : end-2])
 	input, err := ioutil.ReadFile(name)
 	if err != nil {
-		Printf(p, "failed: `%s': %s", name, err)
+		printf(p, "failed: `%s': %s", name, err)
 		return end
 	}
 
@@ -950,7 +950,7 @@ func (p *parser) codeInclude(out *bytes.Buffer, data []byte) int {
 	// language we use it as the lang (and we will emit <sourcecode>)
 	if x := path.Ext(string(filename)); x != "" {
 		// x includes the dot
-		if _, ok := codes[x[1:]]; ok {
+		if _, ok := SourceCodeTypes[x[1:]]; ok {
 			lang = x[1:]
 		}
 	}

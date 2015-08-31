@@ -38,7 +38,7 @@ func main() {
 	flag.StringVar(&mmark.CitationsRFC, "bib-rfc", mmark.CitationsRFC, "RFC bibliography URL")
 
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Mmark Markdown Processor v"+mmark.VERSION+
+		fmt.Fprintf(os.Stderr, "Mmark Markdown Processor" +
 			"\nAvailable at http://github.com/miekg/mmark\n\n"+
 			"Copyright © 2014 Miek Gieben <miek@miek.nl>\n"+
 			"Copyright © 2011 Russ Ross <russ@russross.com>\n"+

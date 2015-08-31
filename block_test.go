@@ -8,6 +8,8 @@ import (
 	"testing"
 )
 
+var test = true
+
 func runMarkdownBlock(input string, extensions int) string {
 	htmlFlags := 0
 

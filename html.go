@@ -89,10 +89,10 @@ const htmlClose = ">"
 // flags is a set of HTML_* options ORed together.
 // css is a URL for the document's stylesheet.
 func HtmlRenderer(flags int, css, head string) Renderer {
-	return HtmlRendererWithParameters(flags, css, head, HtmlRendererParameters{})
+	return htmlRendererWithParameters(flags, css, head, HtmlRendererParameters{})
 }
 
-func HtmlRendererWithParameters(flags int, css, head string, renderParameters HtmlRendererParameters) Renderer {
+func htmlRendererWithParameters(flags int, css, head string, renderParameters HtmlRendererParameters) Renderer {
 	// configure the rendering engine
 	closeTag := htmlClose
 
@@ -209,7 +209,7 @@ func (options *html) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	options.NormalText(out, []byte(options.titleBlock.Title))
 	out.WriteString("</title>\n")
 	out.WriteString("  <meta name=\"GENERATOR\" content=\"Mmark Markdown Processor v")
-	out.WriteString(VERSION)
+	out.WriteString(version)
 	out.WriteString("\"")
 	out.WriteString(ending)
 	out.WriteString(">\n")
@@ -226,7 +226,7 @@ func (options *html) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	if options.head != "" {
 		headBytes, err := ioutil.ReadFile(options.head)
 		if err != nil {
-			Printf(nil, "failed: `%s': %s", options.head, err)
+			printf(nil, "failed: `%s': %s", options.head, err)
 		} else {
 			out.Write(headBytes)
 		}
@@ -913,7 +913,7 @@ func (options *html) References(out *bytes.Buffer, citations map[string]*citatio
 		if len(cite.xml) > 0 {
 			var ref RefXML
 			if e := xmllib.Unmarshal(cite.xml, &ref); e != nil {
-				Printf(nil, "failed to unmarshal reference: `%s': %s", anchor, e)
+				printf(nil, "failed to unmarshal reference: `%s': %s", anchor, e)
 				continue
 			}
 			out.WriteString("<li class=\"bibliography\" id=\"" + ref.Anchor + "\">\n")

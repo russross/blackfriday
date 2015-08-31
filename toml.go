@@ -55,7 +55,7 @@ func (p *parser) titleBlockTOML(out *bytes.Buffer, data []byte) title {
 	data = bytes.Replace(data, []byte("\n%"), []byte("\n"), -1)
 	var block title
 	if _, err := toml.Decode(string(data), &block); err != nil {
-		Printf(p, "error in TOML titleblock: %s", err.Error())
+		printf(p, "error in TOML titleblock: %s", err.Error())
 		return block // never an error when encoding markdown
 	}
 	return block

@@ -384,7 +384,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 				c.typ = typ
 			case 'i':
 				if typ == 'n' {
-					Printf(p, "upgrading citation `%s' from informative to normative", string(id))
+					printf(p, "upgrading citation `%s' from informative to normative", string(id))
 					c.typ = typ
 				}
 			}
@@ -1610,7 +1610,10 @@ func citationReference(p *parser, out *bytes.Buffer, data []byte, offset int) in
 		p.r.Citation(out, data[1:i], c.title)
 		return i
 	}
-	Printf(nil, "handling `%s' as normal text", string(data[:i]))
+	// If we just see a @ it will always be normal text.
+	if len(data[:i]) > 1 {
+		printf(nil, "handling `%s' as normal text", string(data[:i]))
+	}
 	return 0
 }
 
