@@ -328,7 +328,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			id       []byte
 			typ      byte
 			suppress bool
-			seq      int = -1
+			seq      = -1
 		)
 		typ = 'i'
 		k := 1
@@ -721,9 +721,8 @@ func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			if _, ok := p.callouts[index]; ok {
 				p.r.CalloutText(out, index, p.callouts[index])
 				return end
-			} else {
-				return 0
 			}
+			return 0
 		}
 
 		if altype != _LINK_TYPE_NOT_AUTOLINK {
@@ -1202,9 +1201,8 @@ func isMailtoAutoLink(data []byte) int {
 		case '>':
 			if nb == 1 {
 				return i + 1
-			} else {
-				return 0
 			}
+			return 0
 		default:
 			return 0
 		}
@@ -1351,9 +1349,8 @@ func helperFindEmphChar(data []byte, c byte) int {
 			if data[i] != '[' && data[i] != '(' { // not a link
 				if tmpI > 0 {
 					return tmpI
-				} else {
-					continue
 				}
+				continue
 			}
 			cc := data[i]
 			i++
@@ -1473,17 +1470,15 @@ func helperTripleEmphasis(p *parser, out *bytes.Buffer, data []byte, offset int,
 			length = helperEmphasis(p, out, origData[offset-2:], c)
 			if length == 0 {
 				return 0
-			} else {
-				return length - 2
 			}
+			return length - 2
 		default:
 			// single symbol found, hand over to emph2
 			length = helperDoubleEmphasis(p, out, origData[offset-1:], c)
 			if length == 0 {
 				return 0
-			} else {
-				return length - 1
 			}
+			return length - 1
 		}
 	}
 	return 0

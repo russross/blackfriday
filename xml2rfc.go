@@ -9,9 +9,11 @@ import (
 // between xml2rfcv[23].go.
 
 var (
-	// URLs where we can find the references for IDs and RFCs.
 	// These have been known to change, these are the current ones (2015-08-27).
-	CitationsID  = "http://xml2rfc.ietf.org/public/rfc/bibxml3/"
+
+	// CitationsID is the URL where mmark can find the citations for I-Ds.
+	CitationsID = "http://xml2rfc.ietf.org/public/rfc/bibxml3/"
+	// CitationsRFC is the URL where mmark can find the citations for RFCs.
 	CitationsRFC = "http://xml2rfc.ietf.org/public/rfc/bibxml/"
 )
 

@@ -144,7 +144,7 @@ func (i *inlineAttr) String() (s string) {
 	}
 
 	keys := make([]string, 0, len(i.class))
-	for k, _ := range i.class {
+	for k := range i.class {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
@@ -153,7 +153,7 @@ func (i *inlineAttr) String() (s string) {
 	}
 
 	keys = keys[:0]
-	for k, _ := range i.attr {
+	for k := range i.attr {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)

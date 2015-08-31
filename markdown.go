@@ -1,8 +1,5 @@
-// Markdown parsing and processing
-
-// Mmark markdown processor.
-//
-// Translates plain text with simple formatting rules into HTML or XML.
+// Package markdown is a package for parsing and processing markdown text.
+// It translates plain text with simple formatting rules into HTML or XML.
 package mmark
 
 import (
