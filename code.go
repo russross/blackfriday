@@ -19,7 +19,6 @@ import (
 // SourceCodeTypes are the different languages that are supported as
 // a type attribute in sourcecode, see Section 2.48.4 of XML2RFC v3 (-21).
 var SourceCodeTypes = map[string]bool{
-	// from the draft
 	"abnf":       true,
 	"asn.1":      true,
 	"bash":       true,
@@ -36,7 +35,7 @@ var SourceCodeTypes = map[string]bool{
 	"python":     true,
 	"rnc":        true,
 	"xml":        true,
-	// from common sense
+
 	"go": true,
 }
 

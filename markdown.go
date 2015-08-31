@@ -15,6 +15,8 @@ import (
 
 const version = "1.0"
 
+var test = false
+
 // These are the supported markdown parsing extensions.
 // OR these values together to select multiple extensions.
 const (

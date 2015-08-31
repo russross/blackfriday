@@ -8,7 +8,9 @@ import (
 	"testing"
 )
 
-var test = true
+func init() {
+	test = true
+}
 
 func runMarkdownBlock(input string, extensions int) string {
 	htmlFlags := 0
@@ -1182,7 +1184,6 @@ func TestOrderedList_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
 
 		"aaa.  List\aab.  Item\n",
 		"<p>aaa.  List\aab.  Item</p>\n",
-
 	}
 	doTestsBlock(t, tests, EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK)
 }
