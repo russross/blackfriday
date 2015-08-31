@@ -384,28 +384,8 @@ i  throughout the document. First use is rendered `(1)`, the second one `(2)` an
 
 # Todo
 
-*   Renderers
-    * HTML renderer is lagging behind the other renderers.
-    * Get all renderers into shape
-    * Create DOCBOOK renderer (fairly easy)
-*   Polish, make xml2rfc v2 and v3 output perfect. And create
-    a way to validate the v3 output against the latest draft.
-*   Create website where you can type can convert mmark markdown
+*   Create website where you can type can convert mmark markdown?
 
-
-## Later
-
-*   Renderers
-    * HTML renderer is lagging behind the other renderers.
-    * DocBook?
-*   fenced code blocks -> source code with language etc.
-*   indentend code blocks -> artwork
-*   images -> artwork, use title for caption
-    Always wrap in figure
-*   Extension to recognize pandoc2rfc indices?
-*   cleanups - and loose a bunch of extensions, turn them on per default
-    reduce API footprint (hide constants mainly)
-*   More io.Writer in the underlaying code
 
 # License
 
