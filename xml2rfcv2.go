@@ -248,11 +248,12 @@ func (options *xml2) CommentHtml(out *bytes.Buffer, text []byte) {
 }
 
 func (options *xml2) BlockHtml(out *bytes.Buffer, text []byte) {
-	// not supported, don't know yet if this is useful
-	return
+	printf(nil, "syntax not supported: BlockHtml")
 }
 
-func (options *xml2) Part(out *bytes.Buffer, text func() bool, id string) {}
+func (options *xml2) Part(out *bytes.Buffer, text func() bool, id string) {
+	printf(nil, "syntax not supported: Part")
+}
 
 func (options *xml2) SpecialHeader(out *bytes.Buffer, what []byte, text func() bool, id string) {
 	if string(what) == "preface" {
@@ -308,7 +309,7 @@ func (options *xml2) Header(out *bytes.Buffer, text func() bool, level int, id s
 }
 
 func (options *xml2) HRule(out *bytes.Buffer) {
-	// not used
+	printf(nil, "syntax not supported: HRule")
 }
 
 func (options *xml2) List(out *bytes.Buffer, text func() bool, flags, start int, group []byte) {
@@ -427,7 +428,7 @@ func (options *xml2) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 }
 
 func (options *xml2) Math(out *bytes.Buffer, text []byte, display bool) {
-
+	printf(nil, "syntax not supported: Math")
 }
 
 func (options *xml2) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
@@ -471,11 +472,11 @@ func (options *xml2) TableCell(out *bytes.Buffer, text []byte, align int) {
 }
 
 func (options *xml2) Footnotes(out *bytes.Buffer, text func() bool) {
-	// not used
+	printf(nil, "syntax not supported: Footnotes")
 }
 
 func (options *xml2) FootnoteItem(out *bytes.Buffer, name, text []byte, flags int) {
-	// not used
+	printf(nil, "syntax not supported: FootnoteItem")
 }
 
 func (options *xml2) Index(out *bytes.Buffer, primary, secondary []byte, prim bool) {
@@ -662,7 +663,9 @@ func (options *xml2) Abbreviation(out *bytes.Buffer, abbr, title []byte) {
 	out.Write(abbr)
 }
 
-func (options *xml2) RawHtmlTag(out *bytes.Buffer, tag []byte) {}
+func (options *xml2) RawHtmlTag(out *bytes.Buffer, tag []byte) {
+	printf(nil, "syntax not supported: RawHtmlTag")
+}
 
 func (options *xml2) TripleEmphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("<spanx style=\"strong\"><spanx style=\"emph\">")
@@ -675,7 +678,7 @@ func (options *xml2) StrikeThrough(out *bytes.Buffer, text []byte) {
 }
 
 func (options *xml2) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
-	// not used
+	printf(nil, "syntax not supported: FootnoteRef")
 }
 
 func (options *xml2) Entity(out *bytes.Buffer, entity []byte) {

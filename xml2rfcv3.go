@@ -104,8 +104,13 @@ func (options *xml) BlockCode(out *bytes.Buffer, text []byte, lang string, capti
 	}
 }
 
-func (options *xml) CalloutCode(out *bytes.Buffer, index, id string)          {}
-func (options *xml) CalloutText(out *bytes.Buffer, index string, id []string) {}
+func (options *xml) CalloutCode(out *bytes.Buffer, index, id string) {
+	printf(nil, "TODO implement")
+}
+
+func (options *xml) CalloutText(out *bytes.Buffer, index string, id []string) {
+	printf(nil, "TODO implement")
+}
 
 func (options *xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	if options.flags&XML_STANDALONE == 0 {
@@ -234,7 +239,9 @@ func (options *xml) BlockHtml(out *bytes.Buffer, text []byte) {
 	return
 }
 
-func (options *xml) Part(out *bytes.Buffer, text func() bool, id string) {}
+func (options *xml) Part(out *bytes.Buffer, text func() bool, id string) {
+	printf(nil, "syntax not supported: Part")
+}
 
 func (options *xml) SpecialHeader(out *bytes.Buffer, what []byte, text func() bool, id string) {
 	if string(what) == "preface" {
@@ -283,7 +290,7 @@ func (options *xml) Header(out *bytes.Buffer, text func() bool, level int, id st
 }
 
 func (options *xml) HRule(out *bytes.Buffer) {
-	// not used
+	printf(nil, "syntax not supported: HRule")
 }
 
 func (options *xml) List(out *bytes.Buffer, text func() bool, flags, start int, group []byte) {
@@ -362,7 +369,7 @@ func (options *xml) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 }
 
 func (options *xml) Math(out *bytes.Buffer, text []byte, display bool) {
-
+	printf(nil, "syntax not supported: Math")
 }
 
 func (options *xml) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
@@ -411,11 +418,11 @@ func (options *xml) TableCell(out *bytes.Buffer, text []byte, align int) {
 }
 
 func (options *xml) Footnotes(out *bytes.Buffer, text func() bool) {
-	// not used
+	printf(nil, "syntax not supported: Footnotes")
 }
 
 func (options *xml) FootnoteItem(out *bytes.Buffer, name, text []byte, flags int) {
-	// not used
+	printf(nil, "syntax not supported: FootnoteItem")
 }
 
 func (options *xml) Index(out *bytes.Buffer, primary, secondary []byte, prim bool) {
@@ -618,7 +625,9 @@ func (options *xml) Abbreviation(out *bytes.Buffer, abbr, title []byte) {
 	out.Write(abbr)
 }
 
-func (options *xml) RawHtmlTag(out *bytes.Buffer, tag []byte) {}
+func (options *xml) RawHtmlTag(out *bytes.Buffer, tag []byte) {
+	printf(nil, "syntax not supported: RawHtmlTag")
+}
 
 func (options *xml) TripleEmphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("<strong><em>")
@@ -631,7 +640,7 @@ func (options *xml) StrikeThrough(out *bytes.Buffer, text []byte) {
 }
 
 func (options *xml) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
-	// not used
+	printf(nil, "syntax not supported: FootnoteRef")
 }
 
 func (options *xml) Entity(out *bytes.Buffer, entity []byte) {
