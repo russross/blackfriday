@@ -12,7 +12,7 @@ import (
 func runMarkdownInline(input string, extensions, htmlFlags int, params HtmlRendererParameters) string {
 	extensions |= EXTENSION_AUTOLINK
 
-	renderer := htmlRendererWithParameters(htmlFlags, "", "", params)
+	renderer := HtmlRendererWithParameters(htmlFlags, "", "", params)
 
 	return Parse([]byte(input), renderer, extensions).String()
 }

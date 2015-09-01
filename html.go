@@ -89,10 +89,10 @@ const htmlClose = ">"
 // flags is a set of HTML_* options ORed together.
 // css is a URL for the document's stylesheet.
 func HtmlRenderer(flags int, css, head string) Renderer {
-	return htmlRendererWithParameters(flags, css, head, HtmlRendererParameters{})
+	return HtmlRendererWithParameters(flags, css, head, HtmlRendererParameters{})
 }
 
-func htmlRendererWithParameters(flags int, css, head string, renderParameters HtmlRendererParameters) Renderer {
+func HtmlRendererWithParameters(flags int, css, head string, renderParameters HtmlRendererParameters) Renderer {
 	// configure the rendering engine
 	closeTag := htmlClose
 
