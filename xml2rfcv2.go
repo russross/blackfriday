@@ -142,9 +142,11 @@ func (options *xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 		out.WriteString("</organization>\n")
 
 		out.WriteString("<address>\n")
-
 		out.WriteString("<postal>\n")
-		out.WriteString("<street>" + a.Address.Postal.Street + "</street>\n") // street is a list?
+		out.WriteString("<street>")
+		writeEntity(out, []byte(a.Address.Postal.Street))
+		out.WriteString("</street>\n")
+
 		out.WriteString("<city>" + a.Address.Postal.City + "</city>\n")
 		out.WriteString("<code>" + a.Address.Postal.Code + "</code>\n")
 		out.WriteString("<country>" + a.Address.Postal.Country + "</country>\n")
