@@ -129,11 +129,18 @@ func (options *xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 
 	for _, a := range options.titleBlock.Author {
 		out.WriteString("<author")
-		out.WriteString(" initials=\"" + a.Initials + "\"")
+
+		out.WriteString(" initials=\"")
+		writeEntity(out, []byte(a.Initials))
+		out.WriteString("\"")
+
 		out.WriteString(" surname=\"" + a.Surname + "\"")
 		out.WriteString(" fullname=\"" + a.Fullname + "\">\n")
 
-		out.WriteString("<organization>" + a.Organization + "</organization>\n")
+		out.WriteString("<organization>")
+		writeEntity(out, []byte(a.Organization))
+		out.WriteString("</organization>\n")
+
 		out.WriteString("<address>\n")
 
 		out.WriteString("<postal>\n")
