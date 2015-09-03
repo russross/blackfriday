@@ -14,11 +14,9 @@
 % surname="Gieben"
 % fullname="R. (Miek) Gieben"
 % #role="editor"
-% organization = "Google"
+% organization = "Atoom"
 %   [author.address]
-%   email = "miek@google.com"
-%   [author.address.postal]
-%   street = "Buckingham Palace Road"
+%   email = "miek@miek.nl"
 
 .# Abstract
 
