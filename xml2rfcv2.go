@@ -437,7 +437,8 @@ func (options *xml2) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 }
 
 func (options *xml2) Math(out *bytes.Buffer, text []byte, display bool) {
-	printf(nil, "syntax not supported: Math")
+	// Just output whatever is the text.
+	out.Write(text)
 }
 
 func (options *xml2) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
