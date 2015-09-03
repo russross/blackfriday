@@ -6,8 +6,7 @@ all: $(objects)
 
 %.md.txt: %.md
 	$(MMARK) $< > $<.xml
-	xml2rfc --text $<.xml
-	rm $<.xml
+	xml2rfc --text $<.xml && rm $<.xml
 
 
 .PHONY: clean
