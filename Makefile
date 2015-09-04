@@ -1,24 +1,26 @@
+MMARK2:=./mmark/mmark -xml2 -page
+MMARK3:=./mmark/mmark -xml -page
+
 all:
 	( cd mmark; go build )
 
-draft2:	mmark2rfc2.txt mmark/mmark
-
-mmark2rfc2.txt: mmark2rfc.md mmark/mmark
-	./mmark/mmark -xml2 -page mmark2rfc.md > x.xml && xml2rfc --text x.xml && rm x.xml && mv x.txt mmark2rfc2.txt
+mmark2rfc2.txt: mmark2rfc2.xml
+	xml2rfc --text mmark2rfc2.xml
 	@ls -l mmark2rfc2.txt
 
 mmark2rfc2.xml: mmark2rfc.md mmark/mmark
-	./mmark/mmark -xml2 -page mmark2rfc.md > mmark2rfc2.xml
+	$(MMARK2) mmark2rfc.md > mmark2rfc2.xml
 
-
-draft3:	mmark2rfc3.xml mmark/mmark
+#mmark2rfc3.txt: mmark2rfc3.xml
+#	xml2rfc --text mmark2rfc3.xml
+#	@ls -l mmark2rfc3.txt
 
 mmark2rfc3.xml: mmark2rfc.md mmark/mmark
-	./mmark/mmark -xml -page mmark2rfc.md > mmark2rfc3.xml
+	$(MMARK3) mmark2rfc.md > mmark2rfc3.xml
 
 .PHONY: clean
 clean:
-	rm -f mmark2rfc2.xml mmark2rfc3.xml mmark2rfc2.txt x.xml
+	rm -f mmark2rfc2.xml mmark2rfc3.xml mmark2rfc2.txt
 
 .PHONY: validate
 validate: mmark2rfc3.xml
