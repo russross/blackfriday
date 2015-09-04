@@ -165,7 +165,7 @@ Any text directly after the code block/fenced code block starting with `Figure: 
 
 After a quote (a paragraph prefixed with `> `) you can add a caption:
 
-    Quote: Name -- URI for attribution
+    Quote: URI for attribution -- Name
 
 In v3 this is used in the block quote attributes, for v2 it is discarded. If you need
 the string `Quote: ` after an quote, escape the colon: `Quote\: `.
