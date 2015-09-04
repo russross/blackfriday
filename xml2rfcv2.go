@@ -192,20 +192,23 @@ func (options *xml2) BlockQuote(out *bytes.Buffer, text []byte, attribution []by
 
 	// check for "person -- URI" syntax use those if found
 	// need to strip tags because these are attributes
-	// TODO(miek): better
 	if len(attribution) != 0 {
 		parts := bytes.Split(attribution, []byte("-- "))
-		// TODO(miek): 1 part
 		if len(parts) > 0 {
 			cite := bytes.TrimSpace(parts[0])
 			var quotedFrom []byte
 			if len(parts) == 2 {
-				quotedFrom = sanitizeXML(bytes.TrimSpace(parts[1]))
+				quotedFrom = bytes.TrimSpace(parts[1])
 			}
-			out.WriteString("<t>--\n")
+			out.WriteString("<t>-- ")
+
 			out.Write(cite)
+
 			if len(parts) == 2 {
-				out.WriteString(", ")
+				if len(cite) > 0 {
+					out.WriteString(", ")
+				}
+				// len(quotedFrom) == 0 check as well?
 				out.Write(quotedFrom)
 			}
 			out.WriteString("</t>\n")

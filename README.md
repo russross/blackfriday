@@ -261,11 +261,11 @@ implements the following extensions:
         Figure: Look! A Go function.
 
 *  **Quote attribution**, after a blockquote you can optionally use
-   `Quote: John Doe -- http://example.org`, where
+   `Quote: http://example.org -- John Doe`, where
    the quote will be attributed to John Doe, pointing to the URL:
 
         > Ability is nothing without opportunity.
-        Quote: Napoleon Bonaparte -- http://example.com
+        Quote: http://example.com -- Napoleon Bonaparte
 
 *  **Abstracts**, use the special header `.# Abstract`. Note that the header
    name, when lowercased, must match 'abstract'.
