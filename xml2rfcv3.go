@@ -115,6 +115,7 @@ func (options *xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	if options.flags&XML_STANDALONE == 0 {
 		return
 	}
+	// Processing Instructions are attribute of <rfc> know.
 	options.titleBlock = block
 	out.WriteString("<rfc xmlns:xi=\"http://www.w3.org/2001/XInclude\" ipr=\"" +
 		options.titleBlock.Ipr + "\" category=\"" +

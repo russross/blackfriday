@@ -32,6 +32,15 @@ type addressPostal struct {
 	PostalLine []string
 }
 
+type pi struct {
+	Toc        string
+	Symrefs    string
+	Sortrefs   string
+	Tocdepth   string
+	Compact    string
+	Subcompact string
+}
+
 type title struct {
 	Title  string
 	Abbrev string
@@ -41,6 +50,7 @@ type title struct {
 	Category       string
 	Obsoletes      []string
 	Updates        []string
+	PI             pi // Processing Instructions
 	SubmissionType string
 
 	Date      time.Time
