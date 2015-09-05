@@ -1,0 +1,171 @@
+
+
+
+
+
+
+Network Working Group                                       J. Ashworth
+Request for Comments: 2100                        Ashworth & Associates
+Category: Informational                                    1 April 1997
+
+
+                          The Naming of Hosts
+
+Status of this Memo
+
+   This memo provides information for the Internet community.  This memo
+   does not specify an Internet standard of any kind.  Distribution of
+   this memo is unlimited.
+
+Introduction
+
+   This RFC is a commentary on the difficulty of deciding upon an
+   acceptably distinctive hostname for one's computer, a problem which
+   grows in direct proportion to the logarithmically increasing size of
+   the Internet.
+
+   Distribution of this memo is unlimited.
+
+   Except to TS Eliot.
+
+   And, for that matter, to David Addison, who hates iambic pentameter.
+
+Poetry
+
+    The Naming of Hosts is a difficult matter,
+        It isn't just one of your holiday games;
+    You may think at first I'm as mad as a hatter
+        When I tell you, a host must have THREE DIFFERENT NAMES.
+
+    First of all, there's the name that the users use daily,
+        Such as venus, athena, and cisco, and ames,
+    Such as titan or sirius, hobbes or europa--
+        All of them sensible everyday names.
+
+    There are fancier names if you think they sound sweeter,
+        Some for the web pages, some for the flames:
+    Such as mercury, phoenix, orion, and charon--
+        But all of them sensible everyday names.
+
+    But I tell you, a host needs a name that's particular,
+        A name that's peculiar, and more dignified,
+    Else how can it keep its home page perpendicular,
+        And spread out its data, send pages world wide?
+
+
+
+
+Ashworth                     Informational                      [Page 1]
+
+RFC 2100                  The Naming of Hosts               1 April 1997
+
+
+    Of names of this kind, I can give you a quorum,
+        Like lothlorien, pothole, or kobyashi-maru,
+    Such as pearly-gates.vatican, or else diplomatic-
+        Names that never belong to more than one host.
+
+    But above and beyond there's still one name left over,
+        And that is the name that you never will guess;
+    The name that no human research can discover--
+        But THE NAMESERVER KNOWS, and will us'ually confess.
+
+    When you notice a client in rapt meditation,
+        The reason, I tell you, is always the same:
+    The code is engaged in a deep consultation
+        On the address, the address, the address of its name:
+
+                It's ineffable,
+                effable,
+                Effanineffable,
+                Deep and inscrutable,
+                singular
+                Name.
+
+Credits
+
+   Thanks to Don Libes, Mark Lottor, and a host of twisted
+   individuals^W^Wcreative sysadmins for providing source material for
+   this memo, to Andrew Lloyd-Webber, Cameron Mackintosh, and a cast of
+   thousands (particularly including Terrance Mann) who drew my
+   attention to the necessity, and of course, to Thomas Stearns Eliot,
+   for making this all necessary.
+
+References
+
+   [1]  Libes, D., "Choosing a Name for Your Computer", Communications
+        of the ACM, Vol. 32, No. 11, Pg. 1289, November 1989.
+
+   [2]  Lottor, M. et al., "Domain Name Survey, Jan 1997",
+        namedroppers@internic.net
+
+   [3]  Wong, M. et. al., "Cool Hostnames",
+        http://www.seas.upenn.edu/~mengwong/coolhosts.html
+
+   [4]  Stearns, TS, _Old Possum's Book of Practical Cats_.
+
+
+
+
+
+
+
+
+Ashworth                     Informational                      [Page 2]
+
+RFC 2100                  The Naming of Hosts               1 April 1997
+
+
+Security Considerations
+
+   Security issues are not discussed in this memo.
+
+   Particularly the cardiac security of certain famous poets.
+
+Author's Address
+
+   Jay R. Ashworth
+   Ashworth & Associates
+   Advanced Technology Consulting
+   St. Petersburg FL 33709-4819
+
+   Phone: +1 813 790 7592
+
+   EMail:  jra@scfn.thpl.lib.fl.us
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Ashworth                     Informational                      [Page 3]
+
