@@ -462,23 +462,17 @@ func (options *xml) References(out *bytes.Buffer, citations map[string]*citation
 		// nothing to do
 	}
 	options.docLevel = _DOC_BACK_MATTER
-	// count the references
-	refi, refn := 0, 0
-	for _, c := range citations {
-		if c.typ == 'i' {
-			refi++
-		}
-		if c.typ == 'n' {
-			refn++
-		}
-	}
+
+	refi, refn, keys := countCitationsAndSort(citations)
+
 	// output <xi:include href="<references file>.xml"/>, we use file it its not empty, otherwise
 	// we construct one for RFCNNNN and I-D.something something.
 	if refi+refn > 0 {
 		if refn > 0 {
 			out.WriteString("<references>\n")
 			out.WriteString("<name>Normative References</name>\n")
-			for _, c := range citations {
+			for _, k := range keys {
+			c := citations[k]
 				if c.typ == 'n' {
 					if c.xml != nil {
 						out.Write(c.xml)
@@ -495,7 +489,8 @@ func (options *xml) References(out *bytes.Buffer, citations map[string]*citation
 			// This needs an anchor
 			out.WriteString("<references>\n")
 			out.WriteString("<name>Informative References</name>\n")
-			for _, c := range citations {
+			for _, k := range keys {
+				c := citations[k]
 				if c.typ == 'i' {
 					// if we have raw xml, output that
 					if c.xml != nil {

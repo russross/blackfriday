@@ -910,6 +910,8 @@ func (options *html) References(out *bytes.Buffer, citations map[string]*citatio
 
 	// [1] Haskell Authors. Haskell.  http://www.haskell.org/ , 1990
 	// <span id=anchor>[x]</span>
+	// there is a CountAndSortCitations in xml2rfc.go, but I want to keep the html.go completely
+	// separate from the xml2rfc stuff.
 	for anchor, cite := range citations {
 		if len(cite.xml) > 0 {
 			var ref RefXML

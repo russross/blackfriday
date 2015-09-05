@@ -3,6 +3,7 @@ package mmark
 import (
 	"bytes"
 	"fmt"
+	"sort"
 )
 
 // xml2rfc.go contains common code and variables that is shared
@@ -45,6 +46,25 @@ func referenceFile(c *citation) string {
 		return CitationsID + referenceIDLatest + string(c.link[4:]) + ext
 	}
 	return ""
+}
+
+// countCitationsAndSort returns the number of informative and normative
+// references and a string slice with the sorted keys.
+func countCitationsAndSort(citations map[string]*citation) (int, int, []string) {
+	keys := make([]string, 0, len(citations))
+	refi, refn := 0, 0
+	for k, c := range citations {
+		if c.typ == 'i' {
+			refi++
+		}
+		if c.typ == 'n' {
+			refn++
+		}
+
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return refi, refn, keys
 }
 
 var entityConvert = map[byte][]byte{

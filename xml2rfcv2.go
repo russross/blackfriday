@@ -226,7 +226,6 @@ func (options *xml2) Note(out *bytes.Buffer, text []byte) {
 }
 
 func (options *xml2) CommentHtml(out *bytes.Buffer, text []byte) {
-	// nothing fancy any left of the first `:` will be used as the source="..."
 	i := bytes.Index(text, []byte("-->"))
 	if i > 0 {
 		text = text[:i]
@@ -530,21 +529,15 @@ func (options *xml2) References(out *bytes.Buffer, citations map[string]*citatio
 	}
 	options.docLevel = _DOC_BACK_MATTER
 
-	refi, refn := 0, 0
-	for _, c := range citations {
-		if c.typ == 'i' {
-			refi++
-		}
-		if c.typ == 'n' {
-			refn++
-		}
-	}
+	refi, refn, keys := countCitationsAndSort(citations)
+
 	// output <xi:include href="<references file>.xml"/>, we use file it its not empty, otherwise
 	// we construct one for RFCNNNN and I-D.something something.
 	if refi+refn > 0 {
 		if refn > 0 {
 			out.WriteString("<references title=\"Normative References\">\n")
-			for _, c := range citations {
+			for _, k := range keys {
+				c := citations[k]
 				if c.typ == 'n' {
 					if c.xml != nil {
 						out.Write(c.xml)
@@ -559,7 +552,8 @@ func (options *xml2) References(out *bytes.Buffer, citations map[string]*citatio
 		}
 		if refi > 0 {
 			out.WriteString("<references title=\"Informative References\">\n")
-			for _, c := range citations {
+			for _, k := range keys {
+				c := citations[k]
 				if c.typ == 'i' {
 					// if we have raw xml, output that
 					if c.xml != nil {
