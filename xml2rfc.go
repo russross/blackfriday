@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"sort"
+	"strconv"
+	"time"
 )
 
 // xml2rfc.go contains common code and variables that is shared
@@ -122,5 +124,62 @@ func writeSanitizeXML(out *bytes.Buffer, s []byte) {
 		if !inTag {
 			out.WriteByte(s[i])
 		}
+	}
+}
+
+// titleBlockTOMLAuthor outputs the author from the TOML title block.
+func titleBlockTOMLAuthor(out *bytes.Buffer, a author) {
+	out.WriteString("<author")
+
+	out.WriteString(" initials=\"")
+	writeEntity(out, []byte(a.Initials))
+	out.WriteString("\"")
+
+	out.WriteString(" surname=\"" + a.Surname + "\"")
+	out.WriteString(" fullname=\"" + a.Fullname + "\">\n")
+
+	out.WriteString("<organization>")
+	writeEntity(out, []byte(a.Organization))
+	out.WriteString("</organization>\n")
+
+	out.WriteString("<address>\n")
+	out.WriteString("<postal>\n")
+	out.WriteString("<street>")
+	writeEntity(out, []byte(a.Address.Postal.Street))
+	out.WriteString("</street>\n")
+
+	out.WriteString("<city>" + a.Address.Postal.City + "</city>\n")
+	out.WriteString("<code>" + a.Address.Postal.Code + "</code>\n")
+	out.WriteString("<country>" + a.Address.Postal.Country + "</country>\n")
+	out.WriteString("</postal>\n")
+
+	out.WriteString("<email>" + a.Address.Email + "</email>\n")
+	out.WriteString("<uri>" + a.Address.Uri + "</uri>\n")
+
+	out.WriteString("</address>\n")
+	out.WriteString("</author>\n")
+}
+
+// titleBlockTOMLDate outputs the date from the TOML title block.
+func titleBlockTOMLDate(out *bytes.Buffer, d time.Time) {
+	year := ""
+	if d.Year() > 0 {
+		year = " year=\"" + strconv.Itoa(d.Year()) + "\""
+	}
+	month := ""
+	if d.Month() > 0 {
+		month = " month=\"" + time.Month(d.Month()).String() + "\""
+	}
+	day := ""
+	if d.Day() > 0 {
+		day = " day=\"" + strconv.Itoa(d.Day()) + "\""
+	}
+	out.WriteString("<date" + year + month + day + "/>\n\n")
+}
+
+// titleBlockTOMLKeyword outputs the keywords from the TOML title block.
+func titleBlockTOMLKeyword(out *bytes.Buffer, keywords []string) {
+	for _, k := range keywords {
+		out.WriteString("<keyword>" + k + "</keyword>\n")
 	}
 }

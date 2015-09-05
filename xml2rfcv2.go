@@ -5,7 +5,6 @@ package mmark
 import (
 	"bytes"
 	"strconv"
-	"time"
 )
 
 // References code in Xml2rfcv3.go
@@ -128,56 +127,15 @@ func (options *xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	out.WriteString(options.titleBlock.Title + "</title>\n\n")
 
 	for _, a := range options.titleBlock.Author {
-		out.WriteString("<author")
-
-		out.WriteString(" initials=\"")
-		writeEntity(out, []byte(a.Initials))
-		out.WriteString("\"")
-
-		out.WriteString(" surname=\"" + a.Surname + "\"")
-		out.WriteString(" fullname=\"" + a.Fullname + "\">\n")
-
-		out.WriteString("<organization>")
-		writeEntity(out, []byte(a.Organization))
-		out.WriteString("</organization>\n")
-
-		out.WriteString("<address>\n")
-		out.WriteString("<postal>\n")
-		out.WriteString("<street>")
-		writeEntity(out, []byte(a.Address.Postal.Street))
-		out.WriteString("</street>\n")
-
-		out.WriteString("<city>" + a.Address.Postal.City + "</city>\n")
-		out.WriteString("<code>" + a.Address.Postal.Code + "</code>\n")
-		out.WriteString("<country>" + a.Address.Postal.Country + "</country>\n")
-		out.WriteString("</postal>\n")
-
-		out.WriteString("<email>" + a.Address.Email + "</email>\n")
-		out.WriteString("<uri>" + a.Address.Uri + "</uri>\n")
-
-		out.WriteString("</address>\n")
-		out.WriteString("</author>\n")
+		titleBlockTOMLAuthor(out, a)
 	}
 
-	year := ""
-	if options.titleBlock.Date.Year() > 0 {
-		year = " year=\"" + strconv.Itoa(options.titleBlock.Date.Year()) + "\""
-	}
-	month := ""
-	if options.titleBlock.Date.Month() > 0 {
-		month = " month=\"" + time.Month(options.titleBlock.Date.Month()).String() + "\""
-	}
-	day := ""
-	if options.titleBlock.Date.Day() > 0 {
-		day = " day=\"" + strconv.Itoa(options.titleBlock.Date.Day()) + "\""
-	}
-	out.WriteString("<date" + year + month + day + "/>\n\n")
+	titleBlockTOMLDate(out, options.titleBlock.Date)
 
 	out.WriteString("<area>" + options.titleBlock.Area + "</area>\n")
 	out.WriteString("<workgroup>" + options.titleBlock.Workgroup + "</workgroup>\n")
-	for _, k := range options.titleBlock.Keyword {
-		out.WriteString("<keyword>" + k + "</keyword>\n")
-	}
+
+	titleBlockTOMLKeyword(out, options.titleBlock.Keyword)
 	out.WriteString("\n")
 }
 
@@ -529,6 +487,7 @@ func (options *xml2) References(out *bytes.Buffer, citations map[string]*citatio
 	}
 	options.docLevel = _DOC_BACK_MATTER
 
+	keys := []string{}
 	refi, refn, keys := countCitationsAndSort(citations)
 
 	// output <xi:include href="<references file>.xml"/>, we use file it its not empty, otherwise

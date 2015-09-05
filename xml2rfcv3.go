@@ -5,7 +5,6 @@ package mmark
 import (
 	"bytes"
 	"strconv"
-	"time"
 )
 
 // XML renderer configuration options.
@@ -105,11 +104,11 @@ func (options *xml) BlockCode(out *bytes.Buffer, text []byte, lang string, capti
 }
 
 func (options *xml) CalloutCode(out *bytes.Buffer, index, id string) {
-	printf(nil, "TODO implement")
+	printf(nil, "TODO implement: CalloutCode")
 }
 
 func (options *xml) CalloutText(out *bytes.Buffer, index string, id []string) {
-	printf(nil, "TODO implement")
+	printf(nil, "TODO implement: CalloutText")
 }
 
 func (options *xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
@@ -125,44 +124,16 @@ func (options *xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	out.WriteString(options.titleBlock.Title + "</title>\n\n")
 
 	for _, a := range options.titleBlock.Author {
-		out.WriteString("<author")
-		if a.Role != "" {
-			out.WriteString(" role=\"" + a.Role + "\"")
-		}
-		if a.Ascii != "" {
-			out.WriteString(" ascii=\"" + a.Ascii + "\"")
-		}
-		out.WriteString(" initials=\"" + a.Initials + "\"")
-		out.WriteString(" surname=\"" + a.Surname + "\"")
-		out.WriteString(" fullname=\"" + a.Fullname + "\">")
+		titleBlockTOMLAuthor(out, a)
+	}
 
-		out.WriteString("<organization>" + a.Organization + "</organization>\n")
-		out.WriteString("<address>\n")
-		out.WriteString("<email>" + a.Address.Email + "</email>\n")
-		out.WriteString("</address>\n")
-		out.WriteString("</author>\n")
-	}
-	out.WriteString("\n")
-	year := ""
-	if options.titleBlock.Date.Year() > 0 {
-		year = " year=\"" + strconv.Itoa(options.titleBlock.Date.Year()) + "\""
-	}
-	month := ""
-	if options.titleBlock.Date.Month() > 0 {
-		month = " month=\"" + time.Month(options.titleBlock.Date.Month()).String() + "\""
-	}
-	day := ""
-	if options.titleBlock.Date.Day() > 0 {
-		day = " day=\"" + strconv.Itoa(options.titleBlock.Date.Day()) + "\""
-	}
-	out.WriteString("<date" + year + month + day + "/>\n\n")
+	titleBlockTOMLDate(out, options.titleBlock.Date)
+
 	out.WriteString("<area>" + options.titleBlock.Area + "</area>\n")
 	out.WriteString("<workgroup>" + options.titleBlock.Workgroup + "</workgroup>\n")
 
-	for _, k := range options.titleBlock.Keyword {
-		out.WriteString("<keyword>" + k + "</keyword>\n")
-	}
-
+	titleBlockTOMLKeyword(out, options.titleBlock.Keyword)
+	out.WriteString("\n")
 }
 
 func (options *xml) BlockQuote(out *bytes.Buffer, text []byte, attribution []byte) {
@@ -472,7 +443,7 @@ func (options *xml) References(out *bytes.Buffer, citations map[string]*citation
 			out.WriteString("<references>\n")
 			out.WriteString("<name>Normative References</name>\n")
 			for _, k := range keys {
-			c := citations[k]
+				c := citations[k]
 				if c.typ == 'n' {
 					if c.xml != nil {
 						out.Write(c.xml)
