@@ -307,6 +307,7 @@ implements the following extensions:
         b.  Item2
 
 *  **TOML TitleBlock**, add an extended title block prefixed with `%` in TOML.
+   See the example RFC in the rfc/ subdirectory.
 
 *  **Unique anchors**, make anchors unique by adding sequence numbers (-1, -2, etc.) to them.
     All numeric section get an anchor prefixed with `section-`.
