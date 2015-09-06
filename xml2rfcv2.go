@@ -116,30 +116,8 @@ func (options *xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 		options.titleBlock.Category + "\" docName=\"" + options.titleBlock.DocName + "\">\n")
 
 	// Default processing instructions
-	if options.titleBlock.PI.Toc != "" {
-		out.WriteString("<?rfc toc=\"" + options.titleBlock.PI.Toc + "\"?>\n")
-	} else {
-		out.WriteString("<?rfc toc=\"yes\"?>\n")
-	}
-	if options.titleBlock.PI.Symrefs != "" {
-		out.WriteString("<?rfc symrefs=\"" + options.titleBlock.PI.Symrefs + "\"?>\n")
-	} else {
-		out.WriteString("<?rfc symrefs=\"yes\"?>\n")
-	}
-	if options.titleBlock.PI.Sortrefs != "" {
-		out.WriteString("<?rfc sortrefs=\"" + options.titleBlock.PI.Sortrefs + "\"?>\n")
-	} else {
-		out.WriteString("<?rfc sortrefs=\"yes\"?>\n")
-	}
-	if options.titleBlock.PI.Compact != "" {
-		out.WriteString("<?rfc compact=\"" + options.titleBlock.PI.Compact + "\"?>\n")
-	} else {
-		out.WriteString("<?rfc compact=\"yes\"?>\n")
-	}
-	if options.titleBlock.PI.Subcompact != "" {
-		out.WriteString("<?rfc subcompact=\"" + options.titleBlock.PI.Subcompact + "\"?>\n")
-	} else {
-		out.WriteString("<?rfc subcompact=\"no\"?>\n")
+	for _, p := range PIs {
+		out.WriteString(titleBlockTOMLPI(options.titleBlock.PI, p, 2))
 	}
 
 	out.WriteString("<front>\n")

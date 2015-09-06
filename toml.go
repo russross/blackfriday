@@ -32,13 +32,17 @@ type addressPostal struct {
 	PostalLine []string
 }
 
+// PIs the processing instructions... TODO(miek): more.
+var PIs = []string{"toc", "symrefs", "sortrefs", "compact", "subcompact", "private", "topblock"}
+
 type pi struct {
 	Toc        string
 	Symrefs    string
 	Sortrefs   string
-	Tocdepth   string
 	Compact    string
 	Subcompact string
+	Private    string
+	Topblock   string
 }
 
 type title struct {

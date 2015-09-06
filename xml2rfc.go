@@ -183,3 +183,40 @@ func titleBlockTOMLKeyword(out *bytes.Buffer, keywords []string) {
 		out.WriteString("<keyword>" + k + "</keyword>\n")
 	}
 }
+
+// titleBlockTOMLPI returns "yes" or "no" or a stringified number
+// for use as process instruction. If version is 3 they are returned
+// as attributes for use *inside* the <rfc> tag.
+func titleBlockTOMLPI(pi pi, name string, version int) string {
+	if version == 2 {
+		switch name {
+		case "toc":
+			return "<?rfc toc=\"" + yesno(pi.Toc, "yes") + "\"?>\n"
+		case "symrefs":
+			return "<?rfc symrefs=\"" + yesno(pi.Symrefs, "yes") + "\"?>\n"
+		case "sortrefs":
+			return "<?rfc sortrefs=\"" + yesno(pi.Sortrefs, "yes") + "\"?>\n"
+		case "compact":
+			return "<?rfc compact=\"" + yesno(pi.Compact, "yes") + "\"?>\n"
+		case "topblock":
+			return "<?rfc topblock=\"" + yesno(pi.Topblock, "yes") + "\"?>\n"
+		case "subcompact":
+			return "<?rfc subcompact=\"" + yesno(pi.Subcompact, "no") + "\"?>\n"
+		case "private":
+			return "<?rfc private=\"" + yesno(pi.Private, "no") + "\"?>\n"
+		}
+		return ""
+	}
+	// version 3
+	return ""
+}
+
+func yesno(s, def string) string {
+	if s == "" {
+		return def
+	}
+	if s == "yes" {
+		return "yes"
+	}
+	return "no"
+}
