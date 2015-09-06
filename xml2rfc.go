@@ -203,7 +203,7 @@ func titleBlockTOMLPI(pi pi, name string, version int) string {
 		case "subcompact":
 			return "<?rfc subcompact=\"" + yesno(pi.Subcompact, "no") + "\"?>\n"
 		case "private":
-			return "<?rfc private=\"" + yesno(pi.Private, "no") + "\"?>\n"
+			return "<?rfc private=\"" + yesno(pi.Private, "") + "\"?>\n"
 		}
 		return ""
 	}
