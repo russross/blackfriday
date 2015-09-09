@@ -45,7 +45,8 @@ Input to mmark must be UTF-8, the output is also UTF-8. Mmark converts tabs to 4
 
 The goals of mmark are:
 
-{style="format (%I)"}
+<!-- be v3 ready, add a type as well - ignored for v2 and vice versa -->
+{style="format (%I)" type="(%I)"}
 1. Self contained: a single file can be converted to XML2RFC v2 or (v3) or HTML5.
 2. Make the markdown "source code" look as natural as possible.
 3. Provide seemless upgrade path to XML2RFC v3.
@@ -54,7 +55,7 @@ The goals of mmark are:
 
 Using Figure 1 from [@!RFC7328], mmark can be positioned as follows:
 
-{#fig:mmark align=left callout="true"}
+{#fig-mmark align=left callout="true"}
      +-------------------+   pandoc   +---------+
      | ALMOST PLAIN TEXT |   ------>  | DOCBOOK | <2>
      +-------------------+            +---------+
@@ -396,13 +397,13 @@ Images (real images, not ascii-art) are non-existent in v2, but are allowed in v
 writers to use images *and* output v2 and v3 formats, the following hack is used in v2 output.
 Any image will be converted to a figure with an title attribute set to the "Optional title".
 And the url in the image will be type set as a link in the postamble.
-So `![](/path/to/art.txt "Optional title")` will be converted to:
+So `![](misc/image.xml "Optional title")` will be converted to:
 
     <figure title="Optional title">
      <artwork>
      </artwork>
       <postamble>
-       <eref target="/path/to/art.txt"/>
+       <eref target="misc/image.xml"/>
       </postamble>
     </figure>
 
@@ -411,12 +412,12 @@ is to center the entire element. Note that is you don't give the image an anchor
 typeset it with a `Figure X`, so for an optional "image" rendering, you should use the folowing:
 
     {#fig-id}
-    ![](/path/to/art.txt "Optional title")
+    ![](misc/image.xml "Optional title")
 
 Which when rendered becomes:
 
 {#fig-id}
-![](/path/to/art.txt "Optional title")
+![](misc/image.xml "Optional title")
 
 Note that ideas to improve/change on this are welcome.
 

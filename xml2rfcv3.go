@@ -75,6 +75,8 @@ func (options *xml) BlockCode(out *bytes.Buffer, text []byte, lang string, capti
 	if lang != "" {
 		ial.GetOrDefaultAttr("type", lang)
 	}
+	ial.DropAttr("prefix")  // it's a fake attribute, so drop it
+	ial.DropAttr("callout") // it's a fake attribute, so drop it
 	s := ial.String()
 
 	// if in a figure quote suppress <figure> and caption use
@@ -269,6 +271,8 @@ func (options *xml) List(out *bytes.Buffer, text func() bool, flags, start int, 
 	marker := out.Len()
 
 	ial := options.inlineAttr()
+	ial.KeepAttr([]string{"type", "start", "group", "anchor", "spacing"})
+
 	if start > 1 {
 		ial.GetOrDefaultAttr("start", strconv.Itoa(start))
 	}
