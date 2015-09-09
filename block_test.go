@@ -1374,7 +1374,7 @@ func TestInlineAttrXML(t *testing.T) {
 		"<blockquote anchor=\"ref:quote\" class=\"green yellow\" attribution=\"BLA BLA\" bla=\"BLA\" more=\"ALB ALB\">\n<t>\nHallo2\nHallo3\n</t>\n</blockquote>\n<t>\nThis is no one <tt>{source='BLEIP'}</tt> on of them\n</t>\n<blockquote evenmore=\"BLE BLE\">\n<t>\nHallo6\nHallo7\n</t>\n</blockquote>\n",
 
 		"{style=\"format REQ(%c)\" start=\"4\"}\n1. Term1\n2. Term2",
-		"<ol start=\"4\" style=\"format REQ(%c)\">\n<li>Term1</li>\n<li>Term2</li>\n</ol>\n",
+		"<ol start=\"4\">\n<li>Term1</li>\n<li>Term2</li>\n</ol>\n",
 
 		"    {style=\"format REQ(%c)\" start=\"4\"}\n1. Term1\n2. Term2",
 		"<artwork>\n{style=\"format REQ(%c)\" start=\"4\"}\n</artwork>\n<ol>\n<li>Term1</li>\n<li>Term2</li>\n</ol>\n",
