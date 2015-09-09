@@ -268,7 +268,7 @@ Will use for `4` as the starting number.
 
 ## Unordered Lists
 
-Unordered lists can be started with `*`, `+` or `-` and follow the normal markdown syntax rules. <!-- * -->
+Unordered lists can be started with `*`, `+` or `-` and follow the normal markdown syntax rules.
 
 ## Definition Lists
 

@@ -93,6 +93,7 @@ func main() {
 	extensions |= mmark.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
 	extensions |= mmark.EXTENSION_INCLUDE
 	extensions |= mmark.EXTENSION_PARTS
+	extensions |= mmark.EXTENSION_ABBREVIATIONS
 
 	var renderer mmark.Renderer
 	xmlFlags := 0
