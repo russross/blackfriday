@@ -1,0 +1,760 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rfc xmlns:xi="http://www.w3.org/2001/XInclude" ipr="trust200902" category="info" docName="draft-gieben-mmark2rfc-00">
+<front>
+<title abbrev="mmark2rfc">Using mmark to create I-Ds and RFCs</title>
+
+<author initials="R." surname="Gieben" fullname="R. (Miek) Gieben">
+<organization>Atoom</organization>
+<address>
+<postal>
+<street></street>
+<city></city>
+<code></code>
+<country></country>
+</postal>
+<email>miek@miek.nl</email>
+<uri></uri>
+</address>
+</author>
+<date year="2014" month="December" day="10"/>
+
+<area>Internet</area>
+<workgroup></workgroup>
+<keyword>markdown</keyword>
+<keyword>xml</keyword>
+<keyword>mmark</keyword>
+
+
+<abstract>
+<t>
+This document describes an markdown variant called mmark <xref target="mmark"/> that can
+be used to create RFC documents. The aim of mmark is to make writing document
+as natural as possible, while providing a lot of power on how to structure and layout
+the document.
+</t>
+<t>
+The
+<eref target="https://raw.githubusercontent.com/miekg/mmark/master/mmark2rfc.md">source of this document</eref>
+provides a good example.
+</t>
+</abstract>
+
+</front>
+
+<middle>
+
+<section anchor="introduction"><name>Introduction</name>
+<t>
+Mmark <xref target="mmark"/> is a markdown processor. It supports the markdown syntax
+and has been extended with (syntax) features found in other markdown
+implementations like <eref target="http://http://kramdown.gettalong.org/">kramdown</eref>, <eref target="http://michelf.com/projects/php-markdown/extra/">PHP markdown extra</eref>, <xref target="pandoc"/>,
+<eref target="http://scholarlymarkdown.com/Scholarly-Markdown-Guide.html">Scholarly markdown</eref>, <eref target="https://leanpub.com/help/manual">leanpub</eref> and even <eref target="http://www.methods.co.nz/asciidoc/">asciidoc</eref>. This allows mmark to be used
+to write larger, structured documents such as RFC and I-Ds or even books, while
+not deviating too far from markdown.
+</t>
+<t>
+Mmark is a fork of blackfriday <xref target="blackfriday"/>, is written in Golang and very fast.
+Input to mmark must be UTF-8, the output is also UTF-8. Mmark converts tabs to 4 spaces.
+</t>
+<t>
+The goals of mmark are:
+</t>
+<ol type="(%I)">
+<li>Self contained: a single file can be converted to XML2RFC v2 or (v3) or HTML5.</li>
+<li>Make the markdown &quot;source code&quot; look as natural as possible.</li>
+<li>Provide seemless upgrade path to XML2RFC v3.</li>
+<li>Consistent interface, aim to minimize the number of weird corner cases you need
+to remember while typing.</li>
+</ol>
+<t>
+Using Figure 1 from <xref target="RFC7328"/>, mmark can be positioned as follows:
+</t>
+<figure anchor="fig-mmark" align="left">
+<name>Mmark  skips the conversion to DOCBOOK  and directly outputs XML2RFC XML  (or HTML5).
+</name>
+<artwork>
+ +-------------------+   pandoc   +---------+
+ | ALMOST PLAIN TEXT |   ------&gt;  | DOCBOOK | &lt;2&gt;
+ +-------------------+            +---------+
+               |      \                 |
+ non-existent  |       \_________       | xsltproc
+   faster way  |    &lt;1&gt; *mmark*  \      |
+               v                  v     v
+       +------------+    xml2rfc  +---------+
+       | PLAIN TEXT |  &lt;--------  |   XML   | &lt;3&gt;
+       +------------+             +---------+
+</artwork>
+</figure>
+<t>
+Note that <eref target="https://github.com/cabo/kramdown-rfc2629">kramdown-2629</eref> fills the same niche as mmark.
+</t>
+</section>
+
+<section anchor="terminology"><name>Terminology</name>
+<t>
+The folloing terms are used in this document:
+</t>
+<dl>
+<dt>v2:</dt>
+<dd><t>
+Refers to XML2RFC version 2 <xref target="RFC2926"/> output created by mmark.
+</t></dd>
+<dt>v3:</dt>
+<dd><t>
+Refers  to XML2RFC version 2 <xref target="I-D.hoffman-xml2rfc"/> output created by mmark.
+</t></dd>
+</dl>
+</section>
+
+<section anchor="mmark-syntax"><name>Mmark Syntax</name>
+<t>
+In the following sections we go over some of the differences, and the extra syntax features of mmark.
+</t>
+<t>
+Note that there are no wrong markdown documents, but once converted to XML may lead to
+an invalid document. Case in point: having a table in a list and converting to v2.
+</t>
+</section>
+
+<section anchor="toml-header"><name>TOML header</name>
+<t>
+Mmark uses TOML <xref target="toml"/> document header to specify the document's meta data. Each line of this
+header must start with an <tt>%</tt>. The document header is also different in v3, for instance the
+<tt>docName</tt> is not used anymore.
+</t>
+</section>
+
+<section anchor="citations"><name>Citations</name>
+<t>
+A citation can be entered using the syntax from <xref target="pandoc"/>: <tt>[@reference]</tt>,
+such a reference is &quot;informative&quot; by default. Making a reference informative or normative
+can be done with a <tt>?</tt> and <tt>!</tt> respectively: <tt>[@!reference]</tt> is a normative reference.
+</t>
+<t>
+For RFC and I-Ds the references are generated automatically, meaning you don't need to include
+an XML reference element in source of document.
+</t>
+<t>
+For I-Ds you might need to include a draft version in the reference
+<tt>[@?I-D.blah#06]</tt>, creates an informative reference to the seventh version of
+draft-blah.
+</t>
+<t>
+Once a citation has been defined the brackets can be omited, so once <tt>[@pandoc]</tt> is used, you
+can just use <tt>@pandoc</tt>.
+</t>
+<t>
+If the need arises (usually when citing a document that is not in the XML2RFC database)
+an XML reference fragment should be included, note that this needs to happen
+<em>before</em> the back matter is started, because that is the point when the references are outputted
+(right now the implementation does not scan the entire file for citations, also see <xref target="bugs"/>).
+</t>
+</section>
+
+<section anchor="internal-references"><name>Internal References</name>
+<t>
+The cross reference syntax is <tt>[](#id)</tt>, which allows for an optional title between the brackets.
+Usually this is left empty, for this use case mmark allows the shortcut form <tt>(#id)</tt> which omits
+the brackets in its entirely.
+</t>
+<t>
+The external reference syntax is <tt>[](url)</tt>.
+</t>
+</section>
+
+<section anchor="document-divisions"><name>Document divisions</name>
+<t>
+Using <tt>{mainmatter}</tt> on a line by itself starts the main matter (middle) of the document, <tt>{backmatter}</tt>
+starts the appendix. There is also a <tt>{frontmatter}</tt> that starts the front matter (front) of the document,
+but is normally not needed because the TOML header (<xref target="toml-header"/>) starts that by default.
+</t>
+</section>
+
+<section anchor="abstract-1"><name>Abstract</name>
+<t>
+An abstract is defined by using the special header syntax <tt>.#</tt>. The name of the section, when lowercased,
+must be &quot;abstract&quot;.
+In the future mmark might also support Preface and Colophon (special) sections.
+</t>
+</section>
+
+<section anchor="captions"><name>Captions</name>
+<t>
+Whenever an blockquote, fenced codeblock or image has caption text, the entire block is wrapped
+in a <tt>&lt;figure&gt;</tt> and the caption text is put in a <tt>&lt;name&gt;</tt> tag for v3.
+</t>
+<t>
+In mmark you can put a
+caption under either a table, indented code block (even after a fenced code block) or even after a block quote.
+Referencing these elements (and thus
+creating an document <tt>id</tt> for them), is done with an IAL (<xref target="inline-attribute-lists"/>):
+</t>
+<artwork>
+{#identifier}
+Name    | Age
+--------|-----:
+Bob     | 27
+Alice   | 23
+</artwork>
+<t>
+An empty line between the IAL and the table or indented code block is allowed.
+</t>
+
+<section anchor="tables"><name>Tables</name>
+<t>
+A table caption is signalled by using <tt>Table:</tt> directly after the table.
+</t>
+</section>
+
+<section anchor="figures"><name>Figures</name>
+<t>
+Any text directly after the code block/fenced code block starting with <tt>Figure:</tt> is used as the caption.
+</t>
+</section>
+
+<section anchor="quotes"><name>Quotes</name>
+<t>
+After a quote (a paragraph prefixed with <tt>&gt;</tt>) you can add a caption:
+</t>
+<artwork>
+Quote: URI for attribution -- Name
+</artwork>
+<t>
+In v3 this is used in the block quote attributes, for v2 it is discarded. If you need
+the string <tt>Quote:</tt> after an quote, escape the colon: <tt>Quote\:</tt>.
+</t>
+</section>
+</section>
+
+<section anchor="tables-1"><name>Tables</name>
+<t>
+Tables can be created by drawing them in the input using a simple syntax:
+</t>
+<artwork>
+Name    | Age
+--------|-----:
+Bob     | 27
+Alice   | 23
+</artwork>
+<t>
+Tables can also have a footer: use equal signs instead of dashes for the separator,
+to start a table footer. If there are multiple footer lines, the first one is used as a
+starting point for the table footer.
+</t>
+<artwork>
+Name    | Age
+--------|-----:
+Bob     | 27
+Alice   | 23
+======= | ====
+Charlie | 4
+</artwork>
+<t>
+If a table is started with a <em>block table header</em>, which starts
+with a pipe or plus sign and a minimum of three dashes,
+it is a <strong>Block Table</strong>. A block table may include block level elements in each
+(body) cell. If we want to start a new cell use the block table header
+syntax. In the example below we include a list in one of the cells.
+</t>
+<artwork>
+|-----------------+------------+-----------------|
+| Default aligned |Left aligned| Center aligned  |
+|-----------------|:-----------|:---------------:|
+| Bob             |Second cell | Third cell      |
+| Alice           |foo         | **strong**      |
+| Charlie         |quux        | baz             |
+|-----------------+------------+-----------------|
+| Bob             | foot       | 1. Item2        |
+| Alice           | quuz       | 2. Item2        |
+|=================+============+=================|
+| Footer row      | more footer| and more        |
+|-----------------+------------+-----------------|
+</artwork>
+<t>
+Note that the header and footer can't contain block level elements.
+The table syntax used that one of
+<eref target="https://michelf.ca/projects/php-markdown/extra/#table">Markdown Extra</eref>.
+</t>
+</section>
+
+<section anchor="inline-attribute-lists"><name>Inline Attribute Lists</name>
+<t>
+This borrows from <eref target="http://kramdown.gettalong.org/syntax.html#block-ials">kramdown</eref>, with
+the difference that the colon is dropped and each IAL must be typeset <em>before</em> the block element
+(see <xref target="bugs"/>).
+Added an anchor to blockquote can be done like so:
+</t>
+<artwork>
+{#quote:ref1}
+&gt; A block quote
+</artwork>
+<t>
+You can specify classes with <tt>.class</tt> (although these are not used when converting to XML2RFC), and
+arbitrary key value pairs where each key/value becomes an attribute. Different elements in the IAL
+must be seperated using spaces: <tt>{#id lang=go}</tt>.
+</t>
+<t>
+For the following elements a IAL is processed:
+</t>
+<ul>
+<li>Table</li>
+<li>Code Block</li>
+<li>Fenced Code Block</li>
+<li>List (any type)</li>
+<li>Section Header</li>
+<li>Image</li>
+<li>Quote</li>
+<li>...</li>
+</ul>
+<t>
+For all other elements they are ignored, but not disgarded. This means they will be applied to the
+next element that does use the IALs.
+</t>
+</section>
+
+<section anchor="lists"><name>Lists</name>
+
+<section anchor="ordered-lists"><name>Ordered Lists</name>
+<t>
+The are several ways to start an ordered lists. You can use numbers, roman numbers, letters and uppercase
+letters. When using roman numbers and letter you <bcp14>MUST</bcp14> use two spaces after the dot or the brace (the
+underscore signals a space here):
+</t>
+<artwork>
+a)__
+A)__
+</artwork>
+<t>
+Note that mmark (just as <xref target="pandoc"/>) pays attention to the starting number of a list (when using decimal numbers), thus
+a list started with:
+</t>
+<artwork>
+4) Item4
+5) Item5
+</artwork>
+<t>
+Will use for <tt>4</tt> as the starting number.
+</t>
+</section>
+
+<section anchor="unordered-lists"><name>Unordered Lists</name>
+<t>
+Unordered lists can be started with <tt>*</tt>, <tt>+</tt> or <tt>-</tt> and follow the normal markdown syntax rules.
+</t>
+</section>
+
+<section anchor="definition-lists"><name>Definition Lists</name>
+<t>
+Mmark supports the definition list syntax from <eref target="https://michelf.ca/projects/php-markdown/extra/#def-list">PHP Markdown
+Extra</eref>, meaning there
+can not be a empty line between the term and the definition. Note the multiple
+terms and definition syntax is <em>not</em> supported.
+</t>
+</section>
+
+<section anchor="example-lists"><name>Example Lists</name>
+<t>
+This is the example list syntax
+<eref target="http://johnmacfarlane.net/pandoc/README.html#extension-example_lists">from pandoc</eref>. References
+to example lists work as well. Note that an example list always needs to have an identifier,
+<tt>(@good)</tt> works, <tt>(@)</tt> does not. You start an example list when the indentifier
+is the first word on a line.
+</t>
+<t>
+Example:
+</t>
+<artwork>
+(@good)  This is a good example.
+
+As (@good) illustrates, ...
+
+(@good)  Another example.
+</artwork>
+<t>
+Outputs:
+</t>
+<ol group="good">
+<li>This is a good example.</li>
+</ol>
+<t>
+As (1)  illustrates, ...
+</t>
+<ol group="good">
+<li>Another example.</li>
+</ol>
+</section>
+</section>
+
+<section anchor="figures-and-images"><name>Figures and Images</name>
+<t>
+When an figure has a caption it will be wrapped in <tt>&lt;figure</tt>&gt; tags. A figure can
+wrap source code (v3) or artwork (v2/v3).
+</t>
+<t>
+An image is wrapped in a figure when the optional title syntax is used. But images
+are only useful when outputting v3. For v2 the actual image can not be shown, see
+<xref target="images-in-v2"/> for this.
+</t>
+<t>
+Multiple artworks/sources can be put in one figure. This done by prefixing the
+section containing the figures with a figure quote: <tt>F&gt;</tt>.
+</t>
+
+<section anchor="details"><name>Details</name>
+<ul>
+<li><t>
+A Fenced Code Block will becomes a source code in v3 and artwork in v2.
+We can use the language to signal the type.
+</t>
+<artwork>
+``` c
+printf("%s\n", "hello");
+```
+</artwork></li>
+<li><t>
+An Indented Code Block becomes artwork in v3 and artwork in v2. The only way
+to indicate the type is by using an IAL. So one has to use:
+</t>
+<artwork>
+{type="ascii-art"}
+</artwork>
+<artwork>
+    +-----+
+    | ART |
+    +-----+
+</artwork>
+<t>
+v3 allows the usage of a <tt>src</tt> attribute to link to external files with images.
+We use the image syntax for that.
+</t></li>
+<li><t>
+An image <tt>![Alt text](/path/to/img.jpg "Optional title")</tt>, will be converted
+to an artwork with a <tt>src</tt> attribute in v3. Again the type needs to be specified
+as an IAL.
+</t>
+<t>
+If the &quot;Optional title&quot; is specified the generated artwork will be wrapped in a
+figure with name set to &quot;Optional title&quot;
+</t>
+<t>
+Creating an artwork with an anchor and type will become:
+</t>
+<artwork>
+{#fig-id type="ascii-art"}
+![](/path/to/art.txt "Optional title")
+</artwork>
+<t>
+For v2 this presents difficulties as there is no way to display any of this, see
+<xref target="images-in-v2"/> for a treatment on how to deal with that.
+</t></li>
+<li><t>
+To group artworks and code blocks into figures, we need an extra syntax element.
+<eref target="http://scholarlymarkdown.com/Scholarly-Markdown-Guide.html">Scholarly markdown</eref> has a neat syntax
+for this. It uses a special section syntax and all images in that section become
+subfigures of a larger figure. Disadvantage of this syntax is that it can not be
+used in lists. Hence we use a quote like solution, just like asides and notes,
+but for figures: we prefix the entire paragraph with <tt>F&gt;</tt> .
+</t>
+<t>
+Basic usage:
+</t>
+<artwork>
+F&gt;  {type="ascii-art"}
+F&gt;      +-----+
+F&gt;      | ART |
+F&gt;      +-----+
+F&gt;  Figure: This caption is ignored in v3, but used in v2.
+F&gt;
+F&gt;  ``` c
+F&gt;  printf("%s\n", "hello");
+F&gt;  ```
+F&gt;
+Figure: Caption for both figures in v3 (in v2 this is ignored).
+</artwork>
+<t>
+In v2 this is not supported so the above will result in one figure. Yes one, because
+the fenced code block does not have a caption, so it will not be wrapped in a figure.
+</t>
+<t>
+To summerize in v2 the inner captions <em>are</em> used and the outer one is discarded, for v3 it
+is the other way around.
+</t>
+<t>
+The figure from above will be rendered as:
+</t>
+<figure>
+<name>Caption for both figures in v3 (in v2 it's ignored).</name>
+<artwork type="ascii-art">
+ +-----+
+ | ART |
+ +-----+
+</artwork>
+
+<sourcecode type="c">
+printf("%s\n", "hello");
+</sourcecode>
+</figure></li>
+</ul>
+</section>
+
+<section anchor="images-in-v2"><name>Images in v2</name>
+<t>
+Images (real images, not ascii-art) are non-existent in v2, but are allowed in v3. To allow
+writers to use images <em>and</em> output v2 and v3 formats, the following hack is used in v2 output.
+Any image will be converted to a figure with an title attribute set to the &quot;Optional title&quot;.
+And the url in the image will be type set as a link in the postamble.
+So <tt>![](misc/image.xml "Optional title")</tt> will be converted to:
+</t>
+<artwork>
+&lt;figure title="Optional title"&gt;
+ &lt;artwork&gt;
+ &lt;/artwork&gt;
+  &lt;postamble&gt;
+   &lt;eref target="misc/image.xml"/&gt;
+  &lt;/postamble&gt;
+&lt;/figure&gt;
+</artwork>
+<t>
+If a image does not have a title, the <tt>figure</tt> is dropped and only the link remains. The default
+is to center the entire element. Note that is you don't give the image an anchor, <tt>xml2rfc</tt> won't
+typeset it with a <tt>Figure X</tt>, so for an optional &quot;image&quot; rendering, you should use the folowing:
+</t>
+<artwork>
+{#fig-id}
+![](misc/image.xml "Optional title")
+</artwork>
+<t>
+Which when rendered becomes:
+</t>
+<t>
+</t><artwork anchor="fig-id" alt=""><xi:include href="misc/image.xml"/>
+</artwork>
+<t>
+</t>
+<t>
+Note that ideas to improve/change on this are welcome.
+</t>
+</section>
+</section>
+
+<section anchor="miscellaneous-features"><name>Miscellaneous Features</name>
+
+<section anchor="html-comment"><name>HTML Comment</name>
+<t>
+If a HTML comment contains <tt>--</tt>, it will be rendered as a <tt>cref</tt> comment in the resulting
+XML file. Typically <tt>&lt;!-- Miek Gieben -- you want to include the next paragraph? --&gt;</tt>.
+</t>
+</section>
+
+<section anchor="including-files"><name>Including Files</name>
+<t>
+Files can be included using <tt>{{filename}}</tt>, <tt>filename</tt> is relative to the current working
+directory if it is not absolute.
+</t>
+</section>
+
+<section anchor="including-code-fragments"><name>Including Code Fragments</name>
+<t>
+This borrows from the Go present tool, which got its inspiration from the Sam editor. The syntax was gleaned from leanpub.
+But the syntax presented here is more powerful than the one used by leanpub.
+Use the
+syntax: <tt>&lt;{{file}}[address]</tt> to include a code snippet. The <tt>address</tt> identifier specifies
+what lines of code are to be included in the fragment.
+</t>
+<t>
+Any line in the program that ends with the four characters <tt>OMIT</tt>
+is deleted from the source before inclusion, making it easy to write things like
+</t>
+<artwork>
+&lt;{{test.go}}[/START OMIT/,/END OMIT/]
+</artwork>
+<t>
+So you can include snippets like this:
+</t>
+<artwork>
+tedious_code = boring_function()
+// START OMIT
+interesting_code = fascinating_function()
+// END OMIT
+</artwork>
+<t>
+To aid in including HTML or XML framents, where the <tt>OMIT</tt> key words is probably embedded in
+comments, line the in in <tt>OMIT --&gt;</tt> are excluded as well.
+Note that the default is put out an artwork, but if the extension of the included file matches
+a computer language, <tt>&lt;sourcecode&gt;</tt> will be emitted for v3.
+</t>
+<t>
+Note that the attribute <tt>prefix</tt> (which you can specify with an IAL) can be used to prefix
+all lines of the code to be included to prefixed with the value of the attribute, so
+</t>
+<artwork>
+{prefix="C:"}
+    &lt;{{test.go}}[/START OMIT/,/END OMIT/]
+</artwork>
+<t>
+Will prefix all lines of test.go with 'C:' when included.
+</t>
+</section>
+</section>
+
+<section anchor="xml2rfc-v3-features"><name>XML2RFC V3 features</name>
+<t>
+The v3 syntax adds some new features and those can already be used in mmark (even for documents targeting
+v2 -- but there they will be faked with the limited constructs of the v2 syntax).
+</t>
+
+<section anchor="asides"><name>Asides</name>
+<t>
+Any paragraph prefixed with <tt>A&gt;</tt>. For v2 this becomes a indented paragraph.
+</t>
+</section>
+
+<section anchor="notes"><name>Notes</name>
+<t>
+Any paragraph prefixed with <tt>N&gt;</tt>. For v2 this becomes a indented paragraph.
+</t>
+</section>
+
+<section anchor="rfc-2119-keywords"><name>RFC 2119 Keywords</name>
+<t>
+Any <xref target="RFC2119"/> keyword used with strong emphasis <em>and</em> in uppercase  will be typeset
+within <tt>bcp14</tt> tags, that is <tt>**MUST**</tt> becomes <tt>&lt;bcp14&gt;MUST&lt;/bcp14&gt;</tt>, but <tt>**must**</tt> will not.
+For v2 they are stripped of the emphasis and outputted as-is.
+</t>
+</section>
+
+<section anchor="super-and-subscripts"><name>Super- and Subscripts</name>
+<t>
+Use H<sub>2</sub>O and 2<sup>10</sup> is 1024. In v2 these are outputted as-is.
+</t>
+</section>
+</section>
+
+<section anchor="converting-from-rfc-7328-syntax"><name>Converting from RFC 7328 Syntax</name>
+<t>
+Converting from an RFC 7328 (<xref target="RFC7328"/>) document can be done using the quick
+and dirty <eref target="https://raw.githubusercontent.com/miekg/mmark/master/convert/parts.pl">Perl script</eref>,
+which uses pandoc to output markdown PHP extra and converts that into proper mmark:
+(mmark is more like markdown PHP extra, than like pandoc).
+</t>
+<artwork>
+for i in middle.mkd back.mkd; do \
+    pandoc --atx-headers -t markdown_phpextra &lt; $i |\
+    ./parts.pl
+done
+</artwork>
+<t>
+Note this:
+</t>
+<ul>
+<li>Does not convert the abstract to a prefixed paragraph;</li>
+<li>Makes all RFC references normative;</li>
+<li>Handles all figure and table captions and adds references (if appropriate);</li>
+<li>Probably has other bugs, so a manual review should be in order.</li>
+</ul>
+<t>
+There is also <eref target="https://raw.githubusercontent.com/miekg/mmark/master/convert/titleblock.pl">titleblock.pl</eref>
+which can be given an <xref target="RFC7328"/> <tt>template.xml</tt> file and will output a TOML titleblock, that can
+be used as a starting point.
+</t>
+<aside>
+<t>
+Yes, this uses pandoc and Perl.. why? Becasue if mmark could parse the file by itself, there wasn't much
+of problem. Two things are holding this back: mmark cannot parse definition lists with empty spaces and
+there isn't renderer that can output markdown syntax.
+</t>
+</aside>
+<t>
+For now the mmark parser will not get any features that makes it backwards compatible with pandoc2rfc.
+</t>
+</section>
+
+<section anchor="acknowledgements"><name>Acknowledgements</name>
+</section>
+
+</middle>
+<back>
+<references>
+<name>Normative References</name>
+<xi:include href="http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-hoffman-xml2rfc-21.xml"/>
+<xi:include href="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2926.xml"/>
+<xi:include href="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7328.xml"/>
+<reference anchor='toml' target='https://github.com/toml-lang/toml'>
+    <front>
+        <title>TOML git repository</title>
+        <author initials='T.' surname='Preston-Werner' fullname='Tom Preston-Werner'>
+            <address>
+                <email></email>
+                </address>
+            </author>
+        <date year='2013' month='March' />
+    </front>
+</reference>
+</references>
+<references>
+<name>Informative References</name>
+<xi:include href="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml"/>
+<reference anchor='blackfriday' target='http://github.com/russross/blackfriday'>
+    <front>
+        <title>Blackfriday git repository</title>
+        <author initials='' surname='' fullname=''>
+            <address>
+                <email>miek@miek.nl</email>
+            </address>
+        </author>
+        <date year='2011' month='November'/>
+    </front>
+</reference>
+<reference anchor='mmark' target='http://github.com/miekg/mmark'>
+    <front>
+        <title>Mmark git repository</title>
+        <author initials='R.' surname='Gieben' fullname='R. (Miek) Gieben'>
+            <address>
+                <email>miek@miek.nl</email>
+            </address>
+        </author>
+        <date year='2014' month='December'/>
+    </front>
+</reference>
+<reference anchor='pandoc' target='http://johnmacfarlane.net/pandoc/'>
+    <front>
+        <title>Pandoc, a universal document converter</title>
+        <author initials='J.' surname='MacFarlane' fullname='John MacFarlane'>
+            <organization>University of California, Berkeley</organization>
+            <address>
+                <email>jgm@berkeley.edu</email>
+                <uri>http://johnmacfarlane.net/</uri>
+            </address>
+        </author>
+        <date year='2006' />
+    </front>
+</reference>
+</references>
+
+<section anchor="tips-and-tricks"><name>Tips and Tricks</name>
+<t>
+How do I type set:
+</t>
+<dl>
+<dt>Multiple paragraphs in a list:</dt>
+<dd>Indent the list with four spaces. Text indented with three spaces will
+be seen as a new paragraph that breaks the list.</dd>
+</dl>
+</section>
+
+<section anchor="bugs"><name>Bugs</name>
+<ul>
+<li>Citations must be included in the text before the <tt>{backmatter}</tt> starts.
+otherwise they are not available in the appendix.</li>
+<li>Inline Attribute Lists must be given <em>before</em> the block element.</li>
+<li>Mmark cannot correctly parse <xref target="RFC7328"/> markdown.</li>
+<li>Multiple terms and definitions are not supported in definition lists.</li>
+<li>Mmark uses two scans when converting a document and does not build an
+internal AST of the document, this means it can not adhere 100% to the
+<eref target="http://commonmark.org/">CommonMark</eref> specification, however the CommonMark test suite is used when
+developing mmark. Currently mmark passes ~60% of the tests.</li>
+</ul>
+</section>
+
+</back>
+</rfc>

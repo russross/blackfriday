@@ -666,7 +666,9 @@ artwork =
 svg =
   element ns1:svg {
     [ a:defaultValue = "can be found in draft-brownlee-svg-rfc" ]
-    attribute TheRealDefinition { text }*
+    attribute TheRealDefinition { text }*,
+    attribute xml:base { text }?,
+    attribute xml:lang { text }?
   }
 sourcecode =
   element sourcecode {
