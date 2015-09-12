@@ -862,39 +862,39 @@ func (options *html) Citation(out *bytes.Buffer, link, title []byte) {
 	out.WriteString("</a>")
 }
 
-// RefAuthor is the reference author, exported because we need to be able to parse
+// refAuthor is the reference author, exported because we need to be able to parse
 // raw XML references when included in the document.
-type RefAuthor struct {
+type refAuthor struct {
 	Fullname string `xml:"fullname,attr"`
 	Initials string `xml:"initials,attr"`
 	Surname  string `xml:"surname,attr"`
 }
 
-// RefDate is the reference date. See RefAuthor.
-type RefDate struct {
+// refDate is the reference date. See refAuthor.
+type refDate struct {
 	Year  string `xml:"year,attr,omitempty"`
 	Month string `xml:"month,attr,omitempty"`
 	Day   string `xml:"day,attr,omitempty"`
 }
 
-// RefFront the reference <front>. See RefAuthor.
-type RefFront struct {
+// refFront the reference <front>. See refAuthor.
+type refFront struct {
 	Title  string    `xml:"title"`
-	Author RefAuthor `xml:"author"`
-	Date   RefDate   `xml:"date"`
+	Author refAuthor `xml:"author"`
+	Date   refDate   `xml:"date"`
 }
 
-// RefFormat is the reference format. See RefAuthor.
-type RefFormat struct {
+// refFormat is the reference format. See refAuthor.
+type refFormat struct {
 	Typ    string `xml:"type,attr,omitempty"`
 	Target string `xml:"target,attr"`
 }
 
-// RefXML is the entire structure. See RefAuthor.
-type RefXML struct {
+// refXML is the entire structure. See refAuthor.
+type refXML struct {
 	Anchor string    `xml:"anchor,attr"`
-	Front  RefFront  `xml:"front"`
-	Format RefFormat `xml:"format"`
+	Front  refFront  `xml:"front"`
+	Format refFormat `xml:"format"`
 }
 
 func (options *html) References(out *bytes.Buffer, citations map[string]*citation) {
@@ -914,7 +914,7 @@ func (options *html) References(out *bytes.Buffer, citations map[string]*citatio
 	// separate from the xml2rfc stuff.
 	for anchor, cite := range citations {
 		if len(cite.xml) > 0 {
-			var ref RefXML
+			var ref refXML
 			if e := xmllib.Unmarshal(cite.xml, &ref); e != nil {
 				printf(nil, "failed to unmarshal reference: `%s': %s", anchor, e)
 				continue
