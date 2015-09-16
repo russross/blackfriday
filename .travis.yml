@@ -4,6 +4,10 @@ go:
     - 1.4
     - 1.5
 
+os:
+    - linux
+    - osx
+
 install:
     - go get -d -t -v ./...
     - go build -v ./...
