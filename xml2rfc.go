@@ -153,6 +153,7 @@ func titleBlockTOMLAuthor(out *bytes.Buffer, a author) {
 	out.WriteString("<country>" + a.Address.Postal.Country + "</country>\n")
 	out.WriteString("</postal>\n")
 
+	out.WriteString("<phone>" + a.Address.Phone + "</phone>\n")
 	out.WriteString("<email>" + a.Address.Email + "</email>\n")
 	out.WriteString("<uri>" + a.Address.Uri + "</uri>\n")
 
