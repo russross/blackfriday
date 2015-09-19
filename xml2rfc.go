@@ -204,6 +204,16 @@ func titleBlockTOMLPI(pi pi, name string, version int) string {
 			return "<?rfc subcompact=\"" + yesno(pi.Subcompact, "no") + "\"?>\n"
 		case "private":
 			return "<?rfc private=\"" + yesno(pi.Private, "") + "\"?>\n"
+		case "header":
+			if pi.Header == piNotSet {
+				return ""
+			}
+			return "<?rfc header=\"" + pi.Header + "\"?>\n"
+		case "footer":
+			if pi.Footer == piNotSet {
+				return ""
+			}
+			return "<?rfc footer=\"" + pi.Footer + "\"?>\n"
 		}
 		return ""
 	}
