@@ -494,32 +494,18 @@ Use H~2~O and 2^10^ is 1024. In v2 these are outputted as-is.
 
 # Converting from RFC 7328 Syntax
 
-Converting from an RFC 7328 ([@!RFC7328]) document can be done using the quick
-and dirty [Perl script](https://raw.githubusercontent.com/miekg/mmark/master/convert/parts.pl),
-which uses pandoc to output markdown PHP extra and converts that into proper mmark:
-(mmark is more like markdown PHP extra, than like pandoc).
+Any RFC 7238 file is valid mmark and the parser will do its best to make it work out
+of the box. There are however some limitations:
 
-    for i in middle.mkd back.mkd; do \
-        pandoc --atx-headers -t markdown_phpextra < $i |\
-        ./parts.pl
-    done
-
-Note this:
-
-* Does not convert the abstract to a prefixed paragraph;
-* Makes all RFC references normative;
-* Handles all figure and table captions and adds references (if appropriate);
+* The (TOML) titleblock will not be generated. There is however [titleblock.pl](https://raw.githubusercontent.com/miekg/mmark/master/convert/titleblock.pl)
+  which can be given an @RFC7328 `template.xml` file and will output a TOML titleblock, that can
+  be used as a starting point.
+* Does not convert the abstract to a `.# Abstract` section.
+* Makes all RFC references normative.
+* Handles all figure and table captions and adds references (if appropriate).
 * Probably has other bugs, so a manual review should be in order.
 
-There is also [titleblock.pl](https://raw.githubusercontent.com/miekg/mmark/master/convert/titleblock.pl)
-which can be given an @RFC7328 `template.xml` file and will output a TOML titleblock, that can
-be used as a starting point.
-
-A> Yes, this uses pandoc and Perl.. why? Becasue if mmark could parse the file by itself, there wasn't much
-A> of problem. Two things are holding this back: mmark cannot parse definition lists with empty spaces and
-A> there isn't renderer that can output markdown syntax.
-
-For now the mmark parser will not get any features that makes it backwards compatible with pandoc2rfc.
+Parsing RFC 7328 syntax is a work-in-progress.
 
 # Acknowledgements
 

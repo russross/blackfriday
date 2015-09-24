@@ -1889,7 +1889,7 @@ func (p *parser) dliPrefix(data []byte) int {
 	for j < 3 && iswhitespace(data[i+j]) && i+j < len(data) {
 		j++
 	}
-	i += j+1
+	i += j + 1
 	if i >= len(data) {
 		return 0
 	}
@@ -2004,7 +2004,11 @@ func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *int) int {
 		i = p.dliPrefix(data)
 		if i > 0 {
 			var rawTerm bytes.Buffer
-			p.inline(&rawTerm, data[:i-2]) // -2 for : and the newline
+			if data[i-2] == '\n' {
+				p.inline(&rawTerm, data[:i-3]) // -3 for : and the 2xnewline
+			} else {
+				p.inline(&rawTerm, data[:i-2]) // -2 for : and the newline
+			}
 			p.r.ListItem(out, rawTerm.Bytes(), *flags|_LIST_TYPE_TERM)
 		}
 	}
