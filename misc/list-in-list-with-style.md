@@ -1,6 +1,11 @@
-Mmark is a markdown dialect for writing RFCs or books. The main reason it exists
-is because the IETF is developing a new XML format (version 3) for writing RFCs.
-This new format is *way* more powerful, so sadly
+Title: Lists in lists with style
+Date: 2015-09-24 11:56
+Summary: Styling lists in Mmark markdown
+Tags: Markdown,XML2RFC,lists,styling
+
+Mmark is a markdown dialect for writing RFCs (or books!). The main reason it
+exists is because the IETF is developing a new XML format (version 3) for
+writing RFCs. This new format is *way* more powerful, so sadly
 [Pandoc2rfc](https://tools.ietf.org/html/rfc7328.html) does not cut it anymore.
 
 Right now [mmark](https://github.com/miekg/mmark) fully supports writing
@@ -13,7 +18,7 @@ In XML2RFC you can "style" a list by using:
 
     <list style="format (%I)">
 
-Here we say use Roman numerals inclosed in braces: `(I) (II)`, etc. In XML2RFC
+Here we say use Roman numerals inclosed in braces: `(I)`, `(II)`, etc. In XML2RFC
 v3 this becomes:
 
     <ul type="(%I)">
@@ -33,3 +38,16 @@ this is rendered as:
        (II)    Item 2
 
        (III)   Item 3
+
+This also works for lists in lists:
+
+    {style="format (%I)" type="(%I)"}
+    * Item 1
+    * Item 2
+    * Item 3
+    {style="format *%I*" type="*%I*"}
+        * Item 4
+        * Item 5
+
+*Not* giving the second IAL (inline attribute list), i.e. (the `{style}` thing),
+makes it fallback to the default.
