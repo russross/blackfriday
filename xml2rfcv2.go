@@ -335,6 +335,7 @@ func (options *xml2) List(out *bytes.Buffer, text func() bool, flags, start int,
 	default:
 		out.WriteString("</list>\n")
 	}
+
 	if flags&_LIST_INSIDE_LIST == 0 {
 		out.WriteString("</t>\n")
 	}

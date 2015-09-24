@@ -279,7 +279,25 @@ func (options *xml) List(out *bytes.Buffer, text func() bool, flags, start int, 
 	if group != nil {
 		ial.GetOrDefaultAttr("group", string(group))
 	}
+
+	if flags&_LIST_TYPE_ORDERED != 0 {
+		switch {
+		case flags&_LIST_TYPE_ORDERED_ALPHA_LOWER != 0:
+			ial.GetOrDefaultAttr("type", "%c")
+		case flags&_LIST_TYPE_ORDERED_ALPHA_UPPER != 0:
+			ial.GetOrDefaultAttr("type", "%C")
+		case flags&_LIST_TYPE_ORDERED_ROMAN_LOWER != 0:
+			ial.GetOrDefaultAttr("type", "%i")
+		case flags&_LIST_TYPE_ORDERED_ROMAN_UPPER != 0:
+			ial.GetOrDefaultAttr("type", "%I")
+		case flags&_LIST_TYPE_ORDERED_GROUP != 0:
+			// ? TODO(miek)
+			// Handled above, don't need to do anything because v3 format will take care of this.
+		}
+	}
+
 	s := ial.String()
+
 	switch {
 	case flags&_LIST_TYPE_ORDERED != 0:
 		out.WriteString("<ol" + s + ">\n")
