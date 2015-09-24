@@ -66,11 +66,11 @@ func main() {
 	switch len(args) {
 	case 0:
 		if input, err = ioutil.ReadAll(os.Stdin); err != nil {
-			log.Fatalf("error reading from Stdin:", err)
+			log.Fatalf("error reading from standard input: %v", err)
 		}
 	case 1, 2:
 		if input, err = ioutil.ReadFile(args[0]); err != nil {
-			log.Fatalf("error reading from", args[0], ":", err)
+			log.Fatalf("error reading from %s: %s", args[0], err)
 		}
 	default:
 		flag.Usage()
