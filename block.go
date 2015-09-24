@@ -1878,12 +1878,18 @@ func (p *parser) dliPrefix(data []byte) int {
 	if i == 0 || i == len(data) {
 		return 0
 	}
+
+	// allow an optional newline to be here
+	if i+1 < len(data) && data[i] == '\n' && data[i+1] == '\n' {
+		i++
+	}
+
 	// start with up to 3 spaces before :
 	j := 0
 	for j < 3 && iswhitespace(data[i+j]) && i+j < len(data) {
 		j++
 	}
-	i++
+	i += j+1
 	if i >= len(data) {
 		return 0
 	}
