@@ -589,9 +589,11 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 				id = data[1:txtE]
 			}
 		}
+			println("BLAAT", string(id))
 
 		key := string(bytes.ToLower(id))
 		if t == linkInlineFootnote {
+			println("BLAAT", string(id))
 			// create a new reference
 			noteId = len(p.notes) + 1
 
@@ -695,6 +697,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		if outSize > 0 && outBytes[outSize-1] == '^' {
 			out.Truncate(outSize - 1)
 		}
+		println("BLAAT", "BLAAT")
 
 		p.r.FootnoteRef(out, link, noteId)
 

@@ -18,29 +18,30 @@ var test = false
 // OR these values together to select multiple extensions.
 const (
 	_                                    = 1 << iota
-	EXTENSION_ABBREVIATIONS              // render abbreviations `*[HTML]: Hyper Text Markup Language`
+	EXTENSION_ABBREVIATIONS              // Render abbreviations `*[HTML]: Hyper Text Markup Language`
 	EXTENSION_AUTO_HEADER_IDS            // Create the header ID from the text
-	EXTENSION_AUTOLINK                   // detect embedded URLs that are not explicitly marked
+	EXTENSION_AUTOLINK                   // Detect embedded URLs that are not explicitly marked
 	EXTENSION_CITATION                   // Support citations via the link syntax
-	EXTENSION_EXAMPLE_LISTS              // render '(@tag)  ' example lists
-	EXTENSION_FENCED_CODE                // render fenced code blocks
+	EXTENSION_EXAMPLE_LISTS              // Render '(@tag)  ' example lists
+	EXTENSION_FENCED_CODE                // Render fenced code blocks
 	EXTENSION_FOOTNOTES                  // Pandoc-style footnotes
-	EXTENSION_HARD_LINE_BREAK            // translate newlines into line breaks
-	EXTENSION_HEADER_IDS                 // specify header IDs with {#id}
+	EXTENSION_HARD_LINE_BREAK            // Translate newlines into line breaks
+	EXTENSION_HEADER_IDS                 // Specify header IDs with {#id}
 	EXTENSION_INCLUDE                    // Include file with {{ syntax
-	EXTENSION_INLINE_ATTR                // detect CommonMark's IAL syntax
-	EXTENSION_LAX_HTML_BLOCKS            // loosen up HTML block parsing rules
-	EXTENSION_MATH                       // detect $$...$$ and parse as math
-	EXTENSION_MATTER                     // use {frontmatter} {mainmatter} {backmatter}
+	EXTENSION_INLINE_ATTR                // Detect CommonMark's IAL syntax
+	EXTENSION_LAX_HTML_BLOCKS            // Loosen up HTML block parsing rules
+	EXTENSION_MATH                       // Detect $$...$$ and parse as math
+	EXTENSION_MATTER                     // Use {frontmatter} {mainmatter} {backmatter}
 	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK // No need to insert an empty line to start a (code, quote, order list, unorder list)block
-	EXTENSION_PARTS                      // detect part headers (-#)
+	EXTENSION_PARTS                      // Detect part headers (-#)
 	EXTENSION_QUOTES                     // Allow A> AS> and N> to be parsed as abstract, asides and notes
 	EXTENSION_SHORT_REF                  // (#id) will be a cross reference.
-	EXTENSION_SPACE_HEADERS              // be strict about prefix header rules
-	EXTENSION_TABLES                     // render tables
+	EXTENSION_SPACE_HEADERS              // Be strict about prefix header rules
+	EXTENSION_TABLES                     // Render tables
 	EXTENSION_TITLEBLOCK_TOML            // Titleblock in TOML
 	EXTENSION_UNIQUE_HEADER_IDS          // When detecting identical anchors add a sequence number -1, -2 etc.
-	EXTENSION_BACKSLASH_LINE_BREAK       // translate trailing backslashes into line breaks
+	EXTENSION_BACKSLASH_LINE_BREAK       // Translate trailing backslashes into line breaks
+	EXTENSION_RFC7328                    //  Parse RFC 7328 markdown.
 
 	commonHtmlFlags = 0
 
