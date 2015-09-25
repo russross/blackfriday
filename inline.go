@@ -596,6 +596,9 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			// is RFC7328 mode is enabled, check the footnote, to see if it adhires
 			// to the following formats. If so, skip adding to footnotes. Instead
 			// either log about this or generate a index.
+			
+
+
 			println("BLAAT", string(id))
 			// create a new reference
 			noteId = len(p.notes) + 1

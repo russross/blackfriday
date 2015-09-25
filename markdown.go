@@ -41,7 +41,7 @@ const (
 	EXTENSION_TITLEBLOCK_TOML            // Titleblock in TOML
 	EXTENSION_UNIQUE_HEADER_IDS          // When detecting identical anchors add a sequence number -1, -2 etc.
 	EXTENSION_BACKSLASH_LINE_BREAK       // Translate trailing backslashes into line breaks
-	EXTENSION_RFC7328                    //  Parse RFC 7328 markdown.
+	EXTENSION_RFC7328                    // Parse RFC 7328 markdown.
 
 	commonHtmlFlags = 0
 
