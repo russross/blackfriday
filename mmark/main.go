@@ -25,7 +25,7 @@ const DEFAULT_TITLE = ""
 
 func main() {
 	// parse command-line options
-	var page, xml, xml2, toml bool
+	var page, xml, xml2, toml, rfc7328 bool
 	var css, head string
 
 	flag.BoolVar(&page, "page", false, "generate a standalone HTML page")
@@ -38,6 +38,7 @@ func main() {
 	flag.StringVar(&mmark.CitationsRFC, "bib-rfc", mmark.CitationsRFC, "RFC bibliography URL")
 
 	flag.BoolVar(&toml, "toml", false, "input file is xml2rfc XML which is convert to TOML titleblock")
+	flag.BoolVar(&rfc7328, "rfc7328", false, "parse RFC 7328 style input")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Mmark Markdown Processor" +
@@ -102,6 +103,10 @@ func main() {
 	extensions |= mmark.EXTENSION_INCLUDE
 	extensions |= mmark.EXTENSION_PARTS
 	extensions |= mmark.EXTENSION_ABBREVIATIONS
+
+	if rfc7328 {
+		extensions |= mmark.EXTENSION_RFC7328
+	}
 
 	var renderer mmark.Renderer
 	xmlFlags := 0

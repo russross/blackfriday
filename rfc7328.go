@@ -5,9 +5,9 @@ package mmark
 import "bytes"
 
 func (p *parser) rfc7328Index(out *bytes.Buffer, text []byte) int {
-	//if p.flags&EXTENSION_RFC7328 == 0 {
-	//return false
-	//}
+	if p.flags&EXTENSION_RFC7328 == 0 {
+		return 0
+	}
 	text = bytes.TrimSpace(text)
 	// look for ^item1^ subitem
 	if text[0] != '^' || len(text) < 3 {
@@ -51,9 +51,9 @@ func (p *parser) rfc7328Index(out *bytes.Buffer, text []byte) int {
 }
 
 func (p *parser) rfc7328Caption(out *bytes.Buffer, text []byte) int {
-	//if p.flags&EXTENSION_RFC7328 == 0 {
-	//return
-	//}
+	if p.flags&EXTENSION_RFC7328 == 0 {
+		return 0
+	}
 	// Parse stuff like:
 	// ^[fig:minimal::A minimal template.xml.]
 	// If we don't find double colon it is not a inline note masking as a caption
