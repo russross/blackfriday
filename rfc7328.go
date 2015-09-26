@@ -70,6 +70,13 @@ func (p *parser) rfc7328Caption(out *bytes.Buffer, text []byte) int {
 	if len(anchor) == 0 && len(caption) == 0 {
 		return 0
 	}
+
+	// rewind
+	outSize := out.Len()
+	outBytes := out.Bytes()
+	if outSize > 0 && outBytes[outSize-1] == '^' {
+		out.Truncate(outSize - 1)
+	}
 	// It is somewhat hard to now go back to the original start of the figure
 	// and marge this new content in (there already may be a #id, etc. etc.).
 	// For now just log that we have seen this line and return a positive integer
@@ -78,7 +85,7 @@ func (p *parser) rfc7328Caption(out *bytes.Buffer, text []byte) int {
 		printf(p, "rfc 7328 style anchor seen: consider adding '{#%s}' IAL before the figure", string(anchor))
 	}
 	if len(caption) > 0 {
-		printf(p, "rfc 7328 style caption seen: consider adding 'Figure: %s' after the figure", string(caption))
+		printf(p, "rfc 7328 style caption seen: consider adding 'Figure: %s' or 'Table: %s' after the figure/table", string(caption), string(caption))
 	}
 	return len(text)
 }

@@ -22,7 +22,8 @@ Sample text output of this book (when rendered as an I-D) can
 It is not perfect due to limitations in xml2rfc version 2. Fully rendered
 HTML version [can be found here](http://miek.nl/go).
 
-See `mmark2rfc.md` as an example I-D for how to use mmark.
+See `mmark2rfc.md` as an example I-D for how to use mmark. Or see the rfc/ subdirectory
+with some April 1st RFC that have been typeset in mmark.
 
 It can currently output HTML5, XML2RFC v2 and XML2RFC v3 XML. Other output
 engines could be added.
