@@ -593,9 +593,12 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		key := string(bytes.ToLower(id))
 		if t == linkInlineFootnote {
 			// is RFC7328 mode is enabled, check the footnote, to see if it adheres
-			// to the following formats. If so, skip adding. Instead
+			// to the following format. If so, skip adding. Instead
 			// either log about this or generate a index.
 			if x := p.rfc7328Index(out, id); x > 0 {
+				return txtE + 1
+			}
+			if x := p.rfc7328Caption(out, id); x > 0 {
 				return txtE + 1
 			}
 
