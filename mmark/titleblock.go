@@ -9,93 +9,9 @@ import (
 	"strings"
 )
 
-const XML = `<?xml version="1.0" ?>
-<!DOCTYPE rfc SYSTEM 'rfc2629.dtd' [
-<!ENTITY pandocMiddle PUBLIC '' 'middle.xml'>
-<!ENTITY abstract     PUBLIC '' 'abstract.xml'>
-<!ENTITY appendix     PUBLIC '' 'appendix.xml'>
-
-<!-- normative -->
-<!ENTITY RFC1034    PUBLIC '' 'bib/reference.RFC.1034'>
-<!ENTITY RFC2065    PUBLIC '' 'bib/reference.RFC.2065'>
-<!ENTITY RFC2308    PUBLIC '' 'bib/reference.RFC.2308'>
-<!ENTITY RFC4033    PUBLIC '' 'bib/reference.RFC.4033'>
-<!ENTITY RFC4034    PUBLIC '' 'bib/reference.RFC.4034'>
-<!ENTITY RFC4035    PUBLIC '' 'bib/reference.RFC.4035'>
-<!ENTITY RFC4592    PUBLIC '' 'bib/reference.RFC.4592'>
-<!ENTITY RFC4648    PUBLIC '' 'bib/reference.RFC.4648'>
-<!ENTITY RFC5155    PUBLIC '' 'bib/reference.RFC.5155'>
-<!ENTITY RFC6672    PUBLIC '' 'bib/reference.RFC.6672'>
-
-<!-- informative -->
-<!ENTITY RFC2535    PUBLIC '' 'bib/reference.RFC.2535'>
-<!ENTITY RFC3655    PUBLIC '' 'bib/reference.RFC.3655'>
-<!ENTITY RFC3755    PUBLIC '' 'bib/reference.RFC.3755'>
-<!ENTITY RFC4470    PUBLIC '' 'bib/reference.RFC.4470'>
-<!ENTITY RFC4956    PUBLIC '' 'bib/reference.RFC.4956'>
-<!ENTITY draftdnsnr    PUBLIC '' 'bib/reference.I-D.arends-dnsnr.xml'>
-<!ENTITY draftnsec2v2  PUBLIC '' 'bib/reference.I-D.laurie-dnsext-nsec2v2.xml'>
-<!ENTITY draftexist    PUBLIC '' 'bib/reference.I-D.ietf-dnsext-not-exsiting-rr.xml'>
-<!ENTITY RFC5155Errata PUBLIC '' 'bib/reference.RFC.5155.errata.xml'>
-<!ENTITY unbound    PUBLIC '' 'bib/reference.unbound.xml'>
-<!ENTITY phreebird     PUBLIC '' 'bib/reference.phreebird.xml'>
-]>
-
-<rfc ipr="trust200902" submissionType="independent" category="info" docName="draft-gieben-auth-denial-of-existence-dns-06">
-<?rfc toc="yes"?>         <!-- generate a table of contents -->
-<?rfc tocompact="no"?>
-<?rfc tocdepth="6"?>
-<?rfc symrefs="yes"?>     <!-- use anchors instead of numbers for references -->
-<?rfc sortrefs="yes" ?>   <!-- alphabetize the references -->
-<?rfc rfcedstyle="yes"?>
-<?rfc strict="yes"?>
-<?rfc autobreaks="yes"?>
-<?rfc compact="yes" ?>    <!-- conserve vertical whitespace -->
-<?rfc subcompact="no" ?>  <!-- but keep a blank line between list items -->
-<front>
-
-<title abbrev="Authenticated Denial in DNS">Authenticated Denial of Existence in the DNS</title>
-
-        <author initials='R.' surname='Gieben' fullname='R. (Miek) Gieben'>
-            <organization>Google</organization>
-            <address>
-                <phone></phone>
-                <email>miek@google.com</email>
-                <uri></uri>
-            </address>
-        </author>
-
-        <author initials='W.' surname='Mekking' fullname='W. (Matthijs) Mekking'>
-            <organization>NLnet Labs</organization>
-
-            <address>
-                <postal>
-                    <street>Science Park 400</street>
-                    <street></street>
-                    <city>Amsterdam</city> <region></region>
-                    <code>1098 XH</code>
-                    <country>NL</country>
-                </postal>
-
-                <phone></phone>
-                <email>matthijs@nlnetlabs.nl</email>
-                <uri>http://www.nlnetlabs.nl/</uri>
-            </address>
-        </author>
-
-        <date day="3" month='February' year='2014' />
-
-        <area>Internet</area>
-        <keyword>DNSSEC</keyword>
-        <keyword>Denial of Existance</keyword>
-        <keyword>NSEC</keyword>
-        <keyword>NSEC3</keyword>
-</front>
-</rfc>
-`
-
-func main() {
-	parser := xml.NewDecoder(strings.NewReader(XML))
+// parseXMLtoTOML parses XML to TOML (in a slightly brain dead way).
+func parseXMLtoTOML(input []byte) {
+	parser := xml.NewDecoder(bytes.NewReader(input))
 	keywords := []string{}
 	name := ""
 	fmt.Println("% # Quick 'n dirty translated by mmark")
