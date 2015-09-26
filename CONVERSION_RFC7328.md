@@ -7,7 +7,7 @@ The following (long) commandline allows pandoc to parse the document and output
 something mmark can grok (main use here is to convert table to the mmark table
 format):
 
-    pandoc -f markdown_phpextra+simple_tables+multiline_tables+grid_tables+superscript \
+    pandoc --atx-headers -f markdown_phpextra+simple_tables+multiline_tables+grid_tables+superscript \
         -t markdown_phpextra+superscript YOURFILE.md | \
         sed 's|\\^\[|\^\[|' > YOURFILE_mmark.md
 
