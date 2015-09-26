@@ -25,7 +25,7 @@ const DEFAULT_TITLE = ""
 
 func main() {
 	// parse command-line options
-	var page, xml, xml2 bool
+	var page, xml, xml2, toml bool
 	var css, head string
 
 	flag.BoolVar(&page, "page", false, "generate a standalone HTML page")
@@ -36,6 +36,8 @@ func main() {
 
 	flag.StringVar(&mmark.CitationsID, "bib-id", mmark.CitationsID, "ID bibliography URL")
 	flag.StringVar(&mmark.CitationsRFC, "bib-rfc", mmark.CitationsRFC, "RFC bibliography URL")
+
+	flag.BoolVar(&toml, "toml", false, "input file is xml2rfc XML which is convert to TOML titleblock")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Mmark Markdown Processor" +
@@ -74,6 +76,12 @@ func main() {
 		}
 	default:
 		flag.Usage()
+		return
+	}
+
+	// separate mode for parsing XML to TOML
+	if toml {
+		parseXMLtoTOML(input)
 		return
 	}
 

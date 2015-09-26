@@ -592,6 +592,16 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 		key := string(bytes.ToLower(id))
 		if t == linkInlineFootnote {
+			// is RFC7328 mode is enabled, check the footnote, to see if it adheres
+			// to the following format. If so, skip adding. Instead
+			// either log about this or generate a index.
+			if x := p.rfc7328Index(out, id); x > 0 {
+				return txtE + 1
+			}
+			if x := p.rfc7328Caption(out, id); x > 0 {
+				return txtE + 1
+			}
+
 			// create a new reference
 			noteId = len(p.notes) + 1
 
@@ -695,7 +705,6 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		if outSize > 0 && outBytes[outSize-1] == '^' {
 			out.Truncate(outSize - 1)
 		}
-
 		p.r.FootnoteRef(out, link, noteId)
 
 	case linkDeferredFootnote:
@@ -1531,7 +1540,7 @@ func helperScript(p *parser, out *bytes.Buffer, data []byte, c byte) int {
 				return i + 1 // differences in how subscript is called ...
 			case '^':
 				p.r.Superscript(out, work.Bytes())
-				return i + 2 // ... compated to superscript
+				return i + 2 // ... compared to superscript
 			}
 		}
 		raw.WriteByte(data[i])

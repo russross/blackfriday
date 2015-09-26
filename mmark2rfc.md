@@ -492,21 +492,6 @@ For v2 they are stripped of the emphasis and outputted as-is.
 
 Use H~2~O and 2^10^ is 1024. In v2 these are outputted as-is.
 
-# Converting from RFC 7328 Syntax
-
-Any RFC 7238 file is valid mmark and the parser will do its best to make it work out
-of the box. There are however some limitations:
-
-* The (TOML) titleblock will not be generated. There is however [titleblock.pl](https://raw.githubusercontent.com/miekg/mmark/master/convert/titleblock.pl)
-  which can be given an @RFC7328 `template.xml` file and will output a TOML titleblock, that can
-  be used as a starting point.
-* Does not convert the abstract to a `.# Abstract` section.
-* Makes all RFC references normative.
-* Handles all figure and table captions and adds references (if appropriate).
-* Probably has other bugs, so a manual review should be in order.
-
-Parsing RFC 7328 syntax is a work-in-progress.
-
 # Acknowledgements
 
 <!-- reference we need to include -->
@@ -563,25 +548,12 @@ Parsing RFC 7328 syntax is a work-in-progress.
 
 {backmatter}
 
-# Tips and Tricks
-
-How do I type set:
-
-Multiple paragraphs in a list:
-:   Indent the list with four spaces. Text indented with three spaces will
-    be seen as a new paragraph that breaks the list.
-
 # Bugs
 
 *  Citations must be included in the text before the `{backmatter}` starts.
    otherwise they are not available in the appendix.
 *  Inline Attribute Lists must be given *before* the block element.
-*  Mmark cannot correctly parse @RFC7328 markdown.
 *  Multiple terms and definitions are not supported in definition lists.
-*  Mmark uses two scans when converting a document and does not build an
-   internal AST of the document, this means it can not adhere 100% to the
-   [CommonMark] specification, however the CommonMark test suite is used when
-   developing mmark. Currently mmark passes ~60% of the tests.
 
 [kramdown]: http://http://kramdown.gettalong.org/
 [leanpub]: https://leanpub.com/help/manual
