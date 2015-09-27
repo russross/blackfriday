@@ -36,7 +36,7 @@ type addressPostal struct {
 }
 
 // PIs the processing instructions... TODO(miek): more.
-var PIs = []string{"toc", "symrefs", "sortrefs", "compact", "subcompact", "private", "topblock", "header", "footer"}
+var PIs = []string{"toc", "symrefs", "sortrefs", "compact", "subcompact", "private", "topblock", "header", "footer", "comments"}
 
 type pi struct {
 	Toc        string
@@ -46,6 +46,7 @@ type pi struct {
 	Subcompact string
 	Private    string
 	Topblock   string
+	Comments	string // Typeset cref in the text
 	Header	   string // Top-Left header, usually Internet-Draft.
 	Footer	   string // Bottom-Center footer, usually Expires ...
 }
