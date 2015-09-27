@@ -217,6 +217,9 @@ func titleBlockTOMLPI(pi pi, name string, version int) string {
 				return ""
 			}
 			return "<?rfc footer=\"" + pi.Footer + "\"?>\n"
+		default:
+			printf(nil, "unhandled or unknown PI seen: %s", name)
+			return ""
 		}
 		return ""
 	}
