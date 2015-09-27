@@ -2,12 +2,8 @@
 % abbrev = "mfld"
 % category = "info"
 % docName = "draft-mfld-00"
-% ipr= "trust200902"
-% area = "Internet"
 % workgroup = "Network Working Group"
 % keyword = ["lunches", "dinners"]
-%
-% date = 2015-09-27T00:00:00Z
 %
 % [pi]
 % toc = "yes"

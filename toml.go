@@ -7,8 +7,13 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-// Sentinal for not set.
-const piNotSet = "__mmark_toml_pi_not_set"
+const (
+	// Sentinal for not set.
+	piNotSet = "__mmark_toml_pi_not_set"
+
+	DefaultIpr  = "trust200902"
+	DefaultArea = "Internet"
+)
 
 type author struct {
 	Initials     string
@@ -35,7 +40,7 @@ type addressPostal struct {
 	PostalLine []string
 }
 
-// PIs the processing instructions... TODO(miek): more.
+// PIs the processing instructions.
 var PIs = []string{"toc", "symrefs", "sortrefs", "compact", "subcompact", "private", "topblock", "header", "footer", "comments"}
 
 type pi struct {
@@ -46,9 +51,9 @@ type pi struct {
 	Subcompact string
 	Private    string
 	Topblock   string
-	Comments	string // Typeset cref in the text
-	Header	   string // Top-Left header, usually Internet-Draft.
-	Footer	   string // Bottom-Center footer, usually Expires ...
+	Comments   string // Typeset cref's in the text.
+	Header     string // Top-Left header, usually Internet-Draft.
+	Footer     string // Bottom-Center footer, usually Expires ...
 }
 
 type title struct {
@@ -73,9 +78,15 @@ type title struct {
 func (p *parser) titleBlockTOML(out *bytes.Buffer, data []byte) title {
 	data = bytes.TrimPrefix(data, []byte("%"))
 	data = bytes.Replace(data, []byte("\n%"), []byte("\n"), -1)
+
+	// Set some sentinels and defaults.
 	var block title
 	block.PI.Header = piNotSet
 	block.PI.Footer = piNotSet
+	block.Area = DefaultArea
+	block.Ipr = DefaultIpr
+	block.Date = time.Now()
+
 	if _, err := toml.Decode(string(data), &block); err != nil {
 		printf(p, "error in TOML titleblock: %s", err.Error())
 		return block // never an error when encoding markdown
