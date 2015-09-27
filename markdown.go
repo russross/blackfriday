@@ -10,7 +10,7 @@ import (
 	"unicode/utf8"
 )
 
-const version = "1.0"
+const version = "1.3"
 
 var test = false
 
