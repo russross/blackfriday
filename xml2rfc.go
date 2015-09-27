@@ -202,7 +202,7 @@ func titleBlockTOMLPI(pi pi, name string, version int) string {
 		case "topblock":
 			return "<?rfc topblock=\"" + yesno(pi.Topblock, "yes") + "\"?>\n"
 		case "comments":
-			return "<?rfc topblock=\"" + yesno(pi.Comments, "no") + "\"?>\n"
+			return "<?rfc comments=\"" + yesno(pi.Comments, "no") + "\"?>\n"
 		case "subcompact":
 			return "<?rfc subcompact=\"" + yesno(pi.Subcompact, "no") + "\"?>\n"
 		case "private":
