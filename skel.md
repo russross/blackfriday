@@ -15,7 +15,6 @@
 % symrefs = "yes"
 % comments = "yes"
 %
-%
 % [[author]]
 % initials="C."
 % surname="Bormann"
