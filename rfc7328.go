@@ -82,7 +82,7 @@ func (p *parser) rfc7328Caption(out *bytes.Buffer, text []byte) int {
 	// For now just log that we have seen this line and return a positive integer
 	// indicating this wasn't a footnote.
 	if len(anchor) > 0 {
-		printf(p, "rfc 7328 style anchor seen: consider adding '{#%s}' IAL before the figure", string(anchor))
+		printf(p, "rfc 7328 style anchor seen: consider adding '{#%s}' IAL before the figure/table", string(anchor))
 	}
 	if len(caption) > 0 {
 		printf(p, "rfc 7328 style caption seen: consider adding 'Figure: %s' or 'Table: %s' after the figure/table", string(caption), string(caption))
