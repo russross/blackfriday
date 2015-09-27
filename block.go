@@ -2004,8 +2004,8 @@ func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *int) int {
 		i = p.dliPrefix(data)
 		if i > 0 {
 			var rawTerm bytes.Buffer
-			if data[i-2] == '\n' {
-				p.inline(&rawTerm, data[:i-2]) // -2 for : and the 2xnewline. TODO(miek): double check this.
+			if data[i-2] == '\n' && data[i-3] == '\n' {
+				p.inline(&rawTerm, data[:i-3]) // -3 for : and the 2newline
 			} else {
 				p.inline(&rawTerm, data[:i-2]) // -2 for : and the newline
 			}

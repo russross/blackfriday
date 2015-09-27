@@ -1268,30 +1268,39 @@ func TestDefinitionListXML(t *testing.T) {
 		"<dl>\n<dt>Term1</dt>\n<dd>Yin</dd>\n<dt>Term2</dt>\n<dd>Yang</dd>\n</dl>\n",
 
 		// fix sourcecode/artwork here.
-		//		`Term 1
-		//:   This is a definition with two paragraphs. Lorem ipsum
-		//
-		//    Vestibulum enim wisi, viverra nec, fringilla in, laoreet
-		//    vitae, risus.
-		//
-		//Term 2
-		//:   This definition has a code block, a blockquote and a list.
-		//
-		//        code block.
-		//
-		//    > block quote
-		//    > on two lines.
-		//
-		//    1.  first list item
-		//    2.  second list item`,
-		//
-		//		"<dl>\n<dt>Term 1</dt>\n<dd><t>This is a definition with two paragraphs. Lorem ipsum</t>\n<t>Vestibulum enim wisi, viverra nec, fringilla in, laoreet\nvitae, risus.</t></dd>\n<dt>Term 2</dt>\n<dd><t>This definition has a code block, a blockquote and a list.</t>\n<sourcecode>\ncode block.\n</sourcecode>\n<blockquote>\n<t>block quote\non two lines.</t>\n</blockquote>\n<ol>\n<li>first list item</li>\n<li>second list item</li>\n</ol></dd>\n</dl>\n",
-		//
+`Term 1
+:   This is a definition with two paragraphs. Lorem ipsum
+
+    Vestibulum enim wisi, viverra nec, fringilla in, laoreet
+    vitae, risus.
+
+Term 2
+:   This definition has a code block, a blockquote and a list.
+
+	code block.
+
+    > block quote
+    > on two lines.
+
+    1.  first list item
+    2.  second list item
+`,
+		"<dl>\n<dt>Term 1</dt>\n<dd><t>\nThis is a definition with two paragraphs. Lorem ipsum\n</t>\n<t>\nVestibulum enim wisi, viverra nec, fringilla in, laoreet\nvitae, risus.\n</t></dd>\n<dt>Term 2</dt>\n<dd><t>\nThis definition has a code block, a blockquote and a list.\n</t>\n<t>\ncode block.\n</t>\n<blockquote>\n<t>\nblock quote\non two lines.\n</t>\n</blockquote>\n<ol>\n<li>first list item</li>\n<li>second list item</li>\n</ol></dd>\n</dl>\n",
+
 		`Apple
 :   Pomaceous fruit of plants of the genus Malus in
     the family Rosaceae.
 
 Orange and *Apples*
+:   The thing of an evergreen tree of the genus Citrus.`,
+		"<dl>\n<dt>Apple</dt>\n<dd><t>\nPomaceous fruit of plants of the genus Malus in\nthe family Rosaceae.\n</t></dd>\n<dt>Orange and <em>Apples</em></dt>\n<dd><t>\nThe thing of an evergreen tree of the genus Citrus.\n</t></dd>\n</dl>\n",
+		`Apple
+
+:   Pomaceous fruit of plants of the genus Malus in
+    the family Rosaceae.
+
+Orange and *Apples*
+
 :   The thing of an evergreen tree of the genus Citrus.`,
 		"<dl>\n<dt>Apple</dt>\n<dd><t>\nPomaceous fruit of plants of the genus Malus in\nthe family Rosaceae.\n</t></dd>\n<dt>Orange and <em>Apples</em></dt>\n<dd><t>\nThe thing of an evergreen tree of the genus Citrus.\n</t></dd>\n</dl>\n",
 	}
