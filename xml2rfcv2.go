@@ -352,7 +352,11 @@ func (options *xml2) ListItem(out *bytes.Buffer, text []byte, flags int) {
 		}
 		// close previous one?/
 		out.WriteString("<t hangText=\"")
+		n := out.Len()
 		writeSanitizeXML(out, text)
+		if n == out.Len() {
+			printf(nil, "no text remained after sanitizing XML for definition term: '" + string(text) + "'")
+		}
 		out.WriteString("\">\n")
 		return
 	}
