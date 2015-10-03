@@ -343,9 +343,7 @@ func (options *xml2) List(out *bytes.Buffer, text func() bool, flags, start int,
 
 func (options *xml2) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	if flags&_LIST_TYPE_DEFINITION != 0 && flags&_LIST_TYPE_TERM == 0 {
-		//out.WriteString("<dd>")
 		out.Write(text)
-		//out.WriteString("</dd>\n")
 		return
 	}
 	if flags&_LIST_TYPE_TERM != 0 {
