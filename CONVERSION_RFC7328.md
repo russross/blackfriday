@@ -1,10 +1,10 @@
 # Converting From RFC 7328 Syntax
 
-Mmark can not directly parse a RFC 7328 style document, but pandoc can, and
+Mmark can not directly parse an RFC 7328 style document, but pandoc can, and
 pandoc can output a document that *can* be parsed by mmark.
 
-The following (long) commandline allows pandoc to parse the document and output
-something mmark can grok (main use here is to convert table to the mmark table
+The following (long-ish) commandline allows pandoc to parse the document and output
+something mmark can grok (main use here is to convert tables to the mmark table
 format):
 
     cat YOURFILE.md | \
