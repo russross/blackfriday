@@ -325,15 +325,17 @@ func (options *html) CalloutText(out *bytes.Buffer, id string, ids []string) {
 	}
 }
 
-func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure bool, callout bool) {
+func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure, callout bool) {
 	doubleSpace(out)
 
-	ial := options.inlineAttr()
-	// TODO(miek): subfigure
+	s := options.inlineAttr().String()
 
-	// if theere is a caption we wrap the thing in the figure
+	// if there is a caption we wrap the thing in the figure
 	if len(caption) > 0 {
-		out.WriteString("<figure" + ial.String() + ">\n")
+		if subfigure {
+			s += " role=\"group\""
+		}
+		out.WriteString("<figure" + s + ">\n")
 	}
 
 	// parse out the language names/classes
@@ -706,15 +708,24 @@ func (options *html) maybeWriteAbsolutePrefix(out *bytes.Buffer, link []byte) {
 }
 
 func (options *html) Figure(out *bytes.Buffer, text []byte, caption []byte) {
-
+	s := options.inlineAttr().String()
+	out.WriteString("<figure role=\"group\"" + s + ">\n")
+	out.WriteString("<figcaption>")
+	out.Write(caption)
+	out.WriteString("</figcaption>\n")
+	out.Write(text)
+	out.WriteString("</figure>\n")
 }
 
 func (options *html) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte, subfigure bool) {
 	if options.flags&HTML_SKIP_IMAGES != 0 {
 		return
 	}
-	ial := options.inlineAttr()
-	out.WriteString("<figure" + ial.String() + ">")
+	s := options.inlineAttr().String()
+	if subfigure {
+		s += " role=\"group\""
+	}
+	out.WriteString("<figure" + s + ">")
 	out.WriteString("<img src=\"")
 	options.maybeWriteAbsolutePrefix(out, link)
 	attrEscape(out, link)
