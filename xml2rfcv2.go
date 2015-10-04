@@ -436,7 +436,10 @@ func (options *xml2) TableHeaderCell(out *bytes.Buffer, text []byte, align int) 
 	out.WriteString("</ttcol>\n")
 }
 
-func (options *xml2) TableCell(out *bytes.Buffer, text []byte, align int) {
+func (options *xml2) TableCell(out *bytes.Buffer, text []byte, align, colspan int) {
+	if colspan > 1 {
+		printf(nil, "syntax not supported: colspan=%d", colspan)
+	}
 	out.WriteString("<c>")
 	out.Write(text)
 	out.WriteString("</c>")

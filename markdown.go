@@ -182,10 +182,12 @@ type Renderer interface {
 	List(out *bytes.Buffer, text func() bool, flags, start int, group []byte)
 	ListItem(out *bytes.Buffer, text []byte, flags int)
 	Paragraph(out *bytes.Buffer, text func() bool, flags int)
+
 	Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte)
 	TableRow(out *bytes.Buffer, text []byte)
 	TableHeaderCell(out *bytes.Buffer, text []byte, flags int)
-	TableCell(out *bytes.Buffer, text []byte, flags int)
+	TableCell(out *bytes.Buffer, text []byte, flags, colspan int)
+
 	Footnotes(out *bytes.Buffer, text func() bool)
 	FootnoteItem(out *bytes.Buffer, name, text []byte, flags int)
 	TitleBlockTOML(out *bytes.Buffer, data *title)

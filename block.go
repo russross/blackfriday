@@ -1315,7 +1315,7 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 						p.block(&cellWork, bodies[c].Bytes())
 						bodies[c].Truncate(0)
 					}
-					p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c])
+					p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c], 0)
 				}
 				p.r.TableRow(&body, rowWork.Bytes())
 				rowWork.Truncate(0)
@@ -1357,7 +1357,7 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 				p.block(&cellWork, bodies[c].Bytes())
 				bodies[c].Truncate(0)
 			}
-			p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c])
+			p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c], 0)
 		}
 		p.r.TableRow(&body, rowWork.Bytes())
 	}
@@ -1510,6 +1510,7 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 		i++
 	}
 
+	colSpanSkip := 0
 	for col = 0; col < len(columns) && i < len(data); col++ {
 		for data[i] == ' ' {
 			i++
@@ -1522,6 +1523,12 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 		}
 
 		cellEnd := i
+
+		// count number of pipe symbols to calculate colspan
+		colspan := 0
+		for data[i+colspan] == '|' && i+colspan < len(data) {
+			colspan++
+		}
 
 		// skip the end-of-cell marker, possibly taking us past end of buffer
 		i++
@@ -1536,7 +1543,17 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 		if header {
 			p.r.TableHeaderCell(&rowWork, cellWork.Bytes(), columns[col])
 		} else {
-			p.r.TableCell(&rowWork, cellWork.Bytes(), columns[col])
+			if colSpanSkip == 0 {
+				p.r.TableCell(&rowWork, cellWork.Bytes(), columns[col], colspan)
+			}
+		}
+
+		if colspan > 1 {
+			colSpanSkip += colspan
+		}
+
+		if colSpanSkip > 0 {
+			colSpanSkip--
 		}
 	}
 
@@ -1545,7 +1562,7 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 		if header {
 			p.r.TableHeaderCell(&rowWork, nil, columns[col])
 		} else {
-			p.r.TableCell(&rowWork, nil, columns[col])
+			p.r.TableCell(&rowWork, nil, columns[col], 0)
 		}
 	}
 

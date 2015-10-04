@@ -405,7 +405,7 @@ func (options *xml) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
 	out.WriteString("</th>")
 }
 
-func (options *xml) TableCell(out *bytes.Buffer, text []byte, align int) {
+func (options *xml) TableCell(out *bytes.Buffer, text []byte, align, colspan int) {
 	out.WriteString("<td>")
 	out.Write(text)
 	out.WriteString("</td>")
