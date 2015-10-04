@@ -46,6 +46,7 @@ const (
 	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text
 	EXTENSION_BACKSLASH_LINE_BREAK                   // translate trailing backslashes into line breaks
 	EXTENSION_DEFINITION_LISTS                       // render definition lists
+	EXTENSION_LATEX_MATH                             // latex inline and display math surrounded by '$' or '$$'
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML |
@@ -189,6 +190,7 @@ type Renderer interface {
 	TripleEmphasis(out *bytes.Buffer, text []byte)
 	StrikeThrough(out *bytes.Buffer, text []byte)
 	FootnoteRef(out *bytes.Buffer, ref []byte, id int)
+	Math(out *bytes.Buffer, equation []byte, inline bool)
 
 	// Low-level callbacks
 	Entity(out *bytes.Buffer, entity []byte)
@@ -378,6 +380,10 @@ func MarkdownOptions(input []byte, renderer Renderer, opts Options) []byte {
 
 	if extensions&EXTENSION_FOOTNOTES != 0 {
 		p.notes = make([]*reference, 0)
+	}
+
+	if extensions&EXTENSION_LATEX_MATH != 0 {
+		p.inlineCallback['$'] = math
 	}
 
 	first := firstPass(p, input)
