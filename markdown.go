@@ -185,7 +185,7 @@ type Renderer interface {
 
 	Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte)
 	TableRow(out *bytes.Buffer, text []byte)
-	TableHeaderCell(out *bytes.Buffer, text []byte, flags int)
+	TableHeaderCell(out *bytes.Buffer, text []byte, flags, colspan int)
 	TableCell(out *bytes.Buffer, text []byte, flags, colspan int)
 
 	Footnotes(out *bytes.Buffer, text func() bool)

@@ -4,6 +4,7 @@ package mmark
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 )
 
@@ -390,15 +391,20 @@ func (options *xml) TableRow(out *bytes.Buffer, text []byte) {
 	out.WriteString("</tr>\n")
 }
 
-func (options *xml) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
+func (options *xml) TableHeaderCell(out *bytes.Buffer, text []byte, align, colspan int) {
 	a := ""
+
+	if colspan > 1 {
+		a = fmt.Sprintf(" colspan=\"%d\"", colspan)
+	}
+
 	switch align {
 	case _TABLE_ALIGNMENT_LEFT:
-		a = " align=\"left\""
+		a += " align=\"left\""
 	case _TABLE_ALIGNMENT_RIGHT:
-		a = " align=\"right\""
+		a += " align=\"right\""
 	default:
-		a = " align=\"center\""
+		a += " align=\"center\""
 	}
 	out.WriteString("<th" + a + ">")
 	out.Write(text)
@@ -406,7 +412,11 @@ func (options *xml) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
 }
 
 func (options *xml) TableCell(out *bytes.Buffer, text []byte, align, colspan int) {
-	out.WriteString("<td>")
+	col := ""
+	if colspan > 1 {
+		col = fmt.Sprintf(" colspan=\"%d\"", colspan)
+	}
+	out.WriteString("<td" + col + ">")
 	out.Write(text)
 	out.WriteString("</td>")
 }

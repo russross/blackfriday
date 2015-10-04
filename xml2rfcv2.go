@@ -421,7 +421,10 @@ func (options *xml2) TableRow(out *bytes.Buffer, text []byte) {
 	out.WriteString("\n")
 }
 
-func (options *xml2) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
+func (options *xml2) TableHeaderCell(out *bytes.Buffer, text []byte, align, colspan int) {
+	if colspan > 1 {
+		printf(nil, "syntax not supported: TableHeaderCell: colspan=%d", colspan)
+	}
 	a := ""
 	switch align {
 	case _TABLE_ALIGNMENT_LEFT:
@@ -438,7 +441,7 @@ func (options *xml2) TableHeaderCell(out *bytes.Buffer, text []byte, align int) 
 
 func (options *xml2) TableCell(out *bytes.Buffer, text []byte, align, colspan int) {
 	if colspan > 1 {
-		printf(nil, "syntax not supported: colspan=%d", colspan)
+		printf(nil, "syntax not supported: TableCell: colspan=%d", colspan)
 	}
 	out.WriteString("<c>")
 	out.Write(text)

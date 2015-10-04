@@ -1541,7 +1541,9 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 		p.inline(&cellWork, data[cellStart:cellEnd])
 
 		if header {
-			p.r.TableHeaderCell(&rowWork, cellWork.Bytes(), columns[col])
+			if colSpanSkip == 0 {
+				p.r.TableHeaderCell(&rowWork, cellWork.Bytes(), columns[col], colspan)
+			}
 		} else {
 			if colSpanSkip == 0 {
 				p.r.TableCell(&rowWork, cellWork.Bytes(), columns[col], colspan)
@@ -1560,7 +1562,7 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 	// pad it out with empty columns to get the right number
 	for ; col < len(columns); col++ {
 		if header {
-			p.r.TableHeaderCell(&rowWork, nil, columns[col])
+			p.r.TableHeaderCell(&rowWork, nil, columns[col], 0)
 		} else {
 			p.r.TableCell(&rowWork, nil, columns[col], 0)
 		}
