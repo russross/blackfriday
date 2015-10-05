@@ -135,8 +135,13 @@ func titleBlockTOMLAuthor(out *bytes.Buffer, a author) {
 	writeEntity(out, []byte(a.Initials))
 	out.WriteString("\"")
 
-	out.WriteString(" surname=\"" + a.Surname + "\"")
-	out.WriteString(" fullname=\"" + a.Fullname + "\">\n")
+	out.WriteString(" surname=\"")
+	writeEntity(out, []byte(a.Surname))
+	out.WriteString("\"")
+
+	out.WriteString(" fullname=\"")
+	writeEntity(out, []byte(a.Fullname))
+	out.WriteString("\">\n")
 
 	out.WriteString("<organization>")
 	writeEntity(out, []byte(a.Organization))
@@ -144,13 +149,21 @@ func titleBlockTOMLAuthor(out *bytes.Buffer, a author) {
 
 	out.WriteString("<address>\n")
 	out.WriteString("<postal>\n")
+
 	out.WriteString("<street>")
 	writeEntity(out, []byte(a.Address.Postal.Street))
 	out.WriteString("</street>\n")
 
-	out.WriteString("<city>" + a.Address.Postal.City + "</city>\n")
+	out.WriteString("<city>")
+	writeEntity(out, []byte(a.Address.Postal.City))
+	out.WriteString("</city>\n")
+
 	out.WriteString("<code>" + a.Address.Postal.Code + "</code>\n")
-	out.WriteString("<country>" + a.Address.Postal.Country + "</country>\n")
+
+	out.WriteString("<country>")
+	writeEntity(out, []byte(a.Address.Postal.Country))
+	out.WriteString("</country>\n")
+
 	out.WriteString("</postal>\n")
 
 	out.WriteString("<phone>" + a.Address.Phone + "</phone>\n")
