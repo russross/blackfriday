@@ -21,6 +21,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 // Html renderer configuration options.
@@ -34,6 +35,7 @@ const (
 	HTML_NOREFERRER_LINKS                      // only link with rel="noreferrer"
 	HTML_HREF_TARGET_BLANK                     // add a blank target
 	HTML_TOC                                   // generate a table of contents
+	HTML_TOC_MD                                // if generating table of contents, output MarkDown
 	HTML_OMIT_CONTENTS                         // skip the main contents (for a standalone table of contents)
 	HTML_COMPLETE_PAGE                         // generate a complete HTML page
 	HTML_USE_XHTML                             // generate XHTML output instead of HTML
@@ -482,9 +484,15 @@ func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 }
 
 func (options *Html) CodeSpan(out *bytes.Buffer, text []byte) {
-	out.WriteString("<code>")
-	attrEscape(out, text)
-	out.WriteString("</code>")
+	if options.flags&HTML_TOC_MD == 0 {
+		out.WriteString("<code>")
+		attrEscape(out, text)
+		out.WriteString("</code>")
+	} else {
+		out.WriteString("`")
+		out.Write(text)
+		out.WriteString("`")
+	}
 }
 
 func (options *Html) DoubleEmphasis(out *bytes.Buffer, text []byte) {
@@ -728,9 +736,13 @@ func (options *Html) DocumentFooter(out *bytes.Buffer) {
 		}
 
 		// insert the table of contents
-		out.WriteString("<nav>\n")
-		out.Write(options.toc.Bytes())
-		out.WriteString("</nav>\n")
+		if options.flags&HTML_TOC_MD == 0 {
+			out.WriteString("<nav>\n")
+			out.Write(options.toc.Bytes())
+			out.WriteString("</nav>\n")
+		} else {
+			out.Write(options.toc.Bytes())
+		}
 
 		// corner case spacing issue
 		if options.flags&HTML_COMPLETE_PAGE == 0 && options.flags&HTML_OMIT_CONTENTS == 0 {
@@ -750,7 +762,38 @@ func (options *Html) DocumentFooter(out *bytes.Buffer) {
 
 }
 
+func makeAnchorText(text []byte) string {
+	// This is compatible with GitLab anchors.
+	var t []rune
+	s := strings.ToLower(string(text))
+	s = strings.Replace(s, " `-", "-", -1)
+	for _, r := range s {
+		switch {
+		case unicode.IsSpace(r) || r == '-':
+			t = append(t, '-')
+		case unicode.IsNumber(r) || unicode.IsLetter(r):
+			t = append(t, r)
+		}
+
+	}
+	return string(t)
+}
+
+func (options *Html) mdTocHeaderWithAnchor(text []byte, level int) {
+	options.toc.WriteString(strings.Repeat(" ", level-1))
+
+	options.toc.WriteString("- [")
+	options.toc.Write(text)
+	options.toc.WriteString("](#")
+	options.toc.WriteString(makeAnchorText(text))
+	options.toc.WriteString(")\n")
+}
+
 func (options *Html) TocHeaderWithAnchor(text []byte, level int, anchor string) {
+	if options.flags&HTML_TOC_MD != 0 {
+		options.mdTocHeaderWithAnchor(text, level)
+		return
+	}
 	for level > options.currentLevel {
 		switch {
 		case bytes.HasSuffix(options.toc.Bytes(), []byte("</li>\n")):
@@ -801,7 +844,7 @@ func (options *Html) TocFinalize() {
 		options.currentLevel--
 	}
 
-	if options.currentLevel > 0 {
+	if options.currentLevel > 0 && options.flags&HTML_TOC_MD == 0 {
 		options.toc.WriteString("</ul>\n")
 	}
 }
