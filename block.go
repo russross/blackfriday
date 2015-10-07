@@ -1294,6 +1294,7 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 	// each cell in a row gets multiple lines which we store per column, we
 	// process the buffers when we see a row separator (isBlockTableHeader)
 	bodies := make([]bytes.Buffer, len(columns))
+	colspans := make([]int, len(columns))
 
 	foot := false
 
@@ -1343,9 +1344,11 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 		// include the newline in data sent to tableRow and blockTabeRow
 		i++
 		if foot {
+			// footer can't contain block level elements
+			// TODO(miek): colspan
 			p.tableRow(&footer, data[rowStart:i], columns, false)
 		} else {
-			p.blockTableRow(bodies, data[rowStart:i])
+			p.blockTableRow(bodies, colspans, data[rowStart:i])
 		}
 	}
 	// are there cells left to process?
@@ -1573,7 +1576,7 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 	p.r.TableRow(out, rowWork.Bytes())
 }
 
-func (p *parser) blockTableRow(out []bytes.Buffer, data []byte) {
+func (p *parser) blockTableRow(out []bytes.Buffer, colspans []int, data []byte) {
 	i, col := 0, 0
 
 	if data[i] == '|' && !isBackslashEscaped(data, i) {
@@ -1581,9 +1584,7 @@ func (p *parser) blockTableRow(out []bytes.Buffer, data []byte) {
 	}
 
 	for col = 0; col < len(out) && i < len(data); col++ {
-		space := i
 		for data[i] == ' ' {
-			space++
 			i++
 		}
 
@@ -1595,6 +1596,13 @@ func (p *parser) blockTableRow(out []bytes.Buffer, data []byte) {
 
 		cellEnd := i
 
+		// count number of pipe symbols to calculate colspan
+		colspan := 0
+		for data[i+colspan] == '|' && i+colspan < len(data) {
+			colspan++
+		}
+		println("colspan", colspan)
+
 		// skip the end-of-cell marker, possibly taking us past end of buffer
 		i++
 
@@ -1603,6 +1611,7 @@ func (p *parser) blockTableRow(out []bytes.Buffer, data []byte) {
 		}
 		out[col].Write(data[cellStart:cellEnd])
 		out[col].WriteByte('\n')
+		colspans[col] = colspan
 	}
 }
 
