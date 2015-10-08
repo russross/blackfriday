@@ -18,10 +18,12 @@ package blackfriday
 import (
 	"bytes"
 	"fmt"
+	"html"
 	"regexp"
 	"strconv"
 	"strings"
-	"unicode"
+
+	"github.com/shurcooL/sanitized_anchor_name"
 )
 
 // Html renderer configuration options.
@@ -762,30 +764,13 @@ func (options *Html) DocumentFooter(out *bytes.Buffer) {
 
 }
 
-func makeAnchorText(text []byte) string {
-	// This is compatible with GitLab anchors.
-	var t []rune
-	s := strings.ToLower(string(text))
-	s = strings.Replace(s, " `-", "-", -1)
-	for _, r := range s {
-		switch {
-		case unicode.IsSpace(r) || r == '-':
-			t = append(t, '-')
-		case unicode.IsNumber(r) || unicode.IsLetter(r):
-			t = append(t, r)
-		}
-
-	}
-	return string(t)
-}
-
 func (options *Html) mdTocHeaderWithAnchor(text []byte, level int) {
 	options.toc.WriteString(strings.Repeat(" ", level-1))
 
 	options.toc.WriteString("- [")
 	options.toc.Write(text)
 	options.toc.WriteString("](#")
-	options.toc.WriteString(makeAnchorText(text))
+	options.toc.WriteString(sanitized_anchor_name.Create(html.UnescapeString(string(text))))
 	options.toc.WriteString(")\n")
 }
 
