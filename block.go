@@ -1289,7 +1289,7 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 	j, columns := p.tableHeader(&header, data[i:])
 	i += j
 	// each cell in a row gets multiple lines which we store per column, we
-	// process the buffers when we see a row separator (isBlockTableHeader)
+	// process the buffers when we see a row separator
 	bodies := make([]bytes.Buffer, len(columns))
 	colspans := make([]int, len(columns))
 
@@ -1303,7 +1303,7 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 			i += j
 			continue
 		}
-		if j = p.isBlockTableHeader(data[i:]); j > 0 {
+		if j = p.isRowSeperator(data[i:]); j > 0 {
 			switch foot {
 			case false: // separator before any footer
 				var cellWork bytes.Buffer
@@ -1651,7 +1651,7 @@ func (p *parser) isTableFooter(data []byte) int {
 	return i + 1
 }
 
-// this starts a table and also serves as a row divider, basically three dashes with optional | or + at the start
+// this starts a table, basically three dashes with mandatory | or + at the start
 func (p *parser) isBlockTableHeader(data []byte) int {
 	i := 0
 	if data[i] != '|' && data[i] != '+' {
@@ -1668,6 +1668,11 @@ func (p *parser) isBlockTableHeader(data []byte) int {
 		i++
 	}
 	return i + 1
+}
+
+// table row separator (use in block tables): | or + at the start, 3 or more dashes
+func (p *parser) isRowSeperator(data []byte) int {
+	return p.isBlockTableHeader(data)
 }
 
 // returns prefix length for block code
