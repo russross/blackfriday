@@ -1268,7 +1268,7 @@ func TestDefinitionListXML(t *testing.T) {
 		"<dl>\n<dt>Term1</dt>\n<dd>Yin</dd>\n<dt>Term2</dt>\n<dd>Yang</dd>\n</dl>\n",
 
 		// fix sourcecode/artwork here.
-`Term 1
+		`Term 1
 :   This is a definition with two paragraphs. Lorem ipsum
 
     Vestibulum enim wisi, viverra nec, fringilla in, laoreet
