@@ -2,12 +2,10 @@
 % abbrev = "mmark2rfc"
 % category = "info"
 % docName = "draft-gieben-mmark2rfc-00"
-% ipr= "trust200902"
-% area = "Internet"
 %
 % [pi]
 % private = "yes"
-% footer = "" # Don't have the Expires ...
+% footer = ""
 % header = "mmark"
 %
 % date = 2015-10-10T00:00:00Z
@@ -16,8 +14,6 @@
 % initials="R."
 % surname="Gieben"
 % fullname="R. (Miek) Gieben"
-% [author.address]
-% email = "miek@miek.nl"
 
 .# Abstract
 
@@ -409,11 +405,11 @@ i   throughout the document. First use is rendered `(1)`, the second one `(2)` a
      The allowed comment patterns are `//`, `#` and `;`.
 
 
-   [1]: http://daringfireball.net/projects/markdown/ "Markdown"
-   [2]: http://golang.org/ "Go Language"
-   [3]: https://github.com/toml-lang/toml "TOML"
-   [4]: http://github.com/tanoku/upskirt "Upskirt"
-   [5]: http://github.com/russross/blackfriday "Blackfriday"
+[1]: http://daringfireball.net/projects/markdown/ "Markdown"
+[2]: http://golang.org/ "Go Language"
+[3]: https://github.com/toml-lang/toml "TOML"
+[4]: http://github.com/tanoku/upskirt "Upskirt"
+[5]: http://github.com/russross/blackfriday "Blackfriday"
 
 <reference anchor='mmark-ref' target='http://github.com/miekg/mmark' >
  <front>
