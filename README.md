@@ -274,15 +274,13 @@ implements the following extensions:
    `Table: caption text` after the table, this will be rendered as an caption. For
    code blocks you'll need to use `Figure: `
 
-   ```
-   Name    | Age
-   --------|-----:
-   Bob     | 27
-   Alice   | 23
-   Table: This is a table.
-   ```
+        Name    | Age
+        --------|-----:
+        Bob     | 27
+        Alice   | 23
+        Table: This is a table.
 
-   Or for a code block:
+    Or for a code block:
 
         ``` go
         func getTrue() bool {
