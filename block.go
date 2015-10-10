@@ -1353,7 +1353,6 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 		i++
 		if foot {
 			// footer can't contain block level elements
-			// TODO(miek): colspan
 			p.tableRow(&footer, data[rowStart:i], columns, false)
 		} else {
 			p.blockTableRow(bodies, colspans, data[rowStart:i])
