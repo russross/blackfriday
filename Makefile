@@ -28,6 +28,3 @@ clean:
 .PHONY: validate
 validate: mmark2rfc3.xml
 	xmllint --xinclude mmark2rfc3.xml | jing -c xml2rfcv3.rnc /dev/stdin
-
-.PHONY: release
-release: mmark/mmark
