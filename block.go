@@ -1310,13 +1310,24 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 			switch foot {
 			case false: // separator before any footer
 				var cellWork bytes.Buffer
+				colSpanSkip := 0
 				for c := 0; c < len(columns); c++ {
 					cellWork.Truncate(0)
 					if bodies[c].Len() > 0 {
 						p.block(&cellWork, bodies[c].Bytes())
 						bodies[c].Truncate(0)
 					}
-					p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c], 0)
+					if colSpanSkip == 0 {
+						p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c], colspans[c])
+					}
+
+					if colspans[c] > 1 {
+						colSpanSkip += colspans[c]
+					}
+
+					if colSpanSkip > 0 {
+						colSpanSkip--
+					}
 				}
 				p.r.TableRow(&body, rowWork.Bytes())
 				rowWork.Truncate(0)
@@ -1353,6 +1364,7 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 	}
 	// are there cells left to process?
 	if len(bodies) > 0 && bodies[0].Len() != 0 {
+		colSpanSkip := 0
 		for c := 0; c < len(columns); c++ {
 			var cellWork bytes.Buffer
 			cellWork.Truncate(0)
@@ -1360,7 +1372,17 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 				p.block(&cellWork, bodies[c].Bytes())
 				bodies[c].Truncate(0)
 			}
-			p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c], 0)
+			if colSpanSkip == 0 {
+				p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c], colspans[c])
+			}
+
+			if colspans[c] > 1 {
+				colSpanSkip += colspans[c]
+			}
+
+			if colSpanSkip > 0 {
+				colSpanSkip--
+			}
 		}
 		p.r.TableRow(&body, rowWork.Bytes())
 	}
@@ -1601,7 +1623,6 @@ func (p *parser) blockTableRow(out []bytes.Buffer, colspans []int, data []byte) 
 		for data[i+colspan] == '|' && i+colspan < len(data) {
 			colspan++
 		}
-		println("colspan", colspan)
 
 		// skip the end-of-cell marker, possibly taking us past end of buffer
 		i++
