@@ -1287,9 +1287,6 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 		return 0
 	}
 	j, columns := p.tableHeader(&header, data[i:])
-	if i == 0 {
-		return 0
-	}
 	i += j
 	// each cell in a row gets multiple lines which we store per column, we
 	// process the buffers when we see a row separator (isBlockTableHeader)
