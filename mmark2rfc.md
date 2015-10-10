@@ -296,11 +296,11 @@ Example:
 
 Outputs:
 
-(@good)  This is a good example.
+    (1)  This is a good example.
 
-As (@good)  illustrates, ...
+    As (1) illustrates, ...
 
-(@good)  Another example.
+    (2)  Another example.
 
 # Figures and Images
 
