@@ -1287,13 +1287,11 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 		return 0
 	}
 	j, columns := p.tableHeader(&header, data[i:])
-	if i == 0 {
-		return 0
-	}
 	i += j
 	// each cell in a row gets multiple lines which we store per column, we
-	// process the buffers when we see a row separator (isBlockTableHeader)
+	// process the buffers when we see a row separator
 	bodies := make([]bytes.Buffer, len(columns))
+	colspans := make([]int, len(columns))
 
 	foot := false
 
@@ -1305,17 +1303,28 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 			i += j
 			continue
 		}
-		if j = p.isBlockTableHeader(data[i:]); j > 0 {
+		if j = p.isRowSeperator(data[i:]); j > 0 {
 			switch foot {
 			case false: // separator before any footer
 				var cellWork bytes.Buffer
+				colSpanSkip := 0
 				for c := 0; c < len(columns); c++ {
 					cellWork.Truncate(0)
 					if bodies[c].Len() > 0 {
 						p.block(&cellWork, bodies[c].Bytes())
 						bodies[c].Truncate(0)
 					}
-					p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c])
+					if colSpanSkip == 0 {
+						p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c], colspans[c])
+					}
+
+					if colspans[c] > 1 {
+						colSpanSkip += colspans[c]
+					}
+
+					if colSpanSkip > 0 {
+						colSpanSkip--
+					}
 				}
 				p.r.TableRow(&body, rowWork.Bytes())
 				rowWork.Truncate(0)
@@ -1343,13 +1352,15 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 		// include the newline in data sent to tableRow and blockTabeRow
 		i++
 		if foot {
+			// footer can't contain block level elements
 			p.tableRow(&footer, data[rowStart:i], columns, false)
 		} else {
-			p.blockTableRow(bodies, data[rowStart:i])
+			p.blockTableRow(bodies, colspans, data[rowStart:i])
 		}
 	}
 	// are there cells left to process?
 	if len(bodies) > 0 && bodies[0].Len() != 0 {
+		colSpanSkip := 0
 		for c := 0; c < len(columns); c++ {
 			var cellWork bytes.Buffer
 			cellWork.Truncate(0)
@@ -1357,7 +1368,17 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 				p.block(&cellWork, bodies[c].Bytes())
 				bodies[c].Truncate(0)
 			}
-			p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c])
+			if colSpanSkip == 0 {
+				p.r.TableCell(&rowWork, cellWork.Bytes(), columns[c], colspans[c])
+			}
+
+			if colspans[c] > 1 {
+				colSpanSkip += colspans[c]
+			}
+
+			if colSpanSkip > 0 {
+				colSpanSkip--
+			}
 		}
 		p.r.TableRow(&body, rowWork.Bytes())
 	}
@@ -1510,6 +1531,7 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 		i++
 	}
 
+	colSpanSkip := 0
 	for col = 0; col < len(columns) && i < len(data); col++ {
 		for data[i] == ' ' {
 			i++
@@ -1523,6 +1545,12 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 
 		cellEnd := i
 
+		// count number of pipe symbols to calculate colspan
+		colspan := 0
+		for data[i+colspan] == '|' && i+colspan < len(data) {
+			colspan++
+		}
+
 		// skip the end-of-cell marker, possibly taking us past end of buffer
 		i++
 
@@ -1534,18 +1562,30 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 		p.inline(&cellWork, data[cellStart:cellEnd])
 
 		if header {
-			p.r.TableHeaderCell(&rowWork, cellWork.Bytes(), columns[col])
+			if colSpanSkip == 0 {
+				p.r.TableHeaderCell(&rowWork, cellWork.Bytes(), columns[col], colspan)
+			}
 		} else {
-			p.r.TableCell(&rowWork, cellWork.Bytes(), columns[col])
+			if colSpanSkip == 0 {
+				p.r.TableCell(&rowWork, cellWork.Bytes(), columns[col], colspan)
+			}
+		}
+
+		if colspan > 1 {
+			colSpanSkip += colspan
+		}
+
+		if colSpanSkip > 0 {
+			colSpanSkip--
 		}
 	}
 
 	// pad it out with empty columns to get the right number
 	for ; col < len(columns); col++ {
 		if header {
-			p.r.TableHeaderCell(&rowWork, nil, columns[col])
+			p.r.TableHeaderCell(&rowWork, nil, columns[col], 0)
 		} else {
-			p.r.TableCell(&rowWork, nil, columns[col])
+			p.r.TableCell(&rowWork, nil, columns[col], 0)
 		}
 	}
 
@@ -1554,7 +1594,7 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 	p.r.TableRow(out, rowWork.Bytes())
 }
 
-func (p *parser) blockTableRow(out []bytes.Buffer, data []byte) {
+func (p *parser) blockTableRow(out []bytes.Buffer, colspans []int, data []byte) {
 	i, col := 0, 0
 
 	if data[i] == '|' && !isBackslashEscaped(data, i) {
@@ -1562,9 +1602,7 @@ func (p *parser) blockTableRow(out []bytes.Buffer, data []byte) {
 	}
 
 	for col = 0; col < len(out) && i < len(data); col++ {
-		space := i
 		for data[i] == ' ' {
-			space++
 			i++
 		}
 
@@ -1576,6 +1614,12 @@ func (p *parser) blockTableRow(out []bytes.Buffer, data []byte) {
 
 		cellEnd := i
 
+		// count number of pipe symbols to calculate colspan
+		colspan := 0
+		for data[i+colspan] == '|' && i+colspan < len(data) {
+			colspan++
+		}
+
 		// skip the end-of-cell marker, possibly taking us past end of buffer
 		i++
 
@@ -1584,6 +1628,7 @@ func (p *parser) blockTableRow(out []bytes.Buffer, data []byte) {
 		}
 		out[col].Write(data[cellStart:cellEnd])
 		out[col].WriteByte('\n')
+		colspans[col] = colspan
 	}
 }
 
@@ -1605,7 +1650,7 @@ func (p *parser) isTableFooter(data []byte) int {
 	return i + 1
 }
 
-// this starts a table and also serves as a row divider, basically three dashes with optional | or + at the start
+// this starts a table, basically three dashes with mandatory | or + at the start
 func (p *parser) isBlockTableHeader(data []byte) int {
 	i := 0
 	if data[i] != '|' && data[i] != '+' {
@@ -1622,6 +1667,11 @@ func (p *parser) isBlockTableHeader(data []byte) int {
 		i++
 	}
 	return i + 1
+}
+
+// table row separator (use in block tables): | or + at the start, 3 or more dashes
+func (p *parser) isRowSeperator(data []byte) int {
+	return p.isBlockTableHeader(data)
 }
 
 // returns prefix length for block code

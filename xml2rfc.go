@@ -234,7 +234,6 @@ func titleBlockTOMLPI(pi pi, name string, version int) string {
 			printf(nil, "unhandled or unknown PI seen: %s", name)
 			return ""
 		}
-		return ""
 	}
 	// version 3
 	return ""

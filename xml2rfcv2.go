@@ -355,7 +355,7 @@ func (options *xml2) ListItem(out *bytes.Buffer, text []byte, flags int) {
 		n := out.Len()
 		writeSanitizeXML(out, text)
 		if n == out.Len() {
-			printf(nil, "no text remained after sanitizing XML for definition term: '" + string(text) + "'")
+			printf(nil, "no text remained after sanitizing XML for definition term: '"+string(text)+"'")
 		}
 		out.WriteString("\">\n")
 		return
@@ -421,7 +421,10 @@ func (options *xml2) TableRow(out *bytes.Buffer, text []byte) {
 	out.WriteString("\n")
 }
 
-func (options *xml2) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
+func (options *xml2) TableHeaderCell(out *bytes.Buffer, text []byte, align, colspan int) {
+	if colspan > 1 {
+		printf(nil, "syntax not supported: TableHeaderCell: colspan=%d", colspan)
+	}
 	a := ""
 	switch align {
 	case _TABLE_ALIGNMENT_LEFT:
@@ -436,7 +439,10 @@ func (options *xml2) TableHeaderCell(out *bytes.Buffer, text []byte, align int) 
 	out.WriteString("</ttcol>\n")
 }
 
-func (options *xml2) TableCell(out *bytes.Buffer, text []byte, align int) {
+func (options *xml2) TableCell(out *bytes.Buffer, text []byte, align, colspan int) {
+	if colspan > 1 {
+		printf(nil, "syntax not supported: TableCell: colspan=%d", colspan)
+	}
 	out.WriteString("<c>")
 	out.Write(text)
 	out.WriteString("</c>")

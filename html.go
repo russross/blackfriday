@@ -444,34 +444,46 @@ func (options *html) TableRow(out *bytes.Buffer, text []byte) {
 	out.WriteString("\n</tr>\n")
 }
 
-func (options *html) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
+func (options *html) TableHeaderCell(out *bytes.Buffer, text []byte, align, colspan int) {
 	doubleSpace(out)
+
+	col := ""
+	if colspan > 1 {
+		col = fmt.Sprintf(" colspan=\"%d\"", colspan)
+	}
+
 	switch align {
 	case _TABLE_ALIGNMENT_LEFT:
-		out.WriteString("<th align=\"left\">")
+		out.WriteString("<th align=\"left\"" + col + ">")
 	case _TABLE_ALIGNMENT_RIGHT:
-		out.WriteString("<th align=\"right\">")
+		out.WriteString("<th align=\"right\"" + col + ">")
 	case _TABLE_ALIGNMENT_CENTER:
-		out.WriteString("<th align=\"center\">")
+		out.WriteString("<th align=\"center\"" + col + ">")
 	default:
-		out.WriteString("<th>")
+		out.WriteString("<th" + col + ">")
 	}
 
 	out.Write(text)
 	out.WriteString("</th>")
 }
 
-func (options *html) TableCell(out *bytes.Buffer, text []byte, align int) {
+func (options *html) TableCell(out *bytes.Buffer, text []byte, align, colspan int) {
 	doubleSpace(out)
+
+	col := ""
+	if colspan > 1 {
+		col = fmt.Sprintf(" colspan=\"%d\"", colspan)
+	}
+
 	switch align {
 	case _TABLE_ALIGNMENT_LEFT:
-		out.WriteString("<td align=\"left\">")
+		out.WriteString("<td align=\"left\"" + col + ">")
 	case _TABLE_ALIGNMENT_RIGHT:
-		out.WriteString("<td align=\"right\">")
+		out.WriteString("<td align=\"right\"" + col + ">")
 	case _TABLE_ALIGNMENT_CENTER:
-		out.WriteString("<td align=\"center\">")
+		out.WriteString("<td align=\"center\"" + col + ">")
 	default:
-		out.WriteString("<td>")
+		out.WriteString("<td" + col + ">")
 	}
 
 	out.Write(text)

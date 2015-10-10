@@ -128,16 +128,16 @@ implements the following extensions:
     syntax. In the exampe below we include a list in one of the cells.
 
     ```
-    |-----------------+------------+-----------------|
+    |+-----------------------------------------------|
     | Default aligned |Left aligned| Center aligned  |
     |-----------------|:-----------|:---------------:|
     | First body part |Second cell | Third cell      |
     | Second line     |foo         | **strong**      |
     | Third line      |quux        | baz             |
-    |-----------------+------------+-----------------|
+    |------------------------------------------------|
     | Second body     |            | 1. Item2        |
     | 2 line          |            | 2. Item2        |
-    |=================+============+=================|
+    |================================================|
     | Footer row      |            |                 |
     |-----------------+------------+-----------------|
     ```
