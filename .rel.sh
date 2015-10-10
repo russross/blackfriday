@@ -27,5 +27,5 @@ cp -r $FILES $dir/mmark
 ( cd $dir; \
     zip -r /tmp/mmark-v$VERSION-$GOOS-$GOARCH.zip mmark )
 
-ls /tmp/mmark-v$VERSION-$GOOS-$GOARCH.tar.bz2
-ls /tmp/mmark-v$VERSION-$GOOS-$GOARCH.zip
+ls /tmp/mmark-v$VERSION-linux-$GOARCH.tar.bz2
+ls /tmp/mmark-v$VERSION-darwin-$GOARCH.zip
