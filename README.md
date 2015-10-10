@@ -1,11 +1,38 @@
-[![Build Status](https://travis-ci.org/miekg/mmark.svg?branch=master)](https://travis-ci.org/miekg/mmark)
-[![GoDoc](https://godoc.org/github.com/miekg/mmark?status.svg)](https://godoc.org/github.com/miekg/mmark)
+% Title = "Using mmark to create I-Ds, RFCs and books"
+% abbrev = "mmark2rfc"
+% category = "info"
+% docName = "draft-gieben-mmark2rfc-00"
+% ipr= "trust200902"
+% area = "Internet"
+%
+% [pi]
+% private = "yes"
+% footer = "" # Don't have the Expires ...
+% header = "mmark"
+%
+% date = 2015-10-10T00:00:00Z
+%
+% [[author]]
+% initials="R."
+% surname="Gieben"
+% fullname="R. (Miek) Gieben"
+% [author.address]
+% email = "miek@miek.nl"
 
-Everything that was true of [blackfriday][5], might not be true for mmark anymore.
+.# Abstract
+
+This document describes an markdown variant called mmark [@?mmark-ref].
 
 Write RFCs using markdown. Mmark (written in Go) provides an advanced markdown
 dialect that processes a single file to produce internet-drafts in XML format.
 Internet-drafts written in mmark can produce XML2RFC v2 *and* XML2RFC v3 output.
+
+<!--
+[![Build Status](https://travis-ci.org/miekg/mmark.svg?branch=master)](https://travis-ci.org/miekg/mmark)
+[![GoDoc](https://godoc.org/github.com/miekg/mmark?status.svg)](https://godoc.org/github.com/miekg/mmark)
+-->
+
+{mainmatter}
 
 # Mmark
 
@@ -91,154 +118,157 @@ to stay current with the latest draft for the V3 spec:
 In addition to the standard markdown syntax, this package
 implements the following extensions:
 
-*   **Intra-word emphasis supression**. The `_` character is
-    commonly used inside words when discussing code, so having
-    markdown interpret it as an emphasis command is usually the
-    wrong thing. Blackfriday lets you treat all emphasis markers as
-    normal characters when they occur inside a word.
+*  **Intra-word emphasis supression**. The `_` character is
+   commonly used inside words when discussing code, so having
+   markdown interpret it as an emphasis command is usually the
+   wrong thing. Blackfriday lets you treat all emphasis markers as
+   normal characters when they occur inside a word.
 
-*   **Tables**. Tables can be created by drawing them in the input
-    using a simple syntax:
+*  **Tables**. Tables can be created by drawing them in the input
+   using a simple syntax:
 
-    ```
-    Name    | Age
-    --------|-----:
-    Bob     | 27
-    Alice   | 23
-    ```
+   ```
+   Name    | Age
+   --------|-----:
+   Bob     | 27
+   Alice   | 23
+   ```
 
-    Tables can also have a footer, use equal signs instead of dashes for
-    the separator.
-    If there are multiple footer lines, the first one is used as a
-    starting point for the table footer.
+   Tables can also have a footer, use equal signs instead of dashes for
+   the separator.
+   If there are multiple footer lines, the first one is used as a
+   starting point for the table footer.
 
-    ```
-    Name    | Age
-    --------|-----:
-    Bob     | 27
-    Alice   | 23
-    ======= | ====
-    Charlie | 4
-    ```
+   ```
+   Name    | Age
+   --------|-----:
+   Bob     | 27
+   Alice   | 23
+   ======= | ====
+   Charlie | 4
+   ```
 
-    If a table is started with a *block table header*, which starts
-    with a pipe or plus sign and a minimum of three dashes,
-    it is a **Block Table**. A block table may include block level elements in each
-    (body) cell. If we want to start a new cell reuse the block table header
-    syntax. In the exampe below we include a list in one of the cells.
+   If a table is started with a *block table header*, which starts
+   with a pipe or plus sign and a minimum of three dashes,
+   it is a **Block Table**. A block table may include block level elements in each
+   (body) cell. If we want to start a new cell reuse the block table header
+   syntax. In the exampe below we include a list in one of the cells.
 
-    ```
-    |+-----------------------------------------------|
-    | Default aligned |Left aligned| Center aligned  |
-    |-----------------|:-----------|:---------------:|
-    | First body part |Second cell | Third cell      |
-    | Second line     |foo         | **strong**      |
-    | Third line      |quux        | baz             |
-    |------------------------------------------------|
-    | Second body     |            | 1. Item2        |
-    | 2 line          |            | 2. Item2        |
-    |================================================|
-    | Footer row      |            |                 |
-    |-----------------+------------+-----------------|
-    ```
+   ```
+   |+-----------------------------------------------|
+   | Default aligned |Left aligned| Center aligned  |
+   |-----------------|:-----------|:---------------:|
+   | First body part |Second cell | Third cell      |
+   | Second line     |foo         | **strong**      |
+   | Third line      |quux        | baz             |
+   |------------------------------------------------|
+   | Second body     |            | 1. Item2        |
+   | 2 line          |            | 2. Item2        |
+   |================================================|
+   | Footer row      |            |                 |
+   |-----------------+------------+-----------------|
+   ```
 
-    Note that the header and footer can't contain block level elements.
+   Note that the header and footer can't contain block level elements.
 
-*   **Subfigure**. Fenced code blocks and indented code block can be
-    grouped into a single figure containing both (or more) elements.
-    Use the special quote prefix `F>` for this.
+   Row spanning is supported as well, by using the
+   [multiple pipe syntax](http://bywordapp.com/markdown/guide.html#section-mmd-tables-colspanning).
 
-*   **Fenced code blocks**. In addition to the normal 4-space
-    indentation to mark code blocks, you can explicitly mark them
-    and supply a language (to make syntax highlighting simple). Just
-    mark it like this:
+*  **Subfigure**. Fenced code blocks and indented code block can be
+   grouped into a single figure containing both (or more) elements.
+   Use the special quote prefix `F>` for this.
 
-        ``` go
-        func getTrue() bool {
-            return true
-        }
-        ```
+*  **Fenced code blocks**. In addition to the normal 4-space
+   indentation to mark code blocks, you can explicitly mark them
+   and supply a language (to make syntax highlighting simple). Just
+   mark it like this:
 
-    You can use 3 or more backticks to mark the beginning of the
-    block, and the same number to mark the end of the block.
+       ``` go
+       func getTrue() bool {
+           return true
+       }
+       ```
 
-*   **Autolinking**. Mmark can find URLs that have not been
-    explicitly marked as links and turn them into links.
+   You can use 3 or more backticks to mark the beginning of the
+   block, and the same number to mark the end of the block.
 
-*   **Strikethrough**. Use two tildes (`~~`) to mark text that
-    should be crossed out.
+*  **Autolinking**. Mmark can find URLs that have not been
+   explicitly marked as links and turn them into links.
 
-*   **Short References**. Internal references use the syntax `[](#id)`,
-    usually the need for the title within the brackets is not needed,
-    so mmark has the shorter syntax `(#id)` to cross reference in the
-    document.
+*  **Strikethrough**. Use two tildes to mark text that
+   should be crossed out.
 
-*   **Hard line breaks**. With this extension enabled
-    newlines in the input translate into line breaks in
-    the output. This is activate by using two trailing spaces before
-    a new line. Another way to get a hard line break is to escape
-    the newline with a \. And yet another another way to do this is
-    to use 2 backslashes it the end of the line.\\
+*  **Short References**. Internal references use the syntax `[](#id)`,
+   usually the need for the title within the brackets is not needed,
+   so mmark has the shorter syntax `(#id)` to cross reference in the
+   document.
 
-*   **Includes**, support including files with `{{filename}}` syntax. This is only
-    done when include is started at the beginning of a line.
+*  **Hard line breaks**. With this extension enabled
+   newlines in the input translate into line breaks in
+   the output. This is activate by using two trailing spaces before
+   a new line. Another way to get a hard line break is to escape
+   the newline with a \. And yet another another way to do this is
+   to use 2 backslashes it the end of the line.\\
 
-*   **Code Block Includes**, use the syntax `<{{code/hello.c}}[address]`, where
-    address is the syntax described in <https://godoc.org/golang.org/x/tools/present/>, the
-    OMIT keyword in the code also works.
+*  **Includes**, support including files with `{{filename}}` syntax. This is only
+   done when include is started at the beginning of a line.
 
-    So including a code snippet will work like so:
+*  **Code Block Includes**, use the syntax `<{{code/hello.c}}[address]`, where
+   address is the syntax described in <https://godoc.org/golang.org/x/tools/present/>, the
+   OMIT keyword in the code also works.
 
-        <{{test.go}}[/START OMIT/,/END OMIT/]
+   So including a code snippet will work like so:
 
-    where `test.go` looks like this:
+       <{{test.go}}[/START OMIT/,/END OMIT/]
 
-    ``` go
-    tedious_code = boring_function()
-    // START OMIT
-    interesting_code = fascinating_function()
-    // END OMIT
-    ```
-    To aid in including HTML or XML framents, where the `OMIT` key words is
-    probably embedded in comments, lines which end in `OMIT -->` are also excluded.
+   where `test.go` looks like this:
 
-    Of course the captioning works here as well:
+   ``` go
+   tedious_code = boring_function()
+   // START OMIT
+   interesting_code = fascinating_function()
+   // END OMIT
+   ```
+   To aid in including HTML or XML framents, where the `OMIT` key words is
+   probably embedded in comments, lines which end in `OMIT -->` are also excluded.
 
-        <{{test.go}}[/START OMIT/,/END OMIT/]
-        Figure: A sample program.
+   Of course the captioning works here as well:
 
-    The address may be omitted: `<{{test.go}}` is legal as well.
+       <{{test.go}}[/START OMIT/,/END OMIT/]
+       Figure: A sample program.
 
-    Note that the special `prefix` attribute can be set in an IAL and it
-    will be used to prefix each line with the value of `prefix`.
+   The address may be omitted: `<{{test.go}}` is legal as well.
 
-        {prefix="S"}
-            <{{test.go}}
+   Note that the special `prefix` attribute can be set in an IAL and it
+   will be used to prefix each line with the value of `prefix`.
 
-    Will cause `test.go` to be included with each line being prefixed with `S`.
+       {prefix="S"}
+           <{{test.go}}
 
-*   **Indices**, using `(((item, subitem)))` syntax. To make `item` primary, use
-    an `!`: `(((!item, subitem)))`. Just `(((item)))` is allowed as well.
+   Will cause `test.go` to be included with each line being prefixed with `S`.
 
-*   **Citations**, using the citation syntax from pandoc `[@RFC2535 p. 23]`, the
-    citation can either be informative (default) or normative, this can be indicated
-    by using the `?` or `!` modifer: `[@!RFC2535]`. Use `[-@RFC1000]` to add the
-    cication to the references, but suppress the output in the document.
-    The highest modifier seen determines the final type, i.e. once a citation is
-    declared normative it will stay normative, but informative will be upgraded
-    to normative.
+*  **Indices**, using `(((item, subitem)))` syntax. To make `item` primary, use
+   an `!`: `(((!item, subitem)))`. Just `(((item)))` is allowed as well.
 
-    If you reference an RFC or I-D the reference will be contructed
-    automatically. For I-Ds you may need to add a draft sequence number, which
-    can be done as such: `[@?I-D.blah#06]`. If you have other references
-    you can include the raw XML in the document (before the `{backmatter}`).
-    Also see **XML references**.
+*  **Citations**, using the citation syntax from pandoc `[@RFC2535 p. 23]`, the
+   citation can either be informative (default) or normative, this can be indicated
+   by using the `?` or `!` modifer: `[@!RFC2535]`. Use `[-@RFC1000]` to add the
+   cication to the references, but suppress the output in the document.
+   The highest modifier seen determines the final type, i.e. once a citation is
+   declared normative it will stay normative, but informative will be upgraded
+   to normative.
 
-    If you reference an I-D without a sequence number it will create a reference
-    to the *last* I-D in citation index.
+   If you reference an RFC or I-D the reference will be contructed
+   automatically. For I-Ds you may need to add a draft sequence number, which
+   can be done as such: `[@?I-D.blah#06]`. If you have other references
+   you can include the raw XML in the document (before the `{backmatter}`).
+   Also see **XML references**.
 
-    Once a citation has been defined (i.e. the reference anchor is known to mmark)
-    you can use @RFC2535 is a shortcut for the citation.
+   If you reference an I-D without a sequence number it will create a reference
+   to the *last* I-D in citation index.
+
+   Once a citation has been defined (i.e. the reference anchor is known to mmark)
+   you can use `@RFC2535` is a shortcut for the citation.
 
 *  **Captions**, table and figure/code block captions. For tables add the string
    `Table: caption text` after the table, this will be rendered as an caption. For
@@ -386,3 +416,17 @@ i  throughout the document. First use is rendered `(1)`, the second one `(2)` an
    [3]: https://github.com/toml-lang/toml "TOML"
    [4]: http://github.com/tanoku/upskirt "Upskirt"
    [5]: http://github.com/russross/blackfriday "Blackfriday"
+
+<reference anchor='mmark-ref' target='http://github.com/miekg/mmark' >
+ <front>
+  <title abbrev='Mmark for RFCs'>Mmark: a powerful markdown processor in Go geared for the IETF</title>
+  <author initials='R.' surname='Gieben' fullname='R. (Miek) Gieben'>
+  <organization>Atoom Inc.</organization>
+  <address>
+  <email>miek@miek.nl</email></address></author>
+  <date year='2015' month='October' />
+ </front>
+<format type='Web' target='http://github.com/miekg/mmark' />
+</reference>
+
+{backmatter}

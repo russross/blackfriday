@@ -1,30 +1,24 @@
-MMARK2:=./mmark/mmark -xml2 -page
+MMARK:=./mmark/mmark -xml2 -page
 MMARK3:=./mmark/mmark -xml -page
 
-all:
-	@echo "not defined"
+objects := README.md.txt mmark2rfc.md.txt
+
+%.md.txt: %.md
+	$(MMARK) $< > $<.xml
+	xml2rfc --text $<.xml && rm $<.xml
+
+all: mmark/mmark $(objects)
 
 mmark/mmark:
 	( cd mmark; make )
 
-mmark2rfc2.txt: mmark2rfc2.xml
-	xml2rfc --text mmark2rfc2.xml
-	@ls -l mmark2rfc2.txt
-
-mmark2rfc2.xml: mmark2rfc.md mmark/mmark
-	$(MMARK2) mmark2rfc.md > mmark2rfc2.xml
-
-#mmark2rfc3.txt: mmark2rfc3.xml
-#	xml2rfc --text mmark2rfc3.xml
-#	@ls -l mmark2rfc3.txt
-
-mmark2rfc3.xml: mmark2rfc.md mmark/mmark
-	$(MMARK3) mmark2rfc.md > mmark2rfc3.xml
+mmark2rfc.md.3.xml: mmark2rfc.md mmark/mmark
+	$(MMARK3) $< > $<.3.xml
 
 .PHONY: clean
 clean:
-	rm -f mmark2rfc2.xml mmark2rfc3.xml mmark2rfc2.txt
+	rm -f *.md.txt *md.[23].xml
 
 .PHONY: validate
-validate: mmark2rfc3.xml
-	xmllint --xinclude mmark2rfc3.xml | jing -c xml2rfcv3.rnc /dev/stdin
+validate: mmark2rfc.md.3.xml
+	xmllint --xinclude $< | jing -c xml2rfcv3.rnc /dev/stdin
