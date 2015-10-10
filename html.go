@@ -210,7 +210,7 @@ func (options *html) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	options.NormalText(out, []byte(options.titleBlock.Title))
 	out.WriteString("</title>\n")
 	out.WriteString("  <meta name=\"GENERATOR\" content=\"Mmark Markdown Processor v")
-	out.WriteString(version)
+	out.WriteString(Version)
 	out.WriteString("\"")
 	out.WriteString(ending)
 	out.WriteString(">\n")

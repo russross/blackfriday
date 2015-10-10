@@ -21,16 +21,19 @@ import (
 	"github.com/miekg/mmark"
 )
 
+var githash string
+
 const DEFAULT_TITLE = ""
 
 func main() {
 	// parse command-line options
-	var page, xml, xml2, toml, rfc7328 bool
+	var page, xml, xml2, toml, rfc7328, version bool
 	var css, head string
 
 	flag.BoolVar(&page, "page", false, "generate a standalone HTML page")
 	flag.BoolVar(&xml, "xml", false, "generate XML2RFC v3 output")
 	flag.BoolVar(&xml2, "xml2", false, "generate XML2RFC v2 output")
+	flag.BoolVar(&version, "version", false, "show mmark version")
 	flag.StringVar(&css, "css", "", "link to a CSS stylesheet (implies -page)")
 	flag.StringVar(&head, "head", "", "link to HTML to be included in head (implies -page)")
 
@@ -41,7 +44,7 @@ func main() {
 	flag.BoolVar(&rfc7328, "rfc7328", false, "parse RFC 7328 style input")
 
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Mmark Markdown Processor" +
+		fmt.Fprintf(os.Stderr, "Mmark Markdown Processor"+
 			"\nAvailable at http://github.com/miekg/mmark\n\n"+
 			"Copyright © 2014 Miek Gieben <miek@miek.nl>\n"+
 			"Copyright © 2011 Russ Ross <russ@russross.com>\n"+
@@ -53,6 +56,11 @@ func main() {
 		flag.PrintDefaults()
 	}
 	flag.Parse()
+
+	if version{
+		fmt.Printf("%s+%s\n", mmark.Version, githash)
+		return
+	}
 
 	// enforce implied options
 	if css != "" {
