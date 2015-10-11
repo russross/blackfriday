@@ -1033,6 +1033,35 @@ func TestIndexXML(t *testing.T) {
 	doTestsInlineXML(t, tests)
 }
 
+func TestInlineComments(t *testing.T) {
+	var tests = []string{
+		"Hello <!-- there ->\n",
+		"<p>Hello &lt;!-- there -&gt;</p>\n",
+
+		"Hello <!-- there -->\n",
+		"<p>Hello <!-- there --></p>\n",
+
+		"Hello <!-- there -->",
+		"<p>Hello <!-- there --></p>\n",
+
+		"Hello <!---->\n",
+		"<p>Hello <!----></p>\n",
+
+		"Hello <!-- there -->\na",
+		"<p>Hello <!-- there -->\na</p>\n",
+
+		"* list <!-- item -->\n",
+		"<ul>\n<li>list <!-- item --></li>\n</ul>\n",
+
+		"<!-- Front --> comment\n",
+		"<p><!-- Front --> comment</p>\n",
+
+		"blahblah\n<!--- foo -->\nrhubarb\n",
+		"<p>blahblah\n<!--- foo -->\nrhubarb</p>\n",
+	}
+	doTestsInlineParam(t, tests, 0, 0, HtmlRendererParameters{})
+}
+
 func TestCitationXML(t *testing.T) {
 	var tests = []string{
 		"[@RFC2525]",
