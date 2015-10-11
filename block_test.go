@@ -1401,7 +1401,17 @@ func TestTitleBlock_EXTENSION_TITLEBLOCK(t *testing.T) {
 			"Yep, more here too\n" +
 			"</h1>",
 	}
-
 	doTestsBlock(t, tests, EXTENSION_TITLEBLOCK)
+}
 
+func TestBlockComments(t *testing.T) {
+	var tests = []string{
+		"Some text\n\n<!-- comment -->\n",
+		"<p>Some text</p>\n\n<!-- comment -->\n",
+		"Some text\n\n<!--\n\nmultiline\ncomment\n-->\n",
+		"<p>Some text</p>\n\n<!--\n\nmultiline\ncomment\n-->\n",
+		"Some text\n\n<!--\n\n<div><p>Commented</p>\n<span>html</span></div>\n-->\n",
+		"<p>Some text</p>\n\n<!--\n\n<div><p>Commented</p>\n<span>html</span></div>\n-->\n",
+	}
+	doTestsBlock(t, tests, 0)
 }
