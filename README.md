@@ -17,6 +17,8 @@
 
 .# Abstract
 
+![mmark logo](logo/mmark120px.png)
+
 This document describes an markdown variant called mmark [@?mmark-ref].
 
 Write RFCs using markdown. Mmark (written in Go) provides an advanced markdown
