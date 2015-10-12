@@ -1337,7 +1337,7 @@ func index(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 // look for the next emph char, skipping other constructs
 func helperFindEmphChar(data []byte, c byte) int {
-	i := 1
+	i := 0
 
 	for i < len(data) {
 		for i < len(data) && data[i] != c && data[i] != '`' && data[i] != '[' {
