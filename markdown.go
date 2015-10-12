@@ -22,6 +22,8 @@ import (
 	"bytes"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/shurcooL/sanitized_anchor_name"
 )
 
 const VERSION = "1.1"
@@ -199,6 +201,9 @@ type Renderer interface {
 // for each character that triggers a response when parsing inline data.
 type inlineParser func(p *parser, out *bytes.Buffer, data []byte, offset int) int
 
+// SanitizedAnchorNameFunc creates sanitized anchor names.
+type SanitizedAnchorNameFunc func(text string) string
+
 // Parser holds runtime state used by the parser.
 // This is constructed by the Markdown function.
 type parser struct {
@@ -215,6 +220,10 @@ type parser struct {
 	// presence. If a ref is also a footnote, it's stored both in refs and here
 	// in notes. Slice is nil if footnotes not enabled.
 	notes []*reference
+
+	// SanitizedAnchorNameOverride is an optional func to override
+	// the behavior for creating sanitized anchor names.
+	sanitizedAnchorNameOverride SanitizedAnchorNameFunc
 }
 
 func (p *parser) getRef(refid string) (ref *reference, found bool) {
@@ -283,6 +292,10 @@ type Options struct {
 	// the override function indicates an override did not occur, the refids at
 	// the bottom will be used to fill in the link details.
 	ReferenceOverride ReferenceOverrideFunc
+
+	// SanitizedAnchorNameOverride is an optional func to override
+	// the behavior for creating sanitized anchor names.
+	SanitizedAnchorNameOverride SanitizedAnchorNameFunc
 }
 
 // MarkdownBasic is a convenience function for simple rendering.
@@ -290,7 +303,7 @@ type Options struct {
 func MarkdownBasic(input []byte) []byte {
 	// set up the HTML renderer
 	htmlFlags := HTML_USE_XHTML
-	renderer := HtmlRenderer(htmlFlags, "", "")
+	renderer := HtmlRenderer(htmlFlags, "", "", nil)
 
 	// set up the parser
 	return MarkdownOptions(input, renderer, Options{Extensions: 0})
@@ -317,7 +330,7 @@ func MarkdownBasic(input []byte) []byte {
 // * Custom Header IDs
 func MarkdownCommon(input []byte) []byte {
 	// set up the HTML renderer
-	renderer := HtmlRenderer(commonHtmlFlags, "", "")
+	renderer := HtmlRenderer(commonHtmlFlags, "", "", nil)
 	return MarkdownOptions(input, renderer, Options{
 		Extensions: commonExtensions})
 }
@@ -372,6 +385,12 @@ func MarkdownOptions(input []byte, renderer Renderer, opts Options) []byte {
 
 	if extensions&EXTENSION_FOOTNOTES != 0 {
 		p.notes = make([]*reference, 0)
+	}
+
+	if opts.SanitizedAnchorNameOverride == nil {
+		p.sanitizedAnchorNameOverride = sanitized_anchor_name.Create
+	} else {
+		p.sanitizedAnchorNameOverride = opts.SanitizedAnchorNameOverride
 	}
 
 	first := firstPass(p, input)

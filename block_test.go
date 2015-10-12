@@ -25,7 +25,7 @@ func runMarkdownBlock(input string, extensions int) string {
 	htmlFlags := 0
 	htmlFlags |= HTML_USE_XHTML
 
-	renderer := HtmlRenderer(htmlFlags, "", "")
+	renderer := HtmlRenderer(htmlFlags, "", "", nil)
 
 	return runMarkdownBlockWithRenderer(input, extensions, renderer)
 }
@@ -35,7 +35,7 @@ func runnerWithRendererParameters(parameters HtmlRendererParameters) func(string
 		htmlFlags := 0
 		htmlFlags |= HTML_USE_XHTML
 
-		renderer := HtmlRendererWithParameters(htmlFlags, "", "", parameters)
+		renderer := HtmlRendererWithParameters(htmlFlags, "", "", nil, parameters)
 
 		return runMarkdownBlockWithRenderer(input, extensions, renderer)
 	}
@@ -336,9 +336,9 @@ func TestPrefixAutoHeaderIdExtension(t *testing.T) {
 		"###### Header 6\n",
 		"<h6 id=\"header-6\">Header 6</h6>\n",
 
-    // FYI: MarkDown only permits 6 levels of headings. The 7th creates a H6 with text "# Header 7".
+		// FYI: MarkDown only permits 6 levels of headings. The 7th creates a H6 with text "# Header 7".
 		"####### Header 7\n",
-		"<h6 id=\"-header-7\"># Header 7</h6>\n",
+		"<h6 id=\"header-7\"># Header 7</h6>\n",
 
 		"Hello\n# Header 1\nGoodbye\n",
 		"<p>Hello</p>\n\n<h1 id=\"header-1\">Header 1</h1>\n\n<p>Goodbye</p>\n",
@@ -389,7 +389,7 @@ func TestPrefixAutoHeaderIdExtensionWithPrefixAndSuffix(t *testing.T) {
 		"<h6 id=\"PRE:header-6:POST\">Header 6</h6>\n",
 
 		"####### Header 7\n",
-		"<h6 id=\"PRE:-header-7:POST\"># Header 7</h6>\n",
+		"<h6 id=\"PRE:header-7:POST\"># Header 7</h6>\n",
 
 		"Hello\n# Header 1\nGoodbye\n",
 		"<p>Hello</p>\n\n<h1 id=\"PRE:header-1:POST\">Header 1</h1>\n\n<p>Goodbye</p>\n",

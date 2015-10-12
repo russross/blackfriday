@@ -26,7 +26,7 @@ func runMarkdownInline(input string, opts Options, htmlFlags int, params HtmlRen
 
 	htmlFlags |= HTML_USE_XHTML
 
-	renderer := HtmlRendererWithParameters(htmlFlags, "", "", params)
+	renderer := HtmlRendererWithParameters(htmlFlags, "", "", nil, params)
 
 	return string(MarkdownOptions([]byte(input), renderer, opts))
 }

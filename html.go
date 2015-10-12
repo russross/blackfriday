@@ -96,6 +96,10 @@ type Html struct {
 	headerIDs map[string]int
 
 	smartypants *smartypantsRenderer
+
+	// sanitizedAnchorNameOverride is an optional func to override
+	// the behavior for creating sanitized anchor names.
+	sanitizedAnchorNameOverride SanitizedAnchorNameFunc
 }
 
 const (
@@ -110,12 +114,12 @@ const (
 // title is the title of the document, and css is a URL for the document's
 // stylesheet.
 // title and css are only used when HTML_COMPLETE_PAGE is selected.
-func HtmlRenderer(flags int, title string, css string) Renderer {
-	return HtmlRendererWithParameters(flags, title, css, HtmlRendererParameters{})
+func HtmlRenderer(flags int, title string, css string, sanitize SanitizedAnchorNameFunc) Renderer {
+	return HtmlRendererWithParameters(flags, title, css, sanitize, HtmlRendererParameters{})
 }
 
 func HtmlRendererWithParameters(flags int, title string,
-	css string, renderParameters HtmlRendererParameters) Renderer {
+	css string, sanitize SanitizedAnchorNameFunc, renderParameters HtmlRendererParameters) Renderer {
 	// configure the rendering engine
 	closeTag := htmlClose
 	if flags&HTML_USE_XHTML != 0 {
@@ -124,6 +128,10 @@ func HtmlRendererWithParameters(flags int, title string,
 
 	if renderParameters.FootnoteReturnLinkContents == "" {
 		renderParameters.FootnoteReturnLinkContents = `<sup>[return]</sup>`
+	}
+
+	if sanitize == nil {
+		sanitize = sanitized_anchor_name.Create
 	}
 
 	return &Html{
@@ -140,6 +148,8 @@ func HtmlRendererWithParameters(flags int, title string,
 		headerIDs: make(map[string]int),
 
 		smartypants: smartypants(flags),
+
+		sanitizedAnchorNameOverride: sanitize,
 	}
 }
 
@@ -770,7 +780,7 @@ func (options *Html) mdTocHeaderWithAnchor(text []byte, level int) {
 	options.toc.WriteString("- [")
 	options.toc.Write(text)
 	options.toc.WriteString("](#")
-	options.toc.WriteString(sanitized_anchor_name.Create(html.UnescapeString(string(text))))
+	options.toc.WriteString(options.sanitizedAnchorNameOverride(html.UnescapeString(string(text))))
 	options.toc.WriteString(")\n")
 }
 
