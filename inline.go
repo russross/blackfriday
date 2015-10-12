@@ -191,6 +191,13 @@ const (
 	linkInlineFootnote
 )
 
+func isReferenceStyleLink(data []byte, pos int, t linkType) bool {
+	if t == linkDeferredFootnote {
+		return false
+	}
+	return pos < len(data)-1 && data[pos] == '[' && data[pos+1] != '^'
+}
+
 // '[': parse a link or an image or a footnote
 func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	// no links allowed inside regular links, footnote, and deferred footnotes
@@ -353,7 +360,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		i++
 
 	// reference style link
-	case i < len(data)-1 && data[i] == '[' && data[i+1] != '^':
+	case isReferenceStyleLink(data, i, t):
 		var id []byte
 		altContentConsidered := false
 
@@ -395,7 +402,6 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		lr, ok := p.getRef(string(id))
 		if !ok {
 			return 0
-
 		}
 
 		// keep link and title from reference
