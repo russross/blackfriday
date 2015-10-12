@@ -15,6 +15,8 @@ package blackfriday
 
 import (
 	"testing"
+
+	"github.com/shurcooL/sanitized_anchor_name"
 )
 
 func runMarkdownBlockWithRenderer(input string, extensions int, renderer Renderer) string {
@@ -25,7 +27,7 @@ func runMarkdownBlock(input string, extensions int) string {
 	htmlFlags := 0
 	htmlFlags |= HTML_USE_XHTML
 
-	renderer := HtmlRenderer(htmlFlags, "", "", nil)
+	renderer := HtmlRenderer(htmlFlags, "", "")
 
 	return runMarkdownBlockWithRenderer(input, extensions, renderer)
 }
@@ -35,7 +37,12 @@ func runnerWithRendererParameters(parameters HtmlRendererParameters) func(string
 		htmlFlags := 0
 		htmlFlags |= HTML_USE_XHTML
 
-		renderer := HtmlRendererWithParameters(htmlFlags, "", "", nil, parameters)
+		if parameters.SanitizedAnchorNameOverride == nil {
+			parameters.SanitizedAnchorNameOverride = sanitized_anchor_name.Create
+		}
+		fmt.Printf("parameters.SanitizedAnchorNameOverride %#v\n", parameters.SanitizedAnchorNameOverride)
+
+		renderer := HtmlRendererWithParameters(htmlFlags, "", "", parameters)
 
 		return runMarkdownBlockWithRenderer(input, extensions, renderer)
 	}

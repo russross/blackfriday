@@ -22,8 +22,6 @@ import (
 	"bytes"
 	"strings"
 	"unicode/utf8"
-
-	"github.com/shurcooL/sanitized_anchor_name"
 )
 
 const VERSION = "1.1"
@@ -303,7 +301,7 @@ type Options struct {
 func MarkdownBasic(input []byte) []byte {
 	// set up the HTML renderer
 	htmlFlags := HTML_USE_XHTML
-	renderer := HtmlRenderer(htmlFlags, "", "", nil)
+	renderer := HtmlRenderer(htmlFlags, "", "")
 
 	// set up the parser
 	return MarkdownOptions(input, renderer, Options{Extensions: 0})
@@ -330,7 +328,7 @@ func MarkdownBasic(input []byte) []byte {
 // * Custom Header IDs
 func MarkdownCommon(input []byte) []byte {
 	// set up the HTML renderer
-	renderer := HtmlRenderer(commonHtmlFlags, "", "", nil)
+	renderer := HtmlRenderer(commonHtmlFlags, "", "")
 	return MarkdownOptions(input, renderer, Options{
 		Extensions: commonExtensions})
 }
@@ -387,11 +385,7 @@ func MarkdownOptions(input []byte, renderer Renderer, opts Options) []byte {
 		p.notes = make([]*reference, 0)
 	}
 
-	if opts.SanitizedAnchorNameOverride == nil {
-		p.sanitizedAnchorNameOverride = sanitized_anchor_name.Create
-	} else {
-		p.sanitizedAnchorNameOverride = opts.SanitizedAnchorNameOverride
-	}
+	p.sanitizedAnchorNameOverride = opts.SanitizedAnchorNameOverride
 
 	first := firstPass(p, input)
 	second := secondPass(p, first)

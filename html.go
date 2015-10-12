@@ -73,6 +73,9 @@ type HtmlRendererParameters struct {
 	HeaderIDPrefix string
 	// If set, add this text to the back of each Header ID, to ensure uniqueness.
 	HeaderIDSuffix string
+	// SanitizedAnchorNameOverride is an optional func to override
+	// the behavior for creating sanitized anchor names.
+	SanitizedAnchorNameOverride SanitizedAnchorNameFunc
 }
 
 // Html is a type that implements the Renderer interface for HTML output.
@@ -96,10 +99,6 @@ type Html struct {
 	headerIDs map[string]int
 
 	smartypants *smartypantsRenderer
-
-	// sanitizedAnchorNameOverride is an optional func to override
-	// the behavior for creating sanitized anchor names.
-	sanitizedAnchorNameOverride SanitizedAnchorNameFunc
 }
 
 const (
@@ -114,12 +113,12 @@ const (
 // title is the title of the document, and css is a URL for the document's
 // stylesheet.
 // title and css are only used when HTML_COMPLETE_PAGE is selected.
-func HtmlRenderer(flags int, title string, css string, sanitize SanitizedAnchorNameFunc) Renderer {
-	return HtmlRendererWithParameters(flags, title, css, sanitize, HtmlRendererParameters{})
+func HtmlRenderer(flags int, title string, css string) Renderer {
+	return HtmlRendererWithParameters(flags, title, css, HtmlRendererParameters{})
 }
 
 func HtmlRendererWithParameters(flags int, title string,
-	css string, sanitize SanitizedAnchorNameFunc, renderParameters HtmlRendererParameters) Renderer {
+	css string, renderParameters HtmlRendererParameters) Renderer {
 	// configure the rendering engine
 	closeTag := htmlClose
 	if flags&HTML_USE_XHTML != 0 {
@@ -130,8 +129,8 @@ func HtmlRendererWithParameters(flags int, title string,
 		renderParameters.FootnoteReturnLinkContents = `<sup>[return]</sup>`
 	}
 
-	if sanitize == nil {
-		sanitize = sanitized_anchor_name.Create
+	if renderParameters.SanitizedAnchorNameOverride == nil {
+		renderParameters.SanitizedAnchorNameOverride = sanitized_anchor_name.Create
 	}
 
 	return &Html{
@@ -148,8 +147,6 @@ func HtmlRendererWithParameters(flags int, title string,
 		headerIDs: make(map[string]int),
 
 		smartypants: smartypants(flags),
-
-		sanitizedAnchorNameOverride: sanitize,
 	}
 }
 
@@ -780,7 +777,7 @@ func (options *Html) mdTocHeaderWithAnchor(text []byte, level int) {
 	options.toc.WriteString("- [")
 	options.toc.Write(text)
 	options.toc.WriteString("](#")
-	options.toc.WriteString(options.sanitizedAnchorNameOverride(html.UnescapeString(string(text))))
+	options.toc.WriteString(options.parameters.SanitizedAnchorNameOverride(html.UnescapeString(string(text))))
 	options.toc.WriteString(")\n")
 }
 
