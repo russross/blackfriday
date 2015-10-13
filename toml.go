@@ -63,8 +63,8 @@ type title struct {
 	DocName        string
 	Ipr            string
 	Category       string
-	Obsoletes      []string
-	Updates        []string
+	Obsoletes      []int
+	Updates        []int
 	PI             pi // Processing Instructions
 	SubmissionType string
 
