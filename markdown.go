@@ -22,6 +22,8 @@ import (
 	"bytes"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/shurcooL/sanitized_anchor_name"
 )
 
 const VERSION = "1.1"
@@ -342,7 +344,9 @@ func MarkdownCommon(input []byte) []byte {
 // LatexRenderer, respectively.
 func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	return MarkdownOptions(input, renderer, Options{
-		Extensions: extensions})
+		Extensions:                  extensions,
+		SanitizedAnchorNameOverride: sanitized_anchor_name.Create,
+	})
 }
 
 // MarkdownOptions is just like Markdown but takes additional options through

@@ -40,7 +40,6 @@ func runnerWithRendererParameters(parameters HtmlRendererParameters) func(string
 		if parameters.SanitizedAnchorNameOverride == nil {
 			parameters.SanitizedAnchorNameOverride = sanitized_anchor_name.Create
 		}
-		fmt.Printf("parameters.SanitizedAnchorNameOverride %#v\n", parameters.SanitizedAnchorNameOverride)
 
 		renderer := HtmlRendererWithParameters(htmlFlags, "", "", parameters)
 
