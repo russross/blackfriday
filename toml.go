@@ -20,6 +20,7 @@ type author struct {
 	Surname      string
 	Fullname     string
 	Organization string
+	OrganizationAbbrev string // Abbrev attribute for Organization
 	Role         string
 	Ascii        string
 	Address      address
@@ -37,6 +38,7 @@ type addressPostal struct {
 	City       string
 	Code       string
 	Country    string
+	Region	   string
 	PostalLine []string
 }
 

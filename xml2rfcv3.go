@@ -625,7 +625,7 @@ func (options *xml) Abbreviation(out *bytes.Buffer, abbr, title []byte) {
 }
 
 func (options *xml) RawHtmlTag(out *bytes.Buffer, tag []byte) {
-	printf(nil, "syntax not supported: RawHtmlTag")
+	printf(nil, "syntax not supported: RawHtmlTag: %s", string(tag))
 }
 
 func (options *xml) TripleEmphasis(out *bytes.Buffer, text []byte) {
