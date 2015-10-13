@@ -166,6 +166,10 @@ func TestEmphasis(t *testing.T) {
 
 		"**This**",
 		"<p><strong>This</strong></p>\n",
+
+		"*What is A\\* algorithm?*\n",
+		"<p><em>What is A* algorithm?</em></p>\n",
+
 	}
 	doTestsInline(t, tests)
 }
