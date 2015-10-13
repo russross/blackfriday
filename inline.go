@@ -919,14 +919,13 @@ func helperFindEmphChar(data []byte, c byte) int {
 		if i >= len(data) {
 			return 0
 		}
-		if data[i] == c {
-			return i
-		}
-
 		// do not count escaped chars
 		if i != 0 && data[i-1] == '\\' {
 			i++
 			continue
+		}
+		if data[i] == c {
+			return i
 		}
 
 		if data[i] == '`' {

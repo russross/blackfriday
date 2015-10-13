@@ -153,6 +153,9 @@ func TestEmphasis(t *testing.T) {
 
 		"mix of *markers_\n",
 		"<p>mix of *markers_</p>\n",
+
+		"*What is A\\* algorithm?*\n",
+		"<p><em>What is A* algorithm?</em></p>\n",
 	}
 	doTestsInline(t, tests)
 }
