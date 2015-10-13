@@ -16,14 +16,14 @@ const (
 )
 
 type author struct {
-	Initials     string
-	Surname      string
-	Fullname     string
-	Organization string
+	Initials           string
+	Surname            string
+	Fullname           string
+	Organization       string
 	OrganizationAbbrev string // Abbrev attribute for Organization
-	Role         string
-	Ascii        string
-	Address      address
+	Role               string
+	Ascii              string
+	Address            address
 }
 
 type address struct {
@@ -38,7 +38,7 @@ type addressPostal struct {
 	City       string
 	Code       string
 	Country    string
-	Region	   string
+	Region     string
 	PostalLine []string
 }
 

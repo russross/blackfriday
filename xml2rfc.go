@@ -144,7 +144,11 @@ func titleBlockTOMLAuthor(out *bytes.Buffer, a author) {
 	writeEntity(out, []byte(a.Fullname))
 	out.WriteString("\">\n")
 
-	out.WriteString("<organization>")
+	abbrev := ""
+	if a.OrganizationAbbrev != "" {
+		abbrev = " abbrev=\"" + a.OrganizationAbbrev + "\""
+	}
+	out.WriteString("<organization" + abbrev + ">")
 	writeEntity(out, []byte(a.Organization))
 	out.WriteString("</organization>\n")
 
