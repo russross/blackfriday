@@ -147,7 +147,9 @@ func titleBlockTOMLAuthor(out *bytes.Buffer, a author) {
 	if a.OrganizationAbbrev != "" {
 		abbrev = " abbrev=\"" + a.OrganizationAbbrev + "\""
 	}
-	out.WriteString("<organization" + abbrev + ">")
+	out.WriteString("<organization")
+	writeEntity(out, []byte(abbrev))
+	out.WriteString(">")
 	writeEntity(out, []byte(a.Organization))
 	out.WriteString("</organization>\n")
 
@@ -192,7 +194,7 @@ func titleBlockTOMLAuthor(out *bytes.Buffer, a author) {
 
 	out.WriteString("<region>")
 	writeEntity(out, []byte(a.Address.Postal.Region))
-	out.WriteString("<region>\n")
+	out.WriteString("</region>\n")
 	for _, region := range a.Address.Postal.Regions {
 		out.WriteString("<region>")
 		writeEntity(out, []byte(region))
