@@ -20,7 +20,7 @@ type author struct {
 	Surname            string
 	Fullname           string
 	Organization       string
-	OrganizationAbbrev string // Abbrev attribute for Organization
+	OrganizationAbbrev string `toml:"abbrev"`
 	Role               string
 	Ascii              string
 	Address            address
@@ -40,6 +40,13 @@ type addressPostal struct {
 	Country    string
 	Region     string
 	PostalLine []string
+
+	// Plurals when these need to be specified multiple times.
+	Streets  []string
+	Cities   []string
+	Codes    []string
+	Countries []string
+	Regions  []string
 }
 
 // PIs the processing instructions.

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -155,27 +154,49 @@ func titleBlockTOMLAuthor(out *bytes.Buffer, a author) {
 	out.WriteString("<address>\n")
 	out.WriteString("<postal>\n")
 
-	// Multiline streets become multiple <street>s.
-	for _, street := range strings.Split(a.Address.Postal.Street, "\n") {
+	out.WriteString("<street>")
+	writeEntity(out, []byte(a.Address.Postal.Street))
+	out.WriteString("</street>\n")
+	for _, street := range a.Address.Postal.Streets {
 		out.WriteString("<street>")
 		writeEntity(out, []byte(street))
 		out.WriteString("</street>\n")
 	}
 
-	for _, city := range strings.Split(a.Address.Postal.City, "\n") {
+	out.WriteString("<city>")
+	writeEntity(out, []byte(a.Address.Postal.City))
+	out.WriteString("</city>\n")
+	for _, city := range a.Address.Postal.Cities {
 		out.WriteString("<city>")
 		writeEntity(out, []byte(city))
 		out.WriteString("</city>\n")
 	}
 
-	for _, code := range strings.Split(a.Address.Postal.Code, "\n") {
-		out.WriteString("<code>" + code + "</code>\n")
+	out.WriteString("<code>")
+	writeEntity(out, []byte(a.Address.Postal.Code))
+	out.WriteString("</code>\n")
+	for _, code := range a.Address.Postal.Codes {
+		out.WriteString("<code>")
+		writeEntity(out, []byte(code))
+		out.WriteString("</code>\n")
 	}
 
-	for _, country := range strings.Split(a.Address.Postal.Country, "\n") {
+	out.WriteString("<country>")
+	writeEntity(out, []byte(a.Address.Postal.Country))
+	out.WriteString("</country>\n")
+	for _, country := range a.Address.Postal.Countries {
 		out.WriteString("<country>")
 		writeEntity(out, []byte(country))
 		out.WriteString("</country>\n")
+	}
+
+	out.WriteString("<region>")
+	writeEntity(out, []byte(a.Address.Postal.Region))
+	out.WriteString("<region>\n")
+	for _, region := range a.Address.Postal.Regions {
+		out.WriteString("<region>")
+		writeEntity(out, []byte(region))
+		out.WriteString("</region>\n")
 	}
 
 	out.WriteString("</postal>\n")
