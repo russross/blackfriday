@@ -14,16 +14,25 @@ import (
 var (
 	// These have been known to change, these are the current ones (2015-08-27).
 
-	// CitationsID is the URL where mmark can find the citations for I-Ds.
-	CitationsID = "http://xml2rfc.ietf.org/public/rfc/bibxml3/"
-	// CitationsRFC is the URL where mmark can find the citations for RFCs.
+	// CitationsRFC is the URL where the citations for RFCs are.
 	CitationsRFC = "http://xml2rfc.ietf.org/public/rfc/bibxml/"
+
+	// CitationsANSI is the URL where the citations for ANSI documents are.
+	CitationsANSI = "http://xml2rfc.ietf.org/public/rfc/bibxml2/"
+
+	// CitationsID is the URL where the citations for I-Ds are.
+	CitationsID = "http://xml2rfc.ietf.org/public/rfc/bibxml3/"
+
+	// CitationsW3C is the URL where the citations for W3C documents are.
+	CitationsW3C = "http://xml2rfc.ietf.org/public/rfc/bibxml4/"
 )
 
 const (
 	referenceRFC      = "reference.RFC."
 	referenceID       = "reference.I-D.draft-"
 	referenceIDLatest = "reference.I-D."
+	referenceW3C      = "reference."
+	referenceANSI     = "reference."
 	ext               = ".xml"
 )
 
@@ -36,16 +45,33 @@ func referenceFile(c *citation) string {
 	if len(c.link) < 4 {
 		return ""
 	}
-	switch string(c.link[:3]) {
-	case "RFC":
+	switch {
+	case bytes.HasPrefix(c.link, []byte("RFC")):
 		return CitationsRFC + referenceRFC + string(c.link[3:]) + ext
-	case "I-D":
+	case bytes.HasPrefix(c.link, []byte("I-D")):
 		seq := ""
 		if c.seq != -1 {
 			seq = "-" + fmt.Sprintf("%02d", c.seq)
 			return CitationsID + referenceID + string(c.link[4:]) + seq + ext
 		}
 		return CitationsID + referenceIDLatest + string(c.link[4:]) + ext
+	case bytes.HasPrefix(c.link, []byte("W3C")):
+		return CitationsW3C + referenceW3C + string(c.link) + ext
+	case bytes.HasPrefix(c.link, []byte("ANSI")):
+		fallthrough
+	case bytes.HasPrefix(c.link, []byte("CCITT")):
+		fallthrough
+	case bytes.HasPrefix(c.link, []byte("FIPS")):
+		fallthrough
+	case bytes.HasPrefix(c.link, []byte("IEEE")):
+		fallthrough
+	case bytes.HasPrefix(c.link, []byte("ISO")):
+		fallthrough
+	case bytes.HasPrefix(c.link, []byte("ITU")):
+		fallthrough
+	case bytes.HasPrefix(c.link, []byte("PKCS")):
+		return CitationsANSI + referenceANSI + string(c.link) + ext
+
 	}
 	return ""
 }
