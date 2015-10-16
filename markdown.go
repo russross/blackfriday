@@ -4,7 +4,6 @@ package mmark
 
 import (
 	"bytes"
-	"io/ioutil"
 	"path"
 	"unicode"
 	"unicode/utf8"
@@ -247,6 +246,7 @@ type inlineParser func(p *parser, out *bytes.Buffer, data []byte, offset int) in
 // Parser holds runtime state used by the parser.
 // This is constructed by the Markdown function.
 type parser struct {
+	fs                   fileSystem
 	r                    Renderer
 	refs                 map[string]*reference
 	citations            map[string]*citation
@@ -331,8 +331,16 @@ func Parse(input []byte, renderer Renderer, extensions int) *bytes.Buffer {
 		return nil
 	}
 
-	// fill in the render structure
+	p := newParser(dir("."), renderer, extensions)
+	first := firstPass(p, input, 0)
+	second := secondPass(p, first.Bytes(), 0)
+	return second
+}
+
+// newParser initializes a new parser
+func newParser(fs fileSystem, renderer Renderer, extensions int) *parser {
 	p := new(parser)
+	p.fs = fs
 	p.r = renderer
 	p.flags = extensions
 	p.refs = make(map[string]*reference)
@@ -371,9 +379,7 @@ func Parse(input []byte, renderer Renderer, extensions int) *bytes.Buffer {
 		p.citations = make(map[string]*citation)
 	}
 
-	first := firstPass(p, input, 0)
-	second := secondPass(p, first.Bytes(), 0)
-	return second
+	return p
 }
 
 // first pass:
@@ -900,7 +906,7 @@ func (p *parser) include(out *bytes.Buffer, data []byte, depth int) int {
 	}
 
 	name := string(data[i+2 : end-2])
-	input, err := ioutil.ReadFile(name)
+	input, err := p.fs.readFile(name)
 	if err != nil {
 		printf(p, "failed: `%s': %s", name, err)
 		return end
@@ -974,7 +980,7 @@ func (p *parser) codeInclude(out *bytes.Buffer, data []byte) int {
 		}
 	}
 
-	code := parseCode(address, filename)
+	code := p.parseCode(address, filename)
 
 	if len(code) == 0 {
 		code = []byte{'\n'}
