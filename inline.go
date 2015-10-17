@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"regexp"
 	"strconv"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -130,9 +131,12 @@ func codeSpan(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		nb++
 	}
 
+	// position where block starts
+	beg := nb
+
 	// find the next delimiter
 	i, end := 0, 0
-	for end = nb; end < len(data) && i < nb; end++ {
+	for end = beg; end < len(data) && i < beg; end++ {
 		if data[end] == '`' {
 			i++
 		} else {
@@ -141,12 +145,28 @@ func codeSpan(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	}
 
 	// no matching delimiter?
-	if i < nb && end >= len(data) {
+	if i < beg && end >= len(data) {
 		return 0
 	}
 
+	isBlock := false
+	lang := ""
+
+	// position where code starts (excluding language delimiter)
+	codestart := beg
+
+	// if we have 3 ticks, it can be a block
+	if nb >= 3 {
+		p := bytes.IndexByte(data[beg:end], '\n')
+		if p >= 0 {
+			isBlock = true
+			codestart = beg + p + 1
+			lang = strings.TrimSpace(string(data[beg : beg+p]))
+		}
+	}
+
 	// trim outside whitespace
-	fBegin := nb
+	fBegin := codestart
 	for fBegin < end && isspace(data[fBegin]) {
 		fBegin++
 	}
@@ -156,11 +176,18 @@ func codeSpan(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		fEnd--
 	}
 
-	// render the code span
-	if fBegin != fEnd {
-		p.r.CodeSpan(out, data[fBegin:fEnd])
+	// no content, skip outputting data
+	if fBegin == fEnd {
+		return end
 	}
 
+	// a code span
+	if !isBlock {
+		p.r.CodeSpan(out, data[fBegin:fEnd])
+		return end
+	}
+
+	p.r.BlockCode(out, data[fBegin:fEnd], lang, nil, false, true)
 	return end
 }
 

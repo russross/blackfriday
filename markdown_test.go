@@ -43,7 +43,7 @@ func TestIncludeCodeblockInList(t *testing.T) {
 		"test.go": "123\n\t456\n789",
 	}
 
-	expect := `<ol><li><p>Alpha</p><ol><li>Beta <code>go123	456789</code></li></ol></li><li><p>Gamma <code>go123	456789</code></p><ul><li>Delta<ul><li>Iota<code>go123	456789</code></li></ul></li></ul></li><li><p>Kappa</p></li></ol>`
+	expect := `<ol><li><p>Alpha</p><ol><li>Beta <pre><code class="language-go">123	456789</code></pre></li></ol></li><li><p>Gamma <pre><code class="language-go">123	456789</code></pre></p><ul><li>Delta<ul><li>Iota<pre><code class="language-go">123	456789</code></pre></li></ul></li></ul></li><li><p>Kappa</p></li></ol>`
 	r := HtmlRenderer(0, "", "")
 	p := newParser(fs, r, EXTENSION_INCLUDE)
 	input, err := p.fs.readFile("main.md")
@@ -64,12 +64,11 @@ func TestCodeblockInList(t *testing.T) {
 	fs := virtualFS{
 		"main.md": `
 1. Alpha
-  1. Beta ` + qqq + ` go
-123456789
-` + qqq + `
-2. Gamma ` + qqq + ` go
-123456789
-` + qqq + `
+  1. Beta
+  ` + qqq + ` go
+  123456789
+  ` + qqq + `
+2. Gamma ` + qqq + `123456789` + qqq + `
   * Delta
     * Iota
       ` + qqq + ` go
@@ -79,7 +78,7 @@ func TestCodeblockInList(t *testing.T) {
 `,
 		"test.go": "123456789",
 	}
-	expect := `<ol><li>Alpha<ol><li>Beta <code>go123456789</code></li></ol></li><li>Gamma <code>go123456789</code><ul><li>Delta</li><li>Iota<code>go123456789</code></li></ul></li><li>Kappa</li></ol>`
+	expect := `<ol><li>Alpha<ol><li>Beta<pre><code class="language-go">123456789</code></pre></li></ol></li><li>Gamma <code>123456789</code><ul><li>Delta</li><li>Iota<pre><code class="language-go">123456789</code></pre></li></ul></li><li>Kappa</li></ol>`
 
 	r := HtmlRenderer(0, "", "")
 	p := newParser(fs, r, EXTENSION_INCLUDE)

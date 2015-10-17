@@ -169,7 +169,6 @@ func TestEmphasis(t *testing.T) {
 
 		"*What is A\\* algorithm?*\n",
 		"<p><em>What is A* algorithm?</em></p>\n",
-
 	}
 	doTestsInline(t, tests)
 }
@@ -860,7 +859,9 @@ No longer in the footnote
 
 <p>Paragraph 2</p>
 
-<p><code>some code</code></p>
+<p>
+<pre><code>some code</code></pre>
+</p>
 
 <p>Paragraph 3</p>
 </li>
