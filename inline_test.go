@@ -1104,6 +1104,12 @@ func TestCitationXML(t *testing.T) {
 
 		"[@!RFC2525], as you can see from [@?RFC2525]",
 		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t>\n<xref target=\"RFC2525\"/>, as you can see from <xref target=\"RFC2525\"/>\n</t>\n\n</middle>\n<back>\n<references>\n<name>Normative References</name>\n<xi:include href=\"http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2525.xml\"/>\n</references>\n\n</back>\n</rfc>\n",
+
+		"More of that in [@?ISO.8571-2.1988]",
+		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t>\nMore of that in <xref target=\"ISO.8571-2.1988\"/>\n</t>\n\n</middle>\n<back>\n<references>\n<name>Informative References</name>\n<xi:include href=\"http://xml2rfc.ietf.org/public/rfc/bibxml2/reference.ISO.8571-2.1988.xml\"/>\n</references>\n\n</back>\n</rfc>\n",
+
+		"Hey, what about [@!ISO.8571-2.1988]",
+		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<t>\nHey, what about <xref target=\"ISO.8571-2.1988\"/>\n</t>\n\n</middle>\n<back>\n<references>\n<name>Normative References</name>\n<xi:include href=\"http://xml2rfc.ietf.org/public/rfc/bibxml2/reference.ISO.8571-2.1988.xml\"/>\n</references>\n\n</back>\n</rfc>\n",
 	}
 	doTestsInlineParamXML(t, tests, 0, XML_STANDALONE)
 }
