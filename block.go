@@ -1157,11 +1157,11 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 	var caption bytes.Buffer
 	j := beg
 
-	span := linespan{beg, beg}
-	if span.next(data) {
-		if bytes.HasPrefix(bytes.TrimSpace(data[span.begin:span.end]), []byte("Figure: ")) {
-			p.inline(&caption, data[span.begin:span.end-1])
-			j = span.end
+	line := linespan{beg, beg}
+	if line.next(data) {
+		if bytes.HasPrefix(bytes.TrimSpace(data[line.begin:line.end]), []byte("Figure: ")) {
+			p.inline(&caption, data[line.begin:line.end-1])
+			j = line.end
 		}
 	}
 
