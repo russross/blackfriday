@@ -189,8 +189,6 @@ func codeSpan(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 	code := data[fBegin:fEnd]
 
-	var caption bytes.Buffer
-
 	co := ""
 	if p.ial != nil {
 		co = p.ial.Value("callout")
@@ -202,10 +200,10 @@ func codeSpan(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	if co != "" {
 		var callout bytes.Buffer
 		callouts(p, &callout, code, 0, co)
-		p.r.BlockCode(out, callout.Bytes(), lang, caption.Bytes(), p.insideFigure, true)
+		p.r.BlockCode(out, callout.Bytes(), lang, nil, false, true)
 	} else {
 		p.callouts = nil
-		p.r.BlockCode(out, code, lang, caption.Bytes(), p.insideFigure, false)
+		p.r.BlockCode(out, code, lang, nil, false, false)
 	}
 	p.r.SetInlineAttr(nil) // reset it again. TODO(miek): double check
 
