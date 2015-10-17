@@ -1169,7 +1169,9 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 			}
 			line = j
 		}
-		p.inline(&caption, data[beg+8:j-1])
+		if beg+8 < j-1 {
+			p.inline(&caption, data[beg+8:j-1])
+		}
 	}
 
 	syntax := ""
@@ -1247,7 +1249,9 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 			}
 			line = j
 		}
-		p.inline(&caption, data[i+7:j-1]) // +7 for 'Table: '
+		if i+7 < j-1 {
+			p.inline(&caption, data[i+7:j-1]) // +7 for 'Table: '
+		}
 	}
 
 	p.r.SetInlineAttr(p.ial)
@@ -1708,7 +1712,9 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 			line = j
 		}
 		// save for later processing.
-		caption = string(data[i+8 : j-1]) // +8 for 'Figure: '
+		if i+8 < j-1 {
+			caption = string(data[i+8 : j-1]) // +8 for 'Figure: '
+		}
 	}
 
 	// trim all the \n off the end of work
