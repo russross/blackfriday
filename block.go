@@ -1161,7 +1161,7 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 		for line < len(data) {
 			j++
 			// find the end of this line
-			for data[j-1] != '\n' && data[j-1] != '\r' {
+			for data[j-1] != '\n' {
 				j++
 			}
 			if p.isEmpty(data[line:j]) > 0 {
@@ -1241,7 +1241,7 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 		for line < len(data) {
 			j++
 			// find the end of this line
-			for data[j-1] != '\n' && data[j-1] != '\r' {
+			for data[j-1] != '\n' {
 				j++
 			}
 			if p.isEmpty(data[line:j]) > 0 {
@@ -1377,7 +1377,7 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 		for line < len(data) {
 			j++
 			// find the end of this line
-			for data[j-1] != '\n' && data[j-1] != '\r' {
+			for data[j-1] != '\n' {
 				j++
 			}
 			if p.isEmpty(data[line:j]) > 0 {
@@ -1703,7 +1703,7 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 		for line < len(data) {
 			j++
 			// find the end of this line
-			for data[j-1] != '\n' && data[j-1] != '\r' {
+			for data[j-1] != '\n' {
 				j++
 			}
 			if p.isEmpty(data[line:j]) > 0 {
