@@ -738,12 +738,6 @@ func (p *parser) inlineHtmlComment(out *bytes.Buffer, data []byte) int {
 
 // '<' when tags or autolinks are allowed
 func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
-	if p.flags&EXTENSION_INCLUDE != 0 {
-		if j := p.codeInclude(out, data[offset:]); j > 0 {
-			return j
-		}
-	}
-
 	data = data[offset:]
 	altype := _LINK_TYPE_NOT_AUTOLINK
 	end := tagLength(data, &altype)

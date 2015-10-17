@@ -436,14 +436,28 @@ func firstPass(p *parser, input []byte, depth int) *bytes.Buffer {
 		if end > beg {
 			if end < lastFencedCodeBlockEnd { // Do not expand tabs while inside fenced code blocks.
 				out.Write(input[beg:end])
-			} else {
-				if p.flags&EXTENSION_INCLUDE != 0 && input[beg] == '{' {
+			} else if p.flags&EXTENSION_INCLUDE != 0 {
+				if input[beg] == '{' {
 					if beg == 0 || (beg > 0 && input[beg-1] == '\n') {
 						if j := p.include(&out, input[beg:end], depth); j > 0 {
 							beg += j
 						}
 					}
+				} else if off := bytes.Index(input[beg:end], []byte("<{{")); off >= 0 {
+					if beg == 0 || (beg > 0 && input[beg-1] == '\n') {
+						// add everything before the start of the include
+						prefix := input[beg : beg+off]
+						expandTabs(&out, prefix, tabSize)
+
+						indent := extractIndent(prefix, tabSize)
+						include := input[beg+off : end]
+						if j := p.codeInclude(&out, include, indent); j > 0 {
+							beg += j + off
+						}
+					}
 				}
+				expandTabs(&out, input[beg:end], tabSize)
+			} else {
 				expandTabs(&out, input[beg:end], tabSize)
 			}
 		}
@@ -926,8 +940,7 @@ func (p *parser) include(out *bytes.Buffer, data []byte, depth int) int {
 // replace <{{file.go}}[address] with the contents of the file. Pay attention to the indentation of the
 // include and prefix the code with that number of spaces + 4, it returns the new bytes and a boolean
 // indicating we've detected a code include.
-func (p *parser) codeInclude(out *bytes.Buffer, data []byte) int {
-	// TODO: this is not an inline element
+func (p *parser) codeInclude(out *bytes.Buffer, data []byte, indent []byte) int {
 	i := 0
 	l := len(data)
 	if l < 3 {
@@ -982,50 +995,22 @@ func (p *parser) codeInclude(out *bytes.Buffer, data []byte) int {
 
 	code := p.parseCode(address, filename)
 
-	if len(code) == 0 {
-		code = []byte{'\n'}
-	}
-	if code[len(code)-1] != '\n' {
-		code = append(code, '\n')
-	}
+	// start the codeblock
+	out.WriteString("``` " + lang + "\n")
 
-	// if the next line starts with Figure: we consider that a caption
-	var caption bytes.Buffer
-	if end < l-1 && bytes.HasPrefix(data[end+1:], []byte("Figure: ")) {
-		line := end + 1
-		j := end + 1
-		for line < l {
-			j++
-			// find the end of this line
-			for j <= l && data[j-1] != '\n' {
-				j++
-			}
-			if p.isEmpty(data[line:j]) > 0 {
-				break
-			}
-			line = j
-		}
-		p.inline(&caption, data[end+1+8:j-1]) // +8 for 'Figure: '
-		end = j - 1
+	// add code to output with indentation
+	var line linespan
+	for line.next(code) {
+		out.Write(indent)
+		out.Write(code[line.begin:line.end])
 	}
-
-	co := ""
-	if p.ial != nil {
-		co = p.ial.Value("callout")
+	// add missing newline
+	if len(code) == 0 || code[len(code)-1] != '\n' {
+		out.WriteByte('\n')
 	}
-
-	p.r.SetInlineAttr(p.ial)
-	p.ial = nil
-
-	if co != "" {
-		var callout bytes.Buffer
-		callouts(p, &callout, code, 0, co)
-		p.r.BlockCode(out, callout.Bytes(), lang, caption.Bytes(), p.insideFigure, true)
-	} else {
-		p.callouts = nil
-		p.r.BlockCode(out, code, lang, caption.Bytes(), p.insideFigure, false)
-	}
-	p.r.SetInlineAttr(nil) // reset it again. TODO(miek): double check
+	// end the codeblock
+	out.Write(indent)
+	out.WriteString("```\n")
 
 	return end
 }
@@ -1086,6 +1071,21 @@ func expandTabs(out *bytes.Buffer, line []byte, tabSize int) {
 
 		i++
 	}
+}
+
+// Extract indent finds the appropriate indentation for the next block
+// where line can be inside of a list.
+func extractIndent(line []byte, tabSize int) []byte {
+	var buf bytes.Buffer
+	expandTabs(&buf, line, tabSize)
+
+	indented := buf.Bytes()
+	for p := range indented {
+		if indented[p] != ' ' {
+			return indented[:p]
+		}
+	}
+	return indented
 }
 
 // Find if a line counts as indented or not.
