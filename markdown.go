@@ -1010,7 +1010,7 @@ func (p *parser) codeInclude(out *bytes.Buffer, data []byte, indent []byte) int 
 	}
 	// end the codeblock
 	out.Write(indent)
-	out.WriteString("```\n")
+	out.WriteString("```")
 
 	return end
 }
