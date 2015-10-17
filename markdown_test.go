@@ -43,7 +43,7 @@ func TestIncludeCodeblockInList(t *testing.T) {
 		"test.go": "123\n\t456\n789",
 	}
 
-	expect := `<ol><li><p>Alpha</p><ol><li>Beta <pre><code class="language-go">123	456789</code></pre></li></ol></li><li><p>Gamma <pre><code class="language-go">123	456789</code></pre></p><ul><li>Delta<ul><li>Iota<pre><code class="language-go">123	456789</code></pre></li></ul></li></ul></li><li><p>Kappa</p></li></ol>`
+	expect := `<ol><li>Alpha<ol><li>Beta <pre><code class="language-go">123	456789</code></pre></li></ol></li><li>Gamma <pre><code class="language-go">123	456789</code></pre><ul><li>Delta<ul><li>Iota<pre><code class="language-go">123	456789</code></pre></li></ul></li></ul></li><li>Kappa</li></ol>`
 	r := HtmlRenderer(0, "", "")
 	p := newParser(fs, r, EXTENSION_INCLUDE)
 	input, err := p.fs.readFile("main.md")
@@ -101,6 +101,8 @@ func TestExtraLineAfterBlockCrash(t *testing.T) {
 <{{test.go}}
 
 Figure: Go routines in action.
+
+Alpha, beta gamma...
 `,
 		"test.go": "123456"}
 
