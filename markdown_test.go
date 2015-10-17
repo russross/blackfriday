@@ -94,3 +94,29 @@ func TestCodeblockInList(t *testing.T) {
 		t.Errorf("got\n%s\nexpected\n%s\n", result, expect)
 	}
 }
+
+func TestLearningGoRegression(t *testing.T) {
+	fs := virtualFS{
+		"main.md": `
+{callout="//"}
+<{{test.go}}
+Figure: Go routines in action.
+`,
+		"test.go": "123456789",
+	}
+	expect := `<ol><li>Alpha<ol><li>Beta<pre><code class="language-go">123456789</code></pre></li></ol></li><li>Gamma <code>123456789</code><ul><li>Delta</li><li>Iota<pre><code class="language-go">123456789</code></pre></li></ul></li><li>Kappa</li></ol>`
+
+	r := HtmlRenderer(0, "", "")
+	p := newParser(fs, r, EXTENSION_INCLUDE|EXTENSION_FENCED_CODE)
+	input, err := p.fs.readFile("main.md")
+	if err != nil {
+		t.Error(err)
+	}
+
+	first := firstPass(p, input, 0)
+	second := secondPass(p, first.Bytes(), 0)
+	result := strings.Replace(second.String(), "\n", "", -1)
+	if result != expect {
+		t.Errorf("got\n%s\nexpected\n%s\n", result, expect)
+	}
+}
