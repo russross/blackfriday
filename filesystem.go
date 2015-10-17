@@ -7,27 +7,27 @@ import (
 	"path/filepath"
 )
 
-// fileSystem implements access to files. The elements in a file path are
+// FileSystem implements access to files. The elements in a file path are
 // separated by slash ('/', U+002F) characters, regardless of host
 // operating system convention.
-type fileSystem interface {
-	// readFile reads the file named by filename and returns the contents.
-	readFile(name string) ([]byte, error)
+type FileSystem interface {
+	// ReadFile reads the file named by filename and returns the contents.
+	ReadFile(name string) ([]byte, error)
 }
 
-// dir implements fileSystem using the native file system restricted to a
+// dir implements FileSystem using the native file system restricted to a
 // specific directory tree.
 //
-// While the fileSystem.readFile method takes '/'-separated paths,
+// While the FileSystem.ReadFile method takes '/'-separated paths,
 // a Dir's string value is a filename on the native file system,
 // not a URL, so it is separated by filepath.Separator,
 // which isn't necessarily '/'.
 //
 // An empty Dir is treated as "."
-type dir string
+type Dir string
 
-// readFile reads the file named by filename and returns the contents.
-func (d dir) readFile(name string) ([]byte, error) {
+// ReadFile reads the file named by filename and returns the contents.
+func (d Dir) ReadFile(name string) ([]byte, error) {
 	dir := string(d)
 	if dir == "" {
 		dir = "."
@@ -36,15 +36,24 @@ func (d dir) readFile(name string) ([]byte, error) {
 	return ioutil.ReadFile(fullname)
 }
 
-// virtualFS implements fileSystem using an in-memory map to define the filesystem
+// virtualFS implements FileSystem using an in-memory map to define the FileSystem
+// this is used for testing
 type virtualFS map[string]string
 
-// readFile returns the content for appropriate filename
+// ReadFile returns the content for appropriate filename
 // if the name does not exist, then it will return os.ErrNotExist
-func (fs virtualFS) readFile(name string) ([]byte, error) {
-	content, ok := fs[name]
+func (fs virtualFS) ReadFile(name string) ([]byte, error) {
+	search := path.Clean("/" + name)
+	content, ok := fs[search]
 	if !ok {
 		return nil, os.ErrNotExist
 	}
 	return []byte(content), nil
+}
+
+func absname(cwd string, name string) string {
+	if len(name) > 0 && name[0] == '/' {
+		return name
+	}
+	return path.Join(cwd, name)
 }

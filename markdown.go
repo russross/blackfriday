@@ -246,7 +246,7 @@ type inlineParser func(p *parser, out *bytes.Buffer, data []byte, offset int) in
 // Parser holds runtime state used by the parser.
 // This is constructed by the Markdown function.
 type parser struct {
-	fs                   fileSystem
+	fs                   FileSystem
 	r                    Renderer
 	refs                 map[string]*reference
 	citations            map[string]*citation
@@ -263,6 +263,8 @@ type parser struct {
 	insideList           int  // list in list counter
 	insideFigure         bool // when inside a F> paragraph
 	displayMath          bool
+
+	cwd string // current working directory
 
 	// Footnotes need to be ordered as well as available to quickly check for
 	// presence. If a ref is also a footnote, it's stored both in refs and here
@@ -326,19 +328,25 @@ func (m *Markdown) render() {
 // To use the supplied Html or XML renderers, see HtmlRenderer, XmlRenderer and
 // Xml2Renderer, respectively.
 func Parse(input []byte, renderer Renderer, extensions int) *bytes.Buffer {
+	return ParseAt(Dir("."), input, renderer, extensions)
+}
+
+// ParseAt is the extended rendering function, that additionally accepts a FileSystem.
+// See Parse for more information.
+func ParseAt(fs FileSystem, input []byte, renderer Renderer, extensions int) *bytes.Buffer {
 	// no point in parsing if we can't render
 	if renderer == nil {
 		return nil
 	}
 
-	p := newParser(dir("."), renderer, extensions)
+	p := newParser(fs, renderer, extensions)
 	first := firstPass(p, input, 0)
 	second := secondPass(p, first.Bytes(), 0)
 	return second
 }
 
 // newParser initializes a new parser
-func newParser(fs fileSystem, renderer Renderer, extensions int) *parser {
+func newParser(fs FileSystem, renderer Renderer, extensions int) *parser {
 	p := new(parser)
 	p.fs = fs
 	p.r = renderer
@@ -920,7 +928,8 @@ func (p *parser) include(out *bytes.Buffer, data []byte, depth int) int {
 	}
 
 	name := string(data[i+2 : end-2])
-	input, err := p.fs.readFile(name)
+	fullname := absname(p.cwd, name)
+	input, err := p.fs.ReadFile(fullname)
 	if err != nil {
 		printf(p, "failed: `%s': %s", name, err)
 		return end
@@ -932,6 +941,13 @@ func (p *parser) include(out *bytes.Buffer, data []byte, depth int) int {
 	if input[len(input)-1] != '\n' {
 		input = append(input, '\n')
 	}
+
+	prevcwd := p.cwd
+	defer func() {
+		p.cwd = prevcwd
+	}()
+	p.cwd = path.Dir(fullname)
+
 	first := firstPass(p, input, depth+1)
 	out.Write(first.Bytes())
 	return end
