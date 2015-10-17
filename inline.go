@@ -181,13 +181,34 @@ func codeSpan(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		return end
 	}
 
-	// a code span
+	// is it a code span
 	if !isBlock {
 		p.r.CodeSpan(out, data[fBegin:fEnd])
 		return end
 	}
 
-	p.r.BlockCode(out, data[fBegin:fEnd], lang, nil, false, true)
+	code := data[fBegin:fEnd]
+
+	var caption bytes.Buffer
+
+	co := ""
+	if p.ial != nil {
+		co = p.ial.Value("callout")
+	}
+
+	p.r.SetInlineAttr(p.ial)
+	p.ial = nil
+
+	if co != "" {
+		var callout bytes.Buffer
+		callouts(p, &callout, code, 0, co)
+		p.r.BlockCode(out, callout.Bytes(), lang, caption.Bytes(), p.insideFigure, true)
+	} else {
+		p.callouts = nil
+		p.r.BlockCode(out, code, lang, caption.Bytes(), p.insideFigure, false)
+	}
+	p.r.SetInlineAttr(nil) // reset it again. TODO(miek): double check
+
 	return end
 }
 
