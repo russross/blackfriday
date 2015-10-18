@@ -220,8 +220,8 @@ func (options *xml) Part(out *bytes.Buffer, text func() bool, id string) {
 
 func (options *xml) SpecialHeader(out *bytes.Buffer, what []byte, text func() bool, id string) {
 	if string(what) == "preface" {
-		// -ENOPREFACE in RFCs
-		return
+		printf(nil, "handling preface like abstract")
+		what = []byte("abstract")
 	}
 	level := 1
 	if level <= options.sectionLevel {

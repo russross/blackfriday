@@ -937,7 +937,7 @@ func (p *parser) isEmpty(data []byte) int {
 	}
 
 	var i int
-	for i = 0; i < len(data) && data[i] != '\n'; i++ {
+	for i = 0; i < len(data) && data[i] != '\n' && data[i] != '\r'; i++ {
 		if data[i] != ' ' && data[i] != '\t' {
 			return 0
 		}
