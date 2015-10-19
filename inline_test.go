@@ -266,6 +266,12 @@ func TestStrong(t *testing.T) {
 
 		"mix of **markers__\n",
 		"<p>mix of **markers__</p>\n",
+
+		"**`/usr`** : this folder is named `usr`\n",
+		"<p><strong><code>/usr</code></strong> : this folder is named <code>usr</code></p>\n",
+
+		"**`/usr`** :\n\n this folder is named `usr`\n",
+		"<p><strong><code>/usr</code></strong> :</p>\n\n<p>this folder is named <code>usr</code></p>\n",
 	}
 	doTestsInline(t, tests)
 }
@@ -294,7 +300,7 @@ func TestEmphasisMix(t *testing.T) {
 		"<p><strong>improper *nesting</strong> is* bad</p>\n",
 
 		"*improper **nesting* is** bad\n",
-		"<p><em>improper **nesting</em> is** bad</p>\n",
+		"<p>*improper <strong>nesting* is</strong> bad</p>\n",
 	}
 	doTestsInline(t, tests)
 }
