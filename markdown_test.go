@@ -95,28 +95,6 @@ func TestCodeblockInList(t *testing.T) {
 	}
 }
 
-func TestExtraLineAfterBlockCrash(t *testing.T) {
-	fs := virtualFS{
-		"/main.md": `
-<{{test.go}}
-
-Figure: Go routines in action.
-
-Alpha, beta gamma...
-`,
-		"/test.go": "123456"}
-
-	r := HtmlRenderer(0, "", "")
-	p := newParser(fs, r, EXTENSION_INCLUDE|EXTENSION_FENCED_CODE)
-	input, err := p.fs.ReadFile("/main.md")
-	if err != nil {
-		t.Error(err)
-	}
-
-	first := firstPass(p, input, 0)
-	secondPass(p, first.Bytes(), 0)
-}
-
 func TestRelativeInclude(t *testing.T) {
 	fs := virtualFS{
 		"/A.md":   "{{X/B.md}}",
