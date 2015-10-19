@@ -7,27 +7,27 @@ import (
 	"path/filepath"
 )
 
-// FileSystem implements access to files. The elements in a file path are
+// fileSystem implements access to files. The elements in a file path are
 // separated by slash ('/', U+002F) characters, regardless of host
 // operating system convention.
-type FileSystem interface {
+type fileSystem interface {
 	// ReadFile reads the file named by filename and returns the contents.
 	ReadFile(name string) ([]byte, error)
 }
 
-// dir implements FileSystem using the native file system restricted to a
+// dir implements fileSystem using the native file system restricted to a
 // specific directory tree.
 //
-// While the FileSystem.ReadFile method takes '/'-separated paths,
-// a Dir's string value is a filename on the native file system,
+// While the fileSystem.ReadFile method takes '/'-separated paths,
+// a dir's string value is a filename on the native file system,
 // not a URL, so it is separated by filepath.Separator,
 // which isn't necessarily '/'.
 //
-// An empty Dir is treated as "."
-type Dir string
+// An empty dir is treated as "."
+type dir string
 
 // ReadFile reads the file named by filename and returns the contents.
-func (d Dir) ReadFile(name string) ([]byte, error) {
+func (d dir) ReadFile(name string) ([]byte, error) {
 	dir := string(d)
 	if dir == "" {
 		dir = "."
@@ -36,7 +36,7 @@ func (d Dir) ReadFile(name string) ([]byte, error) {
 	return ioutil.ReadFile(fullname)
 }
 
-// virtualFS implements FileSystem using an in-memory map to define the FileSystem
+// virtualFS implements fileSystem using an in-memory map to define the fileSystem
 // this is used for testing
 type virtualFS map[string]string
 

@@ -143,8 +143,7 @@ func main() {
 	}
 
 	// parse and render
-	fs := mmark.Dir(workingdir)
-	output := mmark.ParseAt(fs, input, renderer, extensions).Bytes()
+	output := mmark.ParseAt(workingdir, input, renderer, extensions).Bytes()
 
 	// output the result
 	out := os.Stdout

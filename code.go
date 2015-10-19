@@ -42,7 +42,7 @@ var SourceCodeTypes = map[string]bool{
 func (p *parser) parseCode(addr []byte, file []byte) []byte {
 	bytes.TrimSpace(addr)
 
-	fullname := absname(p.cwd, string(file))
+	fullname := absname(p.workingDirectory, string(file))
 	textBytes, err := p.fs.ReadFile(fullname)
 	if err != nil {
 		printf(nil, "failed: `%s': %s", string(file), err)
