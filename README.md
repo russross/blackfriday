@@ -1,19 +1,23 @@
-% Title = "Using mmark to create I-Ds, RFCs and books"
-% abbrev = "mmark2rfc"
-% category = "info"
-% docName = "draft-gieben-mmark2rfc-00"
-%
-% [pi]
-% private = "yes"
-% footer = ""
-% header = "mmark"
-%
-% date = 2015-10-10T00:00:00Z
-%
-% [[author]]
-% initials="R."
-% surname="Gieben"
-% fullname="R. (Miek) Gieben"
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    Title = "Using mmark to create I-Ds, RFCs and books"
+    abbrev = "mmark2rfc"
+    category = "info"
+    docName = "draft-gieben-mmark2rfc-00"
+
+    [pi]
+    private = "yes"
+    footer = ""
+    header = "mmark"
+
+    date = 2015-10-10T00:00:00Z
+
+    [[author]]
+    initials="R."
+    surname="Gieben"
+    fullname="R. (Miek) Gieben"
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 .# Abstract
 

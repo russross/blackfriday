@@ -83,12 +83,28 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		//
 		// % stuff = "foo"
 		// % port = 1024
-		if p.flags&EXTENSION_TITLEBLOCK_TOML != 0 {
-			if data[0] == '%' {
+		if p.flags&EXTENSION_TITLEBLOCK_TOML != 0 && len(data) > 2 {
+			// only one % at the left
+			if data[0] == '%' && data[1] != '%' {
 				if i := p.titleBlock(out, data, true); i > 0 {
 					data = data[i:]
 					continue
 				}
+			}
+		}
+		// title block in TOML, second way to typeset
+		//
+		// %%%
+		// stuff = "foot"
+		// port = 1024
+		// %%%
+		if p.flags&EXTENSION_TITLEBLOCK_TOML != 0 && len(data) > 3 {
+			if data[0] == '%' && data[1] == '%' && data[2] == '%' {
+				if i := p.titleBlockBlock(out, data, true); i > 0 {
+					data = data[i:]
+					continue
+				}
+
 			}
 		}
 
@@ -674,7 +690,7 @@ func (p *parser) titleBlock(out *bytes.Buffer, data []byte, doRender bool) int {
 	if p.titleblock {
 		return 0
 	}
-	if data[0] != '%' {
+	if data[0] == '%' && data[1] != '%' {
 		return 0
 	}
 	splitData := bytes.Split(data, []byte("\n"))
@@ -685,11 +701,43 @@ func (p *parser) titleBlock(out *bytes.Buffer, data []byte, doRender bool) int {
 			break
 		}
 	}
+
 	p.titleblock = true
 	data = bytes.Join(splitData[0:i], []byte("\n"))
 	block := p.titleBlockTOML(out, data)
 	p.r.TitleBlockTOML(out, &block)
 	return len(data)
+}
+
+func (p *parser) titleBlockBlock(out *bytes.Buffer, data []byte, doRender bool) int {
+	if p.titleblock {
+		return 0
+	}
+	if data[0] != '%' || data[1] != '%' || data[2] != '%' {
+		return 0
+	}
+
+	// find current eol
+	i := 0
+	for i < len(data) && data[i] != '\n' {
+		i++
+	}
+	beg := i
+
+	delimLength := 0
+	for i < len(data) {
+		if delimLength = p.isTOMLBlockBlock(data[i:]); delimLength > 0 {
+			break
+		}
+		i++
+	}
+	end := i
+
+	p.titleblock = true
+	data = data[beg:end]
+	block := p.titleBlockTOML(out, data)
+	p.r.TitleBlockTOML(out, &block)
+	return len(data) + delimLength + beg
 }
 
 func (p *parser) html(out *bytes.Buffer, data []byte, doRender bool) int {
@@ -1081,6 +1129,28 @@ func (p *parser) isFencedCode(data []byte, syntax **string, oldmarker string) (s
 
 	skip = i + 1
 	return
+}
+
+func (p *parser) isTOMLBlockBlock(data []byte) int {
+	if len(data) < 3 {
+		return 0
+	}
+	if data[0] != '%' || data[1] != '%' || data[2] != '%' {
+		return 0
+	}
+
+	i := 0
+	for data[i] != '\n' {
+		switch {
+		case data[i] == '%':
+			i++
+		case data[i] != ' ':
+			return 0
+		}
+		i++
+	}
+
+	return i
 }
 
 func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
