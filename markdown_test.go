@@ -16,7 +16,7 @@ func TestNestedInclude(t *testing.T) {
 
 	r := HtmlRenderer(0, "", "")
 	p := newParser(fs, r, EXTENSION_INCLUDE)
-	input, err := p.fs.ReadFile("/A.md")
+	input, err := p.fs.ReadFile([]byte("/A.md"))
 	if err != nil {
 		t.Error(err)
 	}
@@ -46,7 +46,7 @@ func TestIncludeCodeblockInList(t *testing.T) {
 	expect := `<ol><li>Alpha<ol><li>Beta <pre><code class="language-go">123	456789</code></pre></li></ol></li><li>Gamma <pre><code class="language-go">123	456789</code></pre><ul><li>Delta<ul><li>Iota<pre><code class="language-go">123	456789</code></pre></li></ul></li></ul></li><li>Kappa</li></ol>`
 	r := HtmlRenderer(0, "", "")
 	p := newParser(fs, r, EXTENSION_INCLUDE)
-	input, err := p.fs.ReadFile("/main.md")
+	input, err := p.fs.ReadFile([]byte("/main.md"))
 	if err != nil {
 		t.Error(err)
 	}
@@ -82,7 +82,7 @@ func TestCodeblockInList(t *testing.T) {
 
 	r := HtmlRenderer(0, "", "")
 	p := newParser(fs, r, EXTENSION_INCLUDE)
-	input, err := p.fs.ReadFile("/main.md")
+	input, err := p.fs.ReadFile([]byte("/main.md"))
 	if err != nil {
 		t.Error(err)
 	}
@@ -109,7 +109,7 @@ func TestRelativeInclude(t *testing.T) {
 
 	r := HtmlRenderer(0, "", "")
 	p := newParser(fs, r, EXTENSION_INCLUDE)
-	input, err := p.fs.ReadFile("/A.md")
+	input, err := p.fs.ReadFile([]byte("/A.md"))
 	if err != nil {
 		t.Error(err)
 	}

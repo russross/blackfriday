@@ -12,7 +12,7 @@ import (
 // operating system convention.
 type fileSystem interface {
 	// ReadFile reads the file named by filename and returns the contents.
-	ReadFile(name string) ([]byte, error)
+	ReadFile(name []byte) ([]byte, error)
 }
 
 // dir implements fileSystem using the native file system restricted to a
@@ -27,12 +27,12 @@ type fileSystem interface {
 type dir string
 
 // ReadFile reads the file named by filename and returns the contents.
-func (d dir) ReadFile(name string) ([]byte, error) {
+func (d dir) ReadFile(name []byte) ([]byte, error) {
 	dir := string(d)
 	if dir == "" {
 		dir = "."
 	}
-	fullname := filepath.Join(dir, filepath.FromSlash(path.Clean("/"+name)))
+	fullname := filepath.Join(dir, filepath.FromSlash(path.Clean("/"+string(name))))
 	return ioutil.ReadFile(fullname)
 }
 
@@ -42,8 +42,8 @@ type virtualFS map[string]string
 
 // ReadFile returns the content for appropriate filename
 // if the name does not exist, then it will return os.ErrNotExist
-func (fs virtualFS) ReadFile(name string) ([]byte, error) {
-	search := path.Clean("/" + name)
+func (fs virtualFS) ReadFile(name []byte) ([]byte, error) {
+	search := path.Clean("/" + string(name))
 	content, ok := fs[search]
 	if !ok {
 		return nil, os.ErrNotExist
@@ -51,9 +51,9 @@ func (fs virtualFS) ReadFile(name string) ([]byte, error) {
 	return []byte(content), nil
 }
 
-func absname(cwd string, name string) string {
+func absname(cwd string, name []byte) []byte {
 	if len(name) > 0 && name[0] == '/' {
 		return name
 	}
-	return path.Join(cwd, name)
+	return []byte(path.Join(cwd, string(name)))
 }

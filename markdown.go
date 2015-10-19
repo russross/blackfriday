@@ -927,11 +927,11 @@ func (p *parser) include(out *bytes.Buffer, data []byte, depth int) int {
 		return 0
 	}
 
-	name := string(data[i+2 : end-2])
+	name := data[i+2 : end-2]
 	fullname := absname(p.workingDirectory, name)
 	input, err := p.fs.ReadFile(fullname)
 	if err != nil {
-		printf(p, "failed: `%s': %s", name, err)
+		printf(p, "failed: `%s': %s", string(name), err)
 		return end
 	}
 
@@ -946,7 +946,7 @@ func (p *parser) include(out *bytes.Buffer, data []byte, depth int) int {
 	defer func() {
 		p.workingDirectory = prevWorkingDirectory
 	}()
-	p.workingDirectory = path.Dir(fullname)
+	p.workingDirectory = path.Dir(string(fullname))
 
 	first := firstPass(p, input, depth+1)
 	out.Write(first.Bytes())
