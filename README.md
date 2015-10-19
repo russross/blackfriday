@@ -1,4 +1,5 @@
-%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
     Title = "Using mmark to create I-Ds, RFCs and books"
     abbrev = "mmark2rfc"
     category = "info"
@@ -15,7 +16,8 @@
     initials="R."
     surname="Gieben"
     fullname="R. (Miek) Gieben"
-%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 .# Abstract
 
