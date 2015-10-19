@@ -951,6 +951,24 @@ what happens here
 
 	"Some text.[^note1][^note2]\n\n[^note1]: fn1\n[^note2]: fn2\n",
 	"<p>Some text.<sup class=\"footnote-ref\" id=\"fnref:note1\"><a rel=\"footnote\" href=\"#fn:note1\">1</a></sup><sup class=\"footnote-ref\" id=\"fnref:note2\"><a rel=\"footnote\" href=\"#fn:note2\">2</a></sup></p>\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:note1\">fn1\n</li>\n<li id=\"fn:note2\">fn2\n</li>\n</ol>\n</div>\n",
+
+	`Bla bla [^1] [WWW][w3]
+
+[^1]: This is a footnote
+
+[w3]: http://www.w3.org/
+`,
+	`<p>Bla bla <sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup> <a href="http://www.w3.org/">WWW</a></p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:1">This is a footnote
+</li>
+</ol>
+</div>
+`,
 }
 
 func TestFootnotes(t *testing.T) {
