@@ -690,7 +690,7 @@ func (p *parser) titleBlock(out *bytes.Buffer, data []byte, doRender bool) int {
 	if p.titleblock {
 		return 0
 	}
-	if data[0] == '%' && data[1] != '%' {
+	if data[0] != '%' {
 		return 0
 	}
 	splitData := bytes.Split(data, []byte("\n"))
