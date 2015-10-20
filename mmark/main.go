@@ -17,6 +17,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/miekg/mmark"
 )
@@ -57,7 +58,7 @@ func main() {
 	}
 	flag.Parse()
 
-	if version{
+	if version {
 		fmt.Printf("%s+%s\n", mmark.Version, githash)
 		return
 	}
@@ -70,6 +71,8 @@ func main() {
 		page = true
 	}
 
+	workingdir := "."
+
 	// read the input
 	var input []byte
 	var err error
@@ -80,6 +83,7 @@ func main() {
 			log.Fatalf("error reading from standard input: %v", err)
 		}
 	case 1, 2:
+		workingdir = filepath.Dir(args[0])
 		if input, err = ioutil.ReadFile(args[0]); err != nil {
 			log.Fatalf("error reading from %s: %s", args[0], err)
 		}
@@ -139,7 +143,7 @@ func main() {
 	}
 
 	// parse and render
-	output := mmark.Parse(input, renderer, extensions).Bytes()
+	output := mmark.ParseAt(workingdir, input, renderer, extensions).Bytes()
 
 	// output the result
 	out := os.Stdout
