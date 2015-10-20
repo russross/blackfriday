@@ -305,10 +305,11 @@ implements the following extensions:
 
 *   **Asides**, any paragraph prefixed with `A>` .
 
-*   **Subfigures**, any paraphgraph prefix with `F>` will wrap all images and code in a
-    single figure.
+*   **Subfigures**, any paraphgraph prefix with `F>` will wrap all images and
+    code in a single figure.
 
-*   **{frontmatter}/{mainmatter}/{backmatter}** Create useful divisions in your document.
+*   **{frontmatter}/{mainmatter}/{backmatter}** Create useful divisions in your
+    document.
 
 *   **IAL**, kramdown's Inline Attribute List syntax, but took the CommonMark
      proposal, thus without the colon after the brace `{#id .class key=value key="value"}`.
@@ -338,27 +339,32 @@ implements the following extensions:
          b.  Item2
 
 *   **TOML TitleBlock**, add an extended title block prefixed with `%` in TOML.
-    See the example RFC in the rfc/ subdirectory.
+    See the examples RFC in the rfc/ subdirectory. An alternate way of
+    typsetting the TOML title block is wrapping it between two lines consisting
+    out of 3 or more `%%%`s. Added benefit of wrapping it in `%%%`-lines is that
+    the block may be indented (TOML disregards whitespace) 4 spaces, making it
+    look like code in other markdown renderers (think Github).
 
-*   **Unique anchors**, make anchors unique by adding sequence numbers (-1, -2, etc.) to them.
-     All numeric section get an anchor prefixed with `section-`.
+*   **Unique anchors**, make anchors unique by adding sequence numbers (-1, -2,
+    etc.) to them. All numeric section get an anchor prefixed with `section-`.
 
-*   **Example lists**, a list that is started with `(@good)` is subsequently numbered
-i   throughout the document. First use is rendered `(1)`, the second one `(2)` and so on. You can reference
-     the last item of the list with `(@good)`.
+*   **Example lists**, a list that is started with `(@good)` is subsequently
+    numbered i   throughout the document. First use is rendered `(1)`, the
+    second one `(2)` and so on. You can reference the last item of the list with
+    `(@good)`.
 
 *   **HTML comments** An HTML comment in the form of `<!-- Miek Gieben -- really
-     -->` is detected and will be converted to a `cref` with the `source` attribute
-     set to "Miek Gieben" and the comment text set to "really".
+    -->` is detected and will be converted to a `cref` with the `source`
+    attribute set to "Miek Gieben" and the comment text set to "really".
 
-*   **XML references** Any XML reference fragment included *before* the back matter, can be used
-     as a citation reference.
+*   **XML references** Any XML reference fragment included *before* the back
+    matter, can be used as a citation reference.
 
-*   **BCP 14** If a RFC 2119 word is found enclosed in `**` it will be rendered as an `<bcp14>`
-     element: `**MUST**` becomes `<bcp14>MUST</bcp14>`.
+*   **BCP 14** If a RFC 2119 word is found enclosed in `**` it will be rendered
+    as an `<bcp14>` element: `**MUST**` becomes `<bcp14>MUST</bcp14>`.
 
-*   **Abbreviations**: See <https://michelf.ca/projects/php-markdown/extra/#abbr>, any text
-     defined by:
+*   **Abbreviations**: See
+    <https://michelf.ca/projects/php-markdown/extra/#abbr>, any text defined by:
 
          *[HTML]: Hyper Text Markup Language
 
