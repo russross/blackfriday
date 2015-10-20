@@ -1408,8 +1408,10 @@ func TestBlockComments(t *testing.T) {
 	var tests = []string{
 		"Some text\n\n<!-- comment -->\n",
 		"<p>Some text</p>\n\n<!-- comment -->\n",
+
 		"Some text\n\n<!--\n\nmultiline\ncomment\n-->\n",
 		"<p>Some text</p>\n\n<!--\n\nmultiline\ncomment\n-->\n",
+
 		"Some text\n\n<!--\n\n<div><p>Commented</p>\n<span>html</span></div>\n-->\n",
 		"<p>Some text</p>\n\n<!--\n\n<div><p>Commented</p>\n<span>html</span></div>\n-->\n",
 	}
