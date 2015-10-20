@@ -553,12 +553,33 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	return i
 }
 
+func (p *parser) inlineHtmlComment(out *bytes.Buffer, data []byte) int {
+	if len(data) < 5 {
+		return 0
+	}
+	if data[0] != '<' || data[1] != '!' || data[2] != '-' || data[3] != '-' {
+		return 0
+	}
+	i := 5
+	// scan for an end-of-comment marker, across lines if necessary
+	for i < len(data) && !(data[i-2] == '-' && data[i-1] == '-' && data[i] == '>') {
+		i++
+	}
+	// no end-of-comment marker
+	if i >= len(data) {
+		return 0
+	}
+	return i + 1
+}
+
 // '<' when tags or autolinks are allowed
 func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
 	altype := LINK_TYPE_NOT_AUTOLINK
 	end := tagLength(data, &altype)
-
+	if size := p.inlineHtmlComment(out, data); size > 0 {
+		end = size
+	}
 	if end > 2 {
 		if altype != LINK_TYPE_NOT_AUTOLINK {
 			var uLink bytes.Buffer
