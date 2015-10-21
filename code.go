@@ -10,6 +10,7 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
+	"io/ioutil"
 	"regexp"
 	"strconv"
 	"unicode/utf8"
@@ -39,11 +40,10 @@ var SourceCodeTypes = map[string]bool{
 }
 
 // parseCode parses a code address directive.
-func (p *parser) parseCode(addr []byte, file []byte) []byte {
+func parseCode(addr []byte, file []byte) []byte {
 	bytes.TrimSpace(addr)
 
-	fullname := absname(p.workingDirectory, file)
-	textBytes, err := p.fs.ReadFile(fullname)
+	textBytes, err := ioutil.ReadFile(string(file))
 	if err != nil {
 		printf(nil, "failed: `%s': %s", string(file), err)
 		return nil

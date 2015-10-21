@@ -213,8 +213,7 @@ implements the following extensions:
     to use 2 backslashes it the end of the line.\\
 
 *   **Includes**, support including files with `{{filename}}` syntax. This is only
-    done when include is started at the beginning of a line. The path separator is
-    forward slash `/`. Even on non-Unix environments.
+    done when include is started at the beginning of a line.
 
 *   **Code Block Includes**, use the syntax `<{{code/hello.c}}[address]`, where
     address is the syntax described in <https://godoc.org/golang.org/x/tools/present/>, the
