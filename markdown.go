@@ -1016,8 +1016,6 @@ func (p *parser) codeInclude(out *bytes.Buffer, data []byte, indent []byte) int 
 
 	// add code to output with indentation
 	var line linespan
-	// TODO(miek):line.next is from iterator.go, either remove that or sprinkle
-	// through the rest of the codebase.
 	for line.next(code) {
 		out.Write(indent)
 		out.Write(code[line.begin:line.end])
