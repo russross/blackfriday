@@ -431,7 +431,7 @@ func firstPass(p *parser, input []byte, depth int) *bytes.Buffer {
 			if end < lastFencedCodeBlockEnd { // Do not expand tabs while inside fenced code blocks.
 				out.Write(input[beg:end])
 			} else {
-				if p.flags&EXTENSION_INCLUDE != 0 && input[beg] == '{' {
+				if p.flags&EXTENSION_INCLUDE != 0 && beg+1 < len(input) && input[beg] == '{' && input[beg+1] == '{' {
 					if beg == 0 || (beg > 0 && input[beg-1] == '\n') {
 						if j := p.include(&out, input[beg:end], depth); j > 0 {
 							beg += j
