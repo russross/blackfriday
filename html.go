@@ -23,26 +23,29 @@ import (
 	"strings"
 )
 
+type HtmlFlags int
+
 // Html renderer configuration options.
 const (
-	HTML_SKIP_HTML                 = 1 << iota // skip preformatted HTML blocks
-	HTML_SKIP_STYLE                            // skip embedded <style> elements
-	HTML_SKIP_IMAGES                           // skip embedded images
-	HTML_SKIP_LINKS                            // skip all links
-	HTML_SAFELINK                              // only link to trusted protocols
-	HTML_NOFOLLOW_LINKS                        // only link with rel="nofollow"
-	HTML_NOREFERRER_LINKS                      // only link with rel="noreferrer"
-	HTML_HREF_TARGET_BLANK                     // add a blank target
-	HTML_TOC                                   // generate a table of contents
-	HTML_OMIT_CONTENTS                         // skip the main contents (for a standalone table of contents)
-	HTML_COMPLETE_PAGE                         // generate a complete HTML page
-	HTML_USE_XHTML                             // generate XHTML output instead of HTML
-	HTML_USE_SMARTYPANTS                       // enable smart punctuation substitutions
-	HTML_SMARTYPANTS_FRACTIONS                 // enable smart fractions (with HTML_USE_SMARTYPANTS)
-	HTML_SMARTYPANTS_DASHES                    // enable smart dashes (with HTML_USE_SMARTYPANTS)
-	HTML_SMARTYPANTS_LATEX_DASHES              // enable LaTeX-style dashes (with HTML_USE_SMARTYPANTS and HTML_SMARTYPANTS_DASHES)
-	HTML_SMARTYPANTS_ANGLED_QUOTES             // enable angled double quotes (with HTML_USE_SMARTYPANTS) for double quotes rendering
-	HTML_FOOTNOTE_RETURN_LINKS                 // generate a link at the end of a footnote to return to the source
+	HtmlFlagsNone           HtmlFlags = 0
+	SkipHTML                HtmlFlags = 1 << iota // Skip preformatted HTML blocks
+	SkipStyle                                     // Skip embedded <style> elements
+	SkipImages                                    // Skip embedded images
+	SkipLinks                                     // Skip all links
+	Safelink                                      // Only link to trusted protocols
+	NofollowLinks                                 // Only link with rel="nofollow"
+	NoreferrerLinks                               // Only link with rel="noreferrer"
+	HrefTargetBlank                               // Add a blank target
+	Toc                                           // Generate a table of contents
+	OmitContents                                  // Skip the main contents (for a standalone table of contents)
+	CompletePage                                  // Generate a complete HTML page
+	UseXHTML                                      // Generate XHTML output instead of HTML
+	UseSmartypants                                // Enable smart punctuation substitutions
+	SmartypantsFractions                          // Enable smart fractions (with UseSmartypants)
+	SmartypantsDashes                             // Enable smart dashes (with UseSmartypants)
+	SmartypantsLatexDashes                        // Enable LaTeX-style dashes (with UseSmartypants)
+	SmartypantsAngledQuotes                       // Enable angled double quotes (with UseSmartypants) for double quotes rendering
+	FootnoteReturnLinks                           // Generate a link at the end of a footnote to return to the source
 )
 
 var (

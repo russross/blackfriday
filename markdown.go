@@ -27,79 +27,78 @@ import (
 
 const VERSION = "1.4"
 
+type Extensions int
+
 // These are the supported markdown parsing extensions.
 // OR these values together to select multiple extensions.
 const (
-	EXTENSION_NO_INTRA_EMPHASIS          = 1 << iota // ignore emphasis markers inside words
-	EXTENSION_TABLES                                 // render tables
-	EXTENSION_FENCED_CODE                            // render fenced code blocks
-	EXTENSION_AUTOLINK                               // detect embedded URLs that are not explicitly marked
-	EXTENSION_STRIKETHROUGH                          // strikethrough text using ~~test~~
-	EXTENSION_LAX_HTML_BLOCKS                        // loosen up HTML block parsing rules
-	EXTENSION_SPACE_HEADERS                          // be strict about prefix header rules
-	EXTENSION_HARD_LINE_BREAK                        // translate newlines into line breaks
-	EXTENSION_TAB_SIZE_EIGHT                         // expand tabs to eight spaces instead of four
-	EXTENSION_FOOTNOTES                              // Pandoc-style footnotes
-	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK             // No need to insert an empty line to start a (code, quote, ordered list, unordered list) block
-	EXTENSION_HEADER_IDS                             // specify header IDs  with {#id}
-	EXTENSION_TITLEBLOCK                             // Titleblock ala pandoc
-	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text
-	EXTENSION_BACKSLASH_LINE_BREAK                   // translate trailing backslashes into line breaks
-	EXTENSION_DEFINITION_LISTS                       // render definition lists
+	NoExtensions           Extensions = 0
+	NoIntraEmphasis        Extensions = 1 << iota // Ignore emphasis markers inside words
+	Tables                                        // Render tables
+	FencedCode                                    // Render fenced code blocks
+	Autolink                                      // Detect embedded URLs that are not explicitly marked
+	Strikethrough                                 // Strikethrough text using ~~test~~
+	LaxHTMLBlocks                                 // Loosen up HTML block parsing rules
+	SpaceHeaders                                  // Be strict about prefix header rules
+	HardLineBreak                                 // Translate newlines into line breaks
+	TabSizeEight                                  // Expand tabs to eight spaces instead of four
+	Footnotes                                     // Pandoc-style footnotes
+	NoEmptyLineBeforeBlock                        // No need to insert an empty line to start a (code, quote, ordered list, unordered list) block
+	HeaderIDs                                     // specify header IDs  with {#id}
+	Titleblock                                    // Titleblock ala pandoc
+	AutoHeaderIDs                                 // Create the header ID from the text
+	BackslashLineBreak                            // Translate trailing backslashes into line breaks
+	DefinitionLists                               // Render definition lists
 
-	commonHtmlFlags = 0 |
-		HTML_USE_XHTML |
-		HTML_USE_SMARTYPANTS |
-		HTML_SMARTYPANTS_FRACTIONS |
-		HTML_SMARTYPANTS_DASHES |
-		HTML_SMARTYPANTS_LATEX_DASHES
+	commonHtmlFlags HtmlFlags = UseXHTML | UseSmartypants |
+		SmartypantsFractions | SmartypantsDashes | SmartypantsLatexDashes
 
-	commonExtensions = 0 |
-		EXTENSION_NO_INTRA_EMPHASIS |
-		EXTENSION_TABLES |
-		EXTENSION_FENCED_CODE |
-		EXTENSION_AUTOLINK |
-		EXTENSION_STRIKETHROUGH |
-		EXTENSION_SPACE_HEADERS |
-		EXTENSION_HEADER_IDS |
-		EXTENSION_BACKSLASH_LINE_BREAK |
-		EXTENSION_DEFINITION_LISTS
+	commonExtensions Extensions = NoIntraEmphasis | Tables | FencedCode |
+		Autolink | Strikethrough | SpaceHeaders | HeaderIDs |
+		BackslashLineBreak | DefinitionLists
 )
+
+type LinkType int
 
 // These are the possible flag values for the link renderer.
 // Only a single one of these values will be used; they are not ORed together.
 // These are mostly of interest if you are writing a new output format.
 const (
-	LINK_TYPE_NOT_AUTOLINK = iota
-	LINK_TYPE_NORMAL
-	LINK_TYPE_EMAIL
+	LinkTypeNotAutolink LinkType = iota
+	LinkTypeNormal
+	LinkTypeEmail
 )
+
+type ListType int
 
 // These are the possible flag values for the ListItem renderer.
 // Multiple flag values may be ORed together.
 // These are mostly of interest if you are writing a new output format.
 const (
-	LIST_TYPE_ORDERED = 1 << iota
-	LIST_TYPE_DEFINITION
-	LIST_TYPE_TERM
-	LIST_ITEM_CONTAINS_BLOCK
-	LIST_ITEM_BEGINNING_OF_LIST
-	LIST_ITEM_END_OF_LIST
+	ListTypeOrdered ListType = 1 << iota
+	ListTypeDefinition
+	ListTypeTerm
+
+	ListItemContainsBlock
+	ListItemBeginningOfList
+	ListItemEndOfList
 )
+
+type TableFlags int
 
 // These are the possible flag values for the table cell renderer.
 // Only a single one of these values will be used; they are not ORed together.
 // These are mostly of interest if you are writing a new output format.
 const (
-	TABLE_ALIGNMENT_LEFT = 1 << iota
-	TABLE_ALIGNMENT_RIGHT
-	TABLE_ALIGNMENT_CENTER = (TABLE_ALIGNMENT_LEFT | TABLE_ALIGNMENT_RIGHT)
+	TableAlignmentLeft = 1 << iota
+	TableAlignmentRight
+	TableAlignmentCenter = (TableAlignmentLeft | TableAlignmentRight)
 )
 
 // The size of a tab stop.
 const (
-	TAB_SIZE_DEFAULT = 4
-	TAB_SIZE_EIGHT   = 8
+	TabSizeDefault = 4
+	TabSizeDouble  = 8
 )
 
 // blockTags is a set of tags that are recognized as HTML block tags.
@@ -212,7 +211,7 @@ type parser struct {
 	refOverride    ReferenceOverrideFunc
 	refs           map[string]*reference
 	inlineCallback [256]inlineParser
-	flags          int
+	flags          int // TODO: int ==> Extensions
 	nesting        int
 	maxNesting     int
 	insideLink     bool
