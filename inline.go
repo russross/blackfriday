@@ -198,6 +198,20 @@ func isReferenceStyleLink(data []byte, pos int, t linkType) bool {
 	return pos < len(data)-1 && data[pos] == '[' && data[pos+1] != '^'
 }
 
+func maybeImage(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+	if offset < len(data)-1 && data[offset+1] == '[' {
+		return link(p, out, data, offset)
+	}
+	return 0
+}
+
+func maybeInlineFootnote(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+	if offset < len(data)-1 && data[offset+1] == '[' {
+		return link(p, out, data, offset)
+	}
+	return 0
+}
+
 // '[': parse a link or an image or a footnote
 func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	// no links allowed inside regular links, footnote, and deferred footnotes
@@ -212,13 +226,15 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	case p.flags&Footnotes != 0 && len(data)-1 > offset && data[offset+1] == '^':
 		t = linkDeferredFootnote
 	// ![alt] == image
-	case offset > 0 && data[offset-1] == '!':
+	case offset >= 0 && data[offset] == '!':
 		t = linkImg
+		offset += 1
 	// ^[text] == inline footnote
 	// [^refId] == deferred footnote
 	case p.flags&Footnotes != 0:
-		if offset > 0 && data[offset-1] == '^' {
+		if offset >= 0 && data[offset] == '^' {
 			t = linkInlineFootnote
+			offset += 1
 		} else if len(data)-1 > offset && data[offset+1] == '^' {
 			t = linkDeferredFootnote
 		}
@@ -533,22 +549,12 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		}
 
 	case linkImg:
-		outSize := out.Len()
-		outBytes := out.Bytes()
-		if outSize > 0 && outBytes[outSize-1] == '!' {
-			out.Truncate(outSize - 1)
-		}
-
 		p.r.Image(out, uLink, title, content.Bytes())
+		i += 1
 
 	case linkInlineFootnote:
-		outSize := out.Len()
-		outBytes := out.Bytes()
-		if outSize > 0 && outBytes[outSize-1] == '^' {
-			out.Truncate(outSize - 1)
-		}
-
 		p.r.FootnoteRef(out, link, noteId)
+		i += 1
 
 	case linkDeferredFootnote:
 		p.r.FootnoteRef(out, link, noteId)
