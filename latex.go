@@ -72,9 +72,7 @@ func (options *Latex) BlockHtml(out *bytes.Buffer, text []byte) {
 	out.WriteString("\n\\end{verbatim}\n")
 }
 
-func (options *Latex) Header(out *bytes.Buffer, text func() bool, level int, id string) {
-	marker := out.Len()
-
+func (options *Latex) Header(out *bytes.Buffer, text func(), level int, id string) {
 	switch level {
 	case 1:
 		out.WriteString("\n\\section{")
@@ -89,10 +87,7 @@ func (options *Latex) Header(out *bytes.Buffer, text func() bool, level int, id 
 	case 6:
 		out.WriteString("\n\\textbf{")
 	}
-	if !text() {
-		out.Truncate(marker)
-		return
-	}
+	text()
 	out.WriteString("}\n")
 }
 
@@ -100,17 +95,13 @@ func (options *Latex) HRule(out *bytes.Buffer) {
 	out.WriteString("\n\\HRule\n")
 }
 
-func (options *Latex) List(out *bytes.Buffer, text func() bool, flags ListType) {
-	marker := out.Len()
+func (options *Latex) List(out *bytes.Buffer, text func(), flags ListType) {
 	if flags&ListTypeOrdered != 0 {
 		out.WriteString("\n\\begin{enumerate}\n")
 	} else {
 		out.WriteString("\n\\begin{itemize}\n")
 	}
-	if !text() {
-		out.Truncate(marker)
-		return
-	}
+	text()
 	if flags&ListTypeOrdered != 0 {
 		out.WriteString("\n\\end{enumerate}\n")
 	} else {
@@ -123,13 +114,9 @@ func (options *Latex) ListItem(out *bytes.Buffer, text []byte, flags ListType) {
 	out.Write(text)
 }
 
-func (options *Latex) Paragraph(out *bytes.Buffer, text func() bool) {
-	marker := out.Len()
+func (options *Latex) Paragraph(out *bytes.Buffer, text func()) {
 	out.WriteString("\n")
-	if !text() {
-		out.Truncate(marker)
-		return
-	}
+	text()
 	out.WriteString("\n")
 }
 
@@ -174,7 +161,7 @@ func (options *Latex) TableCell(out *bytes.Buffer, text []byte, align int) {
 }
 
 // TODO: this
-func (options *Latex) Footnotes(out *bytes.Buffer, text func() bool) {
+func (options *Latex) Footnotes(out *bytes.Buffer, text func()) {
 
 }
 

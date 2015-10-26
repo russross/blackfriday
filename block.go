@@ -245,9 +245,8 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 		if id == "" && p.flags&AutoHeaderIDs != 0 {
 			id = sanitized_anchor_name.Create(string(data[i:end]))
 		}
-		work := func() bool {
+		work := func() {
 			p.inline(out, data[i:end])
-			return true
 		}
 		p.r.Header(out, work, level, id)
 	}
@@ -1052,7 +1051,7 @@ func (p *parser) dliPrefix(data []byte) int {
 func (p *parser) list(out *bytes.Buffer, data []byte, flags ListType) int {
 	i := 0
 	flags |= ListItemBeginningOfList
-	work := func() bool {
+	work := func() {
 		for i < len(data) {
 			skip := p.listItem(out, data[i:], &flags)
 			i += skip
@@ -1062,7 +1061,6 @@ func (p *parser) list(out *bytes.Buffer, data []byte, flags ListType) int {
 			}
 			flags &= ^ListItemBeginningOfList
 		}
-		return true
 	}
 
 	p.r.List(out, work, flags)
@@ -1273,9 +1271,8 @@ func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 		end--
 	}
 
-	work := func() bool {
+	work := func() {
 		p.inline(out, data[beg:end])
-		return true
 	}
 	p.r.Paragraph(out, work)
 }
@@ -1323,10 +1320,9 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 
 				// render the header
 				// this ugly double closure avoids forcing variables onto the heap
-				work := func(o *bytes.Buffer, pp *parser, d []byte) func() bool {
-					return func() bool {
+				work := func(o *bytes.Buffer, pp *parser, d []byte) func() {
+					return func() {
 						pp.inline(o, d)
-						return true
 					}
 				}(out, p, data[prev:eol])
 

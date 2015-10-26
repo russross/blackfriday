@@ -163,16 +163,16 @@ type Renderer interface {
 	BlockCode(out *bytes.Buffer, text []byte, lang string)
 	BlockQuote(out *bytes.Buffer, text []byte)
 	BlockHtml(out *bytes.Buffer, text []byte)
-	Header(out *bytes.Buffer, text func() bool, level int, id string)
+	Header(out *bytes.Buffer, text func(), level int, id string)
 	HRule(out *bytes.Buffer)
-	List(out *bytes.Buffer, text func() bool, flags ListType)
+	List(out *bytes.Buffer, text func(), flags ListType)
 	ListItem(out *bytes.Buffer, text []byte, flags ListType)
-	Paragraph(out *bytes.Buffer, text func() bool)
+	Paragraph(out *bytes.Buffer, text func())
 	Table(out *bytes.Buffer, header []byte, body []byte, columnData []int)
 	TableRow(out *bytes.Buffer, text []byte)
 	TableHeaderCell(out *bytes.Buffer, text []byte, flags int)
 	TableCell(out *bytes.Buffer, text []byte, flags int)
-	Footnotes(out *bytes.Buffer, text func() bool)
+	Footnotes(out *bytes.Buffer, text func())
 	FootnoteItem(out *bytes.Buffer, name, text []byte, flags ListType)
 	TitleBlock(out *bytes.Buffer, text []byte)
 
@@ -453,7 +453,7 @@ func secondPass(p *parser, input []byte) []byte {
 	p.block(&output, input)
 
 	if p.flags&Footnotes != 0 && len(p.notes) > 0 {
-		p.r.Footnotes(&output, func() bool {
+		p.r.Footnotes(&output, func() {
 			flags := ListItemBeginningOfList
 			for i := 0; i < len(p.notes); i += 1 {
 				ref := p.notes[i]
@@ -467,8 +467,6 @@ func secondPass(p *parser, input []byte) []byte {
 				p.r.FootnoteItem(&output, ref.link, buf.Bytes(), flags)
 				flags &^= ListItemBeginningOfList | ListItemContainsBlock
 			}
-
-			return true
 		})
 	}
 
