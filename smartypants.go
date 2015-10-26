@@ -367,9 +367,9 @@ type smartCallback func(out *bytes.Buffer, smrt *smartypantsData, previousChar b
 
 type smartypantsRenderer [256]smartCallback
 
-func smartypants(flags int) *smartypantsRenderer {
+func smartypants(flags HtmlFlags) *smartypantsRenderer {
 	r := new(smartypantsRenderer)
-	if flags&HTML_SMARTYPANTS_ANGLED_QUOTES == 0 {
+	if flags&SmartypantsAngledQuotes == 0 {
 		r['"'] = smartDoubleQuote
 		r['&'] = smartAmp
 	} else {
@@ -378,15 +378,15 @@ func smartypants(flags int) *smartypantsRenderer {
 	}
 	r['\''] = smartSingleQuote
 	r['('] = smartParens
-	if flags&HTML_SMARTYPANTS_DASHES != 0 {
-		if flags&HTML_SMARTYPANTS_LATEX_DASHES == 0 {
+	if flags&SmartypantsDashes != 0 {
+		if flags&SmartypantsLatexDashes == 0 {
 			r['-'] = smartDash
 		} else {
 			r['-'] = smartDashLatex
 		}
 	}
 	r['.'] = smartPeriod
-	if flags&HTML_SMARTYPANTS_FRACTIONS == 0 {
+	if flags&SmartypantsFractions == 0 {
 		r['1'] = smartNumber
 		r['3'] = smartNumber
 	} else {

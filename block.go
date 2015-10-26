@@ -63,7 +63,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// % stuff
 		// % more stuff
 		// % even more stuff
-		if p.flags&EXTENSION_TITLEBLOCK != 0 {
+		if p.flags&Titleblock != 0 {
 			if data[0] == '%' {
 				if i := p.titleBlock(out, data, true); i > 0 {
 					data = data[i:]
@@ -101,7 +101,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		//     return n * fact(n-1)
 		// }
 		// ```
-		if p.flags&EXTENSION_FENCED_CODE != 0 {
+		if p.flags&FencedCode != 0 {
 			if i := p.fencedCode(out, data, true); i > 0 {
 				data = data[i:]
 				continue
@@ -139,7 +139,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// ------|-----|---------
 		// Bob   | 31  | 555-1234
 		// Alice | 27  | 555-4321
-		if p.flags&EXTENSION_TABLES != 0 {
+		if p.flags&Tables != 0 {
 			if i := p.table(out, data); i > 0 {
 				data = data[i:]
 				continue
@@ -162,7 +162,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// 1. Item 1
 		// 2. Item 2
 		if p.oliPrefix(data) > 0 {
-			data = data[p.list(out, data, LIST_TYPE_ORDERED):]
+			data = data[p.list(out, data, ListTypeOrdered):]
 			continue
 		}
 
@@ -174,9 +174,9 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		//
 		// Term 2
 		// :   Definition c
-		if p.flags&EXTENSION_DEFINITION_LISTS != 0 {
+		if p.flags&DefinitionLists != 0 {
 			if p.dliPrefix(data) > 0 {
-				data = data[p.list(out, data, LIST_TYPE_DEFINITION):]
+				data = data[p.list(out, data, ListTypeDefinition):]
 				continue
 			}
 		}
@@ -194,7 +194,7 @@ func (p *parser) isPrefixHeader(data []byte) bool {
 		return false
 	}
 
-	if p.flags&EXTENSION_SPACE_HEADERS != 0 {
+	if p.flags&SpaceHeaders != 0 {
 		level := 0
 		for level < 6 && data[level] == '#' {
 			level++
@@ -215,7 +215,7 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 	end := skipUntilChar(data, i, '\n')
 	skip := end
 	id := ""
-	if p.flags&EXTENSION_HEADER_IDS != 0 {
+	if p.flags&HeaderIDs != 0 {
 		j, k := 0, 0
 		// find start/end of header id
 		for j = i; j < end-1 && (data[j] != '{' || data[j+1] != '#'); j++ {
@@ -242,7 +242,7 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 		end--
 	}
 	if end > i {
-		if id == "" && p.flags&EXTENSION_AUTO_HEADER_IDS != 0 {
+		if id == "" && p.flags&AutoHeaderIDs != 0 {
 			id = sanitized_anchor_name.Create(string(data[i:end]))
 		}
 		work := func() bool {
@@ -484,7 +484,7 @@ func (p *parser) htmlFindEnd(tag string, data []byte) int {
 		return i
 	}
 
-	if p.flags&EXTENSION_LAX_HTML_BLOCKS != 0 {
+	if p.flags&LaxHTMLBlocks != 0 {
 		return i
 	}
 	if skip = p.isEmpty(data[i:]); skip == 0 {
@@ -767,7 +767,7 @@ func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns 
 
 		if data[i] == ':' {
 			i++
-			columns[col] |= TABLE_ALIGNMENT_LEFT
+			columns[col] |= TableAlignmentLeft
 			dashes++
 		}
 		for data[i] == '-' {
@@ -776,7 +776,7 @@ func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns 
 		}
 		if data[i] == ':' {
 			i++
-			columns[col] |= TABLE_ALIGNMENT_RIGHT
+			columns[col] |= TableAlignmentRight
 			dashes++
 		}
 		for data[i] == ' ' {
@@ -913,7 +913,7 @@ func (p *parser) quote(out *bytes.Buffer, data []byte) int {
 		// fenced code and if one's found, incorporate it altogether,
 		// irregardless of any contents inside it
 		for data[end] != '\n' {
-			if p.flags&EXTENSION_FENCED_CODE != 0 {
+			if p.flags&FencedCode != 0 {
 				if i := p.fencedCode(out, data[end:], false); i > 0 {
 					// -1 to compensate for the extra end++ after the loop:
 					end += i - 1
@@ -1049,18 +1049,18 @@ func (p *parser) dliPrefix(data []byte) int {
 }
 
 // parse ordered or unordered list block
-func (p *parser) list(out *bytes.Buffer, data []byte, flags int) int {
+func (p *parser) list(out *bytes.Buffer, data []byte, flags ListType) int {
 	i := 0
-	flags |= LIST_ITEM_BEGINNING_OF_LIST
+	flags |= ListItemBeginningOfList
 	work := func() bool {
 		for i < len(data) {
 			skip := p.listItem(out, data[i:], &flags)
 			i += skip
 
-			if skip == 0 || flags&LIST_ITEM_END_OF_LIST != 0 {
+			if skip == 0 || flags&ListItemEndOfList != 0 {
 				break
 			}
-			flags &= ^LIST_ITEM_BEGINNING_OF_LIST
+			flags &= ^ListItemBeginningOfList
 		}
 		return true
 	}
@@ -1071,7 +1071,7 @@ func (p *parser) list(out *bytes.Buffer, data []byte, flags int) int {
 
 // Parse a single list item.
 // Assumes initial prefix is already removed if this is a sublist.
-func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *int) int {
+func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *ListType) int {
 	// keep track of the indentation of the first line
 	itemIndent := 0
 	for itemIndent < 3 && data[itemIndent] == ' ' {
@@ -1086,13 +1086,13 @@ func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *int) int {
 		i = p.dliPrefix(data)
 		// reset definition term flag
 		if i > 0 {
-			*flags &= ^LIST_TYPE_TERM
+			*flags &= ^ListTypeTerm
 		}
 	}
 	if i == 0 {
 		// if in defnition list, set term flag and continue
-		if *flags&LIST_TYPE_DEFINITION != 0 {
-			*flags |= LIST_TYPE_TERM
+		if *flags&ListTypeDefinition != 0 {
+			*flags |= ListTypeTerm
 		} else {
 			return 0
 		}
@@ -1153,7 +1153,7 @@ gatherlines:
 			p.dliPrefix(chunk) > 0:
 
 			if containsBlankLine {
-				*flags |= LIST_ITEM_CONTAINS_BLOCK
+				*flags |= ListItemContainsBlock
 			}
 
 			// to be a nested list, it must be indented more
@@ -1172,16 +1172,16 @@ gatherlines:
 			// if the header is not indented, it is not nested in the list
 			// and thus ends the list
 			if containsBlankLine && indent < 4 {
-				*flags |= LIST_ITEM_END_OF_LIST
+				*flags |= ListItemEndOfList
 				break gatherlines
 			}
-			*flags |= LIST_ITEM_CONTAINS_BLOCK
+			*flags |= ListItemContainsBlock
 
 		// anything following an empty line is only part
 		// of this item if it is indented 4 spaces
 		// (regardless of the indentation of the beginning of the item)
 		case containsBlankLine && indent < 4:
-			if *flags&LIST_TYPE_DEFINITION != 0 && i < len(data)-1 {
+			if *flags&ListTypeDefinition != 0 && i < len(data)-1 {
 				// is the next item still a part of this list?
 				next := i
 				for data[next] != '\n' {
@@ -1191,17 +1191,17 @@ gatherlines:
 					next++
 				}
 				if i < len(data)-1 && data[i] != ':' && data[next] != ':' {
-					*flags |= LIST_ITEM_END_OF_LIST
+					*flags |= ListItemEndOfList
 				}
 			} else {
-				*flags |= LIST_ITEM_END_OF_LIST
+				*flags |= ListItemEndOfList
 			}
 			break gatherlines
 
 		// a blank line means this should be parsed as a block
 		case containsBlankLine:
 			raw.WriteByte('\n')
-			*flags |= LIST_ITEM_CONTAINS_BLOCK
+			*flags |= ListItemContainsBlock
 		}
 
 		// if this line was preceeded by one or more blanks,
@@ -1222,7 +1222,7 @@ gatherlines:
 
 	// render the contents of the list item
 	var cooked bytes.Buffer
-	if *flags&LIST_ITEM_CONTAINS_BLOCK != 0 && *flags&LIST_TYPE_TERM == 0 {
+	if *flags&ListItemContainsBlock != 0 && *flags&ListTypeTerm == 0 {
 		// intermediate render of block item, except for definition term
 		if sublist > 0 {
 			p.block(&cooked, rawBytes[:sublist])
@@ -1296,9 +1296,9 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 		// did we find a blank line marking the end of the paragraph?
 		if n := p.isEmpty(current); n > 0 {
 			// did this blank line followed by a definition list item?
-			if p.flags&EXTENSION_DEFINITION_LISTS != 0 {
+			if p.flags&DefinitionLists != 0 {
 				if i < len(data)-1 && data[i+1] == ':' {
-					return p.list(out, data[prev:], LIST_TYPE_DEFINITION)
+					return p.list(out, data[prev:], ListTypeDefinition)
 				}
 			}
 
@@ -1331,7 +1331,7 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 				}(out, p, data[prev:eol])
 
 				id := ""
-				if p.flags&EXTENSION_AUTO_HEADER_IDS != 0 {
+				if p.flags&AutoHeaderIDs != 0 {
 					id = sanitized_anchor_name.Create(string(data[prev:eol]))
 				}
 
@@ -1346,7 +1346,7 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 		}
 
 		// if the next line starts a block of HTML, then the paragraph ends here
-		if p.flags&EXTENSION_LAX_HTML_BLOCKS != 0 {
+		if p.flags&LaxHTMLBlocks != 0 {
 			if data[i] == '<' && p.html(out, current, false) > 0 {
 				// rewind to before the HTML block
 				p.renderParagraph(out, data[:i])
@@ -1361,7 +1361,7 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 		}
 
 		// if there's a fenced code block, paragraph is over
-		if p.flags&EXTENSION_FENCED_CODE != 0 {
+		if p.flags&FencedCode != 0 {
 			if p.fencedCode(out, current, false) > 0 {
 				p.renderParagraph(out, data[:i])
 				return i
@@ -1369,14 +1369,14 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 		}
 
 		// if there's a definition list item, prev line is a definition term
-		if p.flags&EXTENSION_DEFINITION_LISTS != 0 {
+		if p.flags&DefinitionLists != 0 {
 			if p.dliPrefix(current) != 0 {
-				return p.list(out, data[prev:], LIST_TYPE_DEFINITION)
+				return p.list(out, data[prev:], ListTypeDefinition)
 			}
 		}
 
 		// if there's a list after this, paragraph is over
-		if p.flags&EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK != 0 {
+		if p.flags&NoEmptyLineBeforeBlock != 0 {
 			if p.uliPrefix(current) != 0 ||
 				p.oliPrefix(current) != 0 ||
 				p.quotePrefix(current) != 0 ||

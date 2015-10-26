@@ -19,12 +19,12 @@ import (
 	"testing"
 )
 
-func runMarkdownReference(input string, flag int) string {
+func runMarkdownReference(input string, flag Extensions) string {
 	renderer := HtmlRenderer(0, "", "")
 	return string(Markdown([]byte(input), renderer, flag))
 }
 
-func doTestsReference(t *testing.T, files []string, flag int) {
+func doTestsReference(t *testing.T, files []string, flag Extensions) {
 	// catch and report panics
 	var candidate string
 	defer func() {
@@ -124,5 +124,5 @@ func TestReference_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
 		"Tabs",
 		"Tidyness",
 	}
-	doTestsReference(t, files, EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK)
+	doTestsReference(t, files, NoEmptyLineBeforeBlock)
 }

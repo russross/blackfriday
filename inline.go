@@ -168,10 +168,10 @@ func lineBreak(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 	precededByTwoSpaces := offset >= 2 && data[offset-2] == ' ' && data[offset-1] == ' '
 	precededByBackslash := offset >= 1 && data[offset-1] == '\\' // see http://spec.commonmark.org/0.18/#example-527
-	precededByBackslash = precededByBackslash && p.flags&EXTENSION_BACKSLASH_LINE_BREAK != 0
+	precededByBackslash = precededByBackslash && p.flags&BackslashLineBreak != 0
 
 	// should there be a hard line break here?
-	if p.flags&EXTENSION_HARD_LINE_BREAK == 0 && !precededByTwoSpaces && !precededByBackslash {
+	if p.flags&HardLineBreak == 0 && !precededByTwoSpaces && !precededByBackslash {
 		return 0
 	}
 
@@ -209,14 +209,14 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	switch {
 	// special case: ![^text] == deferred footnote (that follows something with
 	// an exclamation point)
-	case p.flags&EXTENSION_FOOTNOTES != 0 && len(data)-1 > offset && data[offset+1] == '^':
+	case p.flags&Footnotes != 0 && len(data)-1 > offset && data[offset+1] == '^':
 		t = linkDeferredFootnote
 	// ![alt] == image
 	case offset > 0 && data[offset-1] == '!':
 		t = linkImg
 	// ^[text] == inline footnote
 	// [^refId] == deferred footnote
-	case p.flags&EXTENSION_FOOTNOTES != 0:
+	case p.flags&Footnotes != 0:
 		if offset > 0 && data[offset-1] == '^' {
 			t = linkInlineFootnote
 		} else if len(data)-1 > offset && data[offset+1] == '^' {
@@ -582,13 +582,13 @@ func (p *parser) inlineHtmlComment(out *bytes.Buffer, data []byte) int {
 // '<' when tags or autolinks are allowed
 func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
-	altype := LINK_TYPE_NOT_AUTOLINK
+	altype := LinkTypeNotAutolink
 	end := tagLength(data, &altype)
 	if size := p.inlineHtmlComment(out, data); size > 0 {
 		end = size
 	}
 	if end > 2 {
-		if altype != LINK_TYPE_NOT_AUTOLINK {
+		if altype != LinkTypeNotAutolink {
 			var uLink bytes.Buffer
 			unescapeText(&uLink, data[1:end+1-2])
 			if uLink.Len() > 0 {
@@ -790,7 +790,7 @@ func autoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	unescapeText(&uLink, data[:linkEnd])
 
 	if uLink.Len() > 0 {
-		p.r.AutoLink(out, uLink.Bytes(), LINK_TYPE_NORMAL)
+		p.r.AutoLink(out, uLink.Bytes(), LinkTypeNormal)
 	}
 
 	return linkEnd - rewind
@@ -826,7 +826,7 @@ func isSafeLink(link []byte) bool {
 }
 
 // return the length of the given tag, or 0 is it's not valid
-func tagLength(data []byte, autolink *int) int {
+func tagLength(data []byte, autolink *LinkType) int {
 	var i, j int
 
 	// a valid tag can't be shorter than 3 chars
@@ -849,7 +849,7 @@ func tagLength(data []byte, autolink *int) int {
 	}
 
 	// scheme test
-	*autolink = LINK_TYPE_NOT_AUTOLINK
+	*autolink = LinkTypeNotAutolink
 
 	// try to find the beginning of an URI
 	for i < len(data) && (isalnum(data[i]) || data[i] == '.' || data[i] == '+' || data[i] == '-') {
@@ -858,20 +858,20 @@ func tagLength(data []byte, autolink *int) int {
 
 	if i > 1 && i < len(data) && data[i] == '@' {
 		if j = isMailtoAutoLink(data[i:]); j != 0 {
-			*autolink = LINK_TYPE_EMAIL
+			*autolink = LinkTypeEmail
 			return i + j
 		}
 	}
 
 	if i > 2 && i < len(data) && data[i] == ':' {
-		*autolink = LINK_TYPE_NORMAL
+		*autolink = LinkTypeNormal
 		i++
 	}
 
 	// complete autolink test: no whitespace or ' or "
 	switch {
 	case i >= len(data):
-		*autolink = LINK_TYPE_NOT_AUTOLINK
+		*autolink = LinkTypeNotAutolink
 	case *autolink != 0:
 		j = i
 
@@ -894,7 +894,7 @@ func tagLength(data []byte, autolink *int) int {
 		}
 
 		// one of the forbidden chars has been found
-		*autolink = LINK_TYPE_NOT_AUTOLINK
+		*autolink = LinkTypeNotAutolink
 	}
 
 	// look for something looking like a tag end
@@ -1039,7 +1039,7 @@ func helperEmphasis(p *parser, out *bytes.Buffer, data []byte, c byte) int {
 
 		if data[i] == c && !isspace(data[i-1]) {
 
-			if p.flags&EXTENSION_NO_INTRA_EMPHASIS != 0 {
+			if p.flags&NoIntraEmphasis != 0 {
 				if !(i+1 == len(data) || isspace(data[i+1]) || ispunct(data[i+1])) {
 					continue
 				}

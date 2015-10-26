@@ -20,11 +20,11 @@ import (
 	"strings"
 )
 
-func runMarkdownInline(input string, opts Options, htmlFlags int, params HtmlRendererParameters) string {
-	opts.Extensions |= EXTENSION_AUTOLINK
-	opts.Extensions |= EXTENSION_STRIKETHROUGH
+func runMarkdownInline(input string, opts Options, htmlFlags HtmlFlags, params HtmlRendererParameters) string {
+	opts.Extensions |= Autolink
+	opts.Extensions |= Strikethrough
 
-	htmlFlags |= HTML_USE_XHTML
+	htmlFlags |= UseXHTML
 
 	renderer := HtmlRendererWithParameters(htmlFlags, "", "", params)
 
@@ -46,17 +46,17 @@ func doLinkTestsInline(t *testing.T, tests []string) {
 }
 
 func doSafeTestsInline(t *testing.T, tests []string) {
-	doTestsInlineParam(t, tests, Options{}, HTML_SAFELINK, HtmlRendererParameters{})
+	doTestsInlineParam(t, tests, Options{}, Safelink, HtmlRendererParameters{})
 
 	// All the links in this test should not have the prefix appended, so
 	// just rerun it with different parameters and the same expectations.
 	prefix := "http://localhost"
 	params := HtmlRendererParameters{AbsolutePrefix: prefix}
 	transformTests := transformLinks(tests, prefix)
-	doTestsInlineParam(t, transformTests, Options{}, HTML_SAFELINK, params)
+	doTestsInlineParam(t, transformTests, Options{}, Safelink, params)
 }
 
-func doTestsInlineParam(t *testing.T, tests []string, opts Options, htmlFlags int,
+func doTestsInlineParam(t *testing.T, tests []string, opts Options, htmlFlags HtmlFlags,
 	params HtmlRendererParameters) {
 	// catch and report panics
 	var candidate string
@@ -425,7 +425,7 @@ func TestLineBreak(t *testing.T) {
 		"<p>this has an<br />\nextra space</p>\n",
 	}
 	doTestsInlineParam(t, tests, Options{
-		Extensions: EXTENSION_BACKSLASH_LINE_BREAK},
+		Extensions: BackslashLineBreak},
 		0, HtmlRendererParameters{})
 }
 
@@ -566,7 +566,7 @@ func TestRelAttrLink(t *testing.T) {
 		"[foo](../bar)\n",
 		"<p><a href=\"../bar\">foo</a></p>\n",
 	}
-	doTestsInlineParam(t, nofollowTests, Options{}, HTML_SAFELINK|HTML_NOFOLLOW_LINKS,
+	doTestsInlineParam(t, nofollowTests, Options{}, Safelink|NofollowLinks,
 		HtmlRendererParameters{})
 
 	var noreferrerTests = []string{
@@ -576,7 +576,7 @@ func TestRelAttrLink(t *testing.T) {
 		"[foo](/bar/)\n",
 		"<p><a href=\"/bar/\">foo</a></p>\n",
 	}
-	doTestsInlineParam(t, noreferrerTests, Options{}, HTML_SAFELINK|HTML_NOREFERRER_LINKS,
+	doTestsInlineParam(t, noreferrerTests, Options{}, Safelink|NoreferrerLinks,
 		HtmlRendererParameters{})
 
 	var nofollownoreferrerTests = []string{
@@ -586,7 +586,7 @@ func TestRelAttrLink(t *testing.T) {
 		"[foo](/bar/)\n",
 		"<p><a href=\"/bar/\">foo</a></p>\n",
 	}
-	doTestsInlineParam(t, nofollownoreferrerTests, Options{}, HTML_SAFELINK|HTML_NOFOLLOW_LINKS|HTML_NOREFERRER_LINKS,
+	doTestsInlineParam(t, nofollownoreferrerTests, Options{}, Safelink|NofollowLinks|NoreferrerLinks,
 		HtmlRendererParameters{})
 }
 
@@ -614,7 +614,7 @@ func TestHrefTargetBlank(t *testing.T) {
 		"[foo](http://example.com)\n",
 		"<p><a href=\"http://example.com\" target=\"_blank\">foo</a></p>\n",
 	}
-	doTestsInlineParam(t, tests, Options{}, HTML_SAFELINK|HTML_HREF_TARGET_BLANK, HtmlRendererParameters{})
+	doTestsInlineParam(t, tests, Options{}, Safelink|HrefTargetBlank, HtmlRendererParameters{})
 }
 
 func TestSafeInlineLink(t *testing.T) {
@@ -988,7 +988,7 @@ what happens here
 }
 
 func TestFootnotes(t *testing.T) {
-	doTestsInlineParam(t, footnoteTests, Options{Extensions: EXTENSION_FOOTNOTES}, 0, HtmlRendererParameters{})
+	doTestsInlineParam(t, footnoteTests, Options{Extensions: Footnotes}, 0, HtmlRendererParameters{})
 }
 
 func TestFootnotesWithParameters(t *testing.T) {
@@ -1013,7 +1013,7 @@ func TestFootnotesWithParameters(t *testing.T) {
 		FootnoteReturnLinkContents: returnText,
 	}
 
-	doTestsInlineParam(t, tests, Options{Extensions: EXTENSION_FOOTNOTES}, HTML_FOOTNOTE_RETURN_LINKS, params)
+	doTestsInlineParam(t, tests, Options{Extensions: Footnotes}, FootnoteReturnLinks, params)
 }
 
 func TestNestedFootnotes(t *testing.T) {
@@ -1039,7 +1039,7 @@ func TestNestedFootnotes(t *testing.T) {
 </div>
 `,
 	}
-	doTestsInlineParam(t, tests, Options{Extensions: EXTENSION_FOOTNOTES}, 0,
+	doTestsInlineParam(t, tests, Options{Extensions: Footnotes}, 0,
 		HtmlRendererParameters{})
 }
 
@@ -1069,7 +1069,7 @@ func TestInlineComments(t *testing.T) {
 		"blahblah\n<!--- foo -->\nrhubarb\n",
 		"<p>blahblah\n<!--- foo -->\nrhubarb</p>\n",
 	}
-	doTestsInlineParam(t, tests, Options{}, HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_DASHES, HtmlRendererParameters{})
+	doTestsInlineParam(t, tests, Options{}, UseSmartypants|SmartypantsDashes, HtmlRendererParameters{})
 }
 
 func TestSmartDoubleQuotes(t *testing.T) {
@@ -1081,7 +1081,7 @@ func TestSmartDoubleQuotes(t *testing.T) {
 		"two pair of \"some\" quoted \"text\".\n",
 		"<p>two pair of &ldquo;some&rdquo; quoted &ldquo;text&rdquo;.</p>\n"}
 
-	doTestsInlineParam(t, tests, Options{}, HTML_USE_SMARTYPANTS, HtmlRendererParameters{})
+	doTestsInlineParam(t, tests, Options{}, UseSmartypants, HtmlRendererParameters{})
 }
 
 func TestSmartAngledDoubleQuotes(t *testing.T) {
@@ -1093,7 +1093,7 @@ func TestSmartAngledDoubleQuotes(t *testing.T) {
 		"two pair of \"some\" quoted \"text\".\n",
 		"<p>two pair of &laquo;some&raquo; quoted &laquo;text&raquo;.</p>\n"}
 
-	doTestsInlineParam(t, tests, Options{}, HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_ANGLED_QUOTES, HtmlRendererParameters{})
+	doTestsInlineParam(t, tests, Options{}, UseSmartypants|SmartypantsAngledQuotes, HtmlRendererParameters{})
 }
 
 func TestSmartFractions(t *testing.T) {
@@ -1103,7 +1103,7 @@ func TestSmartFractions(t *testing.T) {
 		"1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.\n",
 		"<p>1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.</p>\n"}
 
-	doTestsInlineParam(t, tests, Options{}, HTML_USE_SMARTYPANTS, HtmlRendererParameters{})
+	doTestsInlineParam(t, tests, Options{}, UseSmartypants, HtmlRendererParameters{})
 
 	tests = []string{
 		"1/2, 2/3, 81/100 and 1000000/1048576.\n",
@@ -1111,7 +1111,7 @@ func TestSmartFractions(t *testing.T) {
 		"1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.\n",
 		"<p>1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.</p>\n"}
 
-	doTestsInlineParam(t, tests, Options{}, HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_FRACTIONS, HtmlRendererParameters{})
+	doTestsInlineParam(t, tests, Options{}, UseSmartypants|SmartypantsFractions, HtmlRendererParameters{})
 }
 
 func TestDisableSmartDashes(t *testing.T) {
@@ -1130,7 +1130,7 @@ func TestDisableSmartDashes(t *testing.T) {
 		"<p>foo &mdash; bar</p>\n",
 		"foo --- bar\n",
 		"<p>foo &mdash;&ndash; bar</p>\n",
-	}, Options{}, HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_DASHES, HtmlRendererParameters{})
+	}, Options{}, UseSmartypants|SmartypantsDashes, HtmlRendererParameters{})
 	doTestsInlineParam(t, []string{
 		"foo - bar\n",
 		"<p>foo - bar</p>\n",
@@ -1138,7 +1138,7 @@ func TestDisableSmartDashes(t *testing.T) {
 		"<p>foo &ndash; bar</p>\n",
 		"foo --- bar\n",
 		"<p>foo &mdash; bar</p>\n",
-	}, Options{}, HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_LATEX_DASHES|HTML_SMARTYPANTS_DASHES,
+	}, Options{}, UseSmartypants|SmartypantsLatexDashes|SmartypantsDashes,
 		HtmlRendererParameters{})
 	doTestsInlineParam(t, []string{
 		"foo - bar\n",
@@ -1148,6 +1148,6 @@ func TestDisableSmartDashes(t *testing.T) {
 		"foo --- bar\n",
 		"<p>foo --- bar</p>\n",
 	}, Options{},
-		HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_LATEX_DASHES,
+		UseSmartypants|SmartypantsLatexDashes,
 		HtmlRendererParameters{})
 }
