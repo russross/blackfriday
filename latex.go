@@ -168,8 +168,11 @@ func (options *Latex) TableCell(out *bytes.Buffer, text []byte, align int) {
 }
 
 // TODO: this
-func (options *Latex) Footnotes(out *bytes.Buffer, text func()) {
+func (r *Latex) BeginFootnotes(out *bytes.Buffer) {
+}
 
+// TODO: this
+func (r *Latex) EndFootnotes(out *bytes.Buffer) {
 }
 
 func (options *Latex) FootnoteItem(out *bytes.Buffer, name, text []byte, flags ListType) {
