@@ -34,12 +34,12 @@ func LatexRenderer(flags int) Renderer {
 	return &Latex{}
 }
 
-func (options *Latex) GetFlags() HtmlFlags {
+func (r *Latex) GetFlags() HtmlFlags {
 	return 0
 }
 
 // render code chunks using verbatim, or listings if we have a language
-func (options *Latex) BlockCode(out *bytes.Buffer, text []byte, lang string) {
+func (r *Latex) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 	if lang == "" {
 		out.WriteString("\n\\begin{verbatim}\n")
 	} else {
@@ -55,17 +55,17 @@ func (options *Latex) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 	}
 }
 
-func (options *Latex) TitleBlock(out *bytes.Buffer, text []byte) {
+func (r *Latex) TitleBlock(out *bytes.Buffer, text []byte) {
 
 }
 
-func (options *Latex) BlockQuote(out *bytes.Buffer, text []byte) {
+func (r *Latex) BlockQuote(out *bytes.Buffer, text []byte) {
 	out.WriteString("\n\\begin{quotation}\n")
 	out.Write(text)
 	out.WriteString("\n\\end{quotation}\n")
 }
 
-func (options *Latex) BlockHtml(out *bytes.Buffer, text []byte) {
+func (r *Latex) BlockHtml(out *bytes.Buffer, text []byte) {
 	// a pretty lame thing to do...
 	out.WriteString("\n\\begin{verbatim}\n")
 	out.Write(text)
@@ -94,7 +94,7 @@ func (r *Latex) EndHeader(out *bytes.Buffer, level int, id string, tocMarker int
 	out.WriteString("}\n")
 }
 
-func (options *Latex) HRule(out *bytes.Buffer) {
+func (r *Latex) HRule(out *bytes.Buffer) {
 	out.WriteString("\n\\HRule\n")
 }
 
@@ -114,7 +114,7 @@ func (r *Latex) EndList(out *bytes.Buffer, flags ListType) {
 	}
 }
 
-func (options *Latex) ListItem(out *bytes.Buffer, text []byte, flags ListType) {
+func (r *Latex) ListItem(out *bytes.Buffer, text []byte, flags ListType) {
 	out.WriteString("\n\\item ")
 	out.Write(text)
 }
@@ -127,7 +127,7 @@ func (r *Latex) EndParagraph(out *bytes.Buffer) {
 	out.WriteString("\n")
 }
 
-func (options *Latex) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int) {
+func (r *Latex) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int) {
 	out.WriteString("\n\\begin{tabular}{")
 	for _, elt := range columnData {
 		switch elt {
@@ -146,21 +146,21 @@ func (options *Latex) Table(out *bytes.Buffer, header []byte, body []byte, colum
 	out.WriteString("\n\\end{tabular}\n")
 }
 
-func (options *Latex) TableRow(out *bytes.Buffer, text []byte) {
+func (r *Latex) TableRow(out *bytes.Buffer, text []byte) {
 	if out.Len() > 0 {
 		out.WriteString(" \\\\\n")
 	}
 	out.Write(text)
 }
 
-func (options *Latex) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
+func (r *Latex) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
 	if out.Len() > 0 {
 		out.WriteString(" & ")
 	}
 	out.Write(text)
 }
 
-func (options *Latex) TableCell(out *bytes.Buffer, text []byte, align int) {
+func (r *Latex) TableCell(out *bytes.Buffer, text []byte, align int) {
 	if out.Len() > 0 {
 		out.WriteString(" & ")
 	}
@@ -175,11 +175,11 @@ func (r *Latex) BeginFootnotes(out *bytes.Buffer) {
 func (r *Latex) EndFootnotes(out *bytes.Buffer) {
 }
 
-func (options *Latex) FootnoteItem(out *bytes.Buffer, name, text []byte, flags ListType) {
+func (r *Latex) FootnoteItem(out *bytes.Buffer, name, text []byte, flags ListType) {
 
 }
 
-func (options *Latex) AutoLink(out *bytes.Buffer, link []byte, kind LinkType) {
+func (r *Latex) AutoLink(out *bytes.Buffer, link []byte, kind LinkType) {
 	out.WriteString("\\href{")
 	if kind == LinkTypeEmail {
 		out.WriteString("mailto:")
@@ -190,25 +190,25 @@ func (options *Latex) AutoLink(out *bytes.Buffer, link []byte, kind LinkType) {
 	out.WriteString("}")
 }
 
-func (options *Latex) CodeSpan(out *bytes.Buffer, text []byte) {
+func (r *Latex) CodeSpan(out *bytes.Buffer, text []byte) {
 	out.WriteString("\\texttt{")
 	escapeSpecialChars(out, text)
 	out.WriteString("}")
 }
 
-func (options *Latex) DoubleEmphasis(out *bytes.Buffer, text []byte) {
+func (r *Latex) DoubleEmphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("\\textbf{")
 	out.Write(text)
 	out.WriteString("}")
 }
 
-func (options *Latex) Emphasis(out *bytes.Buffer, text []byte) {
+func (r *Latex) Emphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("\\textit{")
 	out.Write(text)
 	out.WriteString("}")
 }
 
-func (options *Latex) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
+func (r *Latex) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
 	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
 		// treat it like a link
 		out.WriteString("\\href{")
@@ -223,11 +223,11 @@ func (options *Latex) Image(out *bytes.Buffer, link []byte, title []byte, alt []
 	}
 }
 
-func (options *Latex) LineBreak(out *bytes.Buffer) {
+func (r *Latex) LineBreak(out *bytes.Buffer) {
 	out.WriteString(" \\\\\n")
 }
 
-func (options *Latex) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
+func (r *Latex) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
 	out.WriteString("\\href{")
 	out.Write(link)
 	out.WriteString("}{")
@@ -235,23 +235,23 @@ func (options *Latex) Link(out *bytes.Buffer, link []byte, title []byte, content
 	out.WriteString("}")
 }
 
-func (options *Latex) RawHtmlTag(out *bytes.Buffer, tag []byte) {
+func (r *Latex) RawHtmlTag(out *bytes.Buffer, tag []byte) {
 }
 
-func (options *Latex) TripleEmphasis(out *bytes.Buffer, text []byte) {
+func (r *Latex) TripleEmphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("\\textbf{\\textit{")
 	out.Write(text)
 	out.WriteString("}}")
 }
 
-func (options *Latex) StrikeThrough(out *bytes.Buffer, text []byte) {
+func (r *Latex) StrikeThrough(out *bytes.Buffer, text []byte) {
 	out.WriteString("\\sout{")
 	out.Write(text)
 	out.WriteString("}")
 }
 
 // TODO: this
-func (options *Latex) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
+func (r *Latex) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
 
 }
 
@@ -285,17 +285,17 @@ func escapeSpecialChars(out *bytes.Buffer, text []byte) {
 	}
 }
 
-func (options *Latex) Entity(out *bytes.Buffer, entity []byte) {
+func (r *Latex) Entity(out *bytes.Buffer, entity []byte) {
 	// TODO: convert this into a unicode character or something
 	out.Write(entity)
 }
 
-func (options *Latex) NormalText(out *bytes.Buffer, text []byte) {
+func (r *Latex) NormalText(out *bytes.Buffer, text []byte) {
 	escapeSpecialChars(out, text)
 }
 
 // header and footer
-func (options *Latex) DocumentHeader(out *bytes.Buffer) {
+func (r *Latex) DocumentHeader(out *bytes.Buffer) {
 	out.WriteString("\\documentclass{article}\n")
 	out.WriteString("\n")
 	out.WriteString("\\usepackage{graphicx}\n")
@@ -324,6 +324,6 @@ func (options *Latex) DocumentHeader(out *bytes.Buffer) {
 	out.WriteString("\\begin{document}\n")
 }
 
-func (options *Latex) DocumentFooter(out *bytes.Buffer) {
+func (r *Latex) DocumentFooter(out *bytes.Buffer) {
 	out.WriteString("\n\\end{document}\n")
 }
