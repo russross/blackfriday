@@ -163,7 +163,8 @@ type Renderer interface {
 	BlockCode(out *bytes.Buffer, text []byte, lang string)
 	BlockQuote(out *bytes.Buffer, text []byte)
 	BlockHtml(out *bytes.Buffer, text []byte)
-	Header(out *bytes.Buffer, text func(), level int, id string)
+	BeginHeader(out *bytes.Buffer, level int, id string) int
+	EndHeader(out *bytes.Buffer, level int, id string, tocMarker int)
 	HRule(out *bytes.Buffer)
 	List(out *bytes.Buffer, text func(), flags ListType)
 	ListItem(out *bytes.Buffer, text []byte, flags ListType)

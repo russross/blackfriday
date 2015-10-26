@@ -202,7 +202,7 @@ func (options *Html) TitleBlock(out *bytes.Buffer, text []byte) {
 	out.WriteString("\n</h1>")
 }
 
-func (options *Html) Header(out *bytes.Buffer, text func(), level int, id string) {
+func (options *Html) BeginHeader(out *bytes.Buffer, level int, id string) int {
 	doubleSpace(out)
 
 	if id == "" && options.flags&Toc != 0 {
@@ -225,12 +225,13 @@ func (options *Html) Header(out *bytes.Buffer, text func(), level int, id string
 		out.WriteString(fmt.Sprintf("<h%d>", level))
 	}
 
-	tocMarker := out.Len()
-	text()
+	return out.Len()
+}
 
+func (r *Html) EndHeader(out *bytes.Buffer, level int, id string, tocMarker int) {
 	// are we building a table of contents?
-	if options.flags&Toc != 0 {
-		options.TocHeaderWithAnchor(out.Bytes()[tocMarker:], level, id)
+	if r.flags&Toc != 0 {
+		r.TocHeaderWithAnchor(out.Bytes()[tocMarker:], level, id)
 	}
 
 	out.WriteString(fmt.Sprintf("</h%d>\n", level))

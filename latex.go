@@ -72,7 +72,7 @@ func (options *Latex) BlockHtml(out *bytes.Buffer, text []byte) {
 	out.WriteString("\n\\end{verbatim}\n")
 }
 
-func (options *Latex) Header(out *bytes.Buffer, text func(), level int, id string) {
+func (r *Latex) BeginHeader(out *bytes.Buffer, level int, id string) int {
 	switch level {
 	case 1:
 		out.WriteString("\n\\section{")
@@ -87,7 +87,10 @@ func (options *Latex) Header(out *bytes.Buffer, text func(), level int, id strin
 	case 6:
 		out.WriteString("\n\\textbf{")
 	}
-	text()
+	return out.Len()
+}
+
+func (r *Latex) EndHeader(out *bytes.Buffer, level int, id string, tocMarker int) {
 	out.WriteString("}\n")
 }
 

@@ -245,10 +245,9 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 		if id == "" && p.flags&AutoHeaderIDs != 0 {
 			id = sanitized_anchor_name.Create(string(data[i:end]))
 		}
-		work := func() {
-			p.inline(out, data[i:end])
-		}
-		p.r.Header(out, work, level, id)
+		tocMarker := p.r.BeginHeader(out, level, id)
+		p.inline(out, data[i:end])
+		p.r.EndHeader(out, level, id, tocMarker)
 	}
 	return skip
 }
@@ -1318,20 +1317,14 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 					eol--
 				}
 
-				// render the header
-				// this ugly double closure avoids forcing variables onto the heap
-				work := func(o *bytes.Buffer, pp *parser, d []byte) func() {
-					return func() {
-						pp.inline(o, d)
-					}
-				}(out, p, data[prev:eol])
-
 				id := ""
 				if p.flags&AutoHeaderIDs != 0 {
 					id = sanitized_anchor_name.Create(string(data[prev:eol]))
 				}
 
-				p.r.Header(out, work, level, id)
+				tocMarker := p.r.BeginHeader(out, level, id)
+				p.inline(out, data[prev:eol])
+				p.r.EndHeader(out, level, id, tocMarker)
 
 				// find the end of the underline
 				for data[i] != '\n' {
