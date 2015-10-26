@@ -418,11 +418,12 @@ func (options *Html) ListItem(out *bytes.Buffer, text []byte, flags ListType) {
 	}
 }
 
-func (options *Html) Paragraph(out *bytes.Buffer, text func()) {
+func (r *Html) BeginParagraph(out *bytes.Buffer) {
 	doubleSpace(out)
-
 	out.WriteString("<p>")
-	text()
+}
+
+func (r *Html) EndParagraph(out *bytes.Buffer) {
 	out.WriteString("</p>\n")
 }
 

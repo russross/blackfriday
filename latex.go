@@ -119,9 +119,11 @@ func (options *Latex) ListItem(out *bytes.Buffer, text []byte, flags ListType) {
 	out.Write(text)
 }
 
-func (options *Latex) Paragraph(out *bytes.Buffer, text func()) {
+func (r *Latex) BeginParagraph(out *bytes.Buffer) {
 	out.WriteString("\n")
-	text()
+}
+
+func (r *Latex) EndParagraph(out *bytes.Buffer) {
 	out.WriteString("\n")
 }
 

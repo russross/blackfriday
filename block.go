@@ -1269,10 +1269,9 @@ func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 		end--
 	}
 
-	work := func() {
-		p.inline(out, data[beg:end])
-	}
-	p.r.Paragraph(out, work)
+	p.r.BeginParagraph(out)
+	p.inline(out, data[beg:end])
+	p.r.EndParagraph(out)
 }
 
 func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
