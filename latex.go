@@ -98,13 +98,15 @@ func (options *Latex) HRule(out *bytes.Buffer) {
 	out.WriteString("\n\\HRule\n")
 }
 
-func (options *Latex) List(out *bytes.Buffer, text func(), flags ListType) {
+func (r *Latex) BeginList(out *bytes.Buffer, flags ListType) {
 	if flags&ListTypeOrdered != 0 {
 		out.WriteString("\n\\begin{enumerate}\n")
 	} else {
 		out.WriteString("\n\\begin{itemize}\n")
 	}
-	text()
+}
+
+func (r *Latex) EndList(out *bytes.Buffer, flags ListType) {
 	if flags&ListTypeOrdered != 0 {
 		out.WriteString("\n\\end{enumerate}\n")
 	} else {

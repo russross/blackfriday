@@ -166,7 +166,8 @@ type Renderer interface {
 	BeginHeader(out *bytes.Buffer, level int, id string) int
 	EndHeader(out *bytes.Buffer, level int, id string, tocMarker int)
 	HRule(out *bytes.Buffer)
-	List(out *bytes.Buffer, text func(), flags ListType)
+	BeginList(out *bytes.Buffer, flags ListType)
+	EndList(out *bytes.Buffer, flags ListType)
 	ListItem(out *bytes.Buffer, text []byte, flags ListType)
 	Paragraph(out *bytes.Buffer, text func())
 	Table(out *bytes.Buffer, header []byte, body []byte, columnData []int)
