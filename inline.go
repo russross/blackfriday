@@ -155,31 +155,28 @@ func codeSpan(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 }
 
 // newline preceded by two spaces becomes <br>
-// newline without two spaces works when EXTENSION_HARD_LINE_BREAK is enabled
+func maybeLineBreak(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+	origOffset := offset
+	for offset < len(data) && data[offset] == ' ' {
+		offset++
+	}
+	if offset < len(data) && data[offset] == '\n' {
+		if offset-origOffset >= 2 {
+			p.r.LineBreak(out)
+			return offset - origOffset + 1
+		}
+		return offset - origOffset
+	}
+	return 0
+}
+
+// newline without two spaces works when HardLineBreak is enabled
 func lineBreak(p *parser, out *bytes.Buffer, data []byte, offset int) int {
-	// remove trailing spaces from out
-	outBytes := out.Bytes()
-	end := len(outBytes)
-	eol := end
-	for eol > 0 && outBytes[eol-1] == ' ' {
-		eol--
+	if p.flags&HardLineBreak != 0 {
+		p.r.LineBreak(out)
+		return 1
 	}
-	out.Truncate(eol)
-
-	precededByTwoSpaces := offset >= 2 && data[offset-2] == ' ' && data[offset-1] == ' '
-	precededByBackslash := offset >= 1 && data[offset-1] == '\\' // see http://spec.commonmark.org/0.18/#example-527
-	precededByBackslash = precededByBackslash && p.flags&BackslashLineBreak != 0
-
-	// should there be a hard line break here?
-	if p.flags&HardLineBreak == 0 && !precededByTwoSpaces && !precededByBackslash {
-		return 0
-	}
-
-	if precededByBackslash && eol > 0 {
-		out.Truncate(eol - 1)
-	}
-	p.r.LineBreak(out)
-	return 1
+	return 0
 }
 
 type linkType int
@@ -615,6 +612,10 @@ func escape(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
 
 	if len(data) > 1 {
+		if p.flags&BackslashLineBreak != 0 && data[1] == '\n' {
+			p.r.LineBreak(out)
+			return 2
+		}
 		if bytes.IndexByte(escapeChars, data[1]) < 0 {
 			return 0
 		}
