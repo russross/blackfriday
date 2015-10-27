@@ -379,7 +379,12 @@ func MarkdownOptions(input []byte, renderer Renderer, opts Options) []byte {
 	p.inlineCallback[' '] = maybeLineBreak
 
 	if extensions&Autolink != 0 {
-		p.inlineCallback[':'] = autoLink
+		p.inlineCallback['h'] = maybeAutoLink
+		p.inlineCallback['m'] = maybeAutoLink
+		p.inlineCallback['f'] = maybeAutoLink
+		p.inlineCallback['H'] = maybeAutoLink
+		p.inlineCallback['M'] = maybeAutoLink
+		p.inlineCallback['F'] = maybeAutoLink
 	}
 
 	if extensions&Footnotes != 0 {

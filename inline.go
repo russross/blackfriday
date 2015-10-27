@@ -38,9 +38,23 @@ func (p *parser) inline(out *bytes.Buffer, data []byte) {
 
 	i, end := 0, 0
 	for i < len(data) {
-		// copy inactive chars into the output
-		for end < len(data) && p.inlineCallback[data[end]] == nil {
-			end++
+		// Copy inactive chars into the output, but first check for one quirk:
+		// 'h', 'm' and 'f' all might trigger a check for autolink processing
+		// and end this run of inactive characters. However, there's one nasty
+		// case where breaking this run would be bad: in smartypants fraction
+		// detection, we expect things like "1/2th" to be in a single run. So
+		// we check here if an 'h' is followed by 't' (from 'http') and if it's
+		// not, we short circuit the 'h' into the run of inactive characters.
+		for end < len(data) {
+			if p.inlineCallback[data[end]] != nil {
+				if end+1 < len(data) && data[end] == 'h' && data[end+1] != 't' {
+					end++
+				} else {
+					break
+				}
+			} else {
+				end++
+			}
 		}
 
 		p.r.NormalText(out, data[i:end])
@@ -678,12 +692,32 @@ func linkEndsWithEntity(data []byte, linkEnd int) bool {
 	return entityRanges != nil && entityRanges[len(entityRanges)-1][1] == linkEnd
 }
 
-func autoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
-	// quick check to rule out most false hits on ':'
-	if p.insideLink || len(data) < offset+3 || data[offset+1] != '/' || data[offset+2] != '/' {
+func maybeAutoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+	// quick check to rule out most false hits
+	if p.insideLink || len(data) < offset+6 { // 6 is the len() of the shortest prefix below
 		return 0
 	}
+	prefixes := []string{
+		"http://",
+		"https://",
+		"ftp://",
+		"file://",
+		"mailto:",
+	}
+	for _, prefix := range prefixes {
+		endOfHead := offset + 8 // 8 is the len() of the longest prefix
+		if endOfHead > len(data) {
+			endOfHead = len(data)
+		}
+		head := bytes.ToLower(data[offset:endOfHead])
+		if bytes.HasPrefix(head, []byte(prefix)) {
+			return autoLink(p, out, data, offset)
+		}
+	}
+	return 0
+}
 
+func autoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	// Now a more expensive check to see if we're not inside an anchor element
 	anchorStart := offset
 	offsetFromAnchor := 0
@@ -694,7 +728,7 @@ func autoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 	anchorStr := anchorRe.Find(data[anchorStart:])
 	if anchorStr != nil {
-		out.Write(anchorStr[offsetFromAnchor:])
+		out.Write(anchorStr[offsetFromAnchor:]) // XXX: write in parser?
 		return len(anchorStr) - offsetFromAnchor
 	}
 
@@ -788,11 +822,6 @@ func autoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		}
 	}
 
-	// we were triggered on the ':', so we need to rewind the output a bit
-	if out.Len() >= rewind {
-		out.Truncate(len(out.Bytes()) - rewind)
-	}
-
 	var uLink bytes.Buffer
 	unescapeText(&uLink, data[:linkEnd])
 
@@ -800,7 +829,7 @@ func autoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		p.r.AutoLink(out, uLink.Bytes(), LinkTypeNormal)
 	}
 
-	return linkEnd - rewind
+	return linkEnd
 }
 
 func isEndOfLink(char byte) bool {
