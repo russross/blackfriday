@@ -1026,7 +1026,7 @@ func TestInlineComments(t *testing.T) {
 		"blahblah\n<!--- foo -->\nrhubarb\n",
 		"<p>blahblah\n<!--- foo -->\nrhubarb</p>\n",
 	}
-	doTestsInlineParam(t, tests, Options{}, HTML_USE_SMARTYPANTS, HtmlRendererParameters{})
+	doTestsInlineParam(t, tests, Options{}, HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_DASHES, HtmlRendererParameters{})
 }
 
 func TestSmartDoubleQuotes(t *testing.T) {
@@ -1069,4 +1069,42 @@ func TestSmartFractions(t *testing.T) {
 		"<p>1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.</p>\n"}
 
 	doTestsInlineParam(t, tests, Options{}, HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_FRACTIONS, HtmlRendererParameters{})
+}
+
+func TestDisableSmartDashes(t *testing.T) {
+	doTestsInlineParam(t, []string{
+		"foo - bar\n",
+		"<p>foo - bar</p>\n",
+		"foo -- bar\n",
+		"<p>foo -- bar</p>\n",
+		"foo --- bar\n",
+		"<p>foo --- bar</p>\n",
+	}, Options{}, 0, HtmlRendererParameters{})
+	doTestsInlineParam(t, []string{
+		"foo - bar\n",
+		"<p>foo &ndash; bar</p>\n",
+		"foo -- bar\n",
+		"<p>foo &mdash; bar</p>\n",
+		"foo --- bar\n",
+		"<p>foo &mdash;&ndash; bar</p>\n",
+	}, Options{}, HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_DASHES, HtmlRendererParameters{})
+	doTestsInlineParam(t, []string{
+		"foo - bar\n",
+		"<p>foo - bar</p>\n",
+		"foo -- bar\n",
+		"<p>foo &ndash; bar</p>\n",
+		"foo --- bar\n",
+		"<p>foo &mdash; bar</p>\n",
+	}, Options{}, HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_LATEX_DASHES|HTML_SMARTYPANTS_DASHES,
+		HtmlRendererParameters{})
+	doTestsInlineParam(t, []string{
+		"foo - bar\n",
+		"<p>foo - bar</p>\n",
+		"foo -- bar\n",
+		"<p>foo -- bar</p>\n",
+		"foo --- bar\n",
+		"<p>foo --- bar</p>\n",
+	}, Options{},
+		HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_LATEX_DASHES,
+		HtmlRendererParameters{})
 }
