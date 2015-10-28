@@ -1342,6 +1342,14 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 			return i
 		}
 
+		// if there's a fenced code block, paragraph is over
+		if p.flags&EXTENSION_FENCED_CODE != 0 {
+			if p.fencedCode(out, current, false) > 0 {
+				p.renderParagraph(out, data[:i])
+				return i
+			}
+		}
+
 		// if there's a definition list item, prev line is a definition term
 		if p.flags&EXTENSION_DEFINITION_LISTS != 0 {
 			if p.dliPrefix(current) != 0 {
