@@ -1065,6 +1065,78 @@ func TestFencedCodeBlock(t *testing.T) {
 	doTestsBlock(t, tests, EXTENSION_FENCED_CODE)
 }
 
+func TestFencedCodeInsideBlockquotes(t *testing.T) {
+	var tests = []string{
+		"> ```go\n" +
+			"package moo\n\n" +
+			"```\n",
+		`<blockquote>
+<pre><code class="language-go">package moo
+
+</code></pre>
+</blockquote>
+`,
+		// -------------------------------------------
+		"> foo\n" +
+			"> \n" +
+			"> ```go\n" +
+			"package moo\n" +
+			"```\n" +
+			"> \n" +
+			"> goo.\n",
+		`<blockquote>
+<p>foo</p>
+
+<pre><code class="language-go">package moo
+</code></pre>
+
+<p>goo.</p>
+</blockquote>
+`,
+		// -------------------------------------------
+		"> foo\n" +
+			"> \n" +
+			"> quote\n" +
+			"continues\n" +
+			"```\n",
+		"<blockquote>\n" +
+			"<p>foo</p>\n\n" +
+			"<p>quote\n" +
+			"continues\n" +
+			"```</p>\n" +
+			"</blockquote>\n",
+
+		"> foo\n" +
+			"> \n" +
+			"> ```go\n" +
+			"package moo\n" +
+			"```\n" +
+			"> \n" +
+			"> goo.\n" +
+			"> \n" +
+			"> ```go\n" +
+			"package zoo\n" +
+			"```\n" +
+			"> \n" +
+			"> woo.\n",
+		`<blockquote>
+<p>foo</p>
+
+<pre><code class="language-go">package moo
+</code></pre>
+
+<p>goo.</p>
+
+<pre><code class="language-go">package zoo
+</code></pre>
+
+<p>woo.</p>
+</blockquote>
+`,
+	}
+	doTestsBlock(t, tests, EXTENSION_FENCED_CODE)
+}
+
 func TestTable(t *testing.T) {
 	var tests = []string{
 		"a | b\n---|---\nc | d\n",

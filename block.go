@@ -909,7 +909,17 @@ func (p *parser) quote(out *bytes.Buffer, data []byte) int {
 	beg, end := 0, 0
 	for beg < len(data) {
 		end = beg
+		// Step over whole lines, collecting them. While doing that, check for
+		// fenced code and if one's found, incorporate it altogether,
+		// irregardless of any contents inside it
 		for data[end] != '\n' {
+			if p.flags&EXTENSION_FENCED_CODE != 0 {
+				if i := p.fencedCode(out, data[end:], false); i > 0 {
+					// -1 to compensate for the extra end++ after the loop:
+					end += i - 1
+					break
+				}
+			}
 			end++
 		}
 		end++
