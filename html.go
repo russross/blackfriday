@@ -1184,6 +1184,14 @@ func skipSpace(tag []byte, i int) int {
 	return i
 }
 
+func skipChar(data []byte, start int, char byte) int {
+	i := start
+	for i < len(data) && data[i] == char {
+		i++
+	}
+	return i
+}
+
 func doubleSpace(out *bytes.Buffer) {
 	if out.Len() > 0 {
 		out.WriteByte('\n')
