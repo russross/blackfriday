@@ -827,7 +827,7 @@ func TestFencedCodeBlock(t *testing.T) {
 		"<pre><code class=\"language-ocaml\">with extra whitespace\n</code></pre>\n",
 
 		"~ ~~ java\nWith whitespace\n~~~\n",
-		"<p>~ ~~ java\nWith whitespace</p>\n\n<pre><code></code></pre>\n",
+		"<p>~ ~~ java\nWith whitespace\n~~~</p>\n",
 
 		"~~\nonly two\n~~\n",
 		"<p>~~\nonly two\n~~</p>\n",
@@ -1212,7 +1212,7 @@ func TestFencedCodeBlock_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
 		"<pre><code class=\"language-ocaml\">with extra whitespace\n</code></pre>\n",
 
 		"~ ~~ java\nWith whitespace\n~~~\n",
-		"<p>~ ~~ java\nWith whitespace</p>\n\n<pre><code></code></pre>\n",
+		"<p>~ ~~ java\nWith whitespace\n~~~</p>\n",
 
 		"~~\nonly two\n~~\n",
 		"<p>~~\nonly two\n~~</p>\n",

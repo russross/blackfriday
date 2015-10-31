@@ -394,7 +394,6 @@ func firstPass(p *parser, input []byte, depth int) *bytes.Buffer {
 
 	tabSize := _TAB_SIZE_DEFAULT
 	beg, end := 0, 0
-	lastLineWasBlank := false
 	lastFencedCodeBlockEnd := 0
 	for beg < len(input) { // iterate over lines
 		if beg >= lastFencedCodeBlockEnd { // don't parse inside fenced code blocks
@@ -410,20 +409,13 @@ func firstPass(p *parser, input []byte, depth int) *bytes.Buffer {
 		}
 
 		if p.flags&EXTENSION_FENCED_CODE != 0 {
-			// when last line was none blank and a fenced code block comes after
+			// track fenced code block boundaries to suppress tab expansion
+			// inside them:
 			if beg >= lastFencedCodeBlockEnd {
-				// Keep the apppend '\n', other the tests fails.
-				// The original PR (149) didn't need this. I do need this
-				// prolly because of the CommonMark changes I made.
-				//if i := p.fencedCode(&out, input[beg:], false); i > 0 { // does not pass tests
 				if i := p.fencedCode(&out, append(input[beg:], '\n'), false); i > 0 {
-					if !lastLineWasBlank {
-						out.WriteByte('\n') // need to inject additional linebreak
-					}
 					lastFencedCodeBlockEnd = beg + i
 				}
 			}
-			lastLineWasBlank = end == beg
 		}
 
 		// add the line body if present
