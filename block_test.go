@@ -14,6 +14,7 @@
 package blackfriday
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -1066,10 +1067,13 @@ func TestFencedCodeBlock(t *testing.T) {
 }
 
 func TestFencedCodeInsideBlockquotes(t *testing.T) {
+	cat := func(s ...string) string { return strings.Join(s, "\n") }
 	var tests = []string{
-		"> ```go\n" +
-			"package moo\n\n" +
-			"```\n",
+		cat("> ```go",
+			"package moo",
+			"",
+			"```",
+			""),
 		`<blockquote>
 <pre><code class="language-go">package moo
 
@@ -1077,13 +1081,14 @@ func TestFencedCodeInsideBlockquotes(t *testing.T) {
 </blockquote>
 `,
 		// -------------------------------------------
-		"> foo\n" +
-			"> \n" +
-			"> ```go\n" +
-			"package moo\n" +
-			"```\n" +
-			"> \n" +
-			"> goo.\n",
+		cat("> foo",
+			"> ",
+			"> ```go",
+			"package moo",
+			"```",
+			"> ",
+			"> goo.",
+			""),
 		`<blockquote>
 <p>foo</p>
 
@@ -1094,31 +1099,35 @@ func TestFencedCodeInsideBlockquotes(t *testing.T) {
 </blockquote>
 `,
 		// -------------------------------------------
-		"> foo\n" +
-			"> \n" +
-			"> quote\n" +
-			"continues\n" +
-			"```\n",
-		"<blockquote>\n" +
-			"<p>foo</p>\n\n" +
-			"<p>quote\n" +
-			"continues\n" +
-			"```</p>\n" +
-			"</blockquote>\n",
+		cat("> foo",
+			"> ",
+			"> quote",
+			"continues",
+			"```",
+			""),
+		`<blockquote>
+<p>foo</p>
 
-		"> foo\n" +
-			"> \n" +
-			"> ```go\n" +
-			"package moo\n" +
-			"```\n" +
-			"> \n" +
-			"> goo.\n" +
-			"> \n" +
-			"> ```go\n" +
-			"package zoo\n" +
-			"```\n" +
-			"> \n" +
-			"> woo.\n",
+<p>quote
+continues
+` + "```" + `</p>
+</blockquote>
+`,
+		// -------------------------------------------
+		cat("> foo",
+			"> ",
+			"> ```go",
+			"package moo",
+			"```",
+			"> ",
+			"> goo.",
+			"> ",
+			"> ```go",
+			"package zoo",
+			"```",
+			"> ",
+			"> woo.",
+			""),
 		`<blockquote>
 <p>foo</p>
 
@@ -1134,6 +1143,38 @@ func TestFencedCodeInsideBlockquotes(t *testing.T) {
 </blockquote>
 `,
 	}
+
+	// These 2 alternative forms of blockquoted fenced code blocks should produce same output.
+	forms := [2]string{
+		cat("> plain quoted text",
+			"> ```fenced",
+			"code",
+			" with leading single space correctly preserved",
+			"okay",
+			"```",
+			"> rest of quoted text"),
+		cat("> plain quoted text",
+			"> ```fenced",
+			"> code",
+			">  with leading single space correctly preserved",
+			"> okay",
+			"> ```",
+			"> rest of quoted text"),
+	}
+	want := `<blockquote>
+<p>plain quoted text</p>
+
+<pre><code class="language-fenced">code
+ with leading single space correctly preserved
+okay
+</code></pre>
+
+<p>rest of quoted text</p>
+</blockquote>
+`
+	tests = append(tests, forms[0], want)
+	tests = append(tests, forms[1], want)
+
 	doTestsBlock(t, tests, EXTENSION_FENCED_CODE)
 }
 
