@@ -376,7 +376,6 @@ func MarkdownOptions(input []byte, renderer Renderer, opts Options) []byte {
 	p.inlineCallback['&'] = entity
 	p.inlineCallback['!'] = maybeImage
 	p.inlineCallback['^'] = maybeInlineFootnote
-	p.inlineCallback[' '] = maybeLineBreak
 
 	if extensions&Autolink != 0 {
 		p.inlineCallback['h'] = maybeAutoLink

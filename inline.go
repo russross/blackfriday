@@ -45,7 +45,26 @@ func (p *parser) inline(out *bytes.Buffer, data []byte) {
 		// detection, we expect things like "1/2th" to be in a single run. So
 		// we check here if an 'h' is followed by 't' (from 'http') and if it's
 		// not, we short circuit the 'h' into the run of inactive characters.
+		//
+		// Also, in a similar fashion maybeLineBreak breaks this run of chars,
+		// but smartDash processor relies on seeing context around the dashes.
+		// Fix this somehow.
 		for end < len(data) {
+			if data[end] == ' ' {
+				consumed, br := maybeLineBreak(p, out, data, end)
+				if consumed > 0 {
+					p.r.NormalText(out, data[i:end])
+					if br {
+						p.r.LineBreak(out)
+					}
+					i = end
+					i += consumed
+					end = i
+				} else {
+					end++
+				}
+				continue
+			}
 			if p.inlineCallback[data[end]] != nil {
 				if end+1 < len(data) && data[end] == 'h' && data[end+1] != 't' {
 					end++
@@ -169,19 +188,18 @@ func codeSpan(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 }
 
 // newline preceded by two spaces becomes <br>
-func maybeLineBreak(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+func maybeLineBreak(p *parser, out *bytes.Buffer, data []byte, offset int) (int, bool) {
 	origOffset := offset
 	for offset < len(data) && data[offset] == ' ' {
 		offset++
 	}
 	if offset < len(data) && data[offset] == '\n' {
 		if offset-origOffset >= 2 {
-			p.r.LineBreak(out)
-			return offset - origOffset + 1
+			return offset - origOffset + 1, true
 		}
-		return offset - origOffset
+		return offset - origOffset, false
 	}
-	return 0
+	return 0, false
 }
 
 // newline without two spaces works when HardLineBreak is enabled
