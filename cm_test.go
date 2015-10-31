@@ -78,8 +78,10 @@ func TestFencedCodeBlockCommonMark_81(t *testing.T) {
 		"```\n bbb\nbbb\n```\n",
 		"<pre><code> bbb\nbbb\n</code></pre>\n",
 
+		// disabled this behavior, using blackfriday's standard now.
 		"```\nbbb\nbbb\n",
-		"<pre><code>bbb\nbbb\n</code></pre>\n",
+		//"<pre><code>bbb\nbbb\n</code></pre>\n",
+		"<p>```\nbbb\nbbb</p>\n",
 
 		"~~~~    ruby\ndef foo(x)\n return 3\nend\n~~~~\n",
 		"<pre><code class=\"language-ruby\">def foo(x)\n return 3\nend\n</code></pre>\n",

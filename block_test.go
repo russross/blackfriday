@@ -836,25 +836,25 @@ func TestFencedCodeBlock(t *testing.T) {
 		"<pre><code class=\"language-python\">extra\n</code></pre>\n",
 
 		"~~~ perl\nthree to start, four to end\n~~~~\n",
-		"<pre><code class=\"language-perl\">three to start, four to end\n</code></pre>\n",
+		"<p>~~~ perl\nthree to start, four to end\n~~~~</p>\n",
 
 		"~~~~ perl\nfour to start, three to end\n~~~\n",
-		"<pre><code class=\"language-perl\">four to start, three to end\n~~~\n</code></pre>\n",
+		"<p>~~~~ perl\nfour to start, three to end\n~~~</p>\n",
 
 		"~~~ bash\ntildes\n~~~\n",
 		"<pre><code class=\"language-bash\">tildes\n</code></pre>\n",
 
 		"``` lisp\nno ending\n",
-		"<pre><code class=\"language-lisp\">no ending\n</code></pre>\n",
+		"<p>``` lisp\nno ending</p>\n",
 
 		"~~~ lisp\nend with language\n~~~ lisp\n",
-		"<pre><code class=\"language-lisp\">end with language\n</code></pre>\n",
+		"<p>~~~ lisp\nend with language\n~~~ lisp</p>\n",
 
 		"```\nmismatched begin and end\n~~~\n",
-		"<pre><code>mismatched begin and end\n~~~\n</code></pre>\n",
+		"<p>```\nmismatched begin and end\n~~~</p>\n",
 
 		"~~~\nmismatched begin and end\n```\n",
-		"<pre><code>mismatched begin and end\n```\n</code></pre>\n",
+		"<p>~~~\nmismatched begin and end\n```</p>\n",
 
 		"   ``` oz\nleading spaces\n```\n",
 		"<pre><code class=\"language-oz\">leading spaces\n</code></pre>\n",
@@ -1221,25 +1221,25 @@ func TestFencedCodeBlock_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
 		"<pre><code class=\"language-python\">extra\n</code></pre>\n",
 
 		"~~~ perl\nthree to start, four to end\n~~~~\n",
-		"<pre><code class=\"language-perl\">three to start, four to end\n</code></pre>\n",
+		"<p>~~~ perl\nthree to start, four to end\n~~~~</p>\n",
 
 		"~~~~ perl\nfour to start, three to end\n~~~\n",
-		"<pre><code class=\"language-perl\">four to start, three to end\n~~~\n</code></pre>\n",
+		"<p>~~~~ perl\nfour to start, three to end\n~~~</p>\n",
 
 		"~~~ bash\ntildes\n~~~\n",
 		"<pre><code class=\"language-bash\">tildes\n</code></pre>\n",
 
 		"``` lisp\nno ending\n",
-		"<pre><code class=\"language-lisp\">no ending\n</code></pre>\n",
+		"<p>``` lisp\nno ending</p>\n",
 
 		"~~~ lisp\nend with language\n~~~ lisp\n",
-		"<pre><code class=\"language-lisp\">end with language\n</code></pre>\n",
+		"<p>~~~ lisp\nend with language\n~~~ lisp</p>\n",
 
 		"```\nmismatched begin and end\n~~~\n",
-		"<pre><code>mismatched begin and end\n~~~\n</code></pre>\n",
+		"<p>```\nmismatched begin and end\n~~~</p>\n",
 
 		"~~~\nmismatched begin and end\n```\n",
-		"<pre><code>mismatched begin and end\n```\n</code></pre>\n",
+		"<p>~~~\nmismatched begin and end\n```</p>\n",
 
 		"   ``` oz\nleading spaces\n```\n",
 		"<pre><code class=\"language-oz\">leading spaces\n</code></pre>\n",
