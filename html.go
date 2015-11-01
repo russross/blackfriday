@@ -344,12 +344,12 @@ func (r *Html) TableCell(out *bytes.Buffer, text []byte, align int) {
 
 func (r *Html) BeginFootnotes() {
 	out.WriteString("<div class=\"footnotes\">\n")
-	r.HRule(out)
-	r.BeginList(out, ListTypeOrdered)
+	r.HRule()
+	r.BeginList(ListTypeOrdered)
 }
 
 func (r *Html) EndFootnotes() {
-	r.EndList(out, ListTypeOrdered)
+	r.EndList(ListTypeOrdered)
 	out.WriteString("</div>\n")
 }
 
@@ -685,7 +685,7 @@ func (r *Html) DocumentHeader() {
 	}
 	out.WriteString("<head>\n")
 	out.WriteString("  <title>")
-	r.NormalText(out, []byte(r.title))
+	r.NormalText([]byte(r.title))
 	out.WriteString("</title>\n")
 	out.WriteString("  <meta name=\"GENERATOR\" content=\"Blackfriday Markdown Processor v")
 	out.WriteString(VERSION)

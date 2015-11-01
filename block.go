@@ -42,7 +42,7 @@ func (p *parser) block(data []byte) {
 		// ...
 		// ###### Header 6
 		if p.isPrefixHeader(data) {
-			data = data[p.prefixHeader(out, data):]
+			data = data[p.prefixHeader(data):]
 			continue
 		}
 
@@ -52,7 +52,7 @@ func (p *parser) block(data []byte) {
 		//     ...
 		// </div>
 		if data[0] == '<' {
-			if i := p.html(out, data, true); i > 0 {
+			if i := p.html(data, true); i > 0 {
 				data = data[i:]
 				continue
 			}
@@ -65,7 +65,7 @@ func (p *parser) block(data []byte) {
 		// % even more stuff
 		if p.flags&Titleblock != 0 {
 			if data[0] == '%' {
-				if i := p.titleBlock(out, data, true); i > 0 {
+				if i := p.titleBlock(data, true); i > 0 {
 					data = data[i:]
 					continue
 				}
@@ -87,7 +87,7 @@ func (p *parser) block(data []byte) {
 		//         return b
 		//      }
 		if p.codePrefix(data) > 0 {
-			data = data[p.code(out, data):]
+			data = data[p.code(data):]
 			continue
 		}
 
@@ -102,7 +102,7 @@ func (p *parser) block(data []byte) {
 		// }
 		// ```
 		if p.flags&FencedCode != 0 {
-			if i := p.fencedCode(out, data, true); i > 0 {
+			if i := p.fencedCode(data, true); i > 0 {
 				data = data[i:]
 				continue
 			}
@@ -116,7 +116,7 @@ func (p *parser) block(data []byte) {
 		// or
 		// ______
 		if p.isHRule(data) {
-			p.r.HRule(out)
+			p.r.HRule()
 			var i int
 			for i = 0; data[i] != '\n'; i++ {
 			}
@@ -129,7 +129,7 @@ func (p *parser) block(data []byte) {
 		// > A big quote I found somewhere
 		// > on the web
 		if p.quotePrefix(data) > 0 {
-			data = data[p.quote(out, data):]
+			data = data[p.quote(data):]
 			continue
 		}
 
@@ -140,7 +140,7 @@ func (p *parser) block(data []byte) {
 		// Bob   | 31  | 555-1234
 		// Alice | 27  | 555-4321
 		if p.flags&Tables != 0 {
-			if i := p.table(out, data); i > 0 {
+			if i := p.table(data); i > 0 {
 				data = data[i:]
 				continue
 			}
@@ -153,7 +153,7 @@ func (p *parser) block(data []byte) {
 		//
 		// also works with + or -
 		if p.uliPrefix(data) > 0 {
-			data = data[p.list(out, data, 0):]
+			data = data[p.list(data, 0):]
 			continue
 		}
 
@@ -162,7 +162,7 @@ func (p *parser) block(data []byte) {
 		// 1. Item 1
 		// 2. Item 2
 		if p.oliPrefix(data) > 0 {
-			data = data[p.list(out, data, ListTypeOrdered):]
+			data = data[p.list(data, ListTypeOrdered):]
 			continue
 		}
 
@@ -176,14 +176,14 @@ func (p *parser) block(data []byte) {
 		// :   Definition c
 		if p.flags&DefinitionLists != 0 {
 			if p.dliPrefix(data) > 0 {
-				data = data[p.list(out, data, ListTypeDefinition):]
+				data = data[p.list(data, ListTypeDefinition):]
 				continue
 			}
 		}
 
 		// anything else must look like a normal paragraph
 		// note: this finds underlined headers, too
-		data = data[p.paragraph(out, data):]
+		data = data[p.paragraph(data):]
 	}
 
 	p.nesting--
@@ -292,7 +292,7 @@ func (p *parser) titleBlock(data []byte, doRender bool) int {
 	}
 
 	data = bytes.Join(splitData[0:i], []byte("\n"))
-	p.r.TitleBlock(out, data)
+	p.r.TitleBlock(data)
 
 	return len(data)
 }
@@ -309,12 +309,12 @@ func (p *parser) html(data []byte, doRender bool) int {
 	// handle special cases
 	if !tagfound {
 		// check for an HTML comment
-		if size := p.htmlComment(out, data, doRender); size > 0 {
+		if size := p.htmlComment(data, doRender); size > 0 {
 			return size
 		}
 
 		// check for an <hr> tag
-		if size := p.htmlHr(out, data, doRender); size > 0 {
+		if size := p.htmlHr(data, doRender); size > 0 {
 			return size
 		}
 
@@ -389,7 +389,7 @@ func (p *parser) html(data []byte, doRender bool) int {
 		for end > 0 && data[end-1] == '\n' {
 			end--
 		}
-		p.r.BlockHtml(out, data[:end])
+		p.r.BlockHtml(data[:end])
 	}
 
 	return i
@@ -397,7 +397,7 @@ func (p *parser) html(data []byte, doRender bool) int {
 
 // HTML comment, lax form
 func (p *parser) htmlComment(data []byte, doRender bool) int {
-	i := p.inlineHtmlComment(out, data)
+	i := p.inlineHtmlComment(data)
 	// needs to end with a blank line
 	if j := p.isEmpty(data[i:]); j > 0 {
 		size := i + j
@@ -407,7 +407,7 @@ func (p *parser) htmlComment(data []byte, doRender bool) int {
 			for end > 0 && data[end-1] == '\n' {
 				end--
 			}
-			p.r.BlockHtml(out, data[:end])
+			p.r.BlockHtml(data[:end])
 		}
 		return size
 	}
@@ -439,7 +439,7 @@ func (p *parser) htmlHr(data []byte, doRender bool) int {
 				for end > 0 && data[end-1] == '\n' {
 					end--
 				}
-				p.r.BlockHtml(out, data[:end])
+				p.r.BlockHtml(data[:end])
 			}
 			return size
 		}
@@ -672,7 +672,7 @@ func (p *parser) fencedCode(data []byte, doRender bool) int {
 	}
 
 	if doRender {
-		p.r.BlockCode(out, work.Bytes(), syntax)
+		p.r.BlockCode(work.Bytes(), syntax)
 	}
 
 	return beg
@@ -705,7 +705,7 @@ func (p *parser) table(data []byte) int {
 		p.tableRow(&body, data[rowStart:i], columns, false)
 	}
 
-	p.r.Table(out, header.Bytes(), body.Bytes(), columns)
+	p.r.Table(header.Bytes(), body.Bytes(), columns)
 
 	return i
 }
@@ -871,7 +871,7 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 
 	// silently ignore rows with too many cells
 
-	p.r.TableRow(out, rowWork.Bytes())
+	p.r.TableRow(rowWork.Bytes())
 }
 
 // returns blockquote prefix length
@@ -912,7 +912,7 @@ func (p *parser) quote(data []byte) int {
 		// irregardless of any contents inside it
 		for data[end] != '\n' {
 			if p.flags&FencedCode != 0 {
-				if i := p.fencedCode(out, data[end:], false); i > 0 {
+				if i := p.fencedCode(data[end:], false); i > 0 {
 					// -1 to compensate for the extra end++ after the loop:
 					end += i - 1
 					break
@@ -936,7 +936,7 @@ func (p *parser) quote(data []byte) int {
 
 	var cooked bytes.Buffer
 	p.block(&cooked, raw.Bytes())
-	p.r.BlockQuote(out, cooked.Bytes())
+	p.r.BlockQuote(cooked.Bytes())
 	return end
 }
 
@@ -988,7 +988,7 @@ func (p *parser) code(data []byte) int {
 
 	work.WriteByte('\n')
 
-	p.r.BlockCode(out, work.Bytes(), "")
+	p.r.BlockCode(work.Bytes(), "")
 
 	return i
 }
@@ -1050,10 +1050,10 @@ func (p *parser) dliPrefix(data []byte) int {
 func (p *parser) list(data []byte, flags ListType) int {
 	i := 0
 	flags |= ListItemBeginningOfList
-	p.r.BeginList(out, flags)
+	p.r.BeginList(flags)
 
 	for i < len(data) {
-		skip := p.listItem(out, data[i:], &flags)
+		skip := p.listItem(data[i:], &flags)
 		i += skip
 		if skip == 0 || flags&ListItemEndOfList != 0 {
 			break
@@ -1061,7 +1061,7 @@ func (p *parser) list(data []byte, flags ListType) int {
 		flags &= ^ListItemBeginningOfList
 	}
 
-	p.r.EndList(out, flags)
+	p.r.EndList(flags)
 	return i
 }
 
@@ -1244,7 +1244,7 @@ gatherlines:
 	for parsedEnd > 0 && cookedBytes[parsedEnd-1] == '\n' {
 		parsedEnd--
 	}
-	p.r.ListItem(out, cookedBytes[:parsedEnd], *flags)
+	p.r.ListItem(cookedBytes[:parsedEnd], *flags)
 
 	return line
 }
@@ -1269,9 +1269,9 @@ func (p *parser) renderParagraph(data []byte) {
 		end--
 	}
 
-	p.r.BeginParagraph(out)
-	p.inline(out, data[beg:end])
-	p.r.EndParagraph(out)
+	p.r.BeginParagraph()
+	p.inline(data[beg:end])
+	p.r.EndParagraph()
 }
 
 func (p *parser) paragraph(data []byte) int {
@@ -1292,11 +1292,11 @@ func (p *parser) paragraph(data []byte) int {
 			// did this blank line followed by a definition list item?
 			if p.flags&DefinitionLists != 0 {
 				if i < len(data)-1 && data[i+1] == ':' {
-					return p.list(out, data[prev:], ListTypeDefinition)
+					return p.list(data[prev:], ListTypeDefinition)
 				}
 			}
 
-			p.renderParagraph(out, data[:i])
+			p.renderParagraph(data[:i])
 			return i + n
 		}
 
@@ -1304,7 +1304,7 @@ func (p *parser) paragraph(data []byte) int {
 		if i > 0 {
 			if level := p.isUnderlinedHeader(current); level > 0 {
 				// render the paragraph
-				p.renderParagraph(out, data[:prev])
+				p.renderParagraph(data[:prev])
 
 				// ignore leading and trailing whitespace
 				eol := i - 1
@@ -1334,23 +1334,23 @@ func (p *parser) paragraph(data []byte) int {
 
 		// if the next line starts a block of HTML, then the paragraph ends here
 		if p.flags&LaxHTMLBlocks != 0 {
-			if data[i] == '<' && p.html(out, current, false) > 0 {
+			if data[i] == '<' && p.html(current, false) > 0 {
 				// rewind to before the HTML block
-				p.renderParagraph(out, data[:i])
+				p.renderParagraph(data[:i])
 				return i
 			}
 		}
 
 		// if there's a prefixed header or a horizontal rule after this, paragraph is over
 		if p.isPrefixHeader(current) || p.isHRule(current) {
-			p.renderParagraph(out, data[:i])
+			p.renderParagraph(data[:i])
 			return i
 		}
 
 		// if there's a fenced code block, paragraph is over
 		if p.flags&FencedCode != 0 {
-			if p.fencedCode(out, current, false) > 0 {
-				p.renderParagraph(out, data[:i])
+			if p.fencedCode(current, false) > 0 {
+				p.renderParagraph(data[:i])
 				return i
 			}
 		}
@@ -1358,7 +1358,7 @@ func (p *parser) paragraph(data []byte) int {
 		// if there's a definition list item, prev line is a definition term
 		if p.flags&DefinitionLists != 0 {
 			if p.dliPrefix(current) != 0 {
-				return p.list(out, data[prev:], ListTypeDefinition)
+				return p.list(data[prev:], ListTypeDefinition)
 			}
 		}
 
@@ -1368,7 +1368,7 @@ func (p *parser) paragraph(data []byte) int {
 				p.oliPrefix(current) != 0 ||
 				p.quotePrefix(current) != 0 ||
 				p.codePrefix(current) != 0 {
-				p.renderParagraph(out, data[:i])
+				p.renderParagraph(data[:i])
 				return i
 			}
 		}
@@ -1380,6 +1380,6 @@ func (p *parser) paragraph(data []byte) int {
 		i++
 	}
 
-	p.renderParagraph(out, data[:i])
+	p.renderParagraph(data[:i])
 	return i
 }
