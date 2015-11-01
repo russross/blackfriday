@@ -160,46 +160,46 @@ var blockTags = map[string]struct{}{
 // Currently Html and Latex implementations are provided
 type Renderer interface {
 	// block-level callbacks
-	BlockCode(out *bytes.Buffer, text []byte, lang string)
-	BlockQuote(out *bytes.Buffer, text []byte)
-	BlockHtml(out *bytes.Buffer, text []byte)
-	BeginHeader(out *bytes.Buffer, level int, id string) int
-	EndHeader(out *bytes.Buffer, level int, id string, tocMarker int)
-	HRule(out *bytes.Buffer)
-	BeginList(out *bytes.Buffer, flags ListType)
-	EndList(out *bytes.Buffer, flags ListType)
-	ListItem(out *bytes.Buffer, text []byte, flags ListType)
-	BeginParagraph(out *bytes.Buffer)
-	EndParagraph(out *bytes.Buffer)
-	Table(out *bytes.Buffer, header []byte, body []byte, columnData []int)
-	TableRow(out *bytes.Buffer, text []byte)
+	BlockCode(text []byte, lang string)
+	BlockQuote(text []byte)
+	BlockHtml(text []byte)
+	BeginHeader(level int, id string) int
+	EndHeader(level int, id string, tocMarker int)
+	HRule()
+	BeginList(flags ListType)
+	EndList(flags ListType)
+	ListItem(text []byte, flags ListType)
+	BeginParagraph()
+	EndParagraph()
+	Table(header []byte, body []byte, columnData []int)
+	TableRow(text []byte)
 	TableHeaderCell(out *bytes.Buffer, text []byte, flags int)
 	TableCell(out *bytes.Buffer, text []byte, flags int)
-	BeginFootnotes(out *bytes.Buffer)
-	EndFootnotes(out *bytes.Buffer)
-	FootnoteItem(out *bytes.Buffer, name, text []byte, flags ListType)
-	TitleBlock(out *bytes.Buffer, text []byte)
+	BeginFootnotes()
+	EndFootnotes()
+	FootnoteItem(name, text []byte, flags ListType)
+	TitleBlock(text []byte)
 
 	// Span-level callbacks
-	AutoLink(out *bytes.Buffer, link []byte, kind LinkType)
-	CodeSpan(out *bytes.Buffer, text []byte)
-	DoubleEmphasis(out *bytes.Buffer, text []byte)
-	Emphasis(out *bytes.Buffer, text []byte)
-	Image(out *bytes.Buffer, link []byte, title []byte, alt []byte)
-	LineBreak(out *bytes.Buffer)
-	Link(out *bytes.Buffer, link []byte, title []byte, content []byte)
-	RawHtmlTag(out *bytes.Buffer, tag []byte)
-	TripleEmphasis(out *bytes.Buffer, text []byte)
-	StrikeThrough(out *bytes.Buffer, text []byte)
-	FootnoteRef(out *bytes.Buffer, ref []byte, id int)
+	AutoLink(link []byte, kind LinkType)
+	CodeSpan(text []byte)
+	DoubleEmphasis(text []byte)
+	Emphasis(text []byte)
+	Image(link []byte, title []byte, alt []byte)
+	LineBreak()
+	Link(link []byte, title []byte, content []byte)
+	RawHtmlTag(tag []byte)
+	TripleEmphasis(text []byte)
+	StrikeThrough(text []byte)
+	FootnoteRef(ref []byte, id int)
 
 	// Low-level callbacks
-	Entity(out *bytes.Buffer, entity []byte)
-	NormalText(out *bytes.Buffer, text []byte)
+	Entity(entity []byte)
+	NormalText(text []byte)
 
 	// Header and footer
-	DocumentHeader(out *bytes.Buffer)
-	DocumentFooter(out *bytes.Buffer)
+	DocumentHeader()
+	DocumentFooter()
 
 	GetFlags() HtmlFlags
 }
