@@ -123,6 +123,7 @@ var blockTags = map[string]bool{
 	"table":      true,
 	"iframe":     true,
 	"script":     true,
+	"style":      true,
 	"fieldset":   true,
 	"noscript":   true,
 	"blockquote": true,
