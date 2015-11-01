@@ -382,7 +382,6 @@ func Parse(input []byte, renderer Renderer, extensions int) *bytes.Buffer {
 // - expand tabs
 // - normalize newlines
 // - copy everything else
-// - add missing newlines before fenced code blocks
 // - include includes
 func firstPass(p *parser, input []byte, depth int) *bytes.Buffer {
 	var out bytes.Buffer
