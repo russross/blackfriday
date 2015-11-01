@@ -22,7 +22,7 @@ import (
 // Parse block-level data.
 // Note: this function and many that it calls assume that
 // the input buffer ends with a newline.
-func (p *parser) block(out *bytes.Buffer, data []byte) {
+func (p *parser) block(data []byte) {
 	if len(data) == 0 || data[len(data)-1] != '\n' {
 		panic("block input is missing terminating newline")
 	}
@@ -206,7 +206,7 @@ func (p *parser) isPrefixHeader(data []byte) bool {
 	return true
 }
 
-func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
+func (p *parser) prefixHeader(data []byte) int {
 	level := 0
 	for level < 6 && data[level] == '#' {
 		level++
@@ -278,7 +278,7 @@ func (p *parser) isUnderlinedHeader(data []byte) int {
 	return 0
 }
 
-func (p *parser) titleBlock(out *bytes.Buffer, data []byte, doRender bool) int {
+func (p *parser) titleBlock(data []byte, doRender bool) int {
 	if data[0] != '%' {
 		return 0
 	}
@@ -297,7 +297,7 @@ func (p *parser) titleBlock(out *bytes.Buffer, data []byte, doRender bool) int {
 	return len(data)
 }
 
-func (p *parser) html(out *bytes.Buffer, data []byte, doRender bool) int {
+func (p *parser) html(data []byte, doRender bool) int {
 	var i, j int
 
 	// identify the opening tag
@@ -396,7 +396,7 @@ func (p *parser) html(out *bytes.Buffer, data []byte, doRender bool) int {
 }
 
 // HTML comment, lax form
-func (p *parser) htmlComment(out *bytes.Buffer, data []byte, doRender bool) int {
+func (p *parser) htmlComment(data []byte, doRender bool) int {
 	i := p.inlineHtmlComment(out, data)
 	// needs to end with a blank line
 	if j := p.isEmpty(data[i:]); j > 0 {
@@ -415,7 +415,7 @@ func (p *parser) htmlComment(out *bytes.Buffer, data []byte, doRender bool) int 
 }
 
 // HR, which is the only self-closing block tag considered
-func (p *parser) htmlHr(out *bytes.Buffer, data []byte, doRender bool) int {
+func (p *parser) htmlHr(data []byte, doRender bool) int {
 	if data[0] != '<' || (data[1] != 'h' && data[1] != 'H') || (data[2] != 'r' && data[2] != 'R') {
 		return 0
 	}
@@ -632,7 +632,7 @@ func (p *parser) isFencedCode(data []byte, syntax **string, oldmarker string) (s
 	return
 }
 
-func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
+func (p *parser) fencedCode(data []byte, doRender bool) int {
 	var lang *string
 	beg, marker := p.isFencedCode(data, &lang, "")
 	if beg == 0 || beg >= len(data) {
@@ -678,7 +678,7 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 	return beg
 }
 
-func (p *parser) table(out *bytes.Buffer, data []byte) int {
+func (p *parser) table(data []byte) int {
 	var header bytes.Buffer
 	i, columns := p.tableHeader(&header, data)
 	if i == 0 {
@@ -902,7 +902,7 @@ func (p *parser) terminateBlockquote(data []byte, beg, end int) bool {
 }
 
 // parse a blockquote fragment
-func (p *parser) quote(out *bytes.Buffer, data []byte) int {
+func (p *parser) quote(data []byte) int {
 	var raw bytes.Buffer
 	beg, end := 0, 0
 	for beg < len(data) {
@@ -948,7 +948,7 @@ func (p *parser) codePrefix(data []byte) int {
 	return 0
 }
 
-func (p *parser) code(out *bytes.Buffer, data []byte) int {
+func (p *parser) code(data []byte) int {
 	var work bytes.Buffer
 
 	i := 0
@@ -1047,7 +1047,7 @@ func (p *parser) dliPrefix(data []byte) int {
 }
 
 // parse ordered or unordered list block
-func (p *parser) list(out *bytes.Buffer, data []byte, flags ListType) int {
+func (p *parser) list(data []byte, flags ListType) int {
 	i := 0
 	flags |= ListItemBeginningOfList
 	p.r.BeginList(out, flags)
@@ -1067,7 +1067,7 @@ func (p *parser) list(out *bytes.Buffer, data []byte, flags ListType) int {
 
 // Parse a single list item.
 // Assumes initial prefix is already removed if this is a sublist.
-func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *ListType) int {
+func (p *parser) listItem(data []byte, flags *ListType) int {
 	// keep track of the indentation of the first line
 	itemIndent := 0
 	for itemIndent < 3 && data[itemIndent] == ' ' {
@@ -1250,7 +1250,7 @@ gatherlines:
 }
 
 // render a single paragraph that has already been parsed out
-func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
+func (p *parser) renderParagraph(data []byte) {
 	if len(data) == 0 {
 		return
 	}
@@ -1274,7 +1274,7 @@ func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 	p.r.EndParagraph(out)
 }
 
-func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
+func (p *parser) paragraph(data []byte) int {
 	// prev: index of 1st char of previous line
 	// line: index of 1st char of current line
 	// i: index of cursor/end of current line

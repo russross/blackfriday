@@ -206,7 +206,7 @@ type Renderer interface {
 
 // Callback functions for inline parsing. One such function is defined
 // for each character that triggers a response when parsing inline data.
-type inlineParser func(p *parser, out *bytes.Buffer, data []byte, offset int) int
+type inlineParser func(p *parser, data []byte, offset int) int
 
 // Parser holds runtime state used by the parser.
 // This is constructed by the Markdown function.

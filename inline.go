@@ -29,7 +29,7 @@ var (
 // data is the complete block being rendered
 // offset is the number of valid chars before the current cursor
 
-func (p *parser) inline(out *bytes.Buffer, data []byte) {
+func (p *parser) inline(data []byte) {
 	// this is called recursively: enforce a maximum depth
 	if p.nesting >= p.maxNesting {
 		return
@@ -99,7 +99,7 @@ func (p *parser) inline(out *bytes.Buffer, data []byte) {
 }
 
 // single and double emphasis parsing
-func emphasis(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+func emphasis(p *parser, data []byte, offset int) int {
 	data = data[offset:]
 	c := data[0]
 	ret := 0
@@ -142,7 +142,7 @@ func emphasis(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	return 0
 }
 
-func codeSpan(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+func codeSpan(p *parser, data []byte, offset int) int {
 	data = data[offset:]
 
 	nb := 0
@@ -188,7 +188,7 @@ func codeSpan(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 }
 
 // newline preceded by two spaces becomes <br>
-func maybeLineBreak(p *parser, out *bytes.Buffer, data []byte, offset int) (int, bool) {
+func maybeLineBreak(p *parser, data []byte, offset int) (int, bool) {
 	origOffset := offset
 	for offset < len(data) && data[offset] == ' ' {
 		offset++
@@ -203,7 +203,7 @@ func maybeLineBreak(p *parser, out *bytes.Buffer, data []byte, offset int) (int,
 }
 
 // newline without two spaces works when HardLineBreak is enabled
-func lineBreak(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+func lineBreak(p *parser, data []byte, offset int) int {
 	if p.flags&HardLineBreak != 0 {
 		p.r.LineBreak(out)
 		return 1
@@ -227,14 +227,14 @@ func isReferenceStyleLink(data []byte, pos int, t linkType) bool {
 	return pos < len(data)-1 && data[pos] == '[' && data[pos+1] != '^'
 }
 
-func maybeImage(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+func maybeImage(p *parser, data []byte, offset int) int {
 	if offset < len(data)-1 && data[offset+1] == '[' {
 		return link(p, out, data, offset)
 	}
 	return 0
 }
 
-func maybeInlineFootnote(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+func maybeInlineFootnote(p *parser, data []byte, offset int) int {
 	if offset < len(data)-1 && data[offset+1] == '[' {
 		return link(p, out, data, offset)
 	}
@@ -242,7 +242,7 @@ func maybeInlineFootnote(p *parser, out *bytes.Buffer, data []byte, offset int) 
 }
 
 // '[': parse a link or an image or a footnote
-func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+func link(p *parser, data []byte, offset int) int {
 	// no links allowed inside regular links, footnote, and deferred footnotes
 	if p.insideLink && (offset > 0 && data[offset-1] == '[' || len(data)-1 > offset && data[offset+1] == '^') {
 		return 0
@@ -595,7 +595,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	return i
 }
 
-func (p *parser) inlineHtmlComment(out *bytes.Buffer, data []byte) int {
+func (p *parser) inlineHtmlComment(data []byte) int {
 	if len(data) < 5 {
 		return 0
 	}
@@ -615,7 +615,7 @@ func (p *parser) inlineHtmlComment(out *bytes.Buffer, data []byte) int {
 }
 
 // '<' when tags or autolinks are allowed
-func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+func leftAngle(p *parser, data []byte, offset int) int {
 	data = data[offset:]
 	altype := LinkTypeNotAutolink
 	end := tagLength(data, &altype)
@@ -640,7 +640,7 @@ func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 // '\\' backslash escape
 var escapeChars = []byte("\\`*_{}[]()#+-.!:|&<>~")
 
-func escape(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+func escape(p *parser, data []byte, offset int) int {
 	data = data[offset:]
 
 	if len(data) > 1 {
@@ -681,7 +681,7 @@ func unescapeText(ob *bytes.Buffer, src []byte) {
 
 // '&' escaped when it doesn't belong to an entity
 // valid entities are assumed to be anything matching &#?[A-Za-z0-9]+;
-func entity(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+func entity(p *parser, data []byte, offset int) int {
 	data = data[offset:]
 
 	end := 1
@@ -710,7 +710,7 @@ func linkEndsWithEntity(data []byte, linkEnd int) bool {
 	return entityRanges != nil && entityRanges[len(entityRanges)-1][1] == linkEnd
 }
 
-func maybeAutoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+func maybeAutoLink(p *parser, data []byte, offset int) int {
 	// quick check to rule out most false hits
 	if p.insideLink || len(data) < offset+6 { // 6 is the len() of the shortest prefix below
 		return 0
@@ -735,7 +735,7 @@ func maybeAutoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	return 0
 }
 
-func autoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+func autoLink(p *parser, data []byte, offset int) int {
 	// Now a more expensive check to see if we're not inside an anchor element
 	anchorStart := offset
 	offsetFromAnchor := 0
@@ -1068,7 +1068,7 @@ func helperFindEmphChar(data []byte, c byte) int {
 	return 0
 }
 
-func helperEmphasis(p *parser, out *bytes.Buffer, data []byte, c byte) int {
+func helperEmphasis(p *parser, data []byte, c byte) int {
 	i := 0
 
 	// skip one symbol if coming from emph3
@@ -1109,7 +1109,7 @@ func helperEmphasis(p *parser, out *bytes.Buffer, data []byte, c byte) int {
 	return 0
 }
 
-func helperDoubleEmphasis(p *parser, out *bytes.Buffer, data []byte, c byte) int {
+func helperDoubleEmphasis(p *parser, data []byte, c byte) int {
 	i := 0
 
 	for i < len(data) {
@@ -1138,7 +1138,7 @@ func helperDoubleEmphasis(p *parser, out *bytes.Buffer, data []byte, c byte) int
 	return 0
 }
 
-func helperTripleEmphasis(p *parser, out *bytes.Buffer, data []byte, offset int, c byte) int {
+func helperTripleEmphasis(p *parser, data []byte, offset int, c byte) int {
 	i := 0
 	origData := data
 	data = data[offset:]
