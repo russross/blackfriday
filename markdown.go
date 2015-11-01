@@ -385,7 +385,6 @@ func MarkdownOptions(input []byte, renderer Renderer, opts Options) []byte {
 // - expand tabs
 // - normalize newlines
 // - copy everything else
-// - add missing newlines before fenced code blocks
 func firstPass(p *parser, input []byte) []byte {
 	var out bytes.Buffer
 	tabSize := TAB_SIZE_DEFAULT
@@ -393,7 +392,6 @@ func firstPass(p *parser, input []byte) []byte {
 		tabSize = TAB_SIZE_EIGHT
 	}
 	beg, end := 0, 0
-	lastLineWasBlank := false
 	lastFencedCodeBlockEnd := 0
 	for beg < len(input) { // iterate over lines
 		if end = isReference(p, input[beg:], tabSize); end > 0 {
@@ -405,16 +403,13 @@ func firstPass(p *parser, input []byte) []byte {
 			}
 
 			if p.flags&EXTENSION_FENCED_CODE != 0 {
-				// when last line was none blank and a fenced code block comes after
+				// track fenced code block boundaries to suppress tab expansion
+				// inside them:
 				if beg >= lastFencedCodeBlockEnd {
 					if i := p.fencedCode(&out, input[beg:], false); i > 0 {
-						if !lastLineWasBlank {
-							out.WriteByte('\n') // need to inject additional linebreak
-						}
 						lastFencedCodeBlockEnd = beg + i
 					}
 				}
-				lastLineWasBlank = end == beg
 			}
 
 			// add the line body if present
