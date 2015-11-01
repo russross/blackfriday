@@ -893,7 +893,7 @@ func (p *parser) quotePrefix(data []byte) int {
 
 // blockquote ends with at least one blank line
 // followed by something without a blockquote prefix
-func terminateBlockquote(p *parser, data []byte, beg, end int) bool {
+func (p *parser) terminateBlockquote(data []byte, beg, end int) bool {
 	if p.isEmpty(data[beg:]) <= 0 {
 		return false
 	}
@@ -927,7 +927,7 @@ func (p *parser) quote(out *bytes.Buffer, data []byte) int {
 		if pre := p.quotePrefix(data[beg:]); pre > 0 {
 			// skip the prefix
 			beg += pre
-		} else if terminateBlockquote(p, data, beg, end) {
+		} else if p.terminateBlockquote(data, beg, end) {
 			break
 		}
 

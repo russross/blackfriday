@@ -385,7 +385,6 @@ func MarkdownOptions(input []byte, renderer Renderer, opts Options) []byte {
 // - expand tabs
 // - normalize newlines
 // - copy everything else
-// - add missing newlines before fenced code blocks
 func firstPass(p *parser, input []byte) []byte {
 	var out bytes.Buffer
 	tabSize := TAB_SIZE_DEFAULT
