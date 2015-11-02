@@ -20,6 +20,7 @@ package blackfriday
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"unicode/utf8"
 )
@@ -514,6 +515,11 @@ type reference struct {
 	noteId   int // 0 if not a footnote ref
 	hasBlock bool
 	text     []byte
+}
+
+func (r *reference) String() string {
+	return fmt.Sprintf("{link: %q, title: %q, text: %q, noteId: %d, hasBlock: %v}",
+		r.link, r.title, r.text, r.noteId, r.hasBlock)
 }
 
 // Check whether or not data starts with a reference link.
