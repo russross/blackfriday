@@ -900,6 +900,7 @@ func TestFencedCodeInsideBlockquotes(t *testing.T) {
 			""),
 		`<blockquote>
 <pre><code class="language-go">package moo
+
 </code></pre>
 </blockquote>
 `,
@@ -914,8 +915,10 @@ func TestFencedCodeInsideBlockquotes(t *testing.T) {
 			""),
 		`<blockquote>
 <p>foo</p>
+
 <pre><code class="language-go">package moo
 </code></pre>
+
 <p>goo.</p>
 </blockquote>
 `,
@@ -928,6 +931,7 @@ func TestFencedCodeInsideBlockquotes(t *testing.T) {
 			""),
 		`<blockquote>
 <p>foo</p>
+
 <p>quote
 continues
 ` + "```" + `</p>
@@ -950,11 +954,15 @@ continues
 			""),
 		`<blockquote>
 <p>foo</p>
+
 <pre><code class="language-go">package moo
 </code></pre>
+
 <p>goo.</p>
+
 <pre><code class="language-go">package zoo
 </code></pre>
+
 <p>woo.</p>
 </blockquote>
 `,
@@ -979,10 +987,12 @@ continues
 	}
 	want := `<blockquote>
 <p>plain quoted text</p>
+
 <pre><code class="language-fenced">code
  with leading single space correctly preserved
 okay
 </code></pre>
+
 <p>rest of quoted text</p>
 </blockquote>
 `
