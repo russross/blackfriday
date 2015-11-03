@@ -96,6 +96,7 @@ type Html struct {
 	headerIDs map[string]int
 
 	smartypants *smartypantsRenderer
+	w           HtmlWriter
 }
 
 const (
@@ -114,6 +115,82 @@ func HtmlRenderer(flags HtmlFlags, title string, css string) Renderer {
 	return HtmlRendererWithParameters(flags, title, css, HtmlRendererParameters{})
 }
 
+type HtmlWriter struct {
+	output      bytes.Buffer
+	captureBuff *bytes.Buffer
+	copyBuff    *bytes.Buffer
+	dirty       bool
+}
+
+func (w *HtmlWriter) Write(p []byte) (n int, err error) {
+	w.dirty = true
+	if w.copyBuff != nil {
+		w.copyBuff.Write(p)
+	}
+	if w.captureBuff != nil {
+		w.captureBuff.Write(p)
+		return
+	}
+	return w.output.Write(p)
+}
+
+func (w *HtmlWriter) WriteString(s string) (n int, err error) {
+	w.dirty = true
+	if w.copyBuff != nil {
+		w.copyBuff.WriteString(s)
+	}
+	if w.captureBuff != nil {
+		w.captureBuff.WriteString(s)
+		return
+	}
+	return w.output.WriteString(s)
+}
+
+func (w *HtmlWriter) WriteByte(b byte) error {
+	w.dirty = true
+	if w.copyBuff != nil {
+		w.copyBuff.WriteByte(b)
+	}
+	if w.captureBuff != nil {
+		return w.captureBuff.WriteByte(b)
+	}
+	return w.output.WriteByte(b)
+}
+
+// Writes out a newline if the output is not pristine. Used at the beginning of
+// every rendering func
+func (w *HtmlWriter) Newline() {
+	if w.dirty {
+		w.WriteByte('\n')
+	}
+}
+
+func (r *Html) CaptureWrites(processor func()) []byte {
+	var output bytes.Buffer
+	// preserve old captureBuff state for possible nested captures:
+	tmp := r.w.captureBuff
+	tmpd := r.w.dirty
+	r.w.captureBuff = &output
+	r.w.dirty = false
+	processor()
+	// restore:
+	r.w.captureBuff = tmp
+	r.w.dirty = tmpd
+	return output.Bytes()
+}
+
+func (r *Html) CopyWrites(processor func()) []byte {
+	var output bytes.Buffer
+	r.w.copyBuff = &output
+	processor()
+	r.w.copyBuff = nil
+	return output.Bytes()
+}
+
+func (r *Html) GetResult() []byte {
+	return r.w.output.Bytes()
+}
+
 func HtmlRendererWithParameters(flags HtmlFlags, title string,
 	css string, renderParameters HtmlRendererParameters) Renderer {
 	// configure the rendering engine
@@ -126,6 +203,7 @@ func HtmlRendererWithParameters(flags HtmlFlags, title string,
 		renderParameters.FootnoteReturnLinkContents = `<sup>[return]</sup>`
 	}
 
+	var writer HtmlWriter
 	return &Html{
 		flags:      flags,
 		closeTag:   closeTag,
@@ -140,6 +218,7 @@ func HtmlRendererWithParameters(flags HtmlFlags, title string,
 		headerIDs: make(map[string]int),
 
 		smartypants: smartypants(flags),
+		w:           writer,
 	}
 }
 

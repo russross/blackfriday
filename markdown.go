@@ -202,6 +202,9 @@ type Renderer interface {
 	DocumentFooter()
 
 	GetFlags() HtmlFlags
+	CaptureWrites(processor func()) []byte
+	CopyWrites(processor func()) []byte
+	GetResult() []byte
 }
 
 // Callback functions for inline parsing. One such function is defined
