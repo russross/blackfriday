@@ -969,6 +969,22 @@ what happens here
 </ol>
 </div>
 `,
+
+	`This is exciting![^fn1]
+
+[^fn1]: Fine print
+`,
+	`<p>This is exciting!<sup class="footnote-ref" id="fnref:fn1"><a rel="footnote" href="#fn:fn1">1</a></sup></p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:fn1">Fine print
+</li>
+</ol>
+</div>
+`,
 }
 
 func TestFootnotes(t *testing.T) {
