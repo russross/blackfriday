@@ -259,17 +259,11 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	// [-@text] == citation, add to reference, but suppress output
 	var t linkType
 	if offset > 0 && data[offset-1] == '!' {
-		if len(data)-1 <= offset {
-			t = linkImg
-		} else {
-			switch data[offset+1] {
-			case '^':
-				// We seen ![^...], this is *not* an image, but a footnote
-				// that will start on the next char.
-				t = linkDeferredFootnote
-			default:
-				t = linkImg
-			}
+		t = linkImg
+		// if footnotes extension is ON and we've seen "![^", then it's not an
+		// image, it's a deferred footnote:
+		if p.flags&EXTENSION_FOOTNOTES != 0 && len(data)-1 > offset && data[offset+1] == '^' {
+			t = linkDeferredFootnote
 		}
 	} else if offset > 0 && data[offset-1] == '@' {
 		t = linkCitation
