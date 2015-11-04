@@ -163,8 +163,8 @@ type Renderer interface {
 	BlockCode(text []byte, lang string)
 	BlockQuote(text []byte)
 	BlockHtml(text []byte)
-	BeginHeader(level int, id string) int
-	EndHeader(level int, id string, tocMarker int)
+	BeginHeader(level int, id string)
+	EndHeader(level int, id string, header []byte)
 	HRule()
 	BeginList(flags ListType)
 	EndList(flags ListType)

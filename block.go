@@ -245,9 +245,11 @@ func (p *parser) prefixHeader(data []byte) int {
 		if id == "" && p.flags&AutoHeaderIDs != 0 {
 			id = sanitized_anchor_name.Create(string(data[i:end]))
 		}
-		tocMarker := p.r.BeginHeader(out, level, id)
-		p.inline(out, data[i:end])
-		p.r.EndHeader(out, level, id, tocMarker)
+		p.r.BeginHeader(level, id)
+		header := p.r.CopyWrites(func() {
+			p.inline(data[i:end])
+		})
+		p.r.EndHeader(level, id, header)
 	}
 	return skip
 }
@@ -1320,9 +1322,11 @@ func (p *parser) paragraph(data []byte) int {
 					id = sanitized_anchor_name.Create(string(data[prev:eol]))
 				}
 
-				tocMarker := p.r.BeginHeader(out, level, id)
-				p.inline(out, data[prev:eol])
-				p.r.EndHeader(out, level, id, tocMarker)
+				p.r.BeginHeader(level, id)
+				header := p.r.CopyWrites(func() {
+					p.inline(data[prev:eol])
+				})
+				p.r.EndHeader(level, id, header)
 
 				// find the end of the underline
 				for data[i] != '\n' {
