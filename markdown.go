@@ -454,8 +454,8 @@ func secondPass(p *parser, input []byte) []byte {
 		p.r.Footnotes(&output, func() bool {
 			flags := LIST_ITEM_BEGINNING_OF_LIST
 			for i := 0; i < len(p.notes); i += 1 {
-				var buf bytes.Buffer
 				ref := p.notes[i]
+				var buf bytes.Buffer
 				if ref.hasBlock {
 					flags |= LIST_ITEM_CONTAINS_BLOCK
 					p.block(&buf, ref.title)
