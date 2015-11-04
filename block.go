@@ -852,13 +852,14 @@ func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header 
 			cellEnd--
 		}
 
-		var cellWork bytes.Buffer
-		p.inline(&cellWork, data[cellStart:cellEnd])
+		cellWork := p.r.CaptureWrites(func() {
+			p.inline(data[cellStart:cellEnd])
+		})
 
 		if header {
-			p.r.TableHeaderCell(&rowWork, cellWork.Bytes(), columns[col])
+			p.r.TableHeaderCell(&rowWork, cellWork, columns[col])
 		} else {
-			p.r.TableCell(&rowWork, cellWork.Bytes(), columns[col])
+			p.r.TableCell(&rowWork, cellWork, columns[col])
 		}
 	}
 
@@ -936,9 +937,9 @@ func (p *parser) quote(data []byte) int {
 		beg = end
 	}
 
-	var cooked bytes.Buffer
-	p.block(&cooked, raw.Bytes())
-	p.r.BlockQuote(cooked.Bytes())
+	p.r.BlockQuote(p.r.CaptureWrites(func() {
+		p.block(raw.Bytes())
+	}))
 	return end
 }
 
@@ -1223,18 +1224,26 @@ gatherlines:
 	if *flags&ListItemContainsBlock != 0 && *flags&ListTypeTerm == 0 {
 		// intermediate render of block item, except for definition term
 		if sublist > 0 {
-			p.block(&cooked, rawBytes[:sublist])
-			p.block(&cooked, rawBytes[sublist:])
+			cooked.Write(p.r.CaptureWrites(func() {
+				p.block(rawBytes[:sublist])
+				p.block(rawBytes[sublist:])
+			}))
 		} else {
-			p.block(&cooked, rawBytes)
+			cooked.Write(p.r.CaptureWrites(func() {
+				p.block(rawBytes)
+			}))
 		}
 	} else {
 		// intermediate render of inline item
 		if sublist > 0 {
-			p.inline(&cooked, rawBytes[:sublist])
-			p.block(&cooked, rawBytes[sublist:])
+			cooked.Write(p.r.CaptureWrites(func() {
+				p.inline(rawBytes[:sublist])
+				p.block(rawBytes[sublist:])
+			}))
 		} else {
-			p.inline(&cooked, rawBytes)
+			cooked.Write(p.r.CaptureWrites(func() {
+				p.inline(rawBytes)
+			}))
 		}
 	}
 

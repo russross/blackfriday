@@ -549,7 +549,9 @@ func link(p *parser, data []byte, offset int) int {
 			// links cannot contain other links, so turn off link parsing temporarily
 			insideLink := p.insideLink
 			p.insideLink = true
-			p.inline(&content, data[1:txtE])
+			content.Write(p.r.CaptureWrites(func() {
+				p.inline(data[1:txtE])
+			}))
 			p.insideLink = insideLink
 		}
 	}
@@ -1099,9 +1101,10 @@ func helperEmphasis(p *parser, data []byte, c byte) int {
 				}
 			}
 
-			var work bytes.Buffer
-			p.inline(&work, data[:i])
-			p.r.Emphasis(work.Bytes())
+			work := p.r.CaptureWrites(func() {
+				p.inline(data[:i])
+			})
+			p.r.Emphasis(work)
 			return i + 1
 		}
 	}
@@ -1121,7 +1124,9 @@ func helperDoubleEmphasis(p *parser, data []byte, c byte) int {
 
 		if i+1 < len(data) && data[i] == c && data[i+1] == c && i > 0 && !isspace(data[i-1]) {
 			var work bytes.Buffer
-			p.inline(&work, data[:i])
+			work.Write(p.r.CaptureWrites(func() {
+				p.inline(data[:i])
+			}))
 
 			if work.Len() > 0 {
 				// pick the right renderer
@@ -1159,8 +1164,9 @@ func helperTripleEmphasis(p *parser, data []byte, offset int, c byte) int {
 		case i+2 < len(data) && data[i+1] == c && data[i+2] == c:
 			// triple symbol found
 			var work bytes.Buffer
-
-			p.inline(&work, data[:i])
+			work.Write(p.r.CaptureWrites(func() {
+				p.inline(data[:i])
+			}))
 			if work.Len() > 0 {
 				p.r.TripleEmphasis(work.Bytes())
 			}
