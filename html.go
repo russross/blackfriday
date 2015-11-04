@@ -242,31 +242,31 @@ func escapeSingleChar(char byte) (string, bool) {
 	return "", false
 }
 
-func attrEscape(src []byte) {
+func (r *Html) attrEscape(src []byte) {
 	org := 0
 	for i, ch := range src {
 		if entity, ok := escapeSingleChar(ch); ok {
 			if i > org {
 				// copy all the normal characters since the last escape
-				out.Write(src[org:i])
+				r.w.Write(src[org:i])
 			}
 			org = i + 1
-			out.WriteString(entity)
+			r.w.WriteString(entity)
 		}
 	}
 	if org < len(src) {
-		out.Write(src[org:])
+		r.w.Write(src[org:])
 	}
 }
 
-func entityEscapeWithSkip(src []byte, skipRanges [][]int) {
+func (r *Html) entityEscapeWithSkip(src []byte, skipRanges [][]int) {
 	end := 0
 	for _, rang := range skipRanges {
-		attrEscape(out, src[end:rang[0]])
-		out.Write(src[rang[0]:rang[1]])
+		r.attrEscape(src[end:rang[0]])
+		r.w.Write(src[rang[0]:rang[1]])
 		end = rang[1]
 	}
-	attrEscape(out, src[end:])
+	r.attrEscape(src[end:])
 }
 
 func (r *Html) GetFlags() HtmlFlags {
@@ -276,13 +276,13 @@ func (r *Html) GetFlags() HtmlFlags {
 func (r *Html) TitleBlock(text []byte) {
 	text = bytes.TrimPrefix(text, []byte("% "))
 	text = bytes.Replace(text, []byte("\n% "), []byte("\n"), -1)
-	out.WriteString("<h1 class=\"title\">")
-	out.Write(text)
-	out.WriteString("\n</h1>")
+	r.w.WriteString("<h1 class=\"title\">")
+	r.w.Write(text)
+	r.w.WriteString("\n</h1>")
 }
 
 func (r *Html) BeginHeader(level int, id string) {
-	doubleSpace(out)
+	r.w.Newline()
 
 	if id == "" && r.flags&Toc != 0 {
 		id = fmt.Sprintf("toc_%d", r.headerCount)
@@ -299,9 +299,9 @@ func (r *Html) BeginHeader(level int, id string) {
 			id = id + r.parameters.HeaderIDSuffix
 		}
 
-		out.WriteString(fmt.Sprintf("<h%d id=\"%s\">", level, id))
+		r.w.WriteString(fmt.Sprintf("<h%d id=\"%s\">", level, id))
 	} else {
-		out.WriteString(fmt.Sprintf("<h%d>", level))
+		r.w.WriteString(fmt.Sprintf("<h%d>", level))
 	}
 }
 
@@ -311,7 +311,7 @@ func (r *Html) EndHeader(level int, id string, header []byte) {
 		r.TocHeaderWithAnchor(header, level, id)
 	}
 
-	out.WriteString(fmt.Sprintf("</h%d>\n", level))
+	r.w.WriteString(fmt.Sprintf("</h%d>\n", level))
 }
 
 func (r *Html) BlockHtml(text []byte) {
@@ -319,20 +319,20 @@ func (r *Html) BlockHtml(text []byte) {
 		return
 	}
 
-	doubleSpace(out)
-	out.Write(text)
-	out.WriteByte('\n')
+	r.w.Newline()
+	r.w.Write(text)
+	r.w.WriteByte('\n')
 }
 
 func (r *Html) HRule() {
-	doubleSpace(out)
-	out.WriteString("<hr")
-	out.WriteString(r.closeTag)
-	out.WriteByte('\n')
+	r.w.Newline()
+	r.w.WriteString("<hr")
+	r.w.WriteString(r.closeTag)
+	r.w.WriteByte('\n')
 }
 
 func (r *Html) BlockCode(text []byte, lang string) {
-	doubleSpace(out)
+	r.w.Newline()
 
 	// parse out the language names/classes
 	count := 0
@@ -344,49 +344,55 @@ func (r *Html) BlockCode(text []byte, lang string) {
 			continue
 		}
 		if count == 0 {
-			out.WriteString("<pre><code class=\"language-")
+			r.w.WriteString("<pre><code class=\"language-")
 		} else {
-			out.WriteByte(' ')
+			r.w.WriteByte(' ')
 		}
-		attrEscape(out, []byte(elt))
+		r.attrEscape([]byte(elt))
 		count++
 	}
 
 	if count == 0 {
-		out.WriteString("<pre><code>")
+		r.w.WriteString("<pre><code>")
 	} else {
-		out.WriteString("\">")
+		r.w.WriteString("\">")
 	}
 
-	attrEscape(out, text)
-	out.WriteString("</code></pre>\n")
+	r.attrEscape(text)
+	r.w.WriteString("</code></pre>\n")
 }
 
 func (r *Html) BlockQuote(text []byte) {
-	doubleSpace(out)
-	out.WriteString("<blockquote>\n")
-	out.Write(text)
-	out.WriteString("</blockquote>\n")
+	r.w.Newline()
+	r.w.WriteString("<blockquote>\n")
+	r.w.Write(text)
+	r.w.WriteString("</blockquote>\n")
 }
 
 func (r *Html) Table(header []byte, body []byte, columnData []int) {
-	doubleSpace(out)
-	out.WriteString("<table>\n<thead>\n")
-	out.Write(header)
-	out.WriteString("</thead>\n\n<tbody>\n")
-	out.Write(body)
-	out.WriteString("</tbody>\n</table>\n")
+	r.w.Newline()
+	r.w.WriteString("<table>\n<thead>\n")
+	r.w.Write(header)
+	r.w.WriteString("</thead>\n\n<tbody>\n")
+	r.w.Write(body)
+	r.w.WriteString("</tbody>\n</table>\n")
 }
 
 func (r *Html) TableRow(text []byte) {
-	doubleSpace(out)
-	out.WriteString("<tr>\n")
-	out.Write(text)
-	out.WriteString("\n</tr>\n")
+	r.w.Newline()
+	r.w.WriteString("<tr>\n")
+	r.w.Write(text)
+	r.w.WriteString("\n</tr>\n")
+}
+
+func leadingNewline(out *bytes.Buffer) {
+	if out.Len() > 0 {
+		out.WriteByte('\n')
+	}
 }
 
 func (r *Html) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
-	doubleSpace(out)
+	leadingNewline(out)
 	switch align {
 	case TableAlignmentLeft:
 		out.WriteString("<th align=\"left\">")
@@ -403,7 +409,7 @@ func (r *Html) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
 }
 
 func (r *Html) TableCell(out *bytes.Buffer, text []byte, align int) {
-	doubleSpace(out)
+	leadingNewline(out)
 	switch align {
 	case TableAlignmentLeft:
 		out.WriteString("<td align=\"left\">")
@@ -420,110 +426,110 @@ func (r *Html) TableCell(out *bytes.Buffer, text []byte, align int) {
 }
 
 func (r *Html) BeginFootnotes() {
-	out.WriteString("<div class=\"footnotes\">\n")
+	r.w.WriteString("<div class=\"footnotes\">\n")
 	r.HRule()
 	r.BeginList(ListTypeOrdered)
 }
 
 func (r *Html) EndFootnotes() {
 	r.EndList(ListTypeOrdered)
-	out.WriteString("</div>\n")
+	r.w.WriteString("</div>\n")
 }
 
 func (r *Html) FootnoteItem(name, text []byte, flags ListType) {
 	if flags&ListItemContainsBlock != 0 || flags&ListItemBeginningOfList != 0 {
-		doubleSpace(out)
+		r.w.Newline()
 	}
 	slug := slugify(name)
-	out.WriteString(`<li id="`)
-	out.WriteString(`fn:`)
-	out.WriteString(r.parameters.FootnoteAnchorPrefix)
-	out.Write(slug)
-	out.WriteString(`">`)
-	out.Write(text)
+	r.w.WriteString(`<li id="`)
+	r.w.WriteString(`fn:`)
+	r.w.WriteString(r.parameters.FootnoteAnchorPrefix)
+	r.w.Write(slug)
+	r.w.WriteString(`">`)
+	r.w.Write(text)
 	if r.flags&FootnoteReturnLinks != 0 {
-		out.WriteString(` <a class="footnote-return" href="#`)
-		out.WriteString(`fnref:`)
-		out.WriteString(r.parameters.FootnoteAnchorPrefix)
-		out.Write(slug)
-		out.WriteString(`">`)
-		out.WriteString(r.parameters.FootnoteReturnLinkContents)
-		out.WriteString(`</a>`)
+		r.w.WriteString(` <a class="footnote-return" href="#`)
+		r.w.WriteString(`fnref:`)
+		r.w.WriteString(r.parameters.FootnoteAnchorPrefix)
+		r.w.Write(slug)
+		r.w.WriteString(`">`)
+		r.w.WriteString(r.parameters.FootnoteReturnLinkContents)
+		r.w.WriteString(`</a>`)
 	}
-	out.WriteString("</li>\n")
+	r.w.WriteString("</li>\n")
 }
 
 func (r *Html) BeginList(flags ListType) {
-	doubleSpace(out)
+	r.w.Newline()
 
 	if flags&ListTypeDefinition != 0 {
-		out.WriteString("<dl>")
+		r.w.WriteString("<dl>")
 	} else if flags&ListTypeOrdered != 0 {
-		out.WriteString("<ol>")
+		r.w.WriteString("<ol>")
 	} else {
-		out.WriteString("<ul>")
+		r.w.WriteString("<ul>")
 	}
 }
 
 func (r *Html) EndList(flags ListType) {
 	if flags&ListTypeDefinition != 0 {
-		out.WriteString("</dl>\n")
+		r.w.WriteString("</dl>\n")
 	} else if flags&ListTypeOrdered != 0 {
-		out.WriteString("</ol>\n")
+		r.w.WriteString("</ol>\n")
 	} else {
-		out.WriteString("</ul>\n")
+		r.w.WriteString("</ul>\n")
 	}
 }
 
 func (r *Html) ListItem(text []byte, flags ListType) {
 	if (flags&ListItemContainsBlock != 0 && flags&ListTypeDefinition == 0) ||
 		flags&ListItemBeginningOfList != 0 {
-		doubleSpace(out)
+		r.w.Newline()
 	}
 	if flags&ListTypeTerm != 0 {
-		out.WriteString("<dt>")
+		r.w.WriteString("<dt>")
 	} else if flags&ListTypeDefinition != 0 {
-		out.WriteString("<dd>")
+		r.w.WriteString("<dd>")
 	} else {
-		out.WriteString("<li>")
+		r.w.WriteString("<li>")
 	}
-	out.Write(text)
+	r.w.Write(text)
 	if flags&ListTypeTerm != 0 {
-		out.WriteString("</dt>\n")
+		r.w.WriteString("</dt>\n")
 	} else if flags&ListTypeDefinition != 0 {
-		out.WriteString("</dd>\n")
+		r.w.WriteString("</dd>\n")
 	} else {
-		out.WriteString("</li>\n")
+		r.w.WriteString("</li>\n")
 	}
 }
 
 func (r *Html) BeginParagraph() {
-	doubleSpace(out)
-	out.WriteString("<p>")
+	r.w.Newline()
+	r.w.WriteString("<p>")
 }
 
 func (r *Html) EndParagraph() {
-	out.WriteString("</p>\n")
+	r.w.WriteString("</p>\n")
 }
 
 func (r *Html) AutoLink(link []byte, kind LinkType) {
 	skipRanges := htmlEntity.FindAllIndex(link, -1)
 	if r.flags&Safelink != 0 && !isSafeLink(link) && kind != LinkTypeEmail {
 		// mark it but don't link it if it is not a safe link: no smartypants
-		out.WriteString("<tt>")
-		entityEscapeWithSkip(out, link, skipRanges)
-		out.WriteString("</tt>")
+		r.w.WriteString("<tt>")
+		r.entityEscapeWithSkip(link, skipRanges)
+		r.w.WriteString("</tt>")
 		return
 	}
 
-	out.WriteString("<a href=\"")
+	r.w.WriteString("<a href=\"")
 	if kind == LinkTypeEmail {
-		out.WriteString("mailto:")
+		r.w.WriteString("mailto:")
 	} else {
-		r.maybeWriteAbsolutePrefix(out, link)
+		r.maybeWriteAbsolutePrefix(link)
 	}
 
-	entityEscapeWithSkip(out, link, skipRanges)
+	r.entityEscapeWithSkip(link, skipRanges)
 
 	var relAttrs []string
 	if r.flags&NofollowLinks != 0 && !isRelativeLink(link) {
@@ -533,57 +539,57 @@ func (r *Html) AutoLink(link []byte, kind LinkType) {
 		relAttrs = append(relAttrs, "noreferrer")
 	}
 	if len(relAttrs) > 0 {
-		out.WriteString(fmt.Sprintf("\" rel=\"%s", strings.Join(relAttrs, " ")))
+		r.w.WriteString(fmt.Sprintf("\" rel=\"%s", strings.Join(relAttrs, " ")))
 	}
 
 	// blank target only add to external link
 	if r.flags&HrefTargetBlank != 0 && !isRelativeLink(link) {
-		out.WriteString("\" target=\"_blank")
+		r.w.WriteString("\" target=\"_blank")
 	}
 
-	out.WriteString("\">")
+	r.w.WriteString("\">")
 
 	// Pretty print: if we get an email address as
 	// an actual URI, e.g. `mailto:foo@bar.com`, we don't
 	// want to print the `mailto:` prefix
 	switch {
 	case bytes.HasPrefix(link, []byte("mailto://")):
-		attrEscape(out, link[len("mailto://"):])
+		r.attrEscape(link[len("mailto://"):])
 	case bytes.HasPrefix(link, []byte("mailto:")):
-		attrEscape(out, link[len("mailto:"):])
+		r.attrEscape(link[len("mailto:"):])
 	default:
-		entityEscapeWithSkip(out, link, skipRanges)
+		r.entityEscapeWithSkip(link, skipRanges)
 	}
 
-	out.WriteString("</a>")
+	r.w.WriteString("</a>")
 }
 
 func (r *Html) CodeSpan(text []byte) {
-	out.WriteString("<code>")
-	attrEscape(out, text)
-	out.WriteString("</code>")
+	r.w.WriteString("<code>")
+	r.attrEscape(text)
+	r.w.WriteString("</code>")
 }
 
 func (r *Html) DoubleEmphasis(text []byte) {
-	out.WriteString("<strong>")
-	out.Write(text)
-	out.WriteString("</strong>")
+	r.w.WriteString("<strong>")
+	r.w.Write(text)
+	r.w.WriteString("</strong>")
 }
 
 func (r *Html) Emphasis(text []byte) {
 	if len(text) == 0 {
 		return
 	}
-	out.WriteString("<em>")
-	out.Write(text)
-	out.WriteString("</em>")
+	r.w.WriteString("<em>")
+	r.w.Write(text)
+	r.w.WriteString("</em>")
 }
 
 func (r *Html) maybeWriteAbsolutePrefix(link []byte) {
 	if r.parameters.AbsolutePrefix != "" && isRelativeLink(link) && link[0] != '.' {
-		out.WriteString(r.parameters.AbsolutePrefix)
+		r.w.WriteString(r.parameters.AbsolutePrefix)
 		if link[0] != '/' {
-			out.WriteByte('/')
+			r.w.WriteByte('/')
 		}
 	}
 }
@@ -593,51 +599,51 @@ func (r *Html) Image(link []byte, title []byte, alt []byte) {
 		return
 	}
 
-	out.WriteString("<img src=\"")
-	r.maybeWriteAbsolutePrefix(out, link)
-	attrEscape(out, link)
-	out.WriteString("\" alt=\"")
+	r.w.WriteString("<img src=\"")
+	r.maybeWriteAbsolutePrefix(link)
+	r.attrEscape(link)
+	r.w.WriteString("\" alt=\"")
 	if len(alt) > 0 {
-		attrEscape(out, alt)
+		r.attrEscape(alt)
 	}
 	if len(title) > 0 {
-		out.WriteString("\" title=\"")
-		attrEscape(out, title)
+		r.w.WriteString("\" title=\"")
+		r.attrEscape(title)
 	}
 
-	out.WriteByte('"')
-	out.WriteString(r.closeTag)
+	r.w.WriteByte('"')
+	r.w.WriteString(r.closeTag)
 }
 
 func (r *Html) LineBreak() {
-	out.WriteString("<br")
-	out.WriteString(r.closeTag)
-	out.WriteByte('\n')
+	r.w.WriteString("<br")
+	r.w.WriteString(r.closeTag)
+	r.w.WriteByte('\n')
 }
 
 func (r *Html) Link(link []byte, title []byte, content []byte) {
 	if r.flags&SkipLinks != 0 {
 		// write the link text out but don't link it, just mark it with typewriter font
-		out.WriteString("<tt>")
-		attrEscape(out, content)
-		out.WriteString("</tt>")
+		r.w.WriteString("<tt>")
+		r.attrEscape(content)
+		r.w.WriteString("</tt>")
 		return
 	}
 
 	if r.flags&Safelink != 0 && !isSafeLink(link) {
 		// write the link text out but don't link it, just mark it with typewriter font
-		out.WriteString("<tt>")
-		attrEscape(out, content)
-		out.WriteString("</tt>")
+		r.w.WriteString("<tt>")
+		r.attrEscape(content)
+		r.w.WriteString("</tt>")
 		return
 	}
 
-	out.WriteString("<a href=\"")
-	r.maybeWriteAbsolutePrefix(out, link)
-	attrEscape(out, link)
+	r.w.WriteString("<a href=\"")
+	r.maybeWriteAbsolutePrefix(link)
+	r.attrEscape(link)
 	if len(title) > 0 {
-		out.WriteString("\" title=\"")
-		attrEscape(out, title)
+		r.w.WriteString("\" title=\"")
+		r.attrEscape(title)
 	}
 	var relAttrs []string
 	if r.flags&NofollowLinks != 0 && !isRelativeLink(link) {
@@ -647,17 +653,17 @@ func (r *Html) Link(link []byte, title []byte, content []byte) {
 		relAttrs = append(relAttrs, "noreferrer")
 	}
 	if len(relAttrs) > 0 {
-		out.WriteString(fmt.Sprintf("\" rel=\"%s", strings.Join(relAttrs, " ")))
+		r.w.WriteString(fmt.Sprintf("\" rel=\"%s", strings.Join(relAttrs, " ")))
 	}
 
 	// blank target only add to external link
 	if r.flags&HrefTargetBlank != 0 && !isRelativeLink(link) {
-		out.WriteString("\" target=\"_blank")
+		r.w.WriteString("\" target=\"_blank")
 	}
 
-	out.WriteString("\">")
-	out.Write(content)
-	out.WriteString("</a>")
+	r.w.WriteString("\">")
+	r.w.Write(content)
+	r.w.WriteString("</a>")
 	return
 }
 
@@ -674,45 +680,45 @@ func (r *Html) RawHtmlTag(text []byte) {
 	if r.flags&SkipImages != 0 && isHtmlTag(text, "img") {
 		return
 	}
-	out.Write(text)
+	r.w.Write(text)
 }
 
 func (r *Html) TripleEmphasis(text []byte) {
-	out.WriteString("<strong><em>")
-	out.Write(text)
-	out.WriteString("</em></strong>")
+	r.w.WriteString("<strong><em>")
+	r.w.Write(text)
+	r.w.WriteString("</em></strong>")
 }
 
 func (r *Html) StrikeThrough(text []byte) {
-	out.WriteString("<del>")
-	out.Write(text)
-	out.WriteString("</del>")
+	r.w.WriteString("<del>")
+	r.w.Write(text)
+	r.w.WriteString("</del>")
 }
 
 func (r *Html) FootnoteRef(ref []byte, id int) {
 	slug := slugify(ref)
-	out.WriteString(`<sup class="footnote-ref" id="`)
-	out.WriteString(`fnref:`)
-	out.WriteString(r.parameters.FootnoteAnchorPrefix)
-	out.Write(slug)
-	out.WriteString(`"><a rel="footnote" href="#`)
-	out.WriteString(`fn:`)
-	out.WriteString(r.parameters.FootnoteAnchorPrefix)
-	out.Write(slug)
-	out.WriteString(`">`)
-	out.WriteString(strconv.Itoa(id))
-	out.WriteString(`</a></sup>`)
+	r.w.WriteString(`<sup class="footnote-ref" id="`)
+	r.w.WriteString(`fnref:`)
+	r.w.WriteString(r.parameters.FootnoteAnchorPrefix)
+	r.w.Write(slug)
+	r.w.WriteString(`"><a rel="footnote" href="#`)
+	r.w.WriteString(`fn:`)
+	r.w.WriteString(r.parameters.FootnoteAnchorPrefix)
+	r.w.Write(slug)
+	r.w.WriteString(`">`)
+	r.w.WriteString(strconv.Itoa(id))
+	r.w.WriteString(`</a></sup>`)
 }
 
 func (r *Html) Entity(entity []byte) {
-	out.Write(entity)
+	r.w.Write(entity)
 }
 
 func (r *Html) NormalText(text []byte) {
 	if r.flags&UseSmartypants != 0 {
-		r.Smartypants(out, text)
+		r.Smartypants(text)
 	} else {
-		attrEscape(out, text)
+		r.attrEscape(text)
 	}
 }
 
@@ -720,28 +726,30 @@ func (r *Html) Smartypants(text []byte) {
 	smrt := smartypantsData{false, false}
 
 	// first do normal entity escaping
-	var escaped bytes.Buffer
-	attrEscape(&escaped, text)
-	text = escaped.Bytes()
+	text = r.CaptureWrites(func() {
+		r.attrEscape(text)
+	})
 
 	mark := 0
 	for i := 0; i < len(text); i++ {
 		if action := r.smartypants[text[i]]; action != nil {
 			if i > mark {
-				out.Write(text[mark:i])
+				r.w.Write(text[mark:i])
 			}
 
 			previousChar := byte(0)
 			if i > 0 {
 				previousChar = text[i-1]
 			}
-			i += action(out, &smrt, previousChar, text[i:])
+			var tmp bytes.Buffer
+			i += action(&tmp, &smrt, previousChar, text[i:])
+			r.w.Write(tmp.Bytes())
 			mark = i + 1
 		}
 	}
 
 	if mark < len(text) {
-		out.Write(text[mark:])
+		r.w.Write(text[mark:])
 	}
 }
 
@@ -752,35 +760,35 @@ func (r *Html) DocumentHeader() {
 
 	ending := ""
 	if r.flags&UseXHTML != 0 {
-		out.WriteString("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" ")
-		out.WriteString("\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n")
-		out.WriteString("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n")
+		r.w.WriteString("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" ")
+		r.w.WriteString("\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n")
+		r.w.WriteString("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n")
 		ending = " /"
 	} else {
-		out.WriteString("<!DOCTYPE html>\n")
-		out.WriteString("<html>\n")
+		r.w.WriteString("<!DOCTYPE html>\n")
+		r.w.WriteString("<html>\n")
 	}
-	out.WriteString("<head>\n")
-	out.WriteString("  <title>")
+	r.w.WriteString("<head>\n")
+	r.w.WriteString("  <title>")
 	r.NormalText([]byte(r.title))
-	out.WriteString("</title>\n")
-	out.WriteString("  <meta name=\"GENERATOR\" content=\"Blackfriday Markdown Processor v")
-	out.WriteString(VERSION)
-	out.WriteString("\"")
-	out.WriteString(ending)
-	out.WriteString(">\n")
-	out.WriteString("  <meta charset=\"utf-8\"")
-	out.WriteString(ending)
-	out.WriteString(">\n")
+	r.w.WriteString("</title>\n")
+	r.w.WriteString("  <meta name=\"GENERATOR\" content=\"Blackfriday Markdown Processor v")
+	r.w.WriteString(VERSION)
+	r.w.WriteString("\"")
+	r.w.WriteString(ending)
+	r.w.WriteString(">\n")
+	r.w.WriteString("  <meta charset=\"utf-8\"")
+	r.w.WriteString(ending)
+	r.w.WriteString(">\n")
 	if r.css != "" {
-		out.WriteString("  <link rel=\"stylesheet\" type=\"text/css\" href=\"")
-		attrEscape(out, []byte(r.css))
-		out.WriteString("\"")
-		out.WriteString(ending)
-		out.WriteString(">\n")
+		r.w.WriteString("  <link rel=\"stylesheet\" type=\"text/css\" href=\"")
+		r.attrEscape([]byte(r.css))
+		r.w.WriteString("\"")
+		r.w.WriteString(ending)
+		r.w.WriteString(">\n")
 	}
-	out.WriteString("</head>\n")
-	out.WriteString("<body>\n")
+	r.w.WriteString("</head>\n")
+	r.w.WriteString("<body>\n")
 
 	r.tocMarker = out.Len()
 }
@@ -801,28 +809,28 @@ func (r *Html) DocumentFooter() {
 
 		// corner case spacing issue
 		if r.flags&CompletePage != 0 {
-			out.WriteByte('\n')
+			r.w.WriteByte('\n')
 		}
 
 		// insert the table of contents
-		out.WriteString("<nav>\n")
-		out.Write(r.toc.Bytes())
-		out.WriteString("</nav>\n")
+		r.w.WriteString("<nav>\n")
+		r.w.Write(r.toc.Bytes())
+		r.w.WriteString("</nav>\n")
 
 		// corner case spacing issue
 		if r.flags&CompletePage == 0 && r.flags&OmitContents == 0 {
-			out.WriteByte('\n')
+			r.w.WriteByte('\n')
 		}
 
 		// write out everything that came after it
 		if r.flags&OmitContents == 0 {
-			out.Write(temp.Bytes())
+			r.w.Write(temp.Bytes())
 		}
 	}
 
 	if r.flags&CompletePage != 0 {
-		out.WriteString("\n</body>\n")
-		out.WriteString("</html>\n")
+		r.w.WriteString("\n</body>\n")
+		r.w.WriteString("</html>\n")
 	}
 
 }
@@ -968,12 +976,6 @@ func skipChar(data []byte, start int, char byte) int {
 		i++
 	}
 	return i
-}
-
-func doubleSpace(out *bytes.Buffer) {
-	if out.Len() > 0 {
-		out.WriteByte('\n')
-	}
 }
 
 func isRelativeLink(link []byte) (yes bool) {
