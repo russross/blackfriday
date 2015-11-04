@@ -1000,6 +1000,33 @@ func TestFootnotesWithParameters(t *testing.T) {
 	doTestsInlineParam(t, tests, Options{Extensions: EXTENSION_FOOTNOTES}, HTML_FOOTNOTE_RETURN_LINKS, params)
 }
 
+func TestNestedFootnotes(t *testing.T) {
+	var tests = []string{
+		`Paragraph.[^fn1]
+
+[^fn1]:
+  Asterisk[^fn2]
+
+[^fn2]:
+  Obelisk`,
+		`<p>Paragraph.<sup class="footnote-ref" id="fnref:fn1"><a rel="footnote" href="#fn:fn1">1</a></sup></p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:fn1">Asterisk<sup class="footnote-ref" id="fnref:fn2"><a rel="footnote" href="#fn:fn2">2</a></sup>
+</li>
+<li id="fn:fn2">Obelisk
+</li>
+</ol>
+</div>
+`,
+	}
+	doTestsInlineParam(t, tests, Options{Extensions: EXTENSION_FOOTNOTES}, 0,
+		HtmlRendererParameters{})
+}
+
 func TestInlineComments(t *testing.T) {
 	var tests = []string{
 		"Hello <!-- there ->\n",
