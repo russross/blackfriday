@@ -424,7 +424,7 @@ func firstPass(p *parser, input []byte) []byte {
 				// track fenced code block boundaries to suppress tab expansion
 				// inside them:
 				if beg >= lastFencedCodeBlockEnd {
-					if i := p.fencedCode(&out, input[beg:], false); i > 0 {
+					if i := p.fencedCode(input[beg:], false); i > 0 {
 						lastFencedCodeBlockEnd = beg + i
 					}
 				}
@@ -461,36 +461,38 @@ func firstPass(p *parser, input []byte) []byte {
 
 // second pass: actual rendering
 func secondPass(p *parser, input []byte) []byte {
-	var output bytes.Buffer
-
-	p.r.DocumentHeader(&output)
-	p.block(&output, input)
+	p.r.DocumentHeader()
+	p.block(input)
 
 	if p.flags&Footnotes != 0 && len(p.notes) > 0 {
-		p.r.BeginFootnotes(&output)
+		p.r.BeginFootnotes()
 		flags := ListItemBeginningOfList
 		for i := 0; i < len(p.notes); i += 1 {
 			ref := p.notes[i]
 			var buf bytes.Buffer
 			if ref.hasBlock {
 				flags |= ListItemContainsBlock
-				p.block(&buf, ref.title)
+				buf.Write(p.r.CaptureWrites(func() {
+					p.block(ref.title)
+				}))
 			} else {
-				p.inline(&buf, ref.title)
+				buf.Write(p.r.CaptureWrites(func() {
+					p.inline(ref.title)
+				}))
 			}
-			p.r.FootnoteItem(&output, ref.link, buf.Bytes(), flags)
+			p.r.FootnoteItem(ref.link, buf.Bytes(), flags)
 			flags &^= ListItemBeginningOfList | ListItemContainsBlock
 		}
-		p.r.EndFootnotes(&output)
+		p.r.EndFootnotes()
 	}
 
-	p.r.DocumentFooter(&output)
+	p.r.DocumentFooter()
 
 	if p.nesting != 0 {
 		panic("Nesting level did not end at zero")
 	}
 
-	return output.Bytes()
+	return p.r.GetResult()
 }
 
 //
