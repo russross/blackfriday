@@ -23,6 +23,7 @@ import (
 //
 // Do not create this directly, instead use the LatexRenderer function.
 type Latex struct {
+	w HtmlWriter
 }
 
 // LatexRenderer creates and configures a Latex object, which
@@ -31,7 +32,36 @@ type Latex struct {
 // flags is a set of LATEX_* options ORed together (currently no such options
 // are defined).
 func LatexRenderer(flags int) Renderer {
-	return &Latex{}
+	var writer HtmlWriter
+	return &Latex{
+		w: writer,
+	}
+}
+
+func (r *Latex) CaptureWrites(processor func()) []byte {
+	var output bytes.Buffer
+	// preserve old captureBuff state for possible nested captures:
+	tmp := r.w.captureBuff
+	tmpd := r.w.dirty
+	r.w.captureBuff = &output
+	r.w.dirty = false
+	processor()
+	// restore:
+	r.w.captureBuff = tmp
+	r.w.dirty = tmpd
+	return output.Bytes()
+}
+
+func (r *Latex) CopyWrites(processor func()) []byte {
+	var output bytes.Buffer
+	r.w.copyBuff = &output
+	processor()
+	r.w.copyBuff = nil
+	return output.Bytes()
+}
+
+func (r *Latex) GetResult() []byte {
+	return r.w.output.Bytes()
 }
 
 func (r *Latex) GetFlags() HtmlFlags {
@@ -41,17 +71,17 @@ func (r *Latex) GetFlags() HtmlFlags {
 // render code chunks using verbatim, or listings if we have a language
 func (r *Latex) BlockCode(text []byte, lang string) {
 	if lang == "" {
-		out.WriteString("\n\\begin{verbatim}\n")
+		r.w.WriteString("\n\\begin{verbatim}\n")
 	} else {
-		out.WriteString("\n\\begin{lstlisting}[language=")
-		out.WriteString(lang)
-		out.WriteString("]\n")
+		r.w.WriteString("\n\\begin{lstlisting}[language=")
+		r.w.WriteString(lang)
+		r.w.WriteString("]\n")
 	}
-	out.Write(text)
+	r.w.Write(text)
 	if lang == "" {
-		out.WriteString("\n\\end{verbatim}\n")
+		r.w.WriteString("\n\\end{verbatim}\n")
 	} else {
-		out.WriteString("\n\\end{lstlisting}\n")
+		r.w.WriteString("\n\\end{lstlisting}\n")
 	}
 }
 
@@ -60,96 +90,96 @@ func (r *Latex) TitleBlock(text []byte) {
 }
 
 func (r *Latex) BlockQuote(text []byte) {
-	out.WriteString("\n\\begin{quotation}\n")
-	out.Write(text)
-	out.WriteString("\n\\end{quotation}\n")
+	r.w.WriteString("\n\\begin{quotation}\n")
+	r.w.Write(text)
+	r.w.WriteString("\n\\end{quotation}\n")
 }
 
 func (r *Latex) BlockHtml(text []byte) {
 	// a pretty lame thing to do...
-	out.WriteString("\n\\begin{verbatim}\n")
-	out.Write(text)
-	out.WriteString("\n\\end{verbatim}\n")
+	r.w.WriteString("\n\\begin{verbatim}\n")
+	r.w.Write(text)
+	r.w.WriteString("\n\\end{verbatim}\n")
 }
 
 func (r *Latex) BeginHeader(level int, id string) {
 	switch level {
 	case 1:
-		out.WriteString("\n\\section{")
+		r.w.WriteString("\n\\section{")
 	case 2:
-		out.WriteString("\n\\subsection{")
+		r.w.WriteString("\n\\subsection{")
 	case 3:
-		out.WriteString("\n\\subsubsection{")
+		r.w.WriteString("\n\\subsubsection{")
 	case 4:
-		out.WriteString("\n\\paragraph{")
+		r.w.WriteString("\n\\paragraph{")
 	case 5:
-		out.WriteString("\n\\subparagraph{")
+		r.w.WriteString("\n\\subparagraph{")
 	case 6:
-		out.WriteString("\n\\textbf{")
+		r.w.WriteString("\n\\textbf{")
 	}
 }
 
 func (r *Latex) EndHeader(level int, id string, header []byte) {
-	out.WriteString("}\n")
+	r.w.WriteString("}\n")
 }
 
 func (r *Latex) HRule() {
-	out.WriteString("\n\\HRule\n")
+	r.w.WriteString("\n\\HRule\n")
 }
 
 func (r *Latex) BeginList(flags ListType) {
 	if flags&ListTypeOrdered != 0 {
-		out.WriteString("\n\\begin{enumerate}\n")
+		r.w.WriteString("\n\\begin{enumerate}\n")
 	} else {
-		out.WriteString("\n\\begin{itemize}\n")
+		r.w.WriteString("\n\\begin{itemize}\n")
 	}
 }
 
 func (r *Latex) EndList(flags ListType) {
 	if flags&ListTypeOrdered != 0 {
-		out.WriteString("\n\\end{enumerate}\n")
+		r.w.WriteString("\n\\end{enumerate}\n")
 	} else {
-		out.WriteString("\n\\end{itemize}\n")
+		r.w.WriteString("\n\\end{itemize}\n")
 	}
 }
 
 func (r *Latex) ListItem(text []byte, flags ListType) {
-	out.WriteString("\n\\item ")
-	out.Write(text)
+	r.w.WriteString("\n\\item ")
+	r.w.Write(text)
 }
 
 func (r *Latex) BeginParagraph() {
-	out.WriteString("\n")
+	r.w.WriteString("\n")
 }
 
 func (r *Latex) EndParagraph() {
-	out.WriteString("\n")
+	r.w.WriteString("\n")
 }
 
 func (r *Latex) Table(header []byte, body []byte, columnData []int) {
-	out.WriteString("\n\\begin{tabular}{")
+	r.w.WriteString("\n\\begin{tabular}{")
 	for _, elt := range columnData {
 		switch elt {
 		case TableAlignmentLeft:
-			out.WriteByte('l')
+			r.w.WriteByte('l')
 		case TableAlignmentRight:
-			out.WriteByte('r')
+			r.w.WriteByte('r')
 		default:
-			out.WriteByte('c')
+			r.w.WriteByte('c')
 		}
 	}
-	out.WriteString("}\n")
-	out.Write(header)
-	out.WriteString(" \\\\\n\\hline\n")
-	out.Write(body)
-	out.WriteString("\n\\end{tabular}\n")
+	r.w.WriteString("}\n")
+	r.w.Write(header)
+	r.w.WriteString(" \\\\\n\\hline\n")
+	r.w.Write(body)
+	r.w.WriteString("\n\\end{tabular}\n")
 }
 
 func (r *Latex) TableRow(text []byte) {
-	if out.Len() > 0 {
-		out.WriteString(" \\\\\n")
+	if r.w.dirty {
+		r.w.WriteString(" \\\\\n")
 	}
-	out.Write(text)
+	r.w.Write(text)
 }
 
 func (r *Latex) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
@@ -179,74 +209,74 @@ func (r *Latex) FootnoteItem(name, text []byte, flags ListType) {
 }
 
 func (r *Latex) AutoLink(link []byte, kind LinkType) {
-	out.WriteString("\\href{")
+	r.w.WriteString("\\href{")
 	if kind == LinkTypeEmail {
-		out.WriteString("mailto:")
+		r.w.WriteString("mailto:")
 	}
-	out.Write(link)
-	out.WriteString("}{")
-	out.Write(link)
-	out.WriteString("}")
+	r.w.Write(link)
+	r.w.WriteString("}{")
+	r.w.Write(link)
+	r.w.WriteString("}")
 }
 
 func (r *Latex) CodeSpan(text []byte) {
-	out.WriteString("\\texttt{")
-	escapeSpecialChars(out, text)
-	out.WriteString("}")
+	r.w.WriteString("\\texttt{")
+	r.escapeSpecialChars(text)
+	r.w.WriteString("}")
 }
 
 func (r *Latex) DoubleEmphasis(text []byte) {
-	out.WriteString("\\textbf{")
-	out.Write(text)
-	out.WriteString("}")
+	r.w.WriteString("\\textbf{")
+	r.w.Write(text)
+	r.w.WriteString("}")
 }
 
 func (r *Latex) Emphasis(text []byte) {
-	out.WriteString("\\textit{")
-	out.Write(text)
-	out.WriteString("}")
+	r.w.WriteString("\\textit{")
+	r.w.Write(text)
+	r.w.WriteString("}")
 }
 
 func (r *Latex) Image(link []byte, title []byte, alt []byte) {
 	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
 		// treat it like a link
-		out.WriteString("\\href{")
-		out.Write(link)
-		out.WriteString("}{")
-		out.Write(alt)
-		out.WriteString("}")
+		r.w.WriteString("\\href{")
+		r.w.Write(link)
+		r.w.WriteString("}{")
+		r.w.Write(alt)
+		r.w.WriteString("}")
 	} else {
-		out.WriteString("\\includegraphics{")
-		out.Write(link)
-		out.WriteString("}")
+		r.w.WriteString("\\includegraphics{")
+		r.w.Write(link)
+		r.w.WriteString("}")
 	}
 }
 
 func (r *Latex) LineBreak() {
-	out.WriteString(" \\\\\n")
+	r.w.WriteString(" \\\\\n")
 }
 
 func (r *Latex) Link(link []byte, title []byte, content []byte) {
-	out.WriteString("\\href{")
-	out.Write(link)
-	out.WriteString("}{")
-	out.Write(content)
-	out.WriteString("}")
+	r.w.WriteString("\\href{")
+	r.w.Write(link)
+	r.w.WriteString("}{")
+	r.w.Write(content)
+	r.w.WriteString("}")
 }
 
 func (r *Latex) RawHtmlTag(tag []byte) {
 }
 
 func (r *Latex) TripleEmphasis(text []byte) {
-	out.WriteString("\\textbf{\\textit{")
-	out.Write(text)
-	out.WriteString("}}")
+	r.w.WriteString("\\textbf{\\textit{")
+	r.w.Write(text)
+	r.w.WriteString("}}")
 }
 
 func (r *Latex) StrikeThrough(text []byte) {
-	out.WriteString("\\sout{")
-	out.Write(text)
-	out.WriteString("}")
+	r.w.WriteString("\\sout{")
+	r.w.Write(text)
+	r.w.WriteString("}")
 }
 
 // TODO: this
@@ -262,7 +292,7 @@ func needsBackslash(c byte) bool {
 	return false
 }
 
-func escapeSpecialChars(text []byte) {
+func (r *Latex) escapeSpecialChars(text []byte) {
 	for i := 0; i < len(text); i++ {
 		// directly copy normal characters
 		org := i
@@ -271,57 +301,57 @@ func escapeSpecialChars(text []byte) {
 			i++
 		}
 		if i > org {
-			out.Write(text[org:i])
+			r.w.Write(text[org:i])
 		}
 
 		// escape a character
 		if i >= len(text) {
 			break
 		}
-		out.WriteByte('\\')
-		out.WriteByte(text[i])
+		r.w.WriteByte('\\')
+		r.w.WriteByte(text[i])
 	}
 }
 
 func (r *Latex) Entity(entity []byte) {
 	// TODO: convert this into a unicode character or something
-	out.Write(entity)
+	r.w.Write(entity)
 }
 
 func (r *Latex) NormalText(text []byte) {
-	escapeSpecialChars(out, text)
+	r.escapeSpecialChars(text)
 }
 
 // header and footer
 func (r *Latex) DocumentHeader() {
-	out.WriteString("\\documentclass{article}\n")
-	out.WriteString("\n")
-	out.WriteString("\\usepackage{graphicx}\n")
-	out.WriteString("\\usepackage{listings}\n")
-	out.WriteString("\\usepackage[margin=1in]{geometry}\n")
-	out.WriteString("\\usepackage[utf8]{inputenc}\n")
-	out.WriteString("\\usepackage{verbatim}\n")
-	out.WriteString("\\usepackage[normalem]{ulem}\n")
-	out.WriteString("\\usepackage{hyperref}\n")
-	out.WriteString("\n")
-	out.WriteString("\\hypersetup{colorlinks,%\n")
-	out.WriteString("  citecolor=black,%\n")
-	out.WriteString("  filecolor=black,%\n")
-	out.WriteString("  linkcolor=black,%\n")
-	out.WriteString("  urlcolor=black,%\n")
-	out.WriteString("  pdfstartview=FitH,%\n")
-	out.WriteString("  breaklinks=true,%\n")
-	out.WriteString("  pdfauthor={Blackfriday Markdown Processor v")
-	out.WriteString(VERSION)
-	out.WriteString("}}\n")
-	out.WriteString("\n")
-	out.WriteString("\\newcommand{\\HRule}{\\rule{\\linewidth}{0.5mm}}\n")
-	out.WriteString("\\addtolength{\\parskip}{0.5\\baselineskip}\n")
-	out.WriteString("\\parindent=0pt\n")
-	out.WriteString("\n")
-	out.WriteString("\\begin{document}\n")
+	r.w.WriteString("\\documentclass{article}\n")
+	r.w.WriteString("\n")
+	r.w.WriteString("\\usepackage{graphicx}\n")
+	r.w.WriteString("\\usepackage{listings}\n")
+	r.w.WriteString("\\usepackage[margin=1in]{geometry}\n")
+	r.w.WriteString("\\usepackage[utf8]{inputenc}\n")
+	r.w.WriteString("\\usepackage{verbatim}\n")
+	r.w.WriteString("\\usepackage[normalem]{ulem}\n")
+	r.w.WriteString("\\usepackage{hyperref}\n")
+	r.w.WriteString("\n")
+	r.w.WriteString("\\hypersetup{colorlinks,%\n")
+	r.w.WriteString("  citecolor=black,%\n")
+	r.w.WriteString("  filecolor=black,%\n")
+	r.w.WriteString("  linkcolor=black,%\n")
+	r.w.WriteString("  urlcolor=black,%\n")
+	r.w.WriteString("  pdfstartview=FitH,%\n")
+	r.w.WriteString("  breaklinks=true,%\n")
+	r.w.WriteString("  pdfauthor={Blackfriday Markdown Processor v")
+	r.w.WriteString(VERSION)
+	r.w.WriteString("}}\n")
+	r.w.WriteString("\n")
+	r.w.WriteString("\\newcommand{\\HRule}{\\rule{\\linewidth}{0.5mm}}\n")
+	r.w.WriteString("\\addtolength{\\parskip}{0.5\\baselineskip}\n")
+	r.w.WriteString("\\parindent=0pt\n")
+	r.w.WriteString("\n")
+	r.w.WriteString("\\begin{document}\n")
 }
 
 func (r *Latex) DocumentFooter() {
-	out.WriteString("\n\\end{document}\n")
+	r.w.WriteString("\n\\end{document}\n")
 }
