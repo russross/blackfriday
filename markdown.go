@@ -130,6 +130,7 @@ var blockTags = map[string]bool{
 	"ul":         true,
 
 	// HTML5
+	"address":    true,
 	"article":    true,
 	"aside":      true,
 	"canvas":     true,
@@ -138,6 +139,8 @@ var blockTags = map[string]bool{
 	"footer":     true,
 	"header":     true,
 	"hgroup":     true,
+	"main":       true,
+	"nav":        true,
 	"output":     true,
 	"progress":   true,
 	"section":    true,
