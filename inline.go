@@ -748,7 +748,7 @@ func autoLink(p *parser, data []byte, offset int) int {
 
 	anchorStr := anchorRe.Find(data[anchorStart:])
 	if anchorStr != nil {
-		out.Write(anchorStr[offsetFromAnchor:]) // XXX: write in parser?
+		p.r.Write(anchorStr[offsetFromAnchor:]) // XXX: write in parser?
 		return len(anchorStr) - offsetFromAnchor
 	}
 

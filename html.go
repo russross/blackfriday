@@ -187,6 +187,10 @@ func (r *Html) CopyWrites(processor func()) []byte {
 	return output.Bytes()
 }
 
+func (r *Html) Write(b []byte) (int, error) {
+	return r.w.Write(b)
+}
+
 func (r *Html) GetResult() []byte {
 	return r.w.output.Bytes()
 }

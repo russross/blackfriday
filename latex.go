@@ -60,6 +60,10 @@ func (r *Latex) CopyWrites(processor func()) []byte {
 	return output.Bytes()
 }
 
+func (r *Latex) Write(b []byte) (int, error) {
+	return r.w.Write(b)
+}
+
 func (r *Latex) GetResult() []byte {
 	return r.w.output.Bytes()
 }
