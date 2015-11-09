@@ -689,23 +689,25 @@ func (p *parser) table(data []byte) int {
 
 	var body bytes.Buffer
 
-	for i < len(data) {
-		pipes, rowStart := 0, i
-		for ; data[i] != '\n'; i++ {
-			if data[i] == '|' {
-				pipes++
+	body.Write(p.r.CaptureWrites(func() {
+		for i < len(data) {
+			pipes, rowStart := 0, i
+			for ; data[i] != '\n'; i++ {
+				if data[i] == '|' {
+					pipes++
+				}
 			}
-		}
 
-		if pipes == 0 {
-			i = rowStart
-			break
-		}
+			if pipes == 0 {
+				i = rowStart
+				break
+			}
 
-		// include the newline in data sent to tableRow
-		i++
-		p.tableRow(&body, data[rowStart:i], columns, false)
-	}
+			// include the newline in data sent to tableRow
+			i++
+			p.tableRow(data[rowStart:i], columns, false)
+		}
+	}))
 
 	p.r.Table(header.Bytes(), body.Bytes(), columns)
 
@@ -819,12 +821,14 @@ func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns 
 		return
 	}
 
-	p.tableRow(out, header, columns, true)
+	out.Write(p.r.CaptureWrites(func() {
+		p.tableRow(header, columns, true)
+	}))
 	size = i + 1
 	return
 }
 
-func (p *parser) tableRow(out *bytes.Buffer, data []byte, columns []int, header bool) {
+func (p *parser) tableRow(data []byte, columns []int, header bool) {
 	i, col := 0, 0
 	var rowWork bytes.Buffer
 
