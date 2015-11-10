@@ -143,18 +143,18 @@ var blockTags = map[string]struct{}{
 	"ul":         struct{}{},
 
 	// HTML5
-	"video":      true,
-	"aside":      true,
-	"canvas":     true,
-	"figure":     true,
-	"footer":     true,
-	"header":     true,
-	"hgroup":     true,
-	"output":     true,
-	"article":    true,
-	"section":    true,
-	"progress":   true,
-	"figcaption": true,
+	"article":    struct{}{},
+	"aside":      struct{}{},
+	"canvas":     struct{}{},
+	"figcaption": struct{}{},
+	"figure":     struct{}{},
+	"footer":     struct{}{},
+	"header":     struct{}{},
+	"hgroup":     struct{}{},
+	"output":     struct{}{},
+	"progress":   struct{}{},
+	"section":    struct{}{},
+	"video":      struct{}{},
 }
 
 // Renderer is the rendering interface.
