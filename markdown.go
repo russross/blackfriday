@@ -115,32 +115,32 @@ const (
 	_COLOPHON
 )
 
-// These are the tags that are recognized as HTML block tags.
+// blockTags is a set of tags that are recognized as HTML block tags.
 // Any of these can be included in markdown text without special escaping.
-var blockTags = map[string]bool{
-	"p":          true,
-	"dl":         true,
-	"h1":         true,
-	"h2":         true,
-	"h3":         true,
-	"h4":         true,
-	"h5":         true,
-	"h6":         true,
-	"ol":         true,
-	"ul":         true,
-	"del":        true,
-	"div":        true,
-	"ins":        true,
-	"pre":        true,
-	"form":       true,
-	"math":       true,
-	"table":      true,
-	"iframe":     true,
-	"script":     true,
-	"style":      true,
-	"fieldset":   true,
-	"noscript":   true,
-	"blockquote": true,
+var blockTags = map[string]struct{}{
+	"blockquote": struct{}{},
+	"del":        struct{}{},
+	"div":        struct{}{},
+	"dl":         struct{}{},
+	"fieldset":   struct{}{},
+	"form":       struct{}{},
+	"h1":         struct{}{},
+	"h2":         struct{}{},
+	"h3":         struct{}{},
+	"h4":         struct{}{},
+	"h5":         struct{}{},
+	"h6":         struct{}{},
+	"iframe":     struct{}{},
+	"ins":        struct{}{},
+	"math":       struct{}{},
+	"noscript":   struct{}{},
+	"ol":         struct{}{},
+	"pre":        struct{}{},
+	"p":          struct{}{},
+	"script":     struct{}{},
+	"style":      struct{}{},
+	"table":      struct{}{},
+	"ul":         struct{}{},
 
 	// HTML5
 	"video":      true,

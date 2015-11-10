@@ -938,7 +938,7 @@ func (p *parser) htmlFindTag(data []byte) (string, bool) {
 		i++
 	}
 	key := string(data[:i])
-	if blockTags[key] {
+	if _, ok := blockTags[key]; ok {
 		return key, true
 	}
 	return "", false
