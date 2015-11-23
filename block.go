@@ -15,6 +15,8 @@ package blackfriday
 
 import (
 	"bytes"
+	"net/url"
+	"strings"
 
 	"github.com/shurcooL/sanitized_anchor_name"
 )
@@ -243,7 +245,7 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 	}
 	if end > i {
 		if id == "" && p.flags&EXTENSION_AUTO_HEADER_IDS != 0 {
-			id = sanitized_anchor_name.Create(string(data[i:end]))
+			id = strings.Replace(url.QueryEscape(sanitized_anchor_name.Create(string(data[i:end]))), "%", ".", -1)
 		}
 		work := func() bool {
 			p.inline(out, data[i:end])
