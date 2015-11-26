@@ -541,6 +541,20 @@ func TestInlineLink(t *testing.T) {
 
 		"[link](<../>)\n",
 		"<p><a href=\"../\">link</a></p>\n",
+
+		// Issue 116 in blackfriday
+		"![](http://www.broadgate.co.uk/Content/Upload/DetailImages/Cyclus700(1).jpg)",
+		"<p><img src=\"http://www.broadgate.co.uk/Content/Upload/DetailImages/Cyclus700(1).jpg\" alt=\"\" />\n</p>\n",
+
+		// no closing ), autolinking detects the url next
+		"[disambiguation](http://en.wikipedia.org/wiki/Disambiguation_(disambiguation) is the",
+		"<p>[disambiguation](<a href=\"http://en.wikipedia.org/wiki/Disambiguation_(disambiguation\">http://en.wikipedia.org/wiki/Disambiguation_(disambiguation</a>) is the</p>\n",
+
+		"[disambiguation](http://en.wikipedia.org/wiki/Disambiguation_(disambiguation)) is the",
+		"<p><a href=\"http://en.wikipedia.org/wiki/Disambiguation_(disambiguation)\">disambiguation</a> is the</p>\n",
+
+		"[disambiguation](http://en.wikipedia.org/wiki/Disambiguation_(disambiguation))",
+		"<p><a href=\"http://en.wikipedia.org/wiki/Disambiguation_(disambiguation)\">disambiguation</a></p>\n",
 	}
 	doLinkTestsInline(t, tests)
 
