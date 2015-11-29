@@ -240,6 +240,8 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		i++
 	}
 
+	brace := 0
+
 	// look for the matching closing bracket
 	for level := 1; level > 0 && i < len(data); i++ {
 		switch {
