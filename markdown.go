@@ -193,7 +193,6 @@ type Renderer interface {
 	FootnoteItem(out *bytes.Buffer, name, text []byte, flags int)
 	TitleBlockTOML(out *bytes.Buffer, data *title)
 	Aside(out *bytes.Buffer, text []byte)
-	Note(out *bytes.Buffer, text []byte)
 	Figure(out *bytes.Buffer, text []byte, caption []byte)
 
 	// Span-level callbacks

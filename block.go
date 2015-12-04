@@ -168,15 +168,6 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			continue
 		}
 
-		// Note quote:
-		//
-		// N> This is an aside
-		// N> I found on the web
-		if p.notePrefix(data) > 0 {
-			data = data[p.note(out, data):]
-			continue
-		}
-
 		// Figure "quote":
 		//
 		// F> ![](image)
@@ -2396,7 +2387,6 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 				p.eliPrefix(current) != 0 ||
 				p.dliPrefix(current) != 0 ||
 				p.quotePrefix(current) != 0 ||
-				p.notePrefix(current) != 0 ||
 				p.figurePrefix(current) != 0 ||
 				p.asidePrefix(current) != 0 ||
 				p.codePrefix(current) != 0 {
