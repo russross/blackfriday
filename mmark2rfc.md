@@ -138,8 +138,8 @@ support a Colophon (special) sections.
 # Notes
 
 A note is defined by using the special header syntax `.#`. The name of the
-section, when lowercased, must be "note". A note (if any) must be typeset after then
-abstract.
+section will be used as the title. A note (if any) must be typeset after then
+abstract. The title must *not* "abstract" or "preface".
 
 # Captions
 

@@ -572,22 +572,25 @@ func (p *parser) specialHeader(out *bytes.Buffer, data []byte) int {
 		p.r.SetInlineAttr(p.ial)
 		p.ial = nil
 
-		name := bytes.ToLower(data[i:end])
-		if bytes.Compare(name, []byte("abstract")) != 0 &&
-			bytes.Compare(name, []byte("preface")) != 0 {
-			return 0
-		}
-		if id != "" {
-			if v, ok := p.anchors[id]; ok && p.flags&EXTENSION_UNIQUE_HEADER_IDS != 0 {
-				p.anchors[id]++
-				// anchor found
-				id += "-" + strconv.Itoa(v)
-			} else {
-				p.anchors[id] = 1
+		switch {
+		case bytes.Compare(name, []byte("abstract")) == 0:
+			fallthrough
+		case bytes.Compare(name, []byte("preface")) == 0:
+			name := bytes.ToLower(data[i:end])
+			if id != "" {
+				if v, ok := p.anchors[id]; ok && p.flags&EXTENSION_UNIQUE_HEADER_IDS != 0 {
+					p.anchors[id]++
+					// anchor found
+					id += "-" + strconv.Itoa(v)
+				} else {
+					p.anchors[id] = 1
+				}
 			}
+			p.r.SpecialHeader(out, name, work, id)
+		default: // A note section
+			// There is no id for notes.
+			p.r.Note(out, name, work)
 		}
-
-		p.r.SpecialHeader(out, name, work, id)
 	}
 	return skip + k
 }
