@@ -287,10 +287,9 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 		linkB := i
 
-		// look for link end: ' " ), check for new openning
-		// braces and take this into account, this may lead
-		// for overshooting and probably will require some
-		// finetuning.
+		// look for link end: ' " ), check for new opening braces and take this
+		// into account, this may lead for overshooting and probably will require
+		// some fine-tuning.
 	findlinkend:
 		for i < len(data) {
 			switch {
