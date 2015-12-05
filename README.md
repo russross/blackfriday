@@ -70,10 +70,9 @@ It adds the following syntax elements to [black friday](https://github.com/russr
 * Inline Attribute Lists.
 * Indices.
 * Citations.
-* Abstract/Preface.
+* Abstract/Preface/Notes.
 * Parts.
 * Asides.
-* Notes.
 * Main-, middle- and backmatter divisions.
 * Example lists.
 * HTML Comment parsing.
