@@ -166,13 +166,6 @@ func (options *xml) Aside(out *bytes.Buffer, text []byte) {
 	out.WriteString("</aside>\n")
 }
 
-func (options *xml) Note(out *bytes.Buffer, text []byte) {
-	s := options.inlineAttr().String()
-	out.WriteString("<note" + s + ">\n")
-	out.Write(text)
-	out.WriteString("</note>\n")
-}
-
 func (options *xml) CommentHtml(out *bytes.Buffer, text []byte) {
 	// nothing fancy any left of the first `:` will be used as the source="..."
 	// if the syntax is different, don't output anything.
@@ -216,6 +209,10 @@ func (options *xml) BlockHtml(out *bytes.Buffer, text []byte) {
 
 func (options *xml) Part(out *bytes.Buffer, text func() bool, id string) {
 	printf(nil, "syntax not supported: Part")
+}
+
+func (options *xml) Note(out *bytes.Buffer, text func() bool, id string) {
+	// TODO
 }
 
 func (options *xml) SpecialHeader(out *bytes.Buffer, what []byte, text func() bool, id string) {

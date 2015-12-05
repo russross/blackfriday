@@ -572,6 +572,8 @@ func (p *parser) specialHeader(out *bytes.Buffer, data []byte) int {
 		p.r.SetInlineAttr(p.ial)
 		p.ial = nil
 
+		name := bytes.ToLower(data[i:end])
+
 		switch {
 		case bytes.Compare(name, []byte("abstract")) == 0:
 			fallthrough
@@ -588,8 +590,8 @@ func (p *parser) specialHeader(out *bytes.Buffer, data []byte) int {
 			}
 			p.r.SpecialHeader(out, name, work, id)
 		default: // A note section
-			// There is no id for notes.
-			p.r.Note(out, name, work)
+			// There is no id for notes, but we still give it to the method.
+			p.r.Note(out, work, id)
 		}
 	}
 	return skip + k

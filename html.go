@@ -249,6 +249,10 @@ func (options *html) Part(out *bytes.Buffer, text func() bool, id string) {
 	out.WriteString(fmt.Sprintf("</h1>\n"))
 }
 
+func (options *html) Note(out *bytes.Buffer, text func() bool, id string) {
+	// TODO
+}
+
 func (options *html) SpecialHeader(out *bytes.Buffer, what []byte, text func() bool, id string) {
 	options.inlineAttr() //reset the IAL
 	if id != "" {
@@ -403,13 +407,6 @@ func (options *html) BlockQuote(out *bytes.Buffer, text []byte, attribution []by
 func (options *html) Aside(out *bytes.Buffer, text []byte) {
 	doubleSpace(out)
 	out.WriteString("<aside>\n")
-	out.Write(text)
-	out.WriteString("</aside>\n")
-}
-
-func (options *html) Note(out *bytes.Buffer, text []byte) {
-	doubleSpace(out)
-	out.WriteString("<aside class=\"note\">\n")
 	out.Write(text)
 	out.WriteString("</aside>\n")
 }

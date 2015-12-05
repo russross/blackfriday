@@ -177,10 +177,6 @@ func (options *xml2) Aside(out *bytes.Buffer, text []byte) {
 	options.BlockQuote(out, text, nil)
 }
 
-func (options *xml2) Note(out *bytes.Buffer, text []byte) {
-	options.BlockQuote(out, text, nil)
-}
-
 func (options *xml2) CommentHtml(out *bytes.Buffer, text []byte) {
 	i := bytes.Index(text, []byte("-->"))
 	if i > 0 {
@@ -220,6 +216,10 @@ func (options *xml2) BlockHtml(out *bytes.Buffer, text []byte) {
 
 func (options *xml2) Part(out *bytes.Buffer, text func() bool, id string) {
 	printf(nil, "syntax not supported: Part")
+}
+
+func (options *xml2) Note(out *bytes.Buffer, text func() bool, id string) {
+	// TODO
 }
 
 func (options *xml2) SpecialHeader(out *bytes.Buffer, what []byte, text func() bool, id string) {

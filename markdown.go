@@ -177,6 +177,8 @@ type Renderer interface {
 	CommentHtml(out *bytes.Buffer, text []byte)
 	// SpecialHeader is used for Abstract and Preface. The what string contains abstract or preface.
 	SpecialHeader(out *bytes.Buffer, what []byte, text func() bool, id string)
+	// Note is use for typesetting notes.
+	Note(out *bytes.Buffer, text func() bool, id string)
 	Part(out *bytes.Buffer, text func() bool, id string)
 	Header(out *bytes.Buffer, text func() bool, level int, id string)
 	HRule(out *bytes.Buffer)
