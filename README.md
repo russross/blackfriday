@@ -301,7 +301,8 @@ implements the following extensions:
 *   **Abstracts**, use the special header `.# Abstract`. Note that the header
     name, when lowercased, must match 'abstract'.
 
-*   **Notes**, any parapgraph prefixed with `N>` .
+*   **Notes**, use the special header `#. Title`, if the Title does *not*
+    match (lowercase) abstract it will be a note.
 
 *   **Asides**, any paragraph prefixed with `A>` .
 
