@@ -262,7 +262,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		}
 	}
 
-	if i >= len(data) || brace > 0 {
+	if i >= len(data) {
 		return 0
 	}
 
