@@ -1426,7 +1426,7 @@ func TestAbstractNoteAsideXML(t *testing.T) {
 		"\n<abstract>\n<t>\nbegin of abstract\n</t>\n<t>\nthis is an abstract\n</t>\n</abstract>\n\n",
 
 		".# A note\nthis is the content\n",
-		"\n<note>\n<name>A note</name>\n<t>\nthis is the content\n</t>\n",
+		"\n<note>\n<name>A note</name>\n<t>\nthis is the content\n</t>\n</note>\n\n",
 
 		"A> begin of aside\nA> this is an aside\n",
 		"<aside>\n<t>\nbegin of aside\nthis is an aside\n</t>\n</aside>\n",
