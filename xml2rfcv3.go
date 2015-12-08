@@ -212,6 +212,12 @@ func (options *xml) Part(out *bytes.Buffer, text func() bool, id string) {
 }
 
 func (options *xml) Note(out *bytes.Buffer, text func() bool, id string) {
+	switch options.specialSection {
+	case _ABSTRACT:
+		out.WriteString("</abstract>\n\n")
+	case _NOTE:
+		out.WriteString("</note>\n\n")
+	}
 	level := 1
 	if level <= options.sectionLevel {
 		// close previous ones
@@ -236,6 +242,12 @@ func (options *xml) SpecialHeader(out *bytes.Buffer, what []byte, text func() bo
 		printf(nil, "handling preface like abstract")
 		what = []byte("abstract")
 	}
+	switch options.specialSection {
+	case _ABSTRACT:
+		out.WriteString("</abstract>\n\n")
+	case _NOTE:
+		out.WriteString("</note>\n\n")
+	}
 	level := 1
 	if level <= options.sectionLevel {
 		// close previous ones
@@ -256,6 +268,8 @@ func (options *xml) Header(out *bytes.Buffer, text func() bool, level int, id st
 	switch options.specialSection {
 	case _ABSTRACT:
 		out.WriteString("</abstract>\n\n")
+	case _NOTE:
+		out.WriteString("</note>\n\n")
 	}
 	if level <= options.sectionLevel {
 		// close previous ones
@@ -678,6 +692,8 @@ func (options *xml) DocumentFooter(out *bytes.Buffer, first bool) {
 	switch options.specialSection {
 	case _ABSTRACT:
 		out.WriteString("</abstract>\n\n")
+	case _NOTE:
+		out.WriteString("</note>\n\n")
 	}
 	// close any option section tags
 	for i := options.sectionLevel; i > 0; i-- {
@@ -705,6 +721,8 @@ func (options *xml) DocumentMatter(out *bytes.Buffer, matter int) {
 	switch options.specialSection {
 	case _ABSTRACT:
 		out.WriteString("</abstract>\n\n")
+	case _NOTE:
+		out.WriteString("</note>\n\n")
 	}
 	// we default to frontmatter already openened in the documentHeader
 	for i := options.sectionLevel; i > 0; i-- {
