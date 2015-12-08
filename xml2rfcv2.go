@@ -219,7 +219,24 @@ func (options *xml2) Part(out *bytes.Buffer, text func() bool, id string) {
 }
 
 func (options *xml2) Note(out *bytes.Buffer, text func() bool, id string) {
-	// TODO
+	level := 1
+	if level <= options.sectionLevel {
+		// close previous ones
+		for i := options.sectionLevel - level + 1; i > 0; i-- {
+			out.WriteString("</section>\n")
+		}
+	}
+
+	ial := options.inlineAttr()
+
+
+	out.WriteString("\n<note" + ial.String())
+	out.WriteString(" title=\"")
+	text()
+	out.WriteString("\">\n")
+	options.sectionLevel = 0
+	options.specialSection = _NOTE
+	return
 }
 
 func (options *xml2) SpecialHeader(out *bytes.Buffer, what []byte, text func() bool, id string) {
@@ -247,6 +264,8 @@ func (options *xml2) Header(out *bytes.Buffer, text func() bool, level int, id s
 	switch options.specialSection {
 	case _ABSTRACT:
 		out.WriteString("</abstract>\n\n")
+	case _NOTE:
+		out.WriteString("</note>\n\n")
 	}
 
 	if level > options.sectionLevel+1 {

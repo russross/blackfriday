@@ -212,7 +212,23 @@ func (options *xml) Part(out *bytes.Buffer, text func() bool, id string) {
 }
 
 func (options *xml) Note(out *bytes.Buffer, text func() bool, id string) {
-	// TODO
+	level := 1
+	if level <= options.sectionLevel {
+		// close previous ones
+		for i := options.sectionLevel - level + 1; i > 0; i-- {
+			out.WriteString("</section>\n")
+		}
+	}
+
+	ial := options.inlineAttr()
+
+	out.WriteString("\n<note" + ial.String() + ">\n")
+	out.WriteString("<name>")
+	text()
+	out.WriteString("</name>\n")
+	options.sectionLevel = 0
+	options.specialSection = _NOTE
+	return
 }
 
 func (options *xml) SpecialHeader(out *bytes.Buffer, what []byte, text func() bool, id string) {
@@ -252,7 +268,7 @@ func (options *xml) Header(out *bytes.Buffer, text func() bool, level int, id st
 	ial.GetOrDefaultId(id)
 
 	// new section
-	out.WriteString("\n<section" + ial.String() + ">")
+	out.WriteString("\n<section" + ial.String() + ">\n")
 	out.WriteString("<name>")
 	text()
 	out.WriteString("</name>\n")

@@ -1425,8 +1425,8 @@ func TestAbstractNoteAsideXML(t *testing.T) {
 		".# Abstract\nbegin of abstract\n\nthis is an abstract\n",
 		"\n<abstract>\n<t>\nbegin of abstract\n</t>\n<t>\nthis is an abstract\n</t>\n</abstract>\n\n",
 
-		"N> begin of note\nN> this is a note\n",
-		"<note>\n<t>\nbegin of note\nthis is a note\n</t>\n</note>\n",
+		".# A note\nthis is the content\n",
+		"\n<note>\n<name>A note</name>\n<t>\nthis is the content\n</t>\n",
 
 		"A> begin of aside\nA> this is an aside\n",
 		"<aside>\n<t>\nbegin of aside\nthis is an aside\n</t>\n</aside>\n",
@@ -1502,7 +1502,7 @@ func TestInlineAttrXML(t *testing.T) {
 		"<artwork>\n{style=\"format REQ(%c)\" start=\"4\"}\n</artwork>\n<ol>\n<li>Term1</li>\n<li>Term2</li>\n</ol>\n",
 
 		"{.green #ref1}\n# hallo\n\n{.yellow}\n# hallo {#ref2}\n\n{.blue #ref3}\n# hallo {#ref4}\n",
-		"\n<section anchor=\"ref1\" class=\"green\"><name>hallo</name>\n</section>\n\n<section anchor=\"ref2\" class=\"yellow\"><name>hallo</name>\n</section>\n\n<section anchor=\"ref3\" class=\"blue\"><name>hallo</name>\n</section>\n",
+		"\n<section anchor=\"ref1\" class=\"green\">\n<name>hallo</name>\n</section>\n\n<section anchor=\"ref2\" class=\"yellow\">\n<name>hallo</name>\n</section>\n\n<section anchor=\"ref3\" class=\"blue\">\n<name>hallo</name>\n</section>\n",
 	}
 	doTestsBlockXML(t, tests, 0)
 }
@@ -1510,7 +1510,7 @@ func TestInlineAttrXML(t *testing.T) {
 func TestCloseHeaderXML(t *testing.T) {
 	var tests = []string{
 		"# Header1\n",
-		"\n<section anchor=\"header1\"><name>Header1</name>\n</section>\n",
+		"\n<section anchor=\"header1\">\n<name>Header1</name>\n</section>\n",
 	}
 	doTestsBlockXML(t, tests, 0)
 }

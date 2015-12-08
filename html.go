@@ -250,7 +250,14 @@ func (options *html) Part(out *bytes.Buffer, text func() bool, id string) {
 }
 
 func (options *html) Note(out *bytes.Buffer, text func() bool, id string) {
-	// TODO
+	options.inlineAttr() //reset the IAL
+	if id != "" {
+		out.WriteString(fmt.Sprintf("<h1 class=\"note\" id=\"%s\">", id))
+	} else {
+		out.WriteString(fmt.Sprintf("<h1 class=\"note\""))
+	}
+	text()
+	out.WriteString(fmt.Sprintf("</h1>\n"))
 }
 
 func (options *html) SpecialHeader(out *bytes.Buffer, what []byte, text func() bool, id string) {

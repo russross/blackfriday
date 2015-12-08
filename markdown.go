@@ -111,6 +111,7 @@ const (
 	_DOC_MAIN_MATTER
 	_DOC_BACK_MATTER
 	_ABSTRACT // Special headers, keep track if there are open
+	_NOTE     // Special Note headers, keep track if there are open
 	_PREFACE
 	_COLOPHON
 )
