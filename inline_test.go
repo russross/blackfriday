@@ -15,9 +15,8 @@ package blackfriday
 
 import (
 	"regexp"
-	"testing"
-
 	"strings"
+	"testing"
 )
 
 func runMarkdownInline(input string, opts Options, htmlFlags int, params HtmlRendererParameters) string {

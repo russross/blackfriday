@@ -275,8 +275,8 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		i++
 	}
 
-	// inline style link
 	switch {
+	// inline style link
 	case i < len(data) && data[i] == '(':
 		// skip initial whitespace
 		i++
