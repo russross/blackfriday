@@ -691,6 +691,9 @@ func TestReferenceLink(t *testing.T) {
 
 		"[ref]\n   [ref]: /url/ \"title\"\n",
 		"<p><a href=\"/url/\" title=\"title\">ref</a></p>\n",
+
+		"[link][ref]\n   [ref]: /url/",
+		"<p><a href=\"/url/\">link</a></p>\n",
 	}
 	doLinkTestsInline(t, tests)
 }
