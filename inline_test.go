@@ -155,8 +155,33 @@ func TestEmphasis(t *testing.T) {
 
 		"*What is A\\* algorithm?*\n",
 		"<p><em>What is A* algorithm?</em></p>\n",
+
+		"some para_graph with _emphasised_ text.\n",
+		"<p>some para_graph with <em>emphasised</em> text.</p>\n",
+
+		"some paragraph with _emphasised_ te_xt.\n",
+		"<p>some paragraph with <em>emphasised</em> te_xt.</p>\n",
+
+		"some paragraph with t_wo bi_ts of _emphasised_ text.\n",
+		"<p>some paragraph with t<em>wo bi</em>ts of <em>emphasised</em> text.</p>\n",
+
+		"un*frigging*believable\n",
+		"<p>un<em>frigging</em>believable</p>\n",
 	}
 	doTestsInline(t, tests)
+}
+
+func TestNoIntraEmphasis(t *testing.T) {
+	tests := []string{
+		"some para_graph with _emphasised_ text.\n",
+		"<p>some para_graph with <em>emphasised</em> text.</p>\n",
+
+		"un*frigging*believable\n",
+		"<p>un*frigging*believable</p>\n",
+	}
+	doTestsInlineParam(t, tests, Options{
+		Extensions: EXTENSION_NO_INTRA_EMPHASIS},
+		0, HtmlRendererParameters{})
 }
 
 func TestReferenceOverride(t *testing.T) {
