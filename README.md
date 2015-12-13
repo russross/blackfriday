@@ -70,10 +70,11 @@ It adds the following syntax elements to [black friday](https://github.com/russr
 * Inline Attribute Lists.
 * Indices.
 * Citations.
-* Abstract/Preface/Notes.
+* Abstract/Preface/Notes sections.
 * Parts.
 * Asides.
 * Main-, middle- and backmatter divisions.
+* Math support.
 * Example lists.
 * HTML Comment parsing.
 * BCP14 (RFC2119) keyword detection.
@@ -209,7 +210,7 @@ implements the following extensions:
     the output. This is activate by using two trailing spaces before
     a new line. Another way to get a hard line break is to escape
     the newline with a \. And yet another another way to do this is
-    to use 2 backslashes it the end of the line.\\
+    to use 2 backslashes it the end of the line.
 
 *   **Includes**, support including files with `{{filename}}` syntax. This is only
     done when include is started at the beginning of a line.
@@ -244,7 +245,7 @@ implements the following extensions:
     will be used to prefix each line with the value of `prefix`.
 
         {prefix="S"}
-            <{{test.go}}
+        <{{test.go}}
 
     Will cause `test.go` to be included with each line being prefixed with `S`.
 
