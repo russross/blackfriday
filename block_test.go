@@ -1530,3 +1530,20 @@ func TestBlockComments(t *testing.T) {
 	}
 	doTestsBlock(t, tests, 0)
 }
+
+func TestCDATA(t *testing.T) {
+	var tests = []string{
+		"Some text\n\n<![CDATA[foo]]>\n",
+		"<p>Some text</p>\n\n<![CDATA[foo]]>\n",
+
+		"CDATA ]]\n\n<![CDATA[]]]]>\n",
+		"<p>CDATA ]]</p>\n\n<![CDATA[]]]]>\n",
+
+		"CDATA >\n\n<![CDATA[>]]>\n",
+		"<p>CDATA &gt;</p>\n\n<![CDATA[>]]>\n",
+
+		"Lots of text\n\n<![CDATA[lots of te><t\non\nseveral\nlines]]>\n",
+		"<p>Lots of text</p>\n\n<![CDATA[lots of te><t\non\nseveral\nlines]]>\n",
+	}
+	doTestsBlock(t, tests, 0)
+}
