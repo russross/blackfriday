@@ -427,8 +427,8 @@ func (p *parser) htmlComment(out *bytes.Buffer, data []byte, doRender bool) int 
 
 // HTML CDATA section
 func (p *parser) htmlCDATA(out *bytes.Buffer, data []byte, doRender bool) int {
-	cdataTag := "<![cdata["
-	cdataTagLen := len(cdataTag)
+	const cdataTag = "<![cdata["
+	const cdataTagLen = len(cdataTag)
 	if len(data) < cdataTagLen+1 {
 		return 0
 	}
