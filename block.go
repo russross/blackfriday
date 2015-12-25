@@ -402,7 +402,7 @@ func (p *parser) html(out *bytes.Buffer, data []byte, doRender bool) int {
 	return i
 }
 
-func (p *parser) renderHtmlBlock(out *bytes.Buffer, data []byte, start int, doRender bool) int {
+func (p *parser) renderHTMLBlock(out *bytes.Buffer, data []byte, start int, doRender bool) int {
 	// html block needs to end with a blank line
 	if i := p.isEmpty(data[start:]); i > 0 {
 		size := start + i
@@ -421,8 +421,8 @@ func (p *parser) renderHtmlBlock(out *bytes.Buffer, data []byte, start int, doRe
 
 // HTML comment, lax form
 func (p *parser) htmlComment(out *bytes.Buffer, data []byte, doRender bool) int {
-	i := p.inlineHtmlComment(out, data)
-	return p.renderHtmlBlock(out, data, i, doRender)
+	i := p.inlineHTMLComment(out, data)
+	return p.renderHTMLBlock(out, data, i, doRender)
 }
 
 // HTML CDATA section
@@ -445,7 +445,7 @@ func (p *parser) htmlCDATA(out *bytes.Buffer, data []byte, doRender bool) int {
 	if i >= len(data) {
 		return 0
 	}
-	return p.renderHtmlBlock(out, data, i, doRender)
+	return p.renderHTMLBlock(out, data, i, doRender)
 }
 
 // HR, which is the only self-closing block tag considered
@@ -464,7 +464,7 @@ func (p *parser) htmlHr(out *bytes.Buffer, data []byte, doRender bool) int {
 	}
 
 	if data[i] == '>' {
-		return p.renderHtmlBlock(out, data, i+1, doRender)
+		return p.renderHTMLBlock(out, data, i+1, doRender)
 	}
 
 	return 0

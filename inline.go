@@ -575,7 +575,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	return i
 }
 
-func (p *parser) inlineHtmlComment(out *bytes.Buffer, data []byte) int {
+func (p *parser) inlineHTMLComment(out *bytes.Buffer, data []byte) int {
 	if len(data) < 5 {
 		return 0
 	}
@@ -599,7 +599,7 @@ func leftAngle(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
 	altype := LINK_TYPE_NOT_AUTOLINK
 	end := tagLength(data, &altype)
-	if size := p.inlineHtmlComment(out, data); size > 0 {
+	if size := p.inlineHTMLComment(out, data); size > 0 {
 		end = size
 	}
 	if end > 2 {
