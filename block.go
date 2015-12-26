@@ -1153,6 +1153,7 @@ gatherlines:
 		// and move on to the next line
 		if p.isEmpty(data[line:i]) > 0 {
 			containsBlankLine = true
+			raw.Write(data[line:i])
 			line = i
 			continue
 		}
@@ -1220,17 +1221,10 @@ gatherlines:
 
 		// a blank line means this should be parsed as a block
 		case containsBlankLine:
-			raw.WriteByte('\n')
 			*flags |= LIST_ITEM_CONTAINS_BLOCK
 		}
 
-		// if this line was preceeded by one or more blanks,
-		// re-introduce the blank into the buffer
-		if containsBlankLine {
-			containsBlankLine = false
-			raw.WriteByte('\n')
-
-		}
+		containsBlankLine = false
 
 		// add the line into the working buffer without prefix
 		raw.Write(data[line+indent : i])
