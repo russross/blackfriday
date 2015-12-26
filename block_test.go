@@ -1372,6 +1372,44 @@ func TestFencedCodeBlock_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
 	doTestsBlock(t, tests, EXTENSION_FENCED_CODE|EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK)
 }
 
+func TestCDATA(t *testing.T) {
+	var tests = []string{
+		"Some text\n\n<![CDATA[foo]]>\n",
+		"<p>Some text</p>\n\n<![CDATA[foo]]>\n",
+
+		"CDATA ]]\n\n<![CDATA[]]]]>\n",
+		"<p>CDATA ]]</p>\n\n<![CDATA[]]]]>\n",
+
+		"CDATA >\n\n<![CDATA[>]]>\n",
+		"<p>CDATA &gt;</p>\n\n<![CDATA[>]]>\n",
+
+		"Lots of text\n\n<![CDATA[lots of te><t\non\nseveral\nlines]]>\n",
+		"<p>Lots of text</p>\n\n<![CDATA[lots of te><t\non\nseveral\nlines]]>\n",
+
+		"<![CDATA[>]]>\n",
+		"<![CDATA[>]]>\n",
+	}
+	doTestsBlock(t, tests, 0)
+	doTestsBlock(t, []string{
+		"``` html\n<![CDATA[foo]]>\n```\n",
+		"<pre><code class=\"language-html\">&lt;![CDATA[foo]]&gt;\n</code></pre>\n",
+
+		"<![CDATA[\n``` python\ndef func():\n    pass\n```\n]]>\n",
+		"<![CDATA[\n``` python\ndef func():\n    pass\n```\n]]>\n",
+
+		`<![CDATA[
+> def func():
+>     pass
+]]>
+`,
+		`<![CDATA[
+> def func():
+>     pass
+]]>
+`,
+	}, EXTENSION_FENCED_CODE)
+}
+
 func TestDefinitionListXML(t *testing.T) {
 	var tests = []string{
 		"Term1\n:   Hi There",
