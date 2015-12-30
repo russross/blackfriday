@@ -39,6 +39,6 @@ insert abstract here
 
 # Introduction
 
-This **MAY** [@?RFC2119] be useful.
+This **MAY** [@!RFC2119] be useful.
 
 {backmatter}
