@@ -702,8 +702,39 @@ func TestUnorderedList(t *testing.T) {
 
 		"* List\n\n    * sublist\n\n    normal text\n\n    * another sublist\n",
 		"<ul>\n<li><p>List</p>\n\n<ul>\n<li>sublist</li>\n</ul>\n\n<p>normal text</p>\n\n<ul>\n<li>another sublist</li>\n</ul></li>\n</ul>\n",
+
+		`* Foo
+
+        bar
+
+        qux
+`,
+		`<ul>
+<li><p>Foo</p>
+
+<pre><code>bar
+
+qux
+</code></pre></li>
+</ul>
+`,
 	}
 	doTestsBlock(t, tests, 0)
+}
+
+func TestFencedCodeBlockWithinList(t *testing.T) {
+	doTestsBlock(t, []string{
+		"* Foo\n\n    ```\n    bar\n\n    qux\n    ```\n",
+		`<ul>
+<li><p>Foo</p>
+
+<pre><code>bar
+
+qux
+</code></pre></li>
+</ul>
+`,
+	}, EXTENSION_FENCED_CODE)
 }
 
 func TestOrderedList(t *testing.T) {
@@ -798,6 +829,26 @@ func TestOrderedList(t *testing.T) {
 
 		"1. numbers\n1. are ignored\n",
 		"<ol>\n<li>numbers</li>\n<li>are ignored</li>\n</ol>\n",
+
+		`1. Foo
+
+        bar
+
+
+
+        qux
+`,
+		`<ol>
+<li><p>Foo</p>
+
+<pre><code>bar
+
+
+
+qux
+</code></pre></li>
+</ol>
+`,
 	}
 	doTestsBlock(t, tests, 0)
 }
