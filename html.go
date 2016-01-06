@@ -18,6 +18,7 @@ package blackfriday
 import (
 	"bytes"
 	"fmt"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -901,31 +902,10 @@ func doubleSpace(out *bytes.Buffer) {
 }
 
 func isRelativeLink(link []byte) (yes bool) {
-	// a tag begin with '#'
-	if link[0] == '#' {
-		return true
+	u, err := url.Parse(string(link[:]))
+	if err == nil {
+		return !u.IsAbs()
 	}
-
-	// link begin with '/' but not '//', the second maybe a protocol relative link
-	if len(link) >= 2 && link[0] == '/' && link[1] != '/' {
-		return true
-	}
-
-	// only the root '/'
-	if len(link) == 1 && link[0] == '/' {
-		return true
-	}
-
-	// current directory : begin with "./"
-	if bytes.HasPrefix(link, []byte("./")) {
-		return true
-	}
-
-	// parent directory : begin with "../"
-	if bytes.HasPrefix(link, []byte("../")) {
-		return true
-	}
-
 	return false
 }
 
