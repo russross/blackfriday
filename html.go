@@ -902,7 +902,7 @@ func doubleSpace(out *bytes.Buffer) {
 }
 
 func isRelativeLink(link []byte) (yes bool) {
-	u, err := url.Parse(string(link[:]))
+	u, err := url.Parse(string(link))
 	if err == nil {
 		return !u.IsAbs()
 	}
