@@ -23,7 +23,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/shurcooL/sanitized_anchor_name"
+	"github.com/TomOnTime/markdownutils"
 )
 
 // Html renderer configuration options.
@@ -130,7 +130,7 @@ func HtmlRendererWithParameters(flags int, title string,
 	}
 
 	if renderParameters.SanitizedAnchorNameOverride == nil {
-		renderParameters.SanitizedAnchorNameOverride = sanitized_anchor_name.Create
+		renderParameters.SanitizedAnchorNameOverride = markdownutils.CreateGitLabAnchor
 	}
 
 	return &Html{
