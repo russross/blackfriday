@@ -22,8 +22,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/TomOnTime/markdownutils"
 )
 
 // Html renderer configuration options.
@@ -37,7 +35,7 @@ const (
 	HTML_NOREFERRER_LINKS                      // only link with rel="noreferrer"
 	HTML_HREF_TARGET_BLANK                     // add a blank target
 	HTML_TOC                                   // generate a table of contents
-	HTML_TOC_MD                                // if generating table of contents, output MarkDown
+	HTML_TOC_MD                                // If HTML_TOC, generate Markdown code (default is HTML).
 	HTML_OMIT_CONTENTS                         // skip the main contents (for a standalone table of contents)
 	HTML_COMPLETE_PAGE                         // generate a complete HTML page
 	HTML_USE_XHTML                             // generate XHTML output instead of HTML
@@ -128,10 +126,6 @@ func HtmlRendererWithParameters(flags int, title string,
 
 	if renderParameters.FootnoteReturnLinkContents == "" {
 		renderParameters.FootnoteReturnLinkContents = `<sup>[return]</sup>`
-	}
-
-	if renderParameters.SanitizedAnchorNameOverride == nil {
-		renderParameters.SanitizedAnchorNameOverride = markdownutils.CreateGitLabAnchor
 	}
 
 	return &Html{

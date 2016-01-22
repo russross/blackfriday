@@ -337,7 +337,7 @@ func TestPrefixAutoHeaderIdExtension(t *testing.T) {
 		"###### Header 6\n",
 		"<h6 id=\"header-6\">Header 6</h6>\n",
 
-		// FYI: MarkDown only permits 6 levels of headings. The 7th creates a H6 with text "# Header 7".
+		// FYI: Markdown only permits 6 levels of headings. The 7th creates a H6 with text "# Header 7".
 		"####### Header 7\n",
 		"<h6 id=\"-header-7\"># Header 7</h6>\n",
 
