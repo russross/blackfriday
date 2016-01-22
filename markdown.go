@@ -23,7 +23,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/shurcooL/sanitized_anchor_name"
+	"github.com/TomOnTime/markdownutils"
 )
 
 const VERSION = "1.1"
@@ -345,7 +345,7 @@ func MarkdownCommon(input []byte) []byte {
 func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	return MarkdownOptions(input, renderer, Options{
 		Extensions:                  extensions,
-		SanitizedAnchorNameOverride: sanitized_anchor_name.Create,
+		SanitizedAnchorNameOverride: markdownutils.CreateGitLabAnchor,
 	})
 }
 

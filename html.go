@@ -774,7 +774,7 @@ func (options *Html) DocumentFooter(out *bytes.Buffer) {
 func (options *Html) mdTocHeaderWithAnchor(text []byte, level int) {
 	options.toc.WriteString(strings.Repeat(" ", level-1))
 
-	options.toc.WriteString("- [")
+	options.toc.WriteString("-\t[")
 	options.toc.Write(text)
 	options.toc.WriteString("](#")
 	options.toc.WriteString(options.parameters.SanitizedAnchorNameOverride(html.UnescapeString(string(text))))
