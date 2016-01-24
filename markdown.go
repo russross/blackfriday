@@ -23,8 +23,6 @@ import (
 	"fmt"
 	"strings"
 	"unicode/utf8"
-
-	"github.com/TomOnTime/markdownutils"
 )
 
 const VERSION = "1.5"
@@ -350,8 +348,7 @@ func MarkdownCommon(input []byte) []byte {
 // LatexRenderer, respectively.
 func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 	return MarkdownOptions(input, renderer, Options{
-		Extensions:                  extensions,
-		SanitizedAnchorNameOverride: markdownutils.CreateGitLabAnchor,
+		Extensions: extensions,
 	})
 }
 
