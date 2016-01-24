@@ -15,6 +15,8 @@ package blackfriday
 
 import (
 	"bytes"
+
+	"github.com/shurcooL/sanitized_anchor_name"
 )
 
 // Parse block-level data.
@@ -241,7 +243,11 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 	}
 	if end > i {
 		if id == "" && p.flags&EXTENSION_AUTO_HEADER_IDS != 0 {
-			id = p.sanitizedAnchorNameOverride(string(data[i:end]))
+			if p.sanitizedAnchorNameOverride == nil {
+				id = sanitized_anchor_name.Create(string(data[i:end]))
+			} else {
+				id = p.sanitizedAnchorNameOverride(string(data[i:end]))
+			}
 		}
 		work := func() bool {
 			p.inline(out, data[i:end])
@@ -1344,7 +1350,11 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 
 				id := ""
 				if p.flags&EXTENSION_AUTO_HEADER_IDS != 0 {
-					id = p.sanitizedAnchorNameOverride(string(data[prev:eol]))
+					if p.sanitizedAnchorNameOverride == nil {
+						id = sanitized_anchor_name.Create(string(data[prev:eol]))
+					} else {
+						id = p.sanitizedAnchorNameOverride(string(data[prev:eol]))
+					}
 				}
 
 				p.r.Header(out, work, level, id)
