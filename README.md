@@ -180,6 +180,16 @@ implements the following extensions:
 
     Terms must be separated from the previous definition by a blank line.
 
+*   **Strict Adjacent Lists**. Do not merge adjacent lists of differing types
+    into a single list.  This extension allows the following example to be two
+    distinct lists instead of merging them into a single unordered list.
+
+        * Top
+        * Bottom
+
+        1. First
+        2. Last
+
 *   **Footnotes**. A marker in the text that will become a superscript number;
     a footnote definition that will be placed in a list of footnotes at the
     end of the document. A footnote looks like this:
