@@ -73,12 +73,8 @@ func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 	s := ial.String()
 
 	out.WriteString("\n<figure" + s + "><artwork" + ial.Key("align") + ">\n")
-	if prefix != "" {
-		nl := bytes.Count(text, []byte{'\n'})
-		text = bytes.Replace(text, []byte{'\n'}, []byte("\n"+prefix), nl-1)
-		// add prefix at the start as well
-		text = append([]byte(prefix), text...)
-	}
+	text = blockCodePrefix(prefix, text)
+
 	if callout {
 		attrEscapeInCode(options, out, text)
 	} else {
