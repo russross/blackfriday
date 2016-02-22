@@ -13,8 +13,6 @@ func blockCodePrefix(prefix string, text []byte) []byte {
 
 	nl := bytes.Count(text, []byte{'\n'})
 	prefixText := bytes.Replace(text, []byte{'\n'}, []byte("\n"+prefix), nl-1)
-	// And add prefix at the start.
 	prefixText = append([]byte(prefix), prefixText...)
-	println(string(prefixText))
 	return prefixText
 }
