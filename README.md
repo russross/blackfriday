@@ -27,12 +27,7 @@ This document describes an markdown variant called mmark [@?mmark-ref].
 
 Write RFCs using markdown. Mmark (written in Go) provides an advanced markdown
 dialect that processes a single file to produce internet-drafts in XML format.
-Internet-drafts written in mmark can produce XML2RFC v2 *and* XML2RFC v3 output.
-
-<!--
-[![Build Status](https://travis-ci.org/miekg/mmark.svg?branch=master)](https://travis-ci.org/miekg/mmark)
-[![GoDoc](https://godoc.org/github.com/miekg/mmark?status.svg)](https://godoc.org/github.com/miekg/mmark)
--->
+Internet-drafts written in mmark can produce xml2rfc v2 *and* xml2rfc v3 output.
 
 {mainmatter}
 
@@ -40,9 +35,11 @@ Internet-drafts written in mmark can produce XML2RFC v2 *and* XML2RFC v3 output.
 
 Mmark is a fork of blackfriday which is a [Markdown][1] processor implemented in
 [Go][2]. It supports a number of extensions, inspired by Leanpub, kramdown and
-Asciidoc, that allows for large documents to be written. It is specifically
-designed to write internet drafts (I-Ds) and RFCs for the IETF. With mmark you can create
-a single file that serves as input into the XML2RFC processor.
+Asciidoc, that allows for large documents to be written.
+
+It is specifically designed to write internet drafts (I-Ds) and RFCs for the IETF. With mmark you
+can create a single file that serves as input into the xml2rfc processor. See [@!RFC7749] for the
+definition of the xml2rfc v2 syntax.
 
 It also allows for writing large documents such as technical books, like my
 [Learning Go book](https://github.com/miekg/learninggo).
@@ -54,12 +51,11 @@ HTML version [can be found here](http://miek.nl/go).
 See `mmark2rfc.md` as an example I-D for how to use mmark. Or see the rfc/ subdirectory
 with some April 1st RFC that have been typeset in mmark.
 
-It can currently output HTML5, XML2RFC v2 and XML2RFC v3 XML. Other output
+It can currently output HTML5, xml2rfc v2 and xml2rfc v3 XML. Other output
 engines could be added.
 
 It adds the following syntax elements to [black friday](https://github.com/russross/blackfriday/blob/master/README.md):
 
-* Definition lists.
 * More enumerated lists.
 * Table and codeblock captions.
 * Table footer.
@@ -109,9 +105,9 @@ Making a draft in text form:
     && xml2rfc --text x.xml \
     && rm x.xml && mv x.txt mmark2rfc.txt
 
-Outputing v3 xml is done with the `-xml` switch. There is not yet
+Outputting v3 xml is done with the `-xml` switch. There is not yet
 a processor for this XML, but you should be able to validate the
-resulting XML against the schema from the XML2RFC v3 draft. I'm trying
+resulting XML against the schema from the xml2rfc v3 draft. I'm trying
 to stay current with the latest draft for the V3 spec:
 <https://tools.ietf.org/html/draft-hoffman-xml2rfc-21>
 
@@ -154,7 +150,7 @@ implements the following extensions:
     with a pipe or plus sign and a minimum of three dashes,
     it is a **Block Table**. A block table may include block level elements in each
     (body) cell. If we want to start a new cell reuse the block table header
-    syntax. In the exampe below we include a list in one of the cells.
+    syntax. In the example below we include a list in one of the cells.
 
     ```
     |+-----------------------------------------------|
@@ -191,7 +187,7 @@ implements the following extensions:
         }
         ```
 
-    You can use 3 or more backticks to mark the beginning of the
+    You can use 3 or more bac kticks to mark the beginning of the
     block, and the same number to mark the end of the block.
 
 *   **Autolinking**. Mmark can find URLs that have not been
@@ -231,7 +227,7 @@ implements the following extensions:
     interesting_code = fascinating_function()
     // END OMIT
     ```
-    To aid in including HTML or XML framents, where the `OMIT` key words is
+    To aid in including HTML or XML fragments, where the `OMIT` key words is
     probably embedded in comments, lines which end in `OMIT -->` are also excluded.
 
     Of course the captioning works here as well:
@@ -254,13 +250,13 @@ implements the following extensions:
 
 *   **Citations**, using the citation syntax from pandoc `[@RFC2535 p. 23]`, the
     citation can either be informative (default) or normative, this can be indicated
-    by using the `?` or `!` modifer: `[@!RFC2535]`. Use `[-@RFC1000]` to add the
-    cication to the references, but suppress the output in the document.
+    by using the `?` or `!` modifier: `[@!RFC2535]`. Use `[-@RFC1000]` to add the
+    citation to the references, but suppress the output in the document.
     The highest modifier seen determines the final type, i.e. once a citation is
     declared normative it will stay normative, but informative will be upgraded
     to normative.
 
-    If you reference an RFC or I-D the reference will be contructed
+    If you reference an RFC or I-D the reference will be constructed
     automatically. For I-Ds you may need to add a draft sequence number, which
     can be done as such: `[@?I-D.blah#06]`. If you have other references
     you can include the raw XML in the document (before the `{backmatter}`).
@@ -291,7 +287,7 @@ implements the following extensions:
          ```
          Figure: Look! A Go function.
 
-*   **Quote attribution**, after a blockquote you can optionally use
+*   **Quote attribution**, after a block quote you can optionally use
     `Quote: http://example.org -- John Doe`, where
     the quote will be attributed to John Doe, pointing to the URL:
 
@@ -306,7 +302,7 @@ implements the following extensions:
 
 *   **Asides**, any paragraph prefixed with `A>` .
 
-*   **Subfigures**, any paraphgraph prefix with `F>` will wrap all images and
+*   **Subfigures**, any paragraph prefix with `F>` will wrap all images and
     code in a single figure.
 
 *   **{frontmatter}/{mainmatter}/{backmatter}** Create useful divisions in your
@@ -340,8 +336,8 @@ implements the following extensions:
          b.  Item2
 
 *   **TOML TitleBlock**, add an extended title block prefixed with `%` in TOML.
-    See the examples RFC in the rfc/ subdirectory. An alternate way of
-    typsetting the TOML title block is wrapping it between two lines consisting
+    See the examples RFC in the `rfc/` subdirectory. An alternate way of
+    typesetting the TOML title block is wrapping it between two lines consisting
     out of 3 or more `%%%`s. Added benefit of wrapping it in `%%%`-lines is that
     the block may be indented (TOML disregards whitespace) 4 spaces, making it
     look like code in other markdown renderers (think Github).
@@ -386,7 +382,7 @@ implements the following extensions:
      syntax, so `-# Part {#part1}` is a valid part header.
 
 *   **Math support**, use `$$` as the delimiter. If the math is part of a paragraph it will
-     be displayed inline, if the entire paragraph consists out of math it considered display
+     be displayed in line, if the entire paragraph consists out of math it considered display
      math. No attempt is made to parse what is between the `$$`.
 
 *   **Callouts**, in codeblocks you can use `<number>` to create a callout, later you can
@@ -399,7 +395,7 @@ implements the following extensions:
          As you can see in <1> but not in \<1>. There is no <3>.
 
      You can escape a callout with a backslash. The backslash will be removed
-     in the output (both in sourcecode and text). The callout identifiers will be remembered until
+     in the output (both in source code and text). The callout identifiers will be remembered until
      the next code block. The above would render as:
 
                  Code <1>
@@ -410,7 +406,7 @@ implements the following extensions:
 
      Note that callouts are only detected with the IAL `{callout="yes"}` or any other
      non-empty value is defined before the code block.
-     Now, you don't usualy want to globber your sourcecode with callouts as this will
+     Now, you don't usually want to clobber your source code with callouts as this will
      lead to code that does not compile. To fix this the callout needs to be placed
      in a comment, but then your source show useless empty comments. To fix this mmark
      can optionally detect (and remove!) the comment and the callout, leaving your

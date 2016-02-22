@@ -553,7 +553,7 @@ Use H~2~O and 2^10^ is 1024. In v2 these are outputted as-is.
 # Bugs
 
 *  Citations must be included in the text before the `{backmatter}` starts.
-   otherwise they are not available in the appendix.
+   Otherwise they are not available in the appendix.
 *  Inline Attribute Lists must be given *before* the block element.
 *  Multiple terms and definitions are not supported in definition lists.
 
