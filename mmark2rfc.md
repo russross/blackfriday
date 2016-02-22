@@ -47,9 +47,9 @@ The goals of mmark are:
 
 <!-- be v3 ready, add a type as well - ignored for v2 and vice versa -->
 {style="format (%I)" type="(%I)"}
-1. Self contained: a single file can be converted to XML2RFC v2 or (v3) or HTML5.
+1. Self contained: a single file can be converted to xml2rfc v2 or (v3) or HTML5.
 2. Make the markdown "source code" look as natural as possible.
-3. Provide seemless upgrade path to XML2RFC v3.
+3. Provide seemless upgrade path to xml2rfc v3.
 4. Consistent interface, aim to minimize the number of weird corner cases you need
     to remember while typing.
 
@@ -66,7 +66,7 @@ Using Figure 1 from [@!RFC7328], mmark can be positioned as follows:
            +------------+    xml2rfc  +---------+
            | PLAIN TEXT |  <--------  |   XML   | <3>
            +------------+             +---------+
-Figure: Mmark <1> skips the conversion to DOCBOOK <1> and directly outputs XML2RFC XML <3> (or HTML5).
+Figure: Mmark <1> skips the conversion to DOCBOOK <1> and directly outputs xml2rfc XML <3> (or HTML5).
 
 Note that [kramdown-2629](https://github.com/cabo/kramdown-rfc2629) fills the same niche as mmark.
 
@@ -75,10 +75,10 @@ Note that [kramdown-2629](https://github.com/cabo/kramdown-rfc2629) fills the sa
 The folloing terms are used in this document:
 
 v2:
-:   Refers to XML2RFC version 2 [@!RFC2926] output created by mmark.
+:   Refers to xml2rfc version 2 [@!RFC2926] output created by mmark.
 
 v3:
-:   Refers  to XML2RFC version 2 [@!I-D.hoffman-xml2rfc#21] output created by mmark.
+:   Refers  to xml2rfc version 2 [@!I-D.hoffman-xml2rfc#21] output created by mmark.
 
 
 # Mmark Syntax
@@ -91,7 +91,8 @@ an invalid document. Case in point: having a table in a list and converting to v
 # TOML header
 
 Mmark uses TOML [@!toml] document header to specify the document's meta data. Each line of this
-header must start with an `% `. The document header is also different in v3, for instance the
+header must start with an `% ` or be enclosed in two lines consisting solely of `%`.
+The document header is also different in v3, for instance the
 `docName` is not used anymore.
 
 # Citations
@@ -105,12 +106,12 @@ an XML reference element in source of document.
 
 For I-Ds you might need to include a draft version in the reference
 `[@?I-D.blah#06]`, creates an informative reference to the seventh version of
-draft-blah.
+draft-blah, ommiting the number means you reference the *latest* version of that draft.
 
 Once a citation has been defined the brackets can be omited, so once `[@pandoc]` is used, you
 can just use `@pandoc`.
 
-If the need arises (usually when citing a document that is not in the XML2RFC database)
+If the need arises (usually when citing a document that is not in the xml2rfc database)
 an XML reference fragment should be included, note that this needs to happen
 *before* the back matter is started, because that is the point when the references are outputted
 (right now the implementation does not scan the entire file for citations, also see (#bugs)).
@@ -236,7 +237,7 @@ Added an anchor to blockquote can be done like so:
     {#quote:ref1}
     > A block quote
 
-You can specify classes with `.class` (although these are not used when converting to XML2RFC), and
+You can specify classes with `.class` (although these are not used when converting to xml2rfc), and
 arbitrary key value pairs where each key/value becomes an attribute. Different elements in the IAL
 must be seperated using spaces: `{#id lang=go}`.
 
@@ -475,7 +476,7 @@ all lines of the code to be included to prefixed with the value of the attribute
 
 Will prefix all lines of test.go with 'C:' when included.
 
-# XML2RFC V3 features
+# xml2rfc V3 features
 
 The v3 syntax adds some new features and those can already be used in mmark (even for documents targeting
 v2 -- but there they will be faked with the limited constructs of the v2 syntax).
