@@ -337,9 +337,15 @@ func (options *html) CalloutText(out *bytes.Buffer, id string, ids []string) {
 }
 
 func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure, callout bool) {
+	ial := options.inlineAttr()
 	doubleSpace(out)
 
-	s := options.inlineAttr().String()
+	prefix := ial.Value("prefix")
+	ial.DropAttr("prefix")  // it's a fake attribute, so drop it
+	ial.DropAttr("callout") // it's a fake attribute, so drop it
+	s := ial.String()
+
+	text = blockCodePrefix(prefix, text)
 
 	// if there is a caption we wrap the thing in the figure
 	if len(caption) > 0 {

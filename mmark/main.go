@@ -31,8 +31,8 @@ func main() {
 	var css, head string
 
 	flag.BoolVar(&page, "page", false, "generate a standalone HTML page")
-	flag.BoolVar(&xml, "xml", false, "generate XML2RFC v3 output")
-	flag.BoolVar(&xml2, "xml2", false, "generate XML2RFC v2 output")
+	flag.BoolVar(&xml, "xml", false, "generate xml2rfc v3 output")
+	flag.BoolVar(&xml2, "xml2", false, "generate xml2rfc v2 output")
 	flag.BoolVar(&version, "version", false, "show mmark version")
 	flag.StringVar(&css, "css", "", "link to a CSS stylesheet (implies -page)")
 	flag.StringVar(&head, "head", "", "link to HTML to be included in head (implies -page)")
