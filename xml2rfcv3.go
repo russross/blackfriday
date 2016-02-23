@@ -76,9 +76,12 @@ func (options *xml) BlockCode(out *bytes.Buffer, text []byte, lang string, capti
 	if lang != "" {
 		ial.GetOrDefaultAttr("type", lang)
 	}
+	prefix := ial.Value("prefix")
 	ial.DropAttr("prefix")  // it's a fake attribute, so drop it
 	ial.DropAttr("callout") // it's a fake attribute, so drop it
 	s := ial.String()
+
+	text = blockCodePrefix(prefix, text)
 
 	// if in a figure quote suppress <figure> and caption use
 	if !subfigure && len(caption) > 0 {
