@@ -46,7 +46,7 @@ const (
 	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text
 	EXTENSION_BACKSLASH_LINE_BREAK                   // translate trailing backslashes into line breaks
 	EXTENSION_DEFINITION_LISTS                       // render definition lists
-	EXTENSION_STRICT_LISTS                           // don't merge adjacent lists of differing types
+	EXTENSION_LAX_LISTS                              // merge adjacent lists of differing types
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML |

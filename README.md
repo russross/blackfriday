@@ -180,15 +180,15 @@ implements the following extensions:
 
     Terms must be separated from the previous definition by a blank line.
 
-*   **Strict Adjacent Lists**. Do not merge adjacent lists of differing types
-    into a single list.  This extension allows the following example to be two
-    distinct lists instead of merging them into a single unordered list.
+*   **Lax Lists**. Merge adjacent lists of differing types that are separated by
+    blank lines into a single list.  This extension allows the following example
+    to be rendered as a single unordered list instead of two distinct lists.
 
-        * Top
-        * Bottom
+        * Lions
+        * Tigers
 
-        1. First
-        2. Last
+        1. Bears
+        2. Goats
 
 *   **Footnotes**. A marker in the text that will become a superscript number;
     a footnote definition that will be placed in a list of footnotes at the
