@@ -2,7 +2,7 @@ package mmark
 
 import "testing"
 
-func TestIssueXXX(t *testing.T) {
+func TestIssue55(t *testing.T) {
 	tests := []string{
 		"абвгдеёжзийклмнопрстуфх",
 		"<p>абвгдеёжзийклмнопрстуфх</p>\n",
