@@ -43,7 +43,11 @@ const (
 	EXTENSION_BACKSLASH_LINE_BREAK       // Translate trailing backslashes into line breaks
 	EXTENSION_RFC7328                    // Parse RFC 7328 markdown. Depends on FOOTNOTES extension.
 
-	commonHtmlFlags = 0
+	commonHtmlFlags = 0 |
+		HTML_USE_SMARTYPANTS |
+		HTML_SMARTYPANTS_FRACTIONS |
+		HTML_SMARTYPANTS_DASHES |
+		HTML_SMARTYPANTS_LATEX_DASHES
 
 	commonExtensions = 0 |
 		EXTENSION_TABLES |

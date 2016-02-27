@@ -14,16 +14,21 @@ import (
 
 // Html renderer configuration options.
 const (
-	HTML_SKIP_HTML             = 1 << iota // skip preformatted HTML blocks
-	HTML_SKIP_STYLE                        // skip embedded <style> elements
-	HTML_SKIP_IMAGES                       // skip embedded images
-	HTML_SKIP_LINKS                        // skip all links
-	HTML_SAFELINK                          // only link to trusted protocols
-	HTML_NOFOLLOW_LINKS                    // only link with rel="nofollow"
-	HTML_HREF_TARGET_BLANK                 // add a blank target
-	HTML_OMIT_CONTENTS                     // skip the main contents (for a standalone table of contents)
-	HTML_COMPLETE_PAGE                     // generate a complete HTML page
-	HTML_FOOTNOTE_RETURN_LINKS             // generate a link at the end of a footnote to return to the source
+	HTML_SKIP_HTML                 = 1 << iota // skip preformatted HTML blocks
+	HTML_SKIP_STYLE                            // skip embedded <style> elements
+	HTML_SKIP_IMAGES                           // skip embedded images
+	HTML_SKIP_LINKS                            // skip all links
+	HTML_SAFELINK                              // only link to trusted protocols
+	HTML_NOFOLLOW_LINKS                        // only link with rel="nofollow"
+	HTML_HREF_TARGET_BLANK                     // add a blank target
+	HTML_OMIT_CONTENTS                         // skip the main contents (for a standalone table of contents)
+	HTML_COMPLETE_PAGE                         // generate a complete HTML page
+	HTML_USE_SMARTYPANTS                       // enable smart punctuation substitutions
+	HTML_SMARTYPANTS_FRACTIONS                 // enable smart fractions (with HTML_USE_SMARTYPANTS)
+	HTML_SMARTYPANTS_DASHES                    // enable smart dashes (with HTML_USE_SMARTYPANTS)
+	HTML_SMARTYPANTS_LATEX_DASHES              // enable LaTeX-style dashes (with HTML_USE_SMARTYPANTS and HTML_SMARTYPANTS_DASHES)
+	HTML_SMARTYPANTS_ANGLED_QUOTES             // enable angled double quotes (with HTML_USE_SMARTYPANTS) for double quotes rendering
+	HTML_FOOTNOTE_RETURN_LINKS                 // generate a link at the end of a footnote to return to the source
 )
 
 var (
@@ -75,6 +80,8 @@ type html struct {
 
 	// (@good) example list group counter
 	group map[string]int
+
+	smartypants *smartypantsRenderer
 }
 
 type idx struct {
@@ -115,6 +122,8 @@ func HtmlRendererWithParameters(flags int, css, head string, renderParameters Ht
 
 		index: make(map[idx][]string),
 		group: make(map[string]int),
+
+		smartypants: smartypants(flags),
 	}
 }
 
@@ -964,7 +973,40 @@ func (options *html) References(out *bytes.Buffer, citations map[string]*citatio
 }
 
 func (options *html) NormalText(out *bytes.Buffer, text []byte) {
-	attrEscape(out, text)
+	if options.flags&HTML_USE_SMARTYPANTS != 0 {
+		options.Smartypants(out, text)
+	} else {
+		attrEscape(out, text)
+	}
+}
+
+func (options *html) Smartypants(out *bytes.Buffer, text []byte) {
+	smrt := smartypantsData{false, false}
+
+	// first do normal entity escaping
+	var escaped bytes.Buffer
+	attrEscape(&escaped, text)
+	text = escaped.Bytes()
+
+	mark := 0
+	for i := 0; i < len(text); i++ {
+		if action := options.smartypants[text[i]]; action != nil {
+			if i > mark {
+				out.Write(text[mark:i])
+			}
+
+			previousChar := byte(0)
+			if i > 0 {
+				previousChar = text[i-1]
+			}
+			i += action(out, &smrt, previousChar, text[i:])
+			mark = i + 1
+		}
+	}
+
+	if mark < len(text) {
+		out.Write(text[mark:])
+	}
 }
 
 func (options *html) DocumentHeader(out *bytes.Buffer, first bool) {

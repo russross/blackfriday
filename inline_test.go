@@ -169,7 +169,6 @@ func TestEmphasis(t *testing.T) {
 
 		"*What is A\\* algorithm?*\n",
 		"<p><em>What is A* algorithm?</em></p>\n",
-
 	}
 	doTestsInline(t, tests)
 }
@@ -1075,7 +1074,7 @@ func TestNestedFootnotes(t *testing.T) {
 func TestInlineComments(t *testing.T) {
 	var tests = []string{
 		"Hello <!-- there ->\n",
-		"<p>Hello &lt;!-- there -&gt;</p>\n",
+		"<p>Hello &lt;!&mdash; there &ndash;&gt;</p>\n",
 
 		"Hello <!-- there -->\n",
 		"<p>Hello <!-- there --></p>\n",
@@ -1098,7 +1097,7 @@ func TestInlineComments(t *testing.T) {
 		"blahblah\n<!--- foo -->\nrhubarb\n",
 		"<p>blahblah\n<!--- foo -->\nrhubarb</p>\n",
 	}
-	doTestsInlineParam(t, tests, 0, 0, HtmlRendererParameters{})
+	doTestsInlineParam(t, tests, 0, HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_DASHES, HtmlRendererParameters{})
 }
 
 func TestCitationXML(t *testing.T) {
@@ -1162,4 +1161,84 @@ func TestShortReferenceXML(t *testing.T) {
 		"<t>\n<xref target=\"ref\"/>\n</t>\n",
 	}
 	doTestsInlineXML(t, tests)
+}
+
+func TestSmartDoubleQuotes(t *testing.T) {
+	var tests = []string{
+		"this should be normal \"quoted\" text.\n",
+		"<p>this should be normal &ldquo;quoted&rdquo; text.</p>\n",
+		"this \" single double\n",
+		"<p>this &ldquo; single double</p>\n",
+		"two pair of \"some\" quoted \"text\".\n",
+		"<p>two pair of &ldquo;some&rdquo; quoted &ldquo;text&rdquo;.</p>\n"}
+
+	doTestsInlineParam(t, tests, 0, HTML_USE_SMARTYPANTS, HtmlRendererParameters{})
+}
+
+func TestSmartAngledDoubleQuotes(t *testing.T) {
+	var tests = []string{
+		"this should be angled \"quoted\" text.\n",
+		"<p>this should be angled &laquo;quoted&raquo; text.</p>\n",
+		"this \" single double\n",
+		"<p>this &laquo; single double</p>\n",
+		"two pair of \"some\" quoted \"text\".\n",
+		"<p>two pair of &laquo;some&raquo; quoted &laquo;text&raquo;.</p>\n"}
+
+	doTestsInlineParam(t, tests, 0, HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_ANGLED_QUOTES, HtmlRendererParameters{})
+}
+
+func TestSmartFractions(t *testing.T) {
+	var tests = []string{
+		"1/2, 1/4 and 3/4; 1/4th and 3/4ths\n",
+		"<p>&frac12;, &frac14; and &frac34;; &frac14;th and &frac34;ths</p>\n",
+		"1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.\n",
+		"<p>1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.</p>\n"}
+
+	doTestsInlineParam(t, tests, 0, HTML_USE_SMARTYPANTS, HtmlRendererParameters{})
+
+	tests = []string{
+		"1/2, 2/3, 81/100 and 1000000/1048576.\n",
+		"<p><sup>1</sup>&frasl;<sub>2</sub>, <sup>2</sup>&frasl;<sub>3</sub>, <sup>81</sup>&frasl;<sub>100</sub> and <sup>1000000</sup>&frasl;<sub>1048576</sub>.</p>\n",
+		"1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.\n",
+		"<p>1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.</p>\n"}
+
+	doTestsInlineParam(t, tests, 0, HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_FRACTIONS, HtmlRendererParameters{})
+}
+
+func TestDisableSmartDashes(t *testing.T) {
+	doTestsInlineParam(t, []string{
+		"foo - bar\n",
+		"<p>foo - bar</p>\n",
+		"foo -- bar\n",
+		"<p>foo -- bar</p>\n",
+		"foo --- bar\n",
+		"<p>foo --- bar</p>\n",
+	}, 0, 0, HtmlRendererParameters{})
+	doTestsInlineParam(t, []string{
+		"foo - bar\n",
+		"<p>foo &ndash; bar</p>\n",
+		"foo -- bar\n",
+		"<p>foo &mdash; bar</p>\n",
+		"foo --- bar\n",
+		"<p>foo &mdash;&ndash; bar</p>\n",
+	}, 0, HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_DASHES, HtmlRendererParameters{})
+	doTestsInlineParam(t, []string{
+		"foo - bar\n",
+		"<p>foo - bar</p>\n",
+		"foo -- bar\n",
+		"<p>foo &ndash; bar</p>\n",
+		"foo --- bar\n",
+		"<p>foo &mdash; bar</p>\n",
+	}, 0, HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_LATEX_DASHES|HTML_SMARTYPANTS_DASHES,
+		HtmlRendererParameters{})
+	doTestsInlineParam(t, []string{
+		"foo - bar\n",
+		"<p>foo - bar</p>\n",
+		"foo -- bar\n",
+		"<p>foo -- bar</p>\n",
+		"foo --- bar\n",
+		"<p>foo --- bar</p>\n",
+	}, 0,
+		HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_LATEX_DASHES,
+		HtmlRendererParameters{})
 }
