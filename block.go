@@ -330,7 +330,7 @@ func (p *parser) isPrefixHeader(data []byte) bool {
 		for level < 6 && data[level] == '#' {
 			level++
 		}
-		if !iswhitespace(data[level]) {
+		if data[level] != ' ' {
 			return false
 		}
 	}
@@ -353,7 +353,7 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 		level++
 	}
 	i, end := 0, 0
-	for i = level; iswhitespace(data[i]); i++ {
+	for i = level; data[i] == ' '; i++ {
 	}
 	for end = i; data[end] != '\n'; end++ {
 	}
@@ -383,13 +383,13 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 	for end > 0 && data[end-1] == '#' {
 		// CommonMark: a # directly following the header name is allowed and we
 		// should keep it
-		if end > 1 && data[end-2] != '#' && !iswhitespace(data[end-2]) {
+		if end > 1 && data[end-2] != '#' && data[end-2] != ' ' {
 			end++
 			break
 		}
 		end--
 	}
-	for end > 0 && iswhitespace(data[end-1]) {
+	for end > 0 && data[end-1] == ' ' {
 		end--
 	}
 	if end > i {
@@ -425,7 +425,7 @@ func (p *parser) isUnderlinedHeader(data []byte) int {
 		for data[i] == '=' {
 			i++
 		}
-		for iswhitespace(data[i]) {
+		for data[i] == ' ' {
 			i++
 		}
 		if data[i] == '\n' {
@@ -440,7 +440,7 @@ func (p *parser) isUnderlinedHeader(data []byte) int {
 		for data[i] == '-' {
 			i++
 		}
-		for iswhitespace(data[i]) {
+		for data[i] == ' ' {
 			i++
 		}
 		if data[i] == '\n' {
@@ -470,7 +470,7 @@ func (p *parser) isPartHeader(data []byte) bool {
 	}
 
 	if p.flags&EXTENSION_SPACE_HEADERS != 0 {
-		if !iswhitespace(data[2]) {
+		if data[2] != ' ' {
 			return false
 		}
 	}
@@ -495,7 +495,7 @@ func (p *parser) isSpecialHeader(data []byte) bool {
 	}
 
 	if p.flags&EXTENSION_SPACE_HEADERS != 0 {
-		if !iswhitespace(data[2]) {
+		if data[2] != ' ' {
 			return false
 		}
 	}
@@ -520,7 +520,7 @@ func (p *parser) specialHeader(out *bytes.Buffer, data []byte) int {
 	}
 
 	i, end := 0, 0
-	for i = 2; iswhitespace(data[i]); i++ {
+	for i = 2; data[i] == ' '; i++ {
 	}
 	for end = i; data[end] != '\n'; end++ {
 	}
@@ -552,13 +552,13 @@ func (p *parser) specialHeader(out *bytes.Buffer, data []byte) int {
 	for end > 0 && data[end-1] == '#' {
 		// CommonMark: a # directly following the header name is allowed and we
 		// should keep it
-		if end > 1 && data[end-2] != '#' && !iswhitespace(data[end-2]) {
+		if end > 1 && data[end-2] != '#' && data[end-2] != ' ' {
 			end++
 			break
 		}
 		end--
 	}
-	for end > 0 && iswhitespace(data[end-1]) {
+	for end > 0 && data[end-1] == ' ' {
 		end--
 	}
 	if end > i {
@@ -615,7 +615,7 @@ func (p *parser) partHeader(out *bytes.Buffer, data []byte) int {
 	}
 
 	i, end := 0, 0
-	for i = 2; iswhitespace(data[i]); i++ {
+	for i = 2; data[i] == ' '; i++ {
 	}
 	for end = i; data[end] != '\n'; end++ {
 	}
@@ -646,13 +646,13 @@ func (p *parser) partHeader(out *bytes.Buffer, data []byte) int {
 	for end > 0 && data[end-1] == '#' {
 		// CommonMark: a # directly following the header name is allowed and we
 		// should keep it
-		if end > 1 && data[end-2] != '#' && !iswhitespace(data[end-2]) {
+		if end > 1 && data[end-2] != '#' && data[end-2] != ' ' {
 			end++
 			break
 		}
 		end--
 	}
-	for end > 0 && iswhitespace(data[end-1]) {
+	for end > 0 && data[end-1] == ' ' {
 		end--
 	}
 	if end > i {
@@ -1824,8 +1824,7 @@ func (p *parser) uliPrefix(data []byte) int {
 	}
 
 	// need a *, +, #, or - followed by a space
-	if (data[i] != '*' && data[i] != '+' && data[i] != '-' && !iswhitespace(data[i])) ||
-		!iswhitespace(data[i+1]) {
+	if (data[i] != '*' && data[i] != '+' && data[i] != '-' && data[i] != ' ') || data[i+1] != ' ' {
 		return 0
 	}
 	return i + 2
@@ -1850,7 +1849,7 @@ func (p *parser) oliPrefix(data []byte) int {
 	}
 
 	// we need >= 1 digits followed by a dot or brace and a space
-	if start == i || (data[i] != '.' && data[i] != ')') || !iswhitespace(data[i+1]) {
+	if start == i || (data[i] != '.' && data[i] != ')') || data[i+1] != ' ' {
 		return 0
 	}
 	return i + 2
@@ -1875,7 +1874,7 @@ func (p *parser) aliPrefix(data []byte) int {
 	}
 
 	// we need >= 1 letter followed by a dot and two spaces
-	if start == i || (data[i] != '.' && data[i] != ')') || !iswhitespace(data[i+1]) || !iswhitespace(data[i+2]) {
+	if start == i || (data[i] != '.' && data[i] != ')') || data[i+1] != ' ' || data[i+2] != ' ' {
 		return 0
 	}
 	if i-start > 2 {
@@ -1905,7 +1904,7 @@ func (p *parser) aliPrefixU(data []byte) int {
 	}
 
 	// we need >= 1 letter followed by a dot and  two spaces
-	if start == i || (data[i] != '.' && data[i] != ')') || !iswhitespace(data[i+1]) || !iswhitespace(data[i+2]) {
+	if start == i || (data[i] != '.' && data[i] != ')') || data[i+1] != ' ' || data[i+2] != ' ' {
 		return 0
 	}
 	if i-start > 2 {
@@ -1934,7 +1933,7 @@ func (p *parser) rliPrefix(data []byte) int {
 	}
 
 	// we need >= 1 letter followed by a dot and  two spaces
-	if start == i || (data[i] != '.' && data[i] != ')') || !iswhitespace(data[i+1]) || !iswhitespace(data[i+2]) {
+	if start == i || (data[i] != '.' && data[i] != ')') || data[i+1] != ' ' || data[i+2] != ' ' {
 		return 0
 	}
 	return i + 3
@@ -1959,7 +1958,7 @@ func (p *parser) rliPrefixU(data []byte) int {
 	}
 
 	// we need >= 1 letter followed by a dot and  two spaces
-	if start == i || (data[i] != '.' && data[i] != ')') || !iswhitespace(data[i+1]) || !iswhitespace(data[i+2]) {
+	if start == i || (data[i] != '.' && data[i] != ')') || data[i+1] != ' ' || data[i+2] != ' ' {
 		return 0
 	}
 	return i + 3
@@ -1983,7 +1982,7 @@ func (p *parser) dliPrefix(data []byte) int {
 
 	// start with up to 3 spaces before :
 	j := 0
-	for j < 3 && iswhitespace(data[i+j]) && i+j < len(data) {
+	for j < 3 && data[i+j] == ' ' && i+j < len(data) {
 		j++
 	}
 	i += j + 1
@@ -2004,7 +2003,7 @@ func (p *parser) eliPrefix(data []byte) int {
 	}
 
 	// start with up to 3 spaces
-	for i < 3 && iswhitespace(data[i]) {
+	for i < 3 && data[i] == ' ' {
 		i++
 	}
 
@@ -2021,7 +2020,7 @@ func (p *parser) eliPrefix(data []byte) int {
 		}
 	}
 	// now two spaces
-	if data[i] != ')' || !iswhitespace(data[i+1]) || !iswhitespace(data[i+2]) {
+	if data[i] != ')' || data[i+1] != ' ' || data[i+2] != ' ' {
 		return 0
 	}
 	return i + 2
@@ -2074,7 +2073,7 @@ func (p *parser) list(out *bytes.Buffer, data []byte, flags, start int, group []
 func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *int) int {
 	// keep track of the indentation of the first line
 	itemIndent := 0
-	for itemIndent < 3 && iswhitespace(data[itemIndent]) {
+	for itemIndent < 3 && data[itemIndent] == ' ' {
 		itemIndent++
 	}
 
@@ -2115,7 +2114,7 @@ func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *int) int {
 	}
 
 	// skip leading whitespace on first line
-	for iswhitespace(data[i]) {
+	for data[i] == ' ' {
 		i++
 	}
 
@@ -2264,7 +2263,7 @@ func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 	}
 	// trim leading spaces
 	beg := 0
-	for iswhitespace(data[beg]) {
+	for data[beg] == ' ' {
 		beg++
 	}
 
@@ -2272,7 +2271,7 @@ func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 	end := len(data) - 1
 
 	// trim trailing spaces
-	for end > beg && iswhitespace(data[end-1]) {
+	for end > beg && data[end-1] == ' ' {
 		end--
 	}
 
@@ -2338,10 +2337,10 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 
 				// ignore leading and trailing whitespace
 				eol := i - 1
-				for prev < eol && iswhitespace(data[prev]) {
+				for prev < eol && data[prev] == ' ' {
 					prev++
 				}
-				for eol > prev && iswhitespace(data[eol-1]) {
+				for eol > prev && data[eol-1] == ' '  {
 					eol--
 				}
 

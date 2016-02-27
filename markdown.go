@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"io/ioutil"
 	"path"
-	"unicode"
 	"unicode/utf8"
 )
 
@@ -561,7 +560,7 @@ func isReference(p *parser, data []byte, tabSize int) int {
 		return 0
 	}
 	i := 0
-	for i < 3 && data[i] == ' ' { // break tests if this is 'iswhitespace'
+	for i < 3 && data[i] == ' ' {
 		i++
 	}
 
@@ -845,21 +844,26 @@ func scanAbbreviation(p *parser, data []byte, i int) (titleOffset, titleEnd, lin
 }
 
 // Miscellaneous helper functions
-
-func ispunct(c byte) bool  { return unicode.IsPunct(rune(c)) }
-func isletter(c byte) bool { return unicode.IsLetter(rune(c)) }
-func isalnum(c byte) bool  { return (unicode.IsNumber(rune(c)) || unicode.IsLetter(rune(c))) }
-func isnum(c byte) bool    { return unicode.IsNumber(rune(c)) }
-func isspace(c byte) bool  { return unicode.IsSpace(rune(c)) }
-func isupper(c byte) bool  { return unicode.IsUpper(rune(c)) }
-func islower(c byte) bool  { return !unicode.IsUpper(rune(c)) }
-
-func iswhitespace(c byte) bool { // better name?
-	if c == '\n' || c == '\r' {
-		return false
-	}
-	return unicode.IsSpace(rune(c))
+// Test if a character is a whitespace character.
+func isspace(c byte) bool {
+	return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v'
 }
+func ispunct(c byte) bool {
+	for _, r := range []byte("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~") {
+		if c == r {
+			return true
+		}
+	}
+	return false
+}
+
+func isupper(c byte) bool  { return (c >= 'A' && c <= 'Z') }
+func isletter(c byte) bool { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') }
+
+// Test if a character is a letter or a digit.
+// TODO: check when this is looking for ASCII alnum and when it should use unicode
+func isalnum(c byte) bool { return (c >= '0' && c <= '9') || isletter(c) }
+func isnum(c byte) bool   { return (c >= '0' && c <= '9') }
 
 // check if the string only contains, i, v, x, c and l. If uppercase is true, check uppercase version.
 func isroman(digit byte, uppercase bool) bool {
