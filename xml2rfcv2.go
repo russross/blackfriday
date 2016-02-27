@@ -387,6 +387,7 @@ func (options *xml2) ListItem(out *bytes.Buffer, text []byte, flags int) {
 			printf(nil, "no text remained after sanitizing XML for definition term: '"+string(text)+"'")
 		}
 		out.WriteString("\">\n")
+		out.WriteString("<vspace />\n") // Align HTML and XML2 output, but inserting a new line (vspace here)
 		return
 	}
 	out.WriteString("<t>")
