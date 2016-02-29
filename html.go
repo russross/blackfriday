@@ -344,8 +344,8 @@ func (options *html) CalloutText(out *bytes.Buffer, id string, ids []string) {
 }
 
 func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure, callout bool) {
-	ial := options.Attr()
 	doubleSpace(out)
+	ial := options.Attr()
 
 	prefix := ial.Value("prefix")
 	ial.DropAttr("prefix")  // it's a fake attribute, so drop it
@@ -362,14 +362,9 @@ func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 		out.WriteString("<figure" + s + ">\n")
 	}
 
-	// parse out the language names/classes
-	count := 0
-	for _, elt := range strings.Fields(lang) {
-		if elt[0] == '.' {
-			elt = elt[1:]
-		}
-		if len(elt) == 0 {
-			continue
+	// optionally there can be a language being set.
+	if len(lang) > 0 {
+		lang = "language-" + lang
 		}
 		if count == 0 {
 			out.WriteString("<pre><code class=\"language-")
