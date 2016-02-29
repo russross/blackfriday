@@ -362,24 +362,16 @@ func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 		out.WriteString("<figure" + s + ">\n")
 	}
 
-	// optionally there can be a language being set.
+	// optionally there can be a language being set. This can also be set with
+	// a type="go" class in the ial, if
 	if len(lang) > 0 {
-		lang = "language-" + lang
-		}
-		if count == 0 {
-			out.WriteString("<pre><code class=\"language-")
-		} else {
-			out.WriteByte(' ')
-		}
-		attrEscape(out, []byte(elt))
-		count++
+		langOut := &bytes.Buffer{}
+		attrEscape(langOut, []byte(lang))
+		lang = " class=\"language-" + langOut.String() + "\""
 	}
 
-	if count == 0 {
-		out.WriteString("<pre><code>")
-	} else {
-		out.WriteString("\">")
-	}
+	out.WriteString("<pre><code" + lang + ">")
+
 	if callout {
 		attrEscapeInCode(options, out, text)
 	} else {
