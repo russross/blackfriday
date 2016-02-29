@@ -780,7 +780,8 @@ func callouts(p *parser, out *bytes.Buffer, data []byte, offset int, comment str
 	p.callouts = make(map[string][]string)
 	i := offset
 	j := 0
-	if comment != ";" && comment != "#" && comment != "//" {
+	// Defined comment types for callouts.
+	if comment != ";" && comment != "#" && comment != "//" && comment != "/*" && comment != "%" {
 		comment = ""
 	}
 

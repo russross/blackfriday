@@ -127,6 +127,10 @@ func (i *inlineAttr) add(j *inlineAttr) *inlineAttr {
 	return i
 }
 
+func (i *inlineAttr) SetAttr(key, value string) {
+	i.attr[key] = value
+}
+
 func (i *inlineAttr) SortClasses() []string {
 	keys := make([]string, 0, len(i.class))
 	for k := range i.class {

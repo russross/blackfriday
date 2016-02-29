@@ -1013,6 +1013,7 @@ func (p *parser) codeInclude(out *bytes.Buffer, data []byte) int {
 	co := ""
 	if p.ial != nil {
 		co = p.ial.Value("callout")
+		p.ial.DropAttr("callout")
 	}
 
 	p.r.SetAttr(p.ial)

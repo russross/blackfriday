@@ -348,8 +348,8 @@ func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 	ial := options.Attr()
 
 	prefix := ial.Value("prefix")
-	ial.DropAttr("prefix")  // it's a fake attribute, so drop it
-	ial.DropAttr("callout") // it's a fake attribute, so drop it
+	ial.DropAttr("prefix")  // it's a fake attribute, so drop it, works on text bytes
+
 	s := options.AttrString(ial)
 
 	text = blockCodePrefix(prefix, text)
@@ -363,8 +363,12 @@ func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 	}
 
 	// optionally there can be a language being set. This can also be set with
-	// a type="go" class in the ial, if
-	if len(lang) > 0 {
+	// a type="go" class in the ial, if the language isn't set we use that attribute
+	if lang == "" {
+		lang = ial.Value("type")
+		ial.DropAttr("type")
+	}
+	if lang != "" {
 		langOut := &bytes.Buffer{}
 		attrEscape(langOut, []byte(lang))
 		lang = " class=\"language-" + langOut.String() + "\""

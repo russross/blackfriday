@@ -105,7 +105,7 @@ func (options *xml) BlockCode(out *bytes.Buffer, text []byte, lang string, capti
 	}
 	prefix := ial.Value("prefix")
 	ial.DropAttr("prefix")  // it's a fake attribute, so drop it
-	ial.DropAttr("callout") // it's a fake attribute, so drop it
+
 	s := options.AttrString(ial)
 
 	text = blockCodePrefix(prefix, text)

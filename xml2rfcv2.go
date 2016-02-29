@@ -88,9 +88,17 @@ func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 	ial := options.Attr()
 	ial.GetOrDefaultAttr("align", "center")
 
+	ialArtwork := newInlineAttr()
+
 	prefix := ial.Value("prefix")
+
 	ial.DropAttr("prefix")  // it's a fake attribute, so drop it
-	ial.DropAttr("callout") // it's a fake attribute, so drop it
+	if lang == "" {
+		lang = ial.Value("type")
+	}
+	if lang != "" {
+		ialArtwork.SetAttr("type", lang)
+	}
 	ial.DropAttr("type")
 
 	// subfigure stuff. TODO(miek): check
@@ -99,7 +107,7 @@ func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 	}
 	s := options.AttrString(ial)
 
-	out.WriteString("\n<figure" + s + "><artwork" + ial.Key("align") + ">\n")
+	out.WriteString("\n<figure" + s + "><artwork" + ial.Key("align") + options.AttrString(ialArtwork) + ">\n")
 	text = blockCodePrefix(prefix, text)
 
 	if callout {
