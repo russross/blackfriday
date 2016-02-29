@@ -5,11 +5,7 @@ package mmark
 import (
 	"bytes"
 	"sort"
-	"strings"
 )
-
-// Do we return an anchor= when we see an #id or an id=
-var anchorOrID = "anchor"
 
 // One or more of these can be attached to block elements
 type inlineAttr struct {
@@ -131,41 +127,22 @@ func (i *inlineAttr) add(j *inlineAttr) *inlineAttr {
 	return i
 }
 
-// String renders an IAL and returns a string that can be included in the tag:
-// class="class" anchor="id" key="value". The string s has a space as the first character.k
-func (i *inlineAttr) String() (s string) {
-	if i == nil {
-		return ""
-	}
-
-	// some fluff needed to make this all sorted.
-	if i.id != "" {
-		s = " " + anchorOrID + "=\"" + i.id + "\""
-	}
-
+func (i *inlineAttr) SortClasses() []string {
 	keys := make([]string, 0, len(i.class))
 	for k := range i.class {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
-	if len(keys) > 0 {
-		s += " class=\"" + strings.Join(keys, " ") + "\""
-	}
+	return keys
+}
 
-	keys = keys[:0]
+func (i *inlineAttr) SortAttributes() []string {
+	keys := make([]string, 0, len(i.attr))
 	for k := range i.attr {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
-	attr := make([]string, len(keys))
-	for j, k := range keys {
-		v := i.attr[k]
-		attr[j] = k + "=\"" + v + "\""
-	}
-	if len(keys) > 0 {
-		s += " " + strings.Join(attr, " ")
-	}
-	return s
+	return keys
 }
 
 // GetOrDefaultAttr sets the value under key if is is not set or

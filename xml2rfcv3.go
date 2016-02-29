@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 // XML renderer configuration options.
@@ -48,19 +49,45 @@ type xml struct {
 // satisfies the Renderer interface.
 //
 // flags is a set of XML_* options ORed together
-func XmlRenderer(flags int) Renderer { anchorOrID = "anchor"; return &xml{flags: flags} }
+func XmlRenderer(flags int) Renderer { return &xml{flags: flags} }
 func (options *xml) Flags() int      { return options.flags }
 func (options *xml) State() int      { return 0 }
 
-func (options *xml) SetInlineAttr(i *inlineAttr) {
+func (options *xml) SetAttr(i *inlineAttr) {
 	options.ial = i
 }
 
-func (options *xml) inlineAttr() *inlineAttr {
+func (options *xml) Attr() *inlineAttr {
 	if options.ial == nil {
 		return newInlineAttr()
 	}
 	return options.ial
+}
+
+func (options *xml) AttrString(i *inlineAttr) string {
+	if i == nil {
+		return ""
+	}
+	s := ""
+	if i.id != "" {
+		s = " anchor=\"" + i.id + "\""
+	}
+
+	keys := i.SortClasses()
+	if len(keys) > 0 {
+		s += " class=\"" + strings.Join(keys, " ") + "\""
+	}
+
+	keys = i.SortAttributes()
+	attr := make([]string, len(keys))
+	for j, k := range keys {
+		v := i.attr[k]
+		attr[j] = k + "=\"" + v + "\""
+	}
+	if len(keys) > 0 {
+		s += " " + strings.Join(attr, " ")
+	}
+	return s
 }
 
 // render code chunks using verbatim, or listings if we have a language
@@ -72,14 +99,14 @@ func (options *xml) BlockCode(out *bytes.Buffer, text []byte, lang string, capti
 	}
 
 	// Tick of language for sourcecode...
-	ial := options.inlineAttr()
+	ial := options.Attr()
 	if lang != "" {
 		ial.GetOrDefaultAttr("type", lang)
 	}
 	prefix := ial.Value("prefix")
 	ial.DropAttr("prefix")  // it's a fake attribute, so drop it
 	ial.DropAttr("callout") // it's a fake attribute, so drop it
-	s := ial.String()
+	s := options.AttrString(ial)
 
 	text = blockCodePrefix(prefix, text)
 
@@ -146,7 +173,7 @@ func (options *xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 func (options *xml) BlockQuote(out *bytes.Buffer, text []byte, attribution []byte) {
 	// check for "person -- URI" syntax use those if found
 	// need to strip tags because these are attributes
-	ial := options.inlineAttr()
+	ial := options.Attr()
 	if len(attribution) != 0 {
 		parts := bytes.Split(attribution, []byte(" -- "))
 		if len(parts) == 2 {
@@ -157,13 +184,14 @@ func (options *xml) BlockQuote(out *bytes.Buffer, text []byte, attribution []byt
 		}
 	}
 
-	out.WriteString("<blockquote" + ial.String() + ">\n")
+	out.WriteString("<blockquote" + options.AttrString(ial) + ">\n")
 	out.Write(text)
 	out.WriteString("</blockquote>\n")
 }
 
 func (options *xml) Aside(out *bytes.Buffer, text []byte) {
-	s := options.inlineAttr().String()
+	ial := options.Attr()
+	s := options.AttrString(ial)
 	out.WriteString("<aside" + s + ">\n")
 	out.Write(text)
 	out.WriteString("</aside>\n")
@@ -229,9 +257,9 @@ func (options *xml) Note(out *bytes.Buffer, text func() bool, id string) {
 		}
 	}
 
-	ial := options.inlineAttr()
+	ial := options.Attr()
 
-	out.WriteString("\n<note" + ial.String() + ">\n")
+	out.WriteString("\n<note" + options.AttrString(ial) + ">\n")
 	out.WriteString("<name>")
 	text()
 	out.WriteString("</name>\n")
@@ -259,9 +287,9 @@ func (options *xml) SpecialHeader(out *bytes.Buffer, what []byte, text func() bo
 		}
 	}
 
-	ial := options.inlineAttr()
+	ial := options.Attr()
 
-	out.WriteString("\n<abstract" + ial.String() + ">\n")
+	out.WriteString("\n<abstract" + options.AttrString(ial) + ">\n")
 	options.sectionLevel = 0
 	options.specialSection = _ABSTRACT
 	return
@@ -281,11 +309,11 @@ func (options *xml) Header(out *bytes.Buffer, text func() bool, level int, id st
 		}
 	}
 
-	ial := options.inlineAttr()
+	ial := options.Attr()
 	ial.GetOrDefaultId(id)
 
 	// new section
-	out.WriteString("\n<section" + ial.String() + ">\n")
+	out.WriteString("\n<section" + options.AttrString(ial) + ">\n")
 	out.WriteString("<name>")
 	text()
 	out.WriteString("</name>\n")
@@ -301,7 +329,7 @@ func (options *xml) HRule(out *bytes.Buffer) {
 func (options *xml) List(out *bytes.Buffer, text func() bool, flags, start int, group []byte) {
 	marker := out.Len()
 
-	ial := options.inlineAttr()
+	ial := options.Attr()
 	ial.KeepAttr([]string{"type", "start", "group", "anchor", "spacing"})
 
 	if start > 1 {
@@ -327,7 +355,7 @@ func (options *xml) List(out *bytes.Buffer, text func() bool, flags, start int, 
 		}
 	}
 
-	s := ial.String()
+	s := options.AttrString(ial)
 
 	switch {
 	case flags&_LIST_TYPE_ORDERED != 0:
@@ -398,7 +426,8 @@ func (options *xml) Math(out *bytes.Buffer, text []byte, display bool) {
 }
 
 func (options *xml) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
-	s := options.inlineAttr().String()
+	ial := options.Attr()
+	s := options.AttrString(ial)
 	out.WriteString("<table" + s + ">\n")
 	if caption != nil {
 		out.WriteString("<name>")
@@ -590,7 +619,8 @@ func (options *xml) Superscript(out *bytes.Buffer, text []byte) {
 
 func (options *xml) Figure(out *bytes.Buffer, text []byte, caption []byte) {
 	// add figure and typeset the caption
-	s := options.inlineAttr().String()
+	ial := options.Attr()
+	s := options.AttrString(ial)
 	out.WriteString("<figure" + s + ">\n")
 	out.WriteString("<name>")
 	out.Write(caption)
@@ -609,7 +639,7 @@ func (options *xml) Image(out *bytes.Buffer, link []byte, title []byte, alt []by
 	}
 
 	// if subfigure, no <figure>
-	s := options.inlineAttr().String()
+	s := options.AttrString(options.Attr())
 	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
 		// link to external entity
 		out.WriteString("<artwork" + s)

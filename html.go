@@ -107,8 +107,6 @@ func HtmlRendererWithParameters(flags int, css, head string, renderParameters Ht
 		renderParameters.FootnoteReturnLinkContents = `<sup>[return]</sup>`
 	}
 
-	anchorOrID = "id" // use id= when seeing #id. Also see ial.go
-
 	return &html{
 		flags:      flags,
 		closeTag:   closeTag,
@@ -259,7 +257,7 @@ func (options *html) Part(out *bytes.Buffer, text func() bool, id string) {
 }
 
 func (options *html) Note(out *bytes.Buffer, text func() bool, id string) {
-	options.inlineAttr() //reset the IAL
+	options.Attr() //reset the IAL
 	if id != "" {
 		out.WriteString(fmt.Sprintf("<h1 class=\"note\" id=\"%s\">", id))
 	} else {
@@ -270,7 +268,7 @@ func (options *html) Note(out *bytes.Buffer, text func() bool, id string) {
 }
 
 func (options *html) SpecialHeader(out *bytes.Buffer, what []byte, text func() bool, id string) {
-	options.inlineAttr() //reset the IAL
+	options.Attr() //reset the IAL
 	if id != "" {
 		out.WriteString(fmt.Sprintf("<h1 class=\""+string(what)+"\" id=\"%s\">", id))
 	} else {
@@ -284,13 +282,13 @@ func (options *html) Header(out *bytes.Buffer, text func() bool, level int, id s
 	marker := out.Len()
 	doubleSpace(out)
 
-	ial := options.inlineAttr()
+	ial := options.Attr()
 	ial.GetOrDefaultId(id)
 	if options.appendix {
 		ial.GetOrDefaultClass("appendix")
 	}
 
-	out.WriteString(fmt.Sprintf("<h%d%s>", level, ial.String()))
+	out.WriteString(fmt.Sprintf("<h%d%s>", level, options.AttrString(ial)))
 
 	if !text() {
 		out.Truncate(marker)
@@ -346,13 +344,13 @@ func (options *html) CalloutText(out *bytes.Buffer, id string, ids []string) {
 }
 
 func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure, callout bool) {
-	ial := options.inlineAttr()
+	ial := options.Attr()
 	doubleSpace(out)
 
 	prefix := ial.Value("prefix")
 	ial.DropAttr("prefix")  // it's a fake attribute, so drop it
 	ial.DropAttr("callout") // it's a fake attribute, so drop it
-	s := ial.String()
+	s := options.AttrString(ial)
 
 	text = blockCodePrefix(prefix, text)
 
@@ -403,13 +401,13 @@ func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 
 func (options *html) BlockQuote(out *bytes.Buffer, text []byte, attribution []byte) {
 	// attribution can potentially be split on --: meta -- who
-	ial := options.inlineAttr()
+	ial := options.Attr()
 	parts := bytes.Split(attribution, []byte("--"))
 	for _, p := range parts {
 		bytes.TrimSpace(p)
 	}
 	doubleSpace(out)
-	out.WriteString("<blockquote" + ial.String() + ">\n")
+	out.WriteString("<blockquote" + options.AttrString(ial) + ">\n")
 	out.Write(text)
 	if len(parts) == 2 {
 		out.WriteString("<footer>")
@@ -434,10 +432,10 @@ func (options *html) Aside(out *bytes.Buffer, text []byte) {
 }
 
 func (options *html) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
-	ial := options.inlineAttr()
+	ial := options.Attr()
 
 	doubleSpace(out)
-	out.WriteString("<table" + ial.String() + ">\n")
+	out.WriteString("<table" + options.AttrString(ial) + ">\n")
 	if len(caption) > 0 {
 		out.WriteString("<caption>\n")
 		out.Write(caption)
@@ -551,7 +549,7 @@ func (options *html) List(out *bytes.Buffer, text func() bool, flags, start int,
 	marker := out.Len()
 	doubleSpace(out)
 
-	ial := options.inlineAttr()
+	ial := options.Attr()
 	if start > 1 {
 		ial.GetOrDefaultAttr("start", strconv.Itoa(start))
 	}
@@ -576,11 +574,11 @@ func (options *html) List(out *bytes.Buffer, text func() bool, flags, start int,
 				ial.GetOrDefaultAttr("type", "I")
 			}
 		}
-		out.WriteString("<ol" + ial.String() + ">")
+		out.WriteString("<ol" + options.AttrString(ial) + ">")
 	case flags&_LIST_TYPE_DEFINITION != 0:
-		out.WriteString("<dl" + ial.String() + ">")
+		out.WriteString("<dl" + options.AttrString(ial) + ">")
 	default:
-		out.WriteString("<ul" + ial.String() + ">")
+		out.WriteString("<ul" + options.AttrString(ial) + ">")
 	}
 	if !text() {
 		out.Truncate(marker)
@@ -636,8 +634,8 @@ func (options *html) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 }
 
 func (options *html) Math(out *bytes.Buffer, text []byte, display bool) {
-	ial := options.inlineAttr()
-	s := ial.String()
+	ial := options.Attr()
+	s := options.AttrString(ial)
 	oTag := "\\("
 	cTag := "\\)"
 	if display {
@@ -739,7 +737,8 @@ func (options *html) maybeWriteAbsolutePrefix(out *bytes.Buffer, link []byte) {
 }
 
 func (options *html) Figure(out *bytes.Buffer, text []byte, caption []byte) {
-	s := options.inlineAttr().String()
+	ial := options.Attr()
+	s := options.AttrString(ial)
 	out.WriteString("<figure role=\"group\"" + s + ">\n")
 	out.WriteString("<figcaption>")
 	out.Write(caption)
@@ -752,7 +751,8 @@ func (options *html) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 	if options.flags&HTML_SKIP_IMAGES != 0 {
 		return
 	}
-	s := options.inlineAttr().String()
+	ial := options.Attr()
+	s := options.AttrString(ial)
 	if subfigure {
 		s += " role=\"group\""
 	}
@@ -1146,15 +1146,41 @@ func (options *html) TocFinalize() {
 	}
 }
 
-func (options *html) SetInlineAttr(i *inlineAttr) {
+func (options *html) SetAttr(i *inlineAttr) {
 	options.ial = i
 }
 
-func (options *html) inlineAttr() *inlineAttr {
+func (options *html) Attr() *inlineAttr {
 	if options.ial == nil {
 		return newInlineAttr()
 	}
 	return options.ial
+}
+
+func (options *html) AttrString(i *inlineAttr) string {
+	if i == nil {
+		return ""
+	}
+	s := ""
+	if i.id != "" {
+		s = " id=\"" + i.id + "\""
+	}
+
+	keys := i.SortClasses()
+	if len(keys) > 0 {
+		s += " class=\"" + strings.Join(keys, " ") + "\""
+	}
+
+	keys = i.SortAttributes()
+	attr := make([]string, len(keys))
+	for j, k := range keys {
+		v := i.attr[k]
+		attr[j] = k + "=\"" + v + "\""
+	}
+	if len(keys) > 0 {
+		s += " " + strings.Join(attr, " ")
+	}
+	return s
 }
 
 func isHtmlTag(tag []byte, tagname string) bool {

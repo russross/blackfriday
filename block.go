@@ -410,7 +410,7 @@ func (p *parser) prefixHeader(out *bytes.Buffer, data []byte) int {
 			}
 		}
 
-		p.r.SetInlineAttr(p.ial)
+		p.r.SetAttr(p.ial)
 		p.ial = nil
 
 		p.r.Header(out, work, level, id)
@@ -569,7 +569,7 @@ func (p *parser) specialHeader(out *bytes.Buffer, data []byte) int {
 			p.inline(out, data[i:end])
 			return true
 		}
-		p.r.SetInlineAttr(p.ial)
+		p.r.SetAttr(p.ial)
 		p.ial = nil
 
 		name := bytes.ToLower(data[i:end])
@@ -673,7 +673,7 @@ func (p *parser) partHeader(out *bytes.Buffer, data []byte) int {
 			}
 		}
 
-		p.r.SetInlineAttr(p.ial)
+		p.r.SetAttr(p.ial)
 		p.ial = nil
 
 		p.r.Part(out, work, id)
@@ -829,7 +829,7 @@ func (p *parser) renderHTMLBlock(out *bytes.Buffer, data []byte, start int, doRe
 			//			var cooked bytes.Buffer
 			//			p.inline(&cooked, data[:end])
 
-			p.r.SetInlineAttr(p.ial)
+			p.r.SetAttr(p.ial)
 			p.ial = nil
 
 			p.r.CommentHtml(out, data[:end])
@@ -1238,7 +1238,7 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 	}
 
 	if doRender {
-		p.r.SetInlineAttr(p.ial)
+		p.r.SetAttr(p.ial)
 		p.ial = nil
 		if co != "" {
 			var callout bytes.Buffer
@@ -1312,7 +1312,7 @@ func (p *parser) table(out *bytes.Buffer, data []byte) int {
 		}
 	}
 
-	p.r.SetInlineAttr(p.ial)
+	p.r.SetAttr(p.ial)
 	p.ial = nil
 
 	p.r.Table(out, header.Bytes(), body.Bytes(), footer.Bytes(), columns, caption.Bytes())
@@ -1446,7 +1446,7 @@ func (p *parser) blockTable(out *bytes.Buffer, data []byte) int {
 		p.inline(&caption, data[i+7:j-1]) // +7 for 'Table: '
 	}
 
-	p.r.SetInlineAttr(p.ial)
+	p.r.SetAttr(p.ial)
 	p.ial = nil
 
 	p.r.Table(out, header.Bytes(), body.Bytes(), footer.Bytes(), columns, caption.Bytes())
@@ -1793,7 +1793,7 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 		co = p.ial.Value("callout")
 	}
 
-	p.r.SetInlineAttr(p.ial)
+	p.r.SetAttr(p.ial)
 	p.ial = nil
 
 	var capb bytes.Buffer
@@ -2055,7 +2055,7 @@ func (p *parser) list(out *bytes.Buffer, data []byte, flags, start int, group []
 		}
 	}
 
-	p.r.SetInlineAttr(p.ial)
+	p.r.SetAttr(p.ial)
 	p.ial = nil
 
 	if p.insideList > 1 {
@@ -2340,7 +2340,7 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 				for prev < eol && data[prev] == ' ' {
 					prev++
 				}
-				for eol > prev && data[eol-1] == ' '  {
+				for eol > prev && data[eol-1] == ' ' {
 					eol--
 				}
 
@@ -2359,7 +2359,7 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 					id = createSanitizedAnchorName(string(data[prev:eol]))
 				}
 
-				p.r.SetInlineAttr(p.ial)
+				p.r.SetAttr(p.ial)
 				p.ial = nil
 
 				p.r.Header(out, work, level, id)

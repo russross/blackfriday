@@ -689,7 +689,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		var cooked bytes.Buffer
 		p.inline(&cooked, title)
 
-		p.r.SetInlineAttr(p.ial)
+		p.r.SetAttr(p.ial)
 		p.ial = nil
 		p.r.Image(out, uLink, cooked.Bytes(), content.Bytes(), p.insideFigure)
 
@@ -1670,7 +1670,7 @@ func math(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		return 0
 	}
 	if p.displayMath {
-		p.r.SetInlineAttr(p.ial)
+		p.r.SetAttr(p.ial)
 		p.ial = nil
 	}
 	p.r.Math(out, data[i+1:end-2], p.displayMath)

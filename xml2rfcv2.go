@@ -5,6 +5,7 @@ package mmark
 import (
 	"bytes"
 	"strconv"
+	"strings"
 )
 
 // References code in Xml2rfcv3.go
@@ -40,37 +41,63 @@ type xml2 struct {
 //
 // flags is a set of XML2_* options ORed together
 func Xml2Renderer(flags int) Renderer {
-	anchorOrID = "anchor"
 	return &xml2{flags: flags, group: make(map[string]int)}
 }
 func (options *xml2) Flags() int { return options.flags }
 func (options *xml2) State() int { return 0 }
 
-func (options *xml2) SetInlineAttr(i *inlineAttr) {
+func (options *xml2) SetAttr(i *inlineAttr) {
 	options.ial = i
 }
 
-func (options *xml2) inlineAttr() *inlineAttr {
+func (options *xml2) Attr() *inlineAttr {
 	if options.ial == nil {
 		return newInlineAttr()
 	}
 	return options.ial
 }
 
+func (options *xml2) AttrString(i *inlineAttr) string {
+	if i == nil {
+		return ""
+	}
+	s := ""
+	if i.id != "" {
+		s = " anchor=\"" + i.id + "\""
+	}
+
+	keys := i.SortClasses()
+	if len(keys) > 0 {
+		s += " class=\"" + strings.Join(keys, " ") + "\""
+	}
+
+	keys = i.SortAttributes()
+	attr := make([]string, len(keys))
+	for j, k := range keys {
+		v := i.attr[k]
+		attr[j] = k + "=\"" + v + "\""
+	}
+	if len(keys) > 0 {
+		s += " " + strings.Join(attr, " ")
+	}
+	return s
+}
+
 // render code chunks using verbatim, or listings if we have a language
 func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure, callout bool) {
-	ial := options.inlineAttr()
+	ial := options.Attr()
 	ial.GetOrDefaultAttr("align", "center")
 
 	prefix := ial.Value("prefix")
 	ial.DropAttr("prefix")  // it's a fake attribute, so drop it
 	ial.DropAttr("callout") // it's a fake attribute, so drop it
+	ial.DropAttr("type")
+
 	// subfigure stuff. TODO(miek): check
 	if len(caption) > 0 {
 		ial.GetOrDefaultAttr("title", string(sanitizeXML(caption)))
 	}
-	ial.DropAttr("type")
-	s := ial.String()
+	s := options.AttrString(ial)
 
 	out.WriteString("\n<figure" + s + "><artwork" + ial.Key("align") + ">\n")
 	text = blockCodePrefix(prefix, text)
@@ -137,7 +164,7 @@ func (options *xml2) BlockQuote(out *bytes.Buffer, text []byte, attribution []by
 	// Fake a list paragraph
 
 	// TODO(miek): IAL, clear them for now
-	options.inlineAttr()
+	options.Attr()
 
 	out.WriteString("<t><list style=\"empty\">\n")
 	out.Write(text)
@@ -230,10 +257,9 @@ func (options *xml2) Note(out *bytes.Buffer, text func() bool, id string) {
 		}
 	}
 
-	ial := options.inlineAttr()
+	ial := options.Attr()
 
-
-	out.WriteString("\n<note" + ial.String())
+	out.WriteString("\n<note" + options.AttrString(ial))
 	out.WriteString(" title=\"")
 	text()
 	out.WriteString("\">\n")
@@ -262,9 +288,9 @@ func (options *xml2) SpecialHeader(out *bytes.Buffer, what []byte, text func() b
 		}
 	}
 
-	ial := options.inlineAttr()
+	ial := options.Attr()
 
-	out.WriteString("\n<abstract" + ial.String() + ">\n")
+	out.WriteString("\n<abstract" + options.AttrString(ial) + ">\n")
 	options.sectionLevel = 0
 	options.specialSection = _ABSTRACT
 	return
@@ -289,13 +315,13 @@ func (options *xml2) Header(out *bytes.Buffer, text func() bool, level int, id s
 		}
 	}
 
-	ial := options.inlineAttr()
+	ial := options.Attr()
 	ial.GetOrDefaultId(id)
 	ial.KeepAttr([]string{"title", "toc"})
 	ial.KeepClass(nil)
 
 	// new section
-	out.WriteString("\n<section" + ial.String())
+	out.WriteString("\n<section" + options.AttrString(ial))
 	out.WriteString(" title=\"")
 	text()
 	out.WriteString("\">\n")
@@ -315,7 +341,7 @@ func (options *xml2) List(out *bytes.Buffer, text func() bool, flags, start int,
 		out.WriteString("<t>\n")
 	}
 
-	ial := options.inlineAttr()
+	ial := options.Attr()
 	ial.KeepAttr([]string{"style", "counter"})
 	// start > 1 is not supported
 
@@ -350,7 +376,7 @@ func (options *xml2) List(out *bytes.Buffer, text func() bool, flags, start int,
 		ial.GetOrDefaultAttr("style", "symbols")
 	}
 
-	out.WriteString("<list" + ial.String() + ">\n")
+	out.WriteString("<list" + options.AttrString(ial) + ">\n")
 
 	if !text() {
 		out.Truncate(marker)
@@ -433,12 +459,12 @@ func (options *xml2) Math(out *bytes.Buffer, text []byte, display bool) {
 }
 
 func (options *xml2) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
-	ial := options.inlineAttr()
+	ial := options.Attr()
 	if caption != nil {
 		ial.GetOrDefaultAttr("title", string(sanitizeXML(caption)))
 	}
 
-	s := ial.String()
+	s := options.AttrString(ial)
 	out.WriteString("<texttable" + s + ">\n")
 	out.Write(header)
 	out.Write(body)
@@ -620,10 +646,11 @@ func (options *xml2) Figure(out *bytes.Buffer, text []byte, caption []byte) {
 
 func (options *xml2) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte, subfigure bool) {
 	// convert to url or image wrapped in figure
-	ial := options.inlineAttr()
+	ial := options.Attr()
 	ial.GetOrDefaultAttr("align", "center")
 	ial.DropAttr("type") // type may be set, but is not valid in xml 2 syntax
-	s := options.inlineAttr().String()
+
+	s := options.AttrString(ial)
 	if len(title) != 0 {
 		out.WriteString("<figure" + s + " title=\"")
 		title1 := sanitizeXML(title)
