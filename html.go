@@ -541,6 +541,7 @@ func (options *html) List(out *bytes.Buffer, text func() bool, flags, start int,
 	doubleSpace(out)
 
 	ial := options.Attr()
+	ial.KeepAttr([]string{"type", "start", "reversed"})
 	if start > 1 {
 		ial.GetOrDefaultAttr("start", strconv.Itoa(start))
 	}

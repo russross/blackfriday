@@ -330,7 +330,7 @@ func (options *xml) List(out *bytes.Buffer, text func() bool, flags, start int, 
 	marker := out.Len()
 
 	ial := options.Attr()
-	ial.KeepAttr([]string{"type", "start", "group", "anchor", "spacing"})
+	ial.KeepAttr([]string{"type", "start", "group", "spacing"})
 
 	if start > 1 {
 		ial.GetOrDefaultAttr("start", strconv.Itoa(start))

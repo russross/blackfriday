@@ -351,6 +351,7 @@ func (options *xml2) List(out *bytes.Buffer, text func() bool, flags, start int,
 
 	ial := options.Attr()
 	ial.KeepAttr([]string{"style", "counter"})
+
 	// start > 1 is not supported
 
 	// for group, fake a numbered format (if not already given and put a
