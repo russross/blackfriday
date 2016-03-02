@@ -33,12 +33,12 @@ const (
 	EXTENSION_MATTER                     // Use {frontmatter} {mainmatter} {backmatter}
 	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK // No need to insert an empty line to start a (code, quote, order list, unorder list)block
 	EXTENSION_PARTS                      // Detect part headers (-#)
-	EXTENSION_QUOTES                     // Allow A> AS> and N> to be parsed as abstract, asides and notes
-	EXTENSION_SHORT_REF                  // (#id) will be a cross reference.
+	EXTENSION_QUOTES                     // Allow A> as asides
+	EXTENSION_SHORT_REF                  // (#id) will be a cross reference
 	EXTENSION_SPACE_HEADERS              // Be strict about prefix header rules
 	EXTENSION_TABLES                     // Render tables
 	EXTENSION_TITLEBLOCK_TOML            // Titleblock in TOML
-	EXTENSION_UNIQUE_HEADER_IDS          // When detecting identical anchors add a sequence number -1, -2 etc.
+	EXTENSION_UNIQUE_HEADER_IDS          // When detecting identical anchors add a sequence number -1, -2 etc
 	EXTENSION_BACKSLASH_LINE_BREAK       // Translate trailing backslashes into line breaks
 	EXTENSION_RFC7328                    // Parse RFC 7328 markdown. Depends on FOOTNOTES extension.
 
