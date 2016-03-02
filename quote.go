@@ -45,7 +45,7 @@ func (p *parser) aside(out *bytes.Buffer, data []byte) int {
 	var cooked bytes.Buffer
 	p.block(&cooked, raw.Bytes())
 
-	p.r.SetInlineAttr(p.ial)
+	p.r.SetAttr(p.ial)
 	p.ial = nil
 
 	p.r.Aside(out, cooked.Bytes())
@@ -139,7 +139,7 @@ func (p *parser) quote(out *bytes.Buffer, data []byte) int {
 	var cooked bytes.Buffer
 	p.block(&cooked, raw.Bytes())
 
-	p.r.SetInlineAttr(ials)
+	p.r.SetAttr(ials)
 
 	p.r.BlockQuote(out, cooked.Bytes(), attribution.Bytes())
 	return j
@@ -212,7 +212,7 @@ func (p *parser) figure(out *bytes.Buffer, data []byte) int {
 	p.block(&cooked, raw.Bytes())
 	p.insideFigure = false
 
-	p.r.SetInlineAttr(p.ial)
+	p.r.SetAttr(p.ial)
 	p.ial = nil
 
 	p.r.Figure(out, cooked.Bytes(), caption.Bytes())

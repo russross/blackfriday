@@ -242,8 +242,12 @@ type Renderer interface {
 	// Helper functions
 	Flags() int
 
-	SetInlineAttr(*inlineAttr)
-	inlineAttr() *inlineAttr
+	// Attr returns the inline attribute.
+	Attr() *inlineAttr
+	// SetAttr set the inline attribute.
+	SetAttr(*inlineAttr)
+	// AttrString return the string representation of this inline attribute.
+	AttrString(*inlineAttr) string
 }
 
 // Callback functions for inline parsing. One such function is defined
@@ -1009,9 +1013,10 @@ func (p *parser) codeInclude(out *bytes.Buffer, data []byte) int {
 	co := ""
 	if p.ial != nil {
 		co = p.ial.Value("callout")
+		p.ial.DropAttr("callout")
 	}
 
-	p.r.SetInlineAttr(p.ial)
+	p.r.SetAttr(p.ial)
 	p.ial = nil
 
 	if co != "" {
@@ -1022,7 +1027,7 @@ func (p *parser) codeInclude(out *bytes.Buffer, data []byte) int {
 		p.callouts = nil
 		p.r.BlockCode(out, code, lang, caption.Bytes(), p.insideFigure, false)
 	}
-	p.r.SetInlineAttr(nil) // reset it again. TODO(miek): double check
+	p.r.SetAttr(nil) // reset it again. TODO(miek): double check
 
 	return end
 }
