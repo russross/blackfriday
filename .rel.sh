@@ -1,5 +1,5 @@
 #!/bin/bash
-FILES="mmark/mmark CONVERSION_RFC7328.md mmark2rfc.md README.md skel.md misc rfc"
+FILES="mmark/mmark CONVERSION_RFC7328.md mmark2rfc.md README.md rfc"
 ( cd mmark ; make clean; make )
 VERSION=$(mmark/mmark -version)
 
