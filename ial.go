@@ -18,7 +18,7 @@ func newInlineAttr() *inlineAttr {
 	return &inlineAttr{class: make(map[string]bool), attr: make(map[string]string)}
 }
 
-// Parsing and thus detecting an IAL. Return a valid *IAL or nil.
+// Parsing and thus detecting an IAL.
 // IAL can have #id, .class or key=value element seperated by spaces, that may be escaped
 func (p *parser) isInlineAttr(data []byte) int {
 	esc := false
