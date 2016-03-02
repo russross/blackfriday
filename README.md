@@ -1,58 +1,26 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-    Title = "Using mmark to create I-Ds, RFCs and books"
-    abbrev = "mmark2rfc"
-    category = "info"
-    docName = "draft-gieben-mmark2rfc-00"
-
-    [pi]
-    private = "yes"
-    footer = ""
-    header = "mmark"
-
-    date = 2015-10-10T00:00:00Z
-
-    [[author]]
-    initials="R."
-    surname="Gieben"
-    fullname="R. (Miek) Gieben"
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-.# Abstract
-
-![mmark logo](logo/mmark120px.png)
-
-This document describes an markdown variant called mmark [@?mmark-ref].
-
-Write RFCs using markdown. Mmark (written in Go) provides an advanced markdown
-dialect that processes a single file to produce internet-drafts in XML format.
-Internet-drafts written in mmark can produce xml2rfc v2 *and* xml2rfc v3 output.
-
-{mainmatter}
-
 # Mmark
 
-Mmark is a fork of blackfriday which is a [Markdown][1] processor implemented in
-[Go][2]. It supports a number of extensions, inspired by Leanpub, kramdown and
-Asciidoc, that allows for large documents to be written.
+Mmark is a powerful markdown processor Go geared for writing IETF document. It is, however also
+suited for writing books and other technical documentation.
 
-It is specifically designed to write internet drafts (I-Ds) and RFCs for the IETF. With mmark you
-can create a single file that serves as input into the xml2rfc processor. See [@!RFC7749] for the
-definition of the xml2rfc v2 syntax.
+Further documentation can be [found at my site](https://miek.nl/tags/mmark/). A complete syntax
+document [is being created](https://github.com/miekg/mmark/wiki/Syntax). That syntax doc will also
+be mirrored on my website.
 
-It also allows for writing large documents such as technical books, like my
-[Learning Go book](https://github.com/miekg/learninggo).
-Sample text output of this book (when rendered as an I-D) can
-[be found here](https://gist.githubusercontent.com/miekg/0251f3e28652fa603a51/raw/7e0a7028506f7d2948e4ad3091f533711bf5f2a4/learninggo.txt).
-It is not perfect due to limitations in xml2rfc version 2. Fully rendered
-HTML version [can be found here](http://miek.nl/go).
+With Mmark your can write RFCs using markdown. Mmark (written in Go) provides an advanced markdown
+dialect that processes a single file to produce internet-drafts in XML format. Internet-drafts
+written in mmark can produce xml2rfc v2, xml2rfc v3 and HTML5 output.
 
-See `mmark2rfc.md` as an example I-D for how to use mmark. Or see the rfc/ subdirectory
-with some April 1st RFC that have been typeset in mmark.
+It also allows for writing large documents such as technical books, like my [Learning Go
+book](https://github.com/miekg/learninggo). Sample text output of this book (when rendered as an
+I-D) can [be found
+here](https://gist.githubusercontent.com/miekg/0251f3e28652fa603a51/raw/7e0a7028506f7d2948e4ad3091f533711bf5f2a4/learninggo.txt).
+It is not perfect due to limitations in xml2rfc version 2. Fully rendered HTML version [can be found
+here](http://miek.nl/go).
 
-It can currently output HTML5, xml2rfc v2 and xml2rfc v3 XML. Other output
-engines could be added.
+Mmark is a fork of blackfriday which is a [Markdown][1] processor implemented in [Go][2]. It
+supports a number of extensions, inspired by Leanpub, kramdown and Asciidoc, that allows for large
+documents to be written.
 
 It adds the following syntax elements to [black friday](https://github.com/russross/blackfriday/blob/master/README.md):
 
@@ -78,10 +46,6 @@ It adds the following syntax elements to [black friday](https://github.com/russr
 * Abbreviations.
 * Super- and subscript.
 * Callouts in code blocks.
-
-Mmark is forked from blackfriday which started out as a translation from C of [upskirt][4].
-
-A simular effort is [kramdown-rfc2629](https://github.com/cabo/kramdown-rfc2629) from Carsten Bormann.
 
 There is no pretty printed output if you need that pipe the output through `xmllint --format -`.
 
@@ -110,6 +74,9 @@ a processor for this XML, but you should be able to validate the
 resulting XML against the schema from the xml2rfc v3 draft. I'm trying
 to stay current with the latest draft for the V3 spec:
 <https://tools.ietf.org/html/draft-hoffman-xml2rfc-21>
+
+
+> TO BE MOVED TO THE SYNTAX DOCUMENT
 
 # Extensions
 
@@ -412,24 +379,3 @@ implements the following extensions:
      can optionally detect (and remove!) the comment and the callout, leaving your
      example pristine. This can be enabled by setting `{callout="//"}` for instance.
      The allowed comment patterns are `//`, `#` and `;`.
-
-
-[1]: http://daringfireball.net/projects/markdown/ "Markdown"
-[2]: http://golang.org/ "Go Language"
-[3]: https://github.com/toml-lang/toml "TOML"
-[4]: http://github.com/tanoku/upskirt "Upskirt"
-[5]: http://github.com/russross/blackfriday "Blackfriday"
-
-<reference anchor='mmark-ref' target='http://github.com/miekg/mmark' >
- <front>
-  <title abbrev='Mmark for RFCs'>Mmark: a powerful markdown processor in Go geared for the IETF</title>
-  <author initials='R.' surname='Gieben' fullname='R. (Miek) Gieben'>
-  <organization>Atoom Inc.</organization>
-  <address>
-  <email>miek@miek.nl</email></address></author>
-  <date year='2015' month='October' />
- </front>
-<format type='Web' target='http://github.com/miekg/mmark' />
-</reference>
-
-{backmatter}

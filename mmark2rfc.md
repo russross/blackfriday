@@ -1,3 +1,8 @@
+
+> TO BE MOVED TO THE SYNTAX document.
+
+
+
 % Title = "Using mmark to create I-Ds and RFCs"
 % abbrev = "mmark2rfc"
 % category = "info"
