@@ -50,8 +50,6 @@ Note that the header and footer can't contain block level elements.
 The table syntax used that one of
 [Markdown Extra](https://michelf.ca/projects/php-markdown/extra/#table).
 
-# Inline Attribute Lists
-
 # Lists
 
 ## Ordered Lists
@@ -195,37 +193,3 @@ Which when rendered becomes:
 Note that ideas to improve/change on this are welcome.
 
 ## Including Code Fragments
-
-This borrows from the Go present tool, which got its inspiration from the Sam editor. The syntax was gleaned from leanpub.
-But the syntax presented here is more powerful than the one used by leanpub.
-Use the
-syntax: `<{{file}}[address]` to include a code snippet. The `address` identifier specifies
-what lines of code are to be included in the fragment.
-
-Any line in the program that ends with the four characters `OMIT`
-is deleted from the source before inclusion, making it easy to write things like
-
-    <{{test.go}}[/START OMIT/,/END OMIT/]
-
-So you can include snippets like this:
-~~~
-tedious_code = boring_function()
-// START OMIT
-interesting_code = fascinating_function()
-// END OMIT
-~~~
-
-To aid in including HTML or XML framents, where the `OMIT` key words is probably embedded in
-comments, line the in in `OMIT -->` are excluded as well.
-Note that the default is put out an artwork, but if the extension of the included file matches
-a computer language, `<sourcecode>` will be emitted for v3.
-
-Note that the attribute `prefix` (which you can specify with an IAL) can be used to prefix
-all lines of the code to be included to prefixed with the value of the attribute, so
-
-```
-{prefix="C:"}
-    <{{test.go}}[/START OMIT/,/END OMIT/]
-```
-
-Will prefix all lines of test.go with 'C:' when included.

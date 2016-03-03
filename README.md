@@ -133,42 +133,6 @@ to stay current with the latest draft for the V3 spec:
 *   **Subfigures**, any paragraph prefix with `F>` will wrap all images and
     code in a single figure.
 
-
-
-*   **Code Block Includes**, use the syntax `<{{code/hello.c}}[address]`, where
-    address is the syntax described in <https://godoc.org/golang.org/x/tools/present/>, the
-    OMIT keyword in the code also works.
-
-    So including a code snippet will work like so:
-
-        <{{test.go}}[/START OMIT/,/END OMIT/]
-
-    where `test.go` looks like this:
-
-    ``` go
-    tedious_code = boring_function()
-    // START OMIT
-    interesting_code = fascinating_function()
-    // END OMIT
-    ```
-    To aid in including HTML or XML fragments, where the `OMIT` key words is
-    probably embedded in comments, lines which end in `OMIT -->` are also excluded.
-
-    Of course the captioning works here as well:
-
-        <{{test.go}}[/START OMIT/,/END OMIT/]
-        Figure: A sample program.
-
-    The address may be omitted: `<{{test.go}}` is legal as well.
-
-    Note that the special `prefix` attribute can be set in an IAL and it
-    will be used to prefix each line with the value of `prefix`.
-
-        {prefix="S"}
-        <{{test.go}}
-
-    Will cause `test.go` to be included with each line being prefixed with `S`.
-
 *   **Definitition lists**, the markdown extra syntax.
 
          Apple
@@ -183,31 +147,3 @@ to stay current with the latest draft for the V3 spec:
 
          a.  Item2
          b.  Item2
-
-*   **Callouts**, in codeblocks you can use `<number>` to create a callout, later you can
-     reference it:
-
-             Code  <1>
-             More  <1>
-             Not a callout \<3>
-
-         As you can see in <1> but not in \<1>. There is no <3>.
-
-     You can escape a callout with a backslash. The backslash will be removed
-     in the output (both in source code and text). The callout identifiers will be remembered until
-     the next code block. The above would render as:
-
-                 Code <1>
-                 Code <2>
-                 Not a callout <3>
-
-             As you can see in (1, 2) but not in <1>. There is no <3>.
-
-     Note that callouts are only detected with the IAL `{callout="yes"}` or any other
-     non-empty value is defined before the code block.
-     Now, you don't usually want to clobber your source code with callouts as this will
-     lead to code that does not compile. To fix this the callout needs to be placed
-     in a comment, but then your source show useless empty comments. To fix this mmark
-     can optionally detect (and remove!) the comment and the callout, leaving your
-     example pristine. This can be enabled by setting `{callout="//"}` for instance.
-     The allowed comment patterns are `//`, `#` and `;`.
