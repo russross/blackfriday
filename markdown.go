@@ -41,6 +41,7 @@ const (
 	EXTENSION_UNIQUE_HEADER_IDS          // When detecting identical anchors add a sequence number -1, -2 etc
 	EXTENSION_BACKSLASH_LINE_BREAK       // Translate trailing backslashes into line breaks
 	EXTENSION_RFC7328                    // Parse RFC 7328 markdown. Depends on FOOTNOTES extension.
+	EXTENSION_DEFINITION_LISTS           // render definition lists
 
 	commonHtmlFlags = 0 |
 		HTML_USE_SMARTYPANTS |
@@ -56,7 +57,8 @@ const (
 		EXTENSION_HEADER_IDS |
 		EXTENSION_ABBREVIATIONS |
 		EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK | // CommonMark
-		EXTENSION_BACKSLASH_LINE_BREAK // CommonMark
+		EXTENSION_BACKSLASH_LINE_BREAK | // CommonMark
+		EXTENSION_DEFINITION_LISTS
 
 	commonXmlExtensions = commonExtensions |
 		EXTENSION_UNIQUE_HEADER_IDS |
@@ -66,7 +68,8 @@ const (
 		EXTENSION_MATTER |
 		EXTENSION_CITATION |
 		EXTENSION_EXAMPLE_LISTS |
-		EXTENSION_SHORT_REF
+		EXTENSION_SHORT_REF |
+		EXTENSION_DEFINITION_LISTS
 )
 
 // These are the possible flag values for the link renderer.

@@ -1446,7 +1446,7 @@ func TestDefinitionListXML(t *testing.T) {
 		"Term1\n:   Hi There",
 		"<dl>\n<dt>Term1</dt>\n<dd>Hi There</dd>\n</dl>\n",
 
-		"Term1\n:   Yin\nTerm2\n:   Yang\n",
+		"Term1\n:   Yin\n\nTerm2\n:   Yang\n",
 		"<dl>\n<dt>Term1</dt>\n<dd>Yin</dd>\n<dt>Term2</dt>\n<dd>Yang</dd>\n</dl>\n",
 
 		// fix sourcecode/artwork here.
