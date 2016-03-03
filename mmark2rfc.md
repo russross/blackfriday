@@ -191,5 +191,3 @@ Which when rendered becomes:
 ![](misc/image.xml "Optional title")
 
 Note that ideas to improve/change on this are welcome.
-
-## Including Code Fragments

@@ -133,15 +133,6 @@ to stay current with the latest draft for the V3 spec:
 *   **Subfigures**, any paragraph prefix with `F>` will wrap all images and
     code in a single figure.
 
-*   **Definitition lists**, the markdown extra syntax.
-
-         Apple
-         :   Pomaceous fruit of plants of the genus Malus in
-             the family Rosaceae.
-
-         Orange
-         :   The fruit of an evergreen tree of the genus Citrus.
-
 *   **Enumerated lists**, roman, uppercase roman and normal letters can be used
      to start lists. Note that you'll need two space after the list counter:
 
