@@ -92,7 +92,7 @@ func (options *xml2) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 
 	prefix := ial.Value("prefix")
 
-	ial.DropAttr("prefix")  // it's a fake attribute, so drop it
+	ial.DropAttr("prefix") // it's a fake attribute, so drop it
 	if lang == "" {
 		lang = ial.Value("type")
 	}
@@ -152,6 +152,7 @@ func (options *xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	}
 
 	out.WriteString("<front>\n")
+	options.docLevel = _DOC_FRONT_MATTER
 	out.WriteString("<title abbrev=\"" + options.titleBlock.Abbrev + "\">")
 	out.WriteString(options.titleBlock.Title + "</title>\n\n")
 
@@ -763,7 +764,10 @@ func (options *xml2) DocumentFooter(out *bytes.Buffer, first bool) {
 	case _DOC_BACK_MATTER:
 		out.WriteString("\n</back>\n")
 	}
-	out.WriteString("</rfc>\n")
+	// Only write closing rfc if it is opened in the tite block
+	if options.titleBlock != nil {
+		out.WriteString("</rfc>\n")
+	}
 }
 
 func (options *xml2) DocumentMatter(out *bytes.Buffer, matter int) {
@@ -783,12 +787,18 @@ func (options *xml2) DocumentMatter(out *bytes.Buffer, matter int) {
 	}
 	switch matter {
 	case _DOC_FRONT_MATTER:
-		// already open
+		if options.docLevel == 0 {
+			out.WriteString("<front>\n")
+		}
 	case _DOC_MAIN_MATTER:
-		out.WriteString("</front>\n")
+		if options.docLevel == _DOC_FRONT_MATTER {
+			out.WriteString("\n</front>\n")
+		}
 		out.WriteString("\n<middle>\n")
 	case _DOC_BACK_MATTER:
-		out.WriteString("\n</middle>\n")
+		if options.docLevel == _DOC_MAIN_MATTER {
+			out.WriteString("\n</middle>\n")
+		}
 		out.WriteString("<back>\n")
 	}
 	options.docLevel = matter

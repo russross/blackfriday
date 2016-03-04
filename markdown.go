@@ -30,7 +30,7 @@ const (
 	EXTENSION_INLINE_ATTR                // Detect CommonMark's IAL syntax
 	EXTENSION_LAX_HTML_BLOCKS            // Loosen up HTML block parsing rules
 	EXTENSION_MATH                       // Detect $$...$$ and parse as math
-	EXTENSION_MATTER                     // Use {frontmatter} {mainmatter} {backmatter}
+	EXTENSION_MATTER                     // Use {frontmatter} {mainmatter} {backmatter} (TODO(miek): not actually used)
 	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK // No need to insert an empty line to start a (code, quote, order list, unorder list)block
 	EXTENSION_PARTS                      // Detect part headers (-#)
 	EXTENSION_QUOTES                     // Allow A> as asides
@@ -110,7 +110,7 @@ const (
 const _TAB_SIZE_DEFAULT = 4
 
 const (
-	_DOC_FRONT_MATTER = iota // Different divisions of the document
+	_DOC_FRONT_MATTER = iota + 1 // Different divisions of the document
 	_DOC_MAIN_MATTER
 	_DOC_BACK_MATTER
 	_ABSTRACT // Special headers, keep track if there are open
@@ -488,9 +488,11 @@ func secondPass(p *parser, input []byte, depth int) *bytes.Buffer {
 		})
 	}
 	if !p.appendix {
-		// appendix not started in doc, start it now and output references
-		p.r.DocumentMatter(&output, _DOC_BACK_MATTER)
-		p.r.References(&output, p.citations)
+		if len(p.citations) > 0 {
+			// appendix not started in doc, start it now and output references
+			p.r.DocumentMatter(&output, _DOC_BACK_MATTER)
+			p.r.References(&output, p.citations)
+		}
 		p.appendix = true
 	}
 	p.r.DocumentFooter(&output, depth == 0)

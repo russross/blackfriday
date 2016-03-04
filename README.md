@@ -1,3 +1,5 @@
+{mainmatter}
+
 # Mmark
 
 Mmark is a powerful markdown processor Go geared for writing IETF document. It is, however also
