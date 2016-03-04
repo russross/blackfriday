@@ -110,6 +110,7 @@ func main() {
 	extensions |= mmark.EXTENSION_INCLUDE
 	extensions |= mmark.EXTENSION_PARTS
 	extensions |= mmark.EXTENSION_ABBREVIATIONS
+	extensions |= mmark.EXTENSION_DEFINITION_LISTS
 
 	if rfc7328 {
 		extensions |= mmark.EXTENSION_RFC7328

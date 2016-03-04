@@ -1446,7 +1446,7 @@ func TestDefinitionListXML(t *testing.T) {
 		"Term1\n:   Hi There",
 		"<dl>\n<dt>Term1</dt>\n<dd>Hi There</dd>\n</dl>\n",
 
-		"Term1\n:   Yin\nTerm2\n:   Yang\n",
+		"Term1\n:   Yin\n\nTerm2\n:   Yang\n",
 		"<dl>\n<dt>Term1</dt>\n<dd>Yin</dd>\n<dt>Term2</dt>\n<dd>Yang</dd>\n</dl>\n",
 
 		// fix sourcecode/artwork here.
@@ -1474,8 +1474,9 @@ Term 2
     the family Rosaceae.
 
 Orange and *Apples*
-:   The thing of an evergreen tree of the genus Citrus.`,
-		"<dl>\n<dt>Apple</dt>\n<dd><t>\nPomaceous fruit of plants of the genus Malus in\nthe family Rosaceae.\n</t></dd>\n<dt>Orange and <em>Apples</em></dt>\n<dd><t>\nThe thing of an evergreen tree of the genus Citrus.\n</t></dd>\n</dl>\n",
+:   The thing *of* an evergreen tree of the genus Citrus.`,
+		"<dl>\n<dt>Apple</dt>\n<dd>Pomaceous fruit of plants of the genus Malus in\nthe family Rosaceae.</dd>\n<dt>Orange and <em>Apples</em></dt>\n<dd>The thing <em>of</em> an evergreen tree of the genus Citrus.</dd>\n</dl>\n",
+
 		`Apple
 
 :   Pomaceous fruit of plants of the genus Malus in

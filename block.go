@@ -226,16 +226,19 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			}
 		}
 
-		// a definition list:
+		// definition lists:
 		//
-		// Item1
-		// :	Definition1
-		// Item2
-		// :	Definition2
-		if p.dliPrefix(data) > 0 {
-			p.insideDefinitionList = true
-			data = data[p.list(out, data, _LIST_TYPE_DEFINITION, 0, nil):]
-			p.insideDefinitionList = false
+		// Term 1
+		// :   Definition a
+		// :   Definition b
+		//
+		// Term 2
+		// :   Definition c
+		if p.flags&EXTENSION_DEFINITION_LISTS != 0 {
+			if p.dliPrefix(data) > 0 {
+				data = data[p.list(out, data, _LIST_TYPE_DEFINITION, 0, nil):]
+				continue
+			}
 		}
 
 		// an itemized/unordered list:
@@ -1990,33 +1993,16 @@ func (p *parser) rliPrefixU(data []byte) int {
 
 // returns definition list item prefix
 func (p *parser) dliPrefix(data []byte) int {
-	// return the index of where the term ends
 	i := 0
-	for data[i] != '\n' && i < len(data) {
-		i++
-	}
-	if i == 0 || i == len(data) {
+
+	// need a : followed by a spaces
+	if data[i] != ':' || data[i+1] != ' ' {
 		return 0
 	}
-
-	// allow an optional newline to be here
-	if i+1 < len(data) && data[i] == '\n' && data[i+1] == '\n' {
+	for data[i] == ' ' {
 		i++
 	}
-
-	// start with up to 3 spaces before :
-	j := 0
-	for j < 3 && data[i+j] == ' ' && i+j < len(data) {
-		j++
-	}
-	i += j + 1
-	if i >= len(data) {
-		return 0
-	}
-	if data[i] == ':' {
-		return i + 1
-	}
-	return 0
+	return i + 2
 }
 
 // returns example list item prefix
@@ -2122,19 +2108,18 @@ func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *int) int {
 	}
 	if i == 0 {
 		i = p.dliPrefix(data)
+		// reset definition term flag
 		if i > 0 {
-			var rawTerm bytes.Buffer
-			if data[i-2] == '\n' && data[i-3] == '\n' {
-				p.inline(&rawTerm, data[:i-3]) // -3 for : and the 2newline
-			} else {
-				p.inline(&rawTerm, data[:i-2]) // -2 for : and the newline
-			}
-			p.r.ListItem(out, rawTerm.Bytes(), *flags|_LIST_TYPE_TERM)
+			*flags &= ^_LIST_TYPE_TERM
 		}
 	}
-
 	if i == 0 {
-		return 0
+		// if in defnition list, set term flag and continue
+		if *flags&_LIST_TYPE_DEFINITION != 0 {
+			*flags |= _LIST_TYPE_TERM
+		} else {
+			return 0
+		}
 	}
 
 	// skip leading whitespace on first line
@@ -2144,7 +2129,7 @@ func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *int) int {
 
 	// find the end of the line
 	line := i
-	for data[i-1] != '\n' {
+	for i > 0 && data[i-1] != '\n' {
 		i++
 	}
 
@@ -2192,7 +2177,7 @@ gatherlines:
 			p.aliPrefix(chunk) > 0 || p.aliPrefixU(chunk) > 0 ||
 			p.rliPrefix(chunk) > 0 || p.rliPrefixU(chunk) > 0 ||
 			p.oliPrefix(chunk) > 0 || p.eliPrefix(chunk) > 0 ||
-			p.dliPrefix(data[line+indent:]) > 0:
+			p.dliPrefix(chunk) > 0:
 
 			if containsBlankLine {
 				*flags |= _LIST_ITEM_CONTAINS_BLOCK
@@ -2222,10 +2207,24 @@ gatherlines:
 		// anything following an empty line is only part
 		// of this item if it is indented 4 spaces
 		// (regardless of the indentation of the beginning of the item)
-		// if the is beginning with ':   term', we have a new term
 		case containsBlankLine && indent < 4:
-			*flags |= _LIST_ITEM_END_OF_LIST
+			if *flags&_LIST_TYPE_DEFINITION != 0 && i < len(data)-1 {
+				// is the next item still a part of this list?
+				next := i
+				for data[next] != '\n' {
+					next++
+				}
+				for next < len(data)-1 && data[next] == '\n' {
+					next++
+				}
+				if i < len(data)-1 && data[i] != ':' && data[next] != ':' {
+					*flags |= _LIST_ITEM_END_OF_LIST
+				}
+			} else {
+				*flags |= _LIST_ITEM_END_OF_LIST
+			}
 			break gatherlines
+
 
 		// a blank line means this should be parsed as a block
 		case containsBlankLine:
@@ -2249,7 +2248,7 @@ gatherlines:
 
 	// render the contents of the list item
 	var cooked bytes.Buffer
-	if *flags&_LIST_ITEM_CONTAINS_BLOCK != 0 {
+	if *flags&_LIST_ITEM_CONTAINS_BLOCK != 0 && *flags&_LIST_TYPE_TERM == 0 {
 		// intermediate render of block li
 		if sublist > 0 {
 			p.block(&cooked, rawBytes[:sublist])
@@ -2345,6 +2344,13 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 
 		// did we find a blank line marking the end of the paragraph?
 		if n := p.isEmpty(current); n > 0 {
+			// did this blank line followed by a definition list item?
+			if p.flags&EXTENSION_DEFINITION_LISTS != 0 {
+				if i < len(data)-1 && data[i+1] == ':' {
+					return p.list(out, data[prev:], _LIST_TYPE_DEFINITION, 0, nil)
+				}
+			}
+
 			p.renderParagraph(out, data[:i])
 			return i + n
 		}
@@ -2415,6 +2421,13 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 			}
 		}
 
+		// if there's a definition list item, prev line is a definition term
+		if p.flags&EXTENSION_DEFINITION_LISTS != 0 {
+			if p.dliPrefix(current) != 0 {
+				return p.list(out, data[prev:], _LIST_TYPE_DEFINITION, 0, nil)
+			}
+		}
+
 		// if there's a list after this, paragraph is over
 		if p.flags&EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK != 0 {
 			if p.uliPrefix(current) != 0 ||
@@ -2424,7 +2437,6 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 				p.rliPrefix(current) != 0 ||
 				p.oliPrefix(current) != 0 ||
 				p.eliPrefix(current) != 0 ||
-				p.dliPrefix(current) != 0 ||
 				p.quotePrefix(current) != 0 ||
 				p.figurePrefix(current) != 0 ||
 				p.asidePrefix(current) != 0 ||
