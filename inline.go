@@ -879,15 +879,15 @@ func leftBrace(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			switch what {
 			case _DOC_FRONT_MATTER:
 				p.r.DocumentMatter(out, what)
-				return len(front) + 1
+				return len(front)
 			case _DOC_MAIN_MATTER:
 				p.r.DocumentMatter(out, what)
-				return len(main) + 1
+				return len(main)
 			case _DOC_BACK_MATTER:
 				p.r.DocumentMatter(out, what)
 				p.r.References(out, p.citations)
 				p.appendix = true
-				return len(back) + 1
+				return len(back)
 			}
 		}
 	}

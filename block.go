@@ -2275,10 +2275,6 @@ func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 		end--
 	}
 
-	if ok, _ := isMatter(data[beg:end]); ok {
-		p.inline(out, data[beg:end])
-		return
-	}
 	p.displayMath = false
 	work := func() bool {
 		// if we are a single paragraph constisting entirely out of math
