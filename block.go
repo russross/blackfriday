@@ -2275,7 +2275,7 @@ func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 		end--
 	}
 
-	if isMatter(data) {
+	if ok, _ := isMatter(data[beg:end]); ok {
 		p.inline(out, data[beg:end])
 		return
 	}
@@ -2445,15 +2445,54 @@ func createSanitizedAnchorName(text string) string {
 	return string(anchorName)
 }
 
-func isMatter(text []byte) bool {
-	if string(text) == "{frontmatter}\n" {
-		return true
+const (
+	front = "{frontmatter}"
+	main  = "{mainmatter}"
+	back  = "{backmatter}"
+)
+
+func isMatter(text []byte) (bool, int) {
+	if text[0] != '{' {
+		return false, 0
 	}
-	if string(text) == "{mainmatter}\n" {
-		return true
+	if bytes.HasPrefix(text, []byte(front)) {
+		for i := len(front); i < len(text); i++ {
+			if text[i] == '\n' || text[i] == '\r' {
+				return true, _DOC_FRONT_MATTER
+			}
+
+			if !isspace(text[i]) {
+				return false, 0
+			}
+		}
+
+		return true, _DOC_FRONT_MATTER
 	}
-	if string(text) == "{backmatter}\n" {
-		return true
+	if bytes.HasPrefix(text, []byte(main)) {
+		for i := len(main); i < len(text); i++ {
+			if text[i] == '\n' || text[i] == '\r' {
+				return true, _DOC_MAIN_MATTER
+			}
+
+			if !isspace(text[i]) {
+				return false, 0
+			}
+
+		}
+
+		return true, _DOC_MAIN_MATTER
 	}
-	return false
+	if bytes.HasPrefix(text, []byte(back)) {
+		for i := len(back); i < len(text); i++ {
+			if text[i] == '\n' || text[i] == '\r' {
+				return true, _DOC_BACK_MATTER
+			}
+			if !isspace(text[i]) {
+				return false, 0
+			}
+		}
+
+		return true, _DOC_BACK_MATTER
+	}
+	return false, 0
 }

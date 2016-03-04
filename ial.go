@@ -66,12 +66,7 @@ func (p *parser) isInlineAttr(data []byte) int {
 			}
 			// if this is mainmatter, frontmatter, or backmatter it isn't an IAL.
 			s := string(data[1:i])
-			switch s {
-			case "frontmatter":
-				fallthrough
-			case "mainmatter":
-				fallthrough
-			case "backmatter":
+			if s == "frontmatter" || s == "mainmatter" || s == "backmatter" {
 				return 0
 			}
 			chunk := data[ialB+1 : i]

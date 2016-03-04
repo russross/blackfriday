@@ -10,3 +10,19 @@ func TestIssue55(t *testing.T) {
 
 	doTestsBlock(t, tests, 0)
 }
+
+func TestIssue59(t *testing.T) {
+	// Need renderer option flag as well, which isn't carried through to the actual
+	// tests. For now, just check the parsing.
+	tests := []string{
+		"stuff\n\n{frontmatter} stuff",
+		"<t>\nstuff\n</t>\n<t>\n{frontmatter} stuff\n</t>\n",
+
+		"stuff\n\n{frontmatter}\n",
+		"<t>\nstuff\n</t>\n",
+
+		"{frontmatter}\ntext\n",
+		"text", // this should have been wrapped in a <t>, TODO(miek)
+	}
+	doTestsBlockXML(t, tests, EXTENSION_MATTER)
+}

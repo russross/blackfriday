@@ -783,9 +783,12 @@ func (options *xml2) DocumentMatter(out *bytes.Buffer, matter int) {
 	}
 	switch matter {
 	case _DOC_FRONT_MATTER:
-		// already open
+		// already open, but *only* if there was a TOML header
+		if options.titleBlock == nil {
+			out.WriteString("<front>\n")
+		}
 	case _DOC_MAIN_MATTER:
-		out.WriteString("</front>\n")
+		out.WriteString("\n</front>\n")
 		out.WriteString("\n<middle>\n")
 	case _DOC_BACK_MATTER:
 		out.WriteString("\n</middle>\n")

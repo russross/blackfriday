@@ -875,19 +875,20 @@ func leftAngleCode(data []byte) int {
 func leftBrace(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	data = data[offset:]
 	if offset == 0 {
-		// {*matter} are only valid at the beginning of the line
-		switch s := string(data); true {
-		case s == "{frontmatter}":
-			p.r.DocumentMatter(out, _DOC_FRONT_MATTER)
-			return len(data) + 1
-		case s == "{mainmatter}":
-			p.r.DocumentMatter(out, _DOC_MAIN_MATTER)
-			return len(data) + 1
-		case s == "{backmatter}":
-			p.r.DocumentMatter(out, _DOC_BACK_MATTER)
-			p.r.References(out, p.citations)
-			p.appendix = true
-			return len(data) + 1
+		if ok, what := isMatter(data); ok {
+			switch what {
+			case _DOC_FRONT_MATTER:
+				p.r.DocumentMatter(out, what)
+				return len(front) + 1
+			case _DOC_MAIN_MATTER:
+				p.r.DocumentMatter(out, what)
+				return len(main) + 1
+			case _DOC_BACK_MATTER:
+				p.r.DocumentMatter(out, what)
+				p.r.References(out, p.citations)
+				p.appendix = true
+				return len(back) + 1
+			}
 		}
 	}
 	if j := p.isInlineAttr(data); j > 0 {

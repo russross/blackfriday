@@ -30,7 +30,7 @@ const (
 	EXTENSION_INLINE_ATTR                // Detect CommonMark's IAL syntax
 	EXTENSION_LAX_HTML_BLOCKS            // Loosen up HTML block parsing rules
 	EXTENSION_MATH                       // Detect $$...$$ and parse as math
-	EXTENSION_MATTER                     // Use {frontmatter} {mainmatter} {backmatter}
+	EXTENSION_MATTER                     // Use {frontmatter} {mainmatter} {backmatter} (TODO(miek): not actually used)
 	EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK // No need to insert an empty line to start a (code, quote, order list, unorder list)block
 	EXTENSION_PARTS                      // Detect part headers (-#)
 	EXTENSION_QUOTES                     // Allow A> as asides
