@@ -110,7 +110,7 @@ const (
 const _TAB_SIZE_DEFAULT = 4
 
 const (
-	_DOC_FRONT_MATTER = iota // Different divisions of the document
+	_DOC_FRONT_MATTER = iota + 1 // Different divisions of the document
 	_DOC_MAIN_MATTER
 	_DOC_BACK_MATTER
 	_ABSTRACT // Special headers, keep track if there are open

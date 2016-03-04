@@ -19,10 +19,10 @@ func TestIssue59(t *testing.T) {
 		"<t>\nstuff\n</t>\n<t>\n{frontmatter} stuff\n</t>\n",
 
 		"stuff\n\n{frontmatter}\n",
-		"<t>\nstuff\n</t>\n<t>\n\n</t>\n",
+		"<t>\nstuff\n</t>\n",
 
 		"{frontmatter}\ntext\n",
-		"<t>\n\ntext\n</t>\n",
+		"<t>\ntext\n</t>\n",
 	}
 	doTestsBlockXML(t, tests, EXTENSION_MATTER)
 }

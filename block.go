@@ -107,6 +107,13 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 			}
 		}
 
+		// document divisions
+		if i, what := isMatter(data); i > 0 {
+			i = p.documentMatter(out, what)
+			data = data[i:]
+			continue
+		}
+
 		// blank lines.  note: returns the # of bytes to skip
 		if i := p.isEmpty(data); i > 0 {
 			data = data[i:]
@@ -733,6 +740,23 @@ func (p *parser) titleBlockBlock(out *bytes.Buffer, data []byte, doRender bool) 
 	block := p.titleBlockTOML(out, data)
 	p.r.TitleBlockTOML(out, &block)
 	return len(data) + delimLength + beg
+}
+
+func (p *parser) documentMatter(out *bytes.Buffer, what int) int {
+	switch what {
+	case _DOC_FRONT_MATTER:
+		p.r.DocumentMatter(out, what)
+		return len(front)
+	case _DOC_MAIN_MATTER:
+		p.r.DocumentMatter(out, what)
+		return len(main)
+	case _DOC_BACK_MATTER:
+		p.r.DocumentMatter(out, what)
+		p.r.References(out, p.citations)
+		p.appendix = true
+		return len(back)
+	}
+	return 0
 }
 
 func (p *parser) html(out *bytes.Buffer, data []byte, doRender bool) int {
@@ -2447,48 +2471,48 @@ const (
 	back  = "{backmatter}"
 )
 
-func isMatter(text []byte) (bool, int) {
+func isMatter(text []byte) (int, int) {
 	if text[0] != '{' {
-		return false, 0
+		return 0, 0
 	}
 	if bytes.HasPrefix(text, []byte(front)) {
 		for i := len(front); i < len(text); i++ {
 			if text[i] == '\n' || text[i] == '\r' {
-				return true, _DOC_FRONT_MATTER
+				return i - 1, _DOC_FRONT_MATTER
 			}
 
 			if !isspace(text[i]) {
-				return false, 0
+				return 0, 0
 			}
 		}
 
-		return true, _DOC_FRONT_MATTER
+		return len(front), _DOC_FRONT_MATTER
 	}
 	if bytes.HasPrefix(text, []byte(main)) {
 		for i := len(main); i < len(text); i++ {
 			if text[i] == '\n' || text[i] == '\r' {
-				return true, _DOC_MAIN_MATTER
+				return i - 1, _DOC_MAIN_MATTER
 			}
 
 			if !isspace(text[i]) {
-				return false, 0
+				return 0, 0
 			}
 
 		}
 
-		return true, _DOC_MAIN_MATTER
+		return len(main), _DOC_MAIN_MATTER
 	}
 	if bytes.HasPrefix(text, []byte(back)) {
 		for i := len(back); i < len(text); i++ {
 			if text[i] == '\n' || text[i] == '\r' {
-				return true, _DOC_BACK_MATTER
+				return i - 1, _DOC_BACK_MATTER
 			}
 			if !isspace(text[i]) {
-				return false, 0
+				return 0, 0
 			}
 		}
 
-		return true, _DOC_BACK_MATTER
+		return len(back), _DOC_BACK_MATTER
 	}
-	return false, 0
+	return 0, 0
 }
