@@ -488,9 +488,11 @@ func secondPass(p *parser, input []byte, depth int) *bytes.Buffer {
 		})
 	}
 	if !p.appendix {
-		// appendix not started in doc, start it now and output references
-		p.r.DocumentMatter(&output, _DOC_BACK_MATTER)
-		p.r.References(&output, p.citations)
+		if len(p.citations) > 0 {
+			// appendix not started in doc, start it now and output references
+			p.r.DocumentMatter(&output, _DOC_BACK_MATTER)
+			p.r.References(&output, p.citations)
+		}
 		p.appendix = true
 	}
 	p.r.DocumentFooter(&output, depth == 0)
