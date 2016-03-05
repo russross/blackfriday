@@ -58,7 +58,10 @@ func main() {
 	flag.Parse()
 
 	if version{
-		fmt.Printf("%s+%s\n", mmark.Version, githash)
+		if githash != "" {
+			githash = "+" + githash
+		}
+		fmt.Printf("%s%s\n", mmark.Version, githash)
 		return
 	}
 
