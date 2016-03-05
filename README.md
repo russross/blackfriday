@@ -10,7 +10,7 @@ document [is being created](https://github.com/miekg/mmark/wiki/Syntax). That sy
 be mirrored on my website.
 
 With Mmark your can write RFCs using markdown. Mmark (written in Go) provides an advanced markdown
-dialect that processes a single file to produce internet-drafts in XML format. Internet-drafts
+dialect that processes a (single) file to produce internet-drafts in XML format. Internet-drafts
 written in mmark can produce xml2rfc v2, xml2rfc v3 and HTML5 output.
 
 It also allows for writing large documents such as technical books, like my [Learning Go
@@ -26,13 +26,13 @@ documents to be written.
 
 It adds the following syntax elements to [black friday](https://github.com/russross/blackfriday/blob/master/README.md):
 
+* TOML titleblock.
+* Including other files.
 * More enumerated lists.
 * Table and codeblock captions.
-* Table footer.
+* Quote attribution (quote "captions").
+* Table footers, header and block tables
 * Subfigures.
-* Quote attribution.
-* Including other files.
-* [TOML][3] titleblock.
 * Inline Attribute Lists.
 * Indices.
 * Citations.
@@ -49,17 +49,14 @@ It adds the following syntax elements to [black friday](https://github.com/russr
 * Super- and subscript.
 * Callouts in code blocks.
 
-There is no pretty printed output if you need that pipe the output through `xmllint --format -`.
-
 ## Usage
 
 In the mmark subdirectory you can build the mmark tool:
 
     % cd mmark
     % go build
-    % ./mmark -h
-    Mmark Markdown Processor v1.0
-    ...
+    % ./mmark -version
+    1.3.1
 
 To output v2 xml just give it a markdown file and:
 
@@ -71,313 +68,12 @@ Making a draft in text form:
     && xml2rfc --text x.xml \
     && rm x.xml && mv x.txt mmark2rfc.txt
 
-Outputting v3 xml is done with the `-xml` switch. There is not yet
-a processor for this XML, but you should be able to validate the
-resulting XML against the schema from the xml2rfc v3 draft. I'm trying
-to stay current with the latest draft for the V3 spec:
-<https://tools.ietf.org/html/draft-hoffman-xml2rfc-21>
-
-
-> TO BE MOVED TO THE SYNTAX DOCUMENT
-
-# Extensions
-
-In addition to the standard markdown syntax, this package
-implements the following extensions:
-
-*   **Intra-word emphasis supression**. The `_` character is
-    commonly used inside words when discussing code, so having
-    markdown interpret it as an emphasis command is usually the
-    wrong thing. Blackfriday lets you treat all emphasis markers as
-    normal characters when they occur inside a word.
-
-*   **Tables**. Tables can be created by drawing them in the input
-    using a simple syntax:
-
-    ```
-    Name    | Age
-    --------|-----:
-    Bob     | 27
-    Alice   | 23
-    ```
-
-    Tables can also have a footer, use equal signs instead of dashes for
-    the separator.
-    If there are multiple footer lines, the first one is used as a
-    starting point for the table footer.
-
-    ```
-    Name    | Age
-    --------|-----:
-    Bob     | 27
-    Alice   | 23
-    ======= | ====
-    Charlie | 4
-    ```
-
-    If a table is started with a *block table header*, which starts
-    with a pipe or plus sign and a minimum of three dashes,
-    it is a **Block Table**. A block table may include block level elements in each
-    (body) cell. If we want to start a new cell reuse the block table header
-    syntax. In the example below we include a list in one of the cells.
-
-    ```
-    |+-----------------------------------------------|
-    | Default aligned |Left aligned| Center aligned  |
-    |-----------------|:-----------|:---------------:|
-    | First body part |Second cell | Third cell      |
-    | Second line     |foo         | **strong**      |
-    | Third line      |quux        | baz             |
-    |------------------------------------------------|
-    | Second body     |            | 1. Item2        |
-    | 2 line          |            | 2. Item2        |
-    |================================================|
-    | Footer row      |            |                 |
-    |-----------------+------------+-----------------|
-    ```
-
-    Note that the header and footer can't contain block level elements.
-
-    Row spanning is supported as well, by using the
-    [multiple pipe syntax](http://bywordapp.com/markdown/guide.html#section-mmd-tables-colspanning).
-
-*   **Subfigure**. Fenced code blocks and indented code block can be
-    grouped into a single figure containing both (or more) elements.
-    Use the special quote prefix `F>` for this.
-
-*   **Fenced code blocks**. In addition to the normal 4-space
-    indentation to mark code blocks, you can explicitly mark them
-    and supply a language (to make syntax highlighting simple). Just
-    mark it like this:
-
-        ``` go
-        func getTrue() bool {
-            return true
-        }
-        ```
-
-    You can use 3 or more bac kticks to mark the beginning of the
-    block, and the same number to mark the end of the block.
-
-*   **Autolinking**. Mmark can find URLs that have not been
-    explicitly marked as links and turn them into links.
-
-*   **Strikethrough**. Use two tildes to mark text that
-    should be crossed out.
-
-*   **Short References**. Internal references use the syntax `[](#id)`,
-    usually the need for the title within the brackets is not needed,
-    so mmark has the shorter syntax `(#id)` to cross reference in the
-    document.
-
-*   **Hard line breaks**. With this extension enabled
-    newlines in the input translate into line breaks in
-    the output. This is activate by using two trailing spaces before
-    a new line. Another way to get a hard line break is to escape
-    the newline with a \. And yet another another way to do this is
-    to use 2 backslashes it the end of the line.
-
-*   **Includes**, support including files with `{{filename}}` syntax. This is only
-    done when include is started at the beginning of a line.
-
-*   **Code Block Includes**, use the syntax `<{{code/hello.c}}[address]`, where
-    address is the syntax described in <https://godoc.org/golang.org/x/tools/present/>, the
-    OMIT keyword in the code also works.
-
-    So including a code snippet will work like so:
-
-        <{{test.go}}[/START OMIT/,/END OMIT/]
-
-    where `test.go` looks like this:
-
-    ``` go
-    tedious_code = boring_function()
-    // START OMIT
-    interesting_code = fascinating_function()
-    // END OMIT
-    ```
-    To aid in including HTML or XML fragments, where the `OMIT` key words is
-    probably embedded in comments, lines which end in `OMIT -->` are also excluded.
-
-    Of course the captioning works here as well:
-
-        <{{test.go}}[/START OMIT/,/END OMIT/]
-        Figure: A sample program.
-
-    The address may be omitted: `<{{test.go}}` is legal as well.
-
-    Note that the special `prefix` attribute can be set in an IAL and it
-    will be used to prefix each line with the value of `prefix`.
-
-        {prefix="S"}
-        <{{test.go}}
-
-    Will cause `test.go` to be included with each line being prefixed with `S`.
-
-*   **Indices**, using `(((item, subitem)))` syntax. To make `item` primary, use
-    an `!`: `(((!item, subitem)))`. Just `(((item)))` is allowed as well.
-
-*   **Citations**, using the citation syntax from pandoc `[@RFC2535 p. 23]`, the
-    citation can either be informative (default) or normative, this can be indicated
-    by using the `?` or `!` modifier: `[@!RFC2535]`. Use `[-@RFC1000]` to add the
-    citation to the references, but suppress the output in the document.
-    The highest modifier seen determines the final type, i.e. once a citation is
-    declared normative it will stay normative, but informative will be upgraded
-    to normative.
-
-    If you reference an RFC or I-D the reference will be constructed
-    automatically. For I-Ds you may need to add a draft sequence number, which
-    can be done as such: `[@?I-D.blah#06]`. If you have other references
-    you can include the raw XML in the document (before the `{backmatter}`).
-    Also see **XML references**.
-
-    If you reference an I-D without a sequence number it will create a reference
-    to the *last* I-D in citation index.
-
-    Once a citation has been defined (i.e. the reference anchor is known to mmark)
-    you can use `@RFC2535` is a shortcut for the citation.
-
-*   **Captions**, table and figure/code block captions. For tables add the string
-    `Table: caption text` after the table, this will be rendered as an caption. For
-    code blocks you'll need to use `Figure: `
-
-         Name    | Age
-         --------|-----:
-         Bob     | 27
-         Alice   | 23
-         Table: This is a table.
-
-     Or for a code block:
-
-         ``` go
-         func getTrue() bool {
-             return true
-         }
-         ```
-         Figure: Look! A Go function.
-
-*   **Quote attribution**, after a block quote you can optionally use
-    `Quote: http://example.org -- John Doe`, where
-    the quote will be attributed to John Doe, pointing to the URL:
-
-         > Ability is nothing without opportunity.
-         Quote: http://example.com -- Napoleon Bonaparte
-
-*   **Abstracts**, use the special header `.# Abstract`. Note that the header
-    name, when lowercased, must match 'abstract'.
-
-*   **Notes**, use the special header `#. Title`, if the Title does *not*
-    match (lowercase) abstract it will be a note.
-
-*   **Asides**, any paragraph prefixed with `A>` .
-
-*   **Subfigures**, any paragraph prefix with `F>` will wrap all images and
-    code in a single figure.
-
-*   **{frontmatter}/{mainmatter}/{backmatter}** Create useful divisions in your
-    document.
-
-*   **IAL**, kramdown's Inline Attribute List syntax, but took the CommonMark
-     proposal, thus without the colon after the brace `{#id .class key=value key="value"}`.
-     IALs are used for the following (block) elements:
-     * Table
-     * Code Block
-     * Fenced Code Block
-     * List (any type)
-     * Section Header
-     * Image
-     * Quote
-     * ...
-
-*   **Definitition lists**, the markdown extra syntax.
-
-         Apple
-         :   Pomaceous fruit of plants of the genus Malus in
-             the family Rosaceae.
-
-         Orange
-         :   The fruit of an evergreen tree of the genus Citrus.
-
-*   **Enumerated lists**, roman, uppercase roman and normal letters can be used
-     to start lists. Note that you'll need two space after the list counter:
-
-         a.  Item2
-         b.  Item2
-
-*   **TOML TitleBlock**, add an extended title block prefixed with `%` in TOML.
-    See the examples RFC in the `rfc/` subdirectory. An alternate way of
-    typesetting the TOML title block is wrapping it between two lines consisting
-    out of 3 or more `%%%`s. Added benefit of wrapping it in `%%%`-lines is that
-    the block may be indented (TOML disregards whitespace) 4 spaces, making it
-    look like code in other markdown renderers (think Github).
-
-*   **Unique anchors**, make anchors unique by adding sequence numbers (-1, -2,
-    etc.) to them. All numeric section get an anchor prefixed with `section-`.
-
-*   **Example lists**, a list that is started with `(@good)` is subsequently
-    numbered i   throughout the document. First use is rendered `(1)`, the
-    second one `(2)` and so on. You can reference the last item of the list with
-    `(@good)`.
-
-*   **HTML comments** An HTML comment in the form of `<!-- Miek Gieben -- really
-    -->` is detected and will be converted to a `cref` with the `source`
-    attribute set to "Miek Gieben" and the comment text set to "really".
-
-*   **XML references** Any XML reference fragment included *before* the back
-    matter, can be used as a citation reference.
-
-*   **BCP 14** If a RFC 2119 word is found enclosed in `**` it will be rendered
-    as an `<bcp14>` element: `**MUST**` becomes `<bcp14>MUST</bcp14>`.
-
-*   **Abbreviations**: See
-    <https://michelf.ca/projects/php-markdown/extra/#abbr>, any text defined by:
-
-         *[HTML]: Hyper Text Markup Language
-
-     Allows you to use HTML in the document and it will be expanded to
-     `<abbr title="Hyper Text Markup Language">HTML</abbr>`. If you need text that looks like
-     an abbreviation, but isn't, escape the colon:
-
-         *[HTML]\: HyperTextMarkupLanguage
-
-*   **Super and subscripts**, for superscripts use '^' and for subscripts use '~'. For example:
-
-         H~2~O is a liquid. 2^10^ is 1024.
-
-     Inside a sub/superscript you must escape spaces.
-     Thus, if you want the letter P with 'a cat' in subscripts, use `P~a\ cat~`, not `P~a cat~`.
-
-*   **Parts**, use the special part header `-#` to start a new part. This follows the header
-     syntax, so `-# Part {#part1}` is a valid part header.
-
-*   **Math support**, use `$$` as the delimiter. If the math is part of a paragraph it will
-     be displayed in line, if the entire paragraph consists out of math it considered display
-     math. No attempt is made to parse what is between the `$$`.
-
-*   **Callouts**, in codeblocks you can use `<number>` to create a callout, later you can
-     reference it:
-
-             Code  <1>
-             More  <1>
-             Not a callout \<3>
-
-         As you can see in <1> but not in \<1>. There is no <3>.
-
-     You can escape a callout with a backslash. The backslash will be removed
-     in the output (both in source code and text). The callout identifiers will be remembered until
-     the next code block. The above would render as:
-
-                 Code <1>
-                 Code <2>
-                 Not a callout <3>
-
-             As you can see in (1, 2) but not in <1>. There is no <3>.
-
-     Note that callouts are only detected with the IAL `{callout="yes"}` or any other
-     non-empty value is defined before the code block.
-     Now, you don't usually want to clobber your source code with callouts as this will
-     lead to code that does not compile. To fix this the callout needs to be placed
-     in a comment, but then your source show useless empty comments. To fix this mmark
-     can optionally detect (and remove!) the comment and the callout, leaving your
-     example pristine. This can be enabled by setting `{callout="//"}` for instance.
-     The allowed comment patterns are `//`, `#` and `;`.
+Outputting v3 xml is done with the `-xml` switch. There is not yet a processor for this XML, but you
+should be able to validate the resulting XML against the schema from the xml2rfc v3 draft. I'm
+trying to stay current with the latest draft for the V3 spec:
+<https://tools.ietf.org/html/draft-iab-xml2rfc-03>
+
+## Syntax
+
+See the [syntax](https://github.com/miekg/mmark/wiki/Syntax) document on all syntax elements that
+are supported by Mmark.
