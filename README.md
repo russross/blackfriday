@@ -69,4 +69,9 @@ Making a draft in text form:
 Outputting v3 xml is done with the `-xml` switch. There is not yet a processor for this XML, but you
 should be able to validate the resulting XML against the schema from the xml2rfc v3 draft. I'm
 trying to stay current with the latest draft for the V3 spec:
-<https://tools.ietf.org/html/draft-hoffman-xml2rfc-23>
+<https://tools.ietf.org/html/draft-iab-xml2rfc-03>
+
+## Syntax
+
+See the [syntax](https://github.com/miekg/mmark/wiki/Syntax) document on all syntax elements that
+are supported by Mmark.
