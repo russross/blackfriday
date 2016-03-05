@@ -1,5 +1,3 @@
-{mainmatter}
-
 # Mmark
 
 Mmark is a powerful markdown processor Go geared for writing IETF document. It is, however also
@@ -24,7 +22,9 @@ Mmark is a fork of blackfriday which is a [Markdown][1] processor implemented in
 supports a number of extensions, inspired by Leanpub, kramdown and Asciidoc, that allows for large
 documents to be written.
 
-It adds the following syntax elements to [black friday](https://github.com/russross/blackfriday/blob/master/README.md):
+Example documents written in Mmark can be found in the `rfc/` directory.
+
+Mmark adds the following syntax elements to [black friday](https://github.com/russross/blackfriday/blob/master/README.md):
 
 * TOML titleblock.
 * Including other files.
