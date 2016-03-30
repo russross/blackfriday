@@ -50,13 +50,17 @@ const (
 	BackslashLineBreak                            // Translate trailing backslashes into line breaks
 	DefinitionLists                               // Render definition lists
 
-	commonHtmlFlags HtmlFlags = UseXHTML | UseSmartypants |
+	CommonHtmlFlags HtmlFlags = UseXHTML | UseSmartypants |
 		SmartypantsFractions | SmartypantsDashes | SmartypantsLatexDashes
 
-	commonExtensions Extensions = NoIntraEmphasis | Tables | FencedCode |
+	CommonExtensions Extensions = NoIntraEmphasis | Tables | FencedCode |
 		Autolink | Strikethrough | SpaceHeaders | HeaderIDs |
 		BackslashLineBreak | DefinitionLists
 )
+
+var DefaultOptions = Options{
+	Extensions: CommonExtensions,
+}
 
 type LinkType int
 
@@ -364,9 +368,8 @@ func MarkdownBasic(input []byte) []byte {
 // * Custom Header IDs
 func MarkdownCommon(input []byte) []byte {
 	// set up the HTML renderer
-	renderer := HtmlRenderer(commonHtmlFlags, "", "")
-	return MarkdownOptions(input, renderer, Options{
-		Extensions: commonExtensions})
+	renderer := HtmlRenderer(CommonHtmlFlags, "", "")
+	return MarkdownOptions(input, renderer, DefaultOptions)
 }
 
 // Markdown is the main rendering function.

@@ -42,7 +42,7 @@ func doLinkTestsInline(t *testing.T, tests []string) {
 	params := HtmlRendererParameters{AbsolutePrefix: prefix}
 	transformTests := transformLinks(tests, prefix)
 	doTestsInlineParam(t, transformTests, Options{}, 0, params)
-	doTestsInlineParam(t, transformTests, Options{}, commonHtmlFlags, params)
+	doTestsInlineParam(t, transformTests, Options{}, CommonHtmlFlags, params)
 }
 
 func doSafeTestsInline(t *testing.T, tests []string) {
