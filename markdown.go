@@ -234,6 +234,7 @@ type parser struct {
 	oldTip               *Node
 	lastMatchedContainer *Node // = doc
 	allClosed            bool
+	currBlock            *Node // a block node currently being parsed by inline parser
 }
 
 func (p *parser) getRef(refid string) (ref *reference, found bool) {
