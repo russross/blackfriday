@@ -390,7 +390,10 @@ func MarkdownOptions(input []byte, renderer Renderer, opts Options) []byte {
 	if renderer == nil {
 		return nil
 	}
+	return renderer.Render(Parse(input, opts))
+}
 
+func Parse(input []byte, opts Options) *Node {
 	extensions := opts.Extensions
 
 	// fill in the render structure
@@ -450,7 +453,7 @@ func MarkdownOptions(input []byte, renderer Renderer, opts Options) []byte {
 		}
 	})
 	p.parseRefsToAST()
-	return renderer.Render(p.doc)
+	return p.doc
 }
 
 func (p *parser) parseRefsToAST() {
