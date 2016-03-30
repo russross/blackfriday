@@ -18,6 +18,7 @@ package blackfriday
 import (
 	"bytes"
 	"fmt"
+	"html"
 	"regexp"
 	"strconv"
 	"strings"
@@ -46,11 +47,29 @@ const (
 	SmartypantsLatexDashes                        // Enable LaTeX-style dashes (with UseSmartypants)
 	SmartypantsAngledQuotes                       // Enable angled double quotes (with UseSmartypants) for double quotes rendering
 	FootnoteReturnLinks                           // Generate a link at the end of a footnote to return to the source
+
+	TagName               = "[A-Za-z][A-Za-z0-9-]*"
+	AttributeName         = "[a-zA-Z_:][a-zA-Z0-9:._-]*"
+	UnquotedValue         = "[^\"'=<>`\\x00-\\x20]+"
+	SingleQuotedValue     = "'[^']*'"
+	DoubleQuotedValue     = "\"[^\"]*\""
+	AttributeValue        = "(?:" + UnquotedValue + "|" + SingleQuotedValue + "|" + DoubleQuotedValue + ")"
+	AttributeValueSpec    = "(?:" + "\\s*=" + "\\s*" + AttributeValue + ")"
+	Attribute             = "(?:" + "\\s+" + AttributeName + AttributeValueSpec + "?)"
+	OpenTag               = "<" + TagName + Attribute + "*" + "\\s*/?>"
+	CloseTag              = "</" + TagName + "\\s*[>]"
+	HTMLComment           = "<!---->|<!--(?:-?[^>-])(?:-?[^-])*-->"
+	ProcessingInstruction = "[<][?].*?[?][>]"
+	Declaration           = "<![A-Z]+" + "\\s+[^>]*>"
+	CDATA                 = "<!\\[CDATA\\[[\\s\\S]*?\\]\\]>"
+	HTMLTag               = "(?:" + OpenTag + "|" + CloseTag + "|" + HTMLComment + "|" +
+		ProcessingInstruction + "|" + Declaration + "|" + CDATA + ")"
 )
 
 var (
 	// TODO: improve this regexp to catch all possible entities:
 	htmlEntity = regexp.MustCompile(`&[a-z]{2,5};`)
+	reHtmlTag  = regexp.MustCompile("(?i)^" + HTMLTag)
 )
 
 type HtmlRendererParameters struct {
@@ -255,6 +274,13 @@ func (r *Html) attrEscape(src []byte) {
 	if org < len(src) {
 		r.w.Write(src[org:])
 	}
+}
+
+func attrEscape2(src []byte) []byte {
+	unesc := []byte(html.UnescapeString(string(src)))
+	esc1 := []byte(html.EscapeString(string(unesc)))
+	esc2 := bytes.Replace(esc1, []byte("&#34;"), []byte("&quot;"), -1)
+	return bytes.Replace(esc2, []byte("&#39;"), []byte{'\''}, -1)
 }
 
 func (r *Html) entityEscapeWithSkip(src []byte, skipRanges [][]int) {
@@ -720,6 +746,33 @@ func (r *Html) NormalText(text []byte) {
 	}
 }
 
+func (r *Html) Smartypants2(text []byte) []byte {
+	smrt := smartypantsData{false, false}
+	var buff bytes.Buffer
+	// first do normal entity escaping
+	text = attrEscape2(text)
+	mark := 0
+	for i := 0; i < len(text); i++ {
+		if action := r.smartypants[text[i]]; action != nil {
+			if i > mark {
+				buff.Write(text[mark:i])
+			}
+			previousChar := byte(0)
+			if i > 0 {
+				previousChar = text[i-1]
+			}
+			var tmp bytes.Buffer
+			i += action(&tmp, &smrt, previousChar, text[i:])
+			buff.Write(tmp.Bytes())
+			mark = i + 1
+		}
+	}
+	if mark < len(text) {
+		buff.Write(text[mark:])
+	}
+	return buff.Bytes()
+}
+
 func (r *Html) Smartypants(text []byte) {
 	smrt := smartypantsData{false, false}
 
@@ -1022,4 +1075,438 @@ func (r *Html) ensureUniqueHeaderID(id string) string {
 	}
 
 	return id
+}
+
+func (r *Html) addAbsPrefix(link []byte) []byte {
+	if r.parameters.AbsolutePrefix != "" && isRelativeLink(link) && link[0] != '.' {
+		newDest := r.parameters.AbsolutePrefix
+		if link[0] != '/' {
+			newDest += "/"
+		}
+		newDest += string(link)
+		return []byte(newDest)
+	}
+	return link
+}
+
+func appendLinkAttrs(attrs []string, flags HtmlFlags, link []byte) []string {
+	if isRelativeLink(link) {
+		return attrs
+	}
+	val := []string{}
+	if flags&NofollowLinks != 0 {
+		val = append(val, "nofollow")
+	}
+	if flags&NoreferrerLinks != 0 {
+		val = append(val, "noreferrer")
+	}
+	if flags&HrefTargetBlank != 0 {
+		attrs = append(attrs, "target=\"_blank\"")
+	}
+	if len(val) == 0 {
+		return attrs
+	}
+	attr := fmt.Sprintf("rel=%q", strings.Join(val, " "))
+	return append(attrs, attr)
+}
+
+func isMailto(link []byte) bool {
+	return bytes.HasPrefix(link, []byte("mailto:"))
+}
+
+func isSmartypantable(node *Node) bool {
+	pt := node.Parent.Type
+	return pt != Link && pt != CodeBlock && pt != Code
+}
+
+func appendLanguageAttr(attrs []string, info []byte) []string {
+	infoWords := bytes.Split(info, []byte("\t "))
+	if len(infoWords) > 0 && len(infoWords[0]) > 0 {
+		attrs = append(attrs, fmt.Sprintf("class=\"language-%s\"", infoWords[0]))
+	}
+	return attrs
+}
+
+func tag(name string, attrs []string, selfClosing bool) []byte {
+	result := "<" + name
+	if attrs != nil && len(attrs) > 0 {
+		result += " " + strings.Join(attrs, " ")
+	}
+	if selfClosing {
+		result += " /"
+	}
+	return []byte(result + ">")
+}
+
+func footnoteRef(prefix string, node *Node) []byte {
+	urlFrag := prefix + string(slugify(node.Destination))
+	anchor := fmt.Sprintf(`<a rel="footnote" href="#fn:%s">%d</a>`, urlFrag, node.NoteID)
+	return []byte(fmt.Sprintf(`<sup class="footnote-ref" id="fnref:%s">%s</sup>`, urlFrag, anchor))
+}
+
+func footnoteItem(prefix string, slug []byte) []byte {
+	return []byte(fmt.Sprintf(`<li id="fn:%s%s">`, prefix, slug))
+}
+
+func footnoteReturnLink(prefix, returnLink string, slug []byte) []byte {
+	const format = ` <a class="footnote-return" href="#fnref:%s%s">%s</a>`
+	return []byte(fmt.Sprintf(format, prefix, slug, returnLink))
+}
+
+func itemOpenCR(node *Node) bool {
+	if node.Prev == nil {
+		return false
+	}
+	ld := node.Parent.ListData
+	return !ld.Tight && ld.Flags&ListTypeDefinition == 0
+}
+
+func skipParagraphTags(node *Node) bool {
+	grandparent := node.Parent.Parent
+	if grandparent == nil || grandparent.ListData == nil {
+		return false
+	}
+	tightOrTerm := grandparent.ListData.Tight || node.Parent.ListData.Flags&ListTypeTerm != 0
+	return grandparent.Type == List && tightOrTerm
+}
+
+func cellAlignment(align int) string {
+	switch align {
+	case TableAlignmentLeft:
+		return "left"
+	case TableAlignmentRight:
+		return "right"
+	case TableAlignmentCenter:
+		return "center"
+	default:
+		return ""
+	}
+}
+
+func (r *Html) Render(ast *Node) []byte {
+	//println("render_Blackfriday")
+	//dump(ast)
+	var buff bytes.Buffer
+	var lastOutputLen int
+	disableTags := 0
+	out := func(text []byte) {
+		if disableTags > 0 {
+			buff.Write(reHtmlTag.ReplaceAll(text, []byte{}))
+		} else {
+			buff.Write(text)
+		}
+		lastOutputLen = len(text)
+	}
+	esc := func(text []byte, preserveEntities bool) []byte {
+		return attrEscape2(text)
+	}
+	escCode := func(text []byte, preserveEntities bool) []byte {
+		e1 := []byte(html.EscapeString(string(text)))
+		e2 := bytes.Replace(e1, []byte("&#34;"), []byte("&quot;"), -1)
+		return bytes.Replace(e2, []byte("&#39;"), []byte{'\''}, -1)
+	}
+	cr := func() {
+		if lastOutputLen > 0 {
+			out([]byte{'\n'})
+		}
+	}
+	ForEachNode(ast, func(node *Node, entering bool) {
+		attrs := []string{}
+		switch node.Type {
+		case Text:
+			if r.flags&UseSmartypants != 0 && isSmartypantable(node) {
+				// TODO: don't do that in renderer, do that at parse time!
+				out(r.Smartypants2(node.Literal))
+			} else {
+				out(esc(node.Literal, false))
+			}
+			break
+		case Softbreak:
+			out([]byte("\n"))
+			// TODO: make it configurable via out(renderer.softbreak)
+		case Hardbreak:
+			out(tag("br", nil, true))
+			cr()
+		case Emph:
+			if entering {
+				out(tag("em", nil, false))
+			} else {
+				out(tag("/em", nil, false))
+			}
+			break
+		case Strong:
+			if entering {
+				out(tag("strong", nil, false))
+			} else {
+				out(tag("/strong", nil, false))
+			}
+			break
+		case Del:
+			if entering {
+				out(tag("del", nil, false))
+			} else {
+				out(tag("/del", nil, false))
+			}
+		case HtmlSpan:
+			//if options.safe {
+			//	out("<!-- raw HTML omitted -->")
+			//} else {
+			out(node.Literal)
+			//}
+		case Link:
+			// mark it but don't link it if it is not a safe link: no smartypants
+			dest := node.LinkData.Destination
+			if r.flags&Safelink != 0 && !isSafeLink(dest) && !isMailto(dest) {
+				if entering {
+					out(tag("tt", nil, false))
+				} else {
+					out(tag("/tt", nil, false))
+				}
+			} else {
+				if entering {
+					dest = r.addAbsPrefix(dest)
+					//if (!(options.safe && potentiallyUnsafe(node.destination))) {
+					attrs = append(attrs, fmt.Sprintf("href=%q", esc(dest, true)))
+					//}
+					if node.NoteID != 0 {
+						out(footnoteRef(r.parameters.FootnoteAnchorPrefix, node))
+						break
+					}
+					attrs = appendLinkAttrs(attrs, r.flags, dest)
+					if len(node.LinkData.Title) > 0 {
+						attrs = append(attrs, fmt.Sprintf("title=%q", esc(node.LinkData.Title, true)))
+					}
+					out(tag("a", attrs, false))
+				} else {
+					if node.NoteID != 0 {
+						break
+					}
+					out(tag("/a", nil, false))
+				}
+			}
+		case Image:
+			if entering {
+				dest := node.LinkData.Destination
+				dest = r.addAbsPrefix(dest)
+				if disableTags == 0 {
+					//if options.safe && potentiallyUnsafe(dest) {
+					//out(`<img src="" alt="`)
+					//} else {
+					out([]byte(fmt.Sprintf(`<img src="%s" alt="`, esc(dest, true))))
+					//}
+				}
+				disableTags++
+			} else {
+				disableTags--
+				if disableTags == 0 {
+					if node.LinkData.Title != nil {
+						out([]byte(`" title="`))
+						out(esc(node.LinkData.Title, true))
+					}
+					out([]byte(`" />`))
+				}
+			}
+		case Code:
+			out(tag("code", nil, false))
+			out(escCode(node.Literal, false))
+			out(tag("/code", nil, false))
+		case Document:
+			break
+		case Paragraph:
+			if skipParagraphTags(node) {
+				break
+			}
+			if entering {
+				// TODO: untangle this clusterfuck about when the newlines need
+				// to be added and when not.
+				if node.Prev != nil {
+					t := node.Prev.Type
+					if t == HtmlBlock || t == List || t == Paragraph || t == Header || t == CodeBlock || t == BlockQuote || t == HorizontalRule {
+						cr()
+					}
+				}
+				if node.Parent.Type == BlockQuote && node.Prev == nil {
+					cr()
+				}
+				out(tag("p", attrs, false))
+			} else {
+				out(tag("/p", attrs, false))
+				if !(node.Parent.Type == Item && node.Next == nil) {
+					cr()
+				}
+			}
+			break
+		case BlockQuote:
+			if entering {
+				cr()
+				out(tag("blockquote", attrs, false))
+			} else {
+				out(tag("/blockquote", nil, false))
+				cr()
+			}
+			break
+		case HtmlBlock:
+			cr()
+			out(node.Literal)
+			cr()
+		case Header:
+			tagname := fmt.Sprintf("h%d", node.Level)
+			if entering {
+				if node.IsTitleblock {
+					attrs = append(attrs, `class="title"`)
+				}
+				if node.HeaderID != "" {
+					id := r.ensureUniqueHeaderID(node.HeaderID)
+					if r.parameters.HeaderIDPrefix != "" {
+						id = r.parameters.HeaderIDPrefix + id
+					}
+					if r.parameters.HeaderIDSuffix != "" {
+						id = id + r.parameters.HeaderIDSuffix
+					}
+					attrs = append(attrs, fmt.Sprintf(`id="%s"`, id))
+				}
+				cr()
+				out(tag(tagname, attrs, false))
+			} else {
+				out(tag("/"+tagname, nil, false))
+				if !(node.Parent.Type == Item && node.Next == nil) {
+					cr()
+				}
+			}
+			break
+		case HorizontalRule:
+			cr()
+			out(tag("hr", attrs, r.flags&UseXHTML != 0))
+			cr()
+			break
+		case List:
+			tagName := "ul"
+			if node.ListData.Flags&ListTypeOrdered != 0 {
+				tagName = "ol"
+			}
+			if node.ListData.Flags&ListTypeDefinition != 0 {
+				tagName = "dl"
+			}
+			if entering {
+				// var start = node.listStart;
+				// if (start !== null && start !== 1) {
+				//     attrs.push(['start', start.toString()]);
+				// }
+				cr()
+				if node.Parent.Type == Item && node.Parent.Parent.ListData.Tight {
+					cr()
+				}
+				out(tag(tagName, attrs, false))
+				cr()
+			} else {
+				out(tag("/"+tagName, nil, false))
+				//cr()
+				//if node.parent.Type != Item {
+				//	cr()
+				//}
+				if node.Parent.Type == Item && node.Next != nil {
+					cr()
+				}
+				if node.Parent.Type == Document || node.Parent.Type == BlockQuote {
+					cr()
+				}
+			}
+		case Item:
+			tagName := "li"
+			if node.ListData.Flags&ListTypeDefinition != 0 {
+				tagName = "dd"
+			}
+			if node.ListData.Flags&ListTypeTerm != 0 {
+				tagName = "dt"
+			}
+			if entering {
+				if itemOpenCR(node) {
+					cr()
+				}
+				if node.ListData.RefLink != nil {
+					slug := slugify(node.ListData.RefLink)
+					out(footnoteItem(r.parameters.FootnoteAnchorPrefix, slug))
+					break
+				}
+				out(tag(tagName, nil, false))
+			} else {
+				if node.ListData.RefLink != nil {
+					slug := slugify(node.ListData.RefLink)
+					if r.flags&FootnoteReturnLinks != 0 {
+						out(footnoteReturnLink(r.parameters.FootnoteAnchorPrefix, r.parameters.FootnoteReturnLinkContents, slug))
+					}
+				}
+				out(tag("/"+tagName, nil, false))
+				cr()
+			}
+		case CodeBlock:
+			attrs = appendLanguageAttr(attrs, node.Info)
+			cr()
+			out(tag("pre", nil, false))
+			out(tag("code", attrs, false))
+			out(escCode(node.Literal, false))
+			out(tag("/code", nil, false))
+			out(tag("/pre", nil, false))
+			if node.Parent.Type != Item {
+				cr()
+			}
+		case Table:
+			if entering {
+				cr()
+				out(tag("table", nil, false))
+			} else {
+				out(tag("/table", nil, false))
+				cr()
+			}
+		case TableCell:
+			tagName := "td"
+			if node.IsHeader {
+				tagName = "th"
+			}
+			if entering {
+				align := cellAlignment(node.Align)
+				if align != "" {
+					attrs = append(attrs, fmt.Sprintf(`align="%s"`, align))
+				}
+				if node.Prev == nil {
+					cr()
+				}
+				out(tag(tagName, attrs, false))
+			} else {
+				out(tag("/"+tagName, nil, false))
+				cr()
+			}
+		case TableHead:
+			if entering {
+				cr()
+				out(tag("thead", nil, false))
+			} else {
+				out(tag("/thead", nil, false))
+				cr()
+			}
+		case TableBody:
+			if entering {
+				cr()
+				out(tag("tbody", nil, false))
+				// XXX: this is to adhere to a rather silly test. Should fix test.
+				if node.FirstChild == nil {
+					cr()
+				}
+			} else {
+				out(tag("/tbody", nil, false))
+				cr()
+			}
+		case TableRow:
+			if entering {
+				cr()
+				out(tag("tr", nil, false))
+			} else {
+				out(tag("/tr", nil, false))
+				cr()
+			}
+		default:
+			panic("Unknown node type " + node.Type.String())
+		}
+	})
+	return buff.Bytes()
 }
