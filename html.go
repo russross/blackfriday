@@ -1211,306 +1211,308 @@ func (r *Html) cr() {
 	}
 }
 
+func (r *Html) RenderNode(node *Node, entering bool) {
+	attrs := []string{}
+	switch node.Type {
+	case Text:
+		if r.flags&UseSmartypants != 0 && isSmartypantable(node) {
+			// TODO: don't do that in renderer, do that at parse time!
+			r.out(r.Smartypants2(node.Literal))
+		} else {
+			r.out(esc(node.Literal, false))
+		}
+		break
+	case Softbreak:
+		r.out([]byte("\n"))
+		// TODO: make it configurable via out(renderer.softbreak)
+	case Hardbreak:
+		r.out(tag("br", nil, true))
+		r.cr()
+	case Emph:
+		if entering {
+			r.out(tag("em", nil, false))
+		} else {
+			r.out(tag("/em", nil, false))
+		}
+		break
+	case Strong:
+		if entering {
+			r.out(tag("strong", nil, false))
+		} else {
+			r.out(tag("/strong", nil, false))
+		}
+		break
+	case Del:
+		if entering {
+			r.out(tag("del", nil, false))
+		} else {
+			r.out(tag("/del", nil, false))
+		}
+	case HtmlSpan:
+		//if options.safe {
+		//	out("<!-- raw HTML omitted -->")
+		//} else {
+		r.out(node.Literal)
+		//}
+	case Link:
+		// mark it but don't link it if it is not a safe link: no smartypants
+		dest := node.LinkData.Destination
+		if r.flags&Safelink != 0 && !isSafeLink(dest) && !isMailto(dest) {
+			if entering {
+				r.out(tag("tt", nil, false))
+			} else {
+				r.out(tag("/tt", nil, false))
+			}
+		} else {
+			if entering {
+				dest = r.addAbsPrefix(dest)
+				//if (!(options.safe && potentiallyUnsafe(node.destination))) {
+				attrs = append(attrs, fmt.Sprintf("href=%q", esc(dest, true)))
+				//}
+				if node.NoteID != 0 {
+					r.out(footnoteRef(r.parameters.FootnoteAnchorPrefix, node))
+					break
+				}
+				attrs = appendLinkAttrs(attrs, r.flags, dest)
+				if len(node.LinkData.Title) > 0 {
+					attrs = append(attrs, fmt.Sprintf("title=%q", esc(node.LinkData.Title, true)))
+				}
+				r.out(tag("a", attrs, false))
+			} else {
+				if node.NoteID != 0 {
+					break
+				}
+				r.out(tag("/a", nil, false))
+			}
+		}
+	case Image:
+		if entering {
+			dest := node.LinkData.Destination
+			dest = r.addAbsPrefix(dest)
+			if r.disableTags == 0 {
+				//if options.safe && potentiallyUnsafe(dest) {
+				//out(`<img src="" alt="`)
+				//} else {
+				r.out([]byte(fmt.Sprintf(`<img src="%s" alt="`, esc(dest, true))))
+				//}
+			}
+			r.disableTags++
+		} else {
+			r.disableTags--
+			if r.disableTags == 0 {
+				if node.LinkData.Title != nil {
+					r.out([]byte(`" title="`))
+					r.out(esc(node.LinkData.Title, true))
+				}
+				r.out([]byte(`" />`))
+			}
+		}
+	case Code:
+		r.out(tag("code", nil, false))
+		r.out(escCode(node.Literal, false))
+		r.out(tag("/code", nil, false))
+	case Document:
+		break
+	case Paragraph:
+		if skipParagraphTags(node) {
+			break
+		}
+		if entering {
+			// TODO: untangle this clusterfuck about when the newlines need
+			// to be added and when not.
+			if node.Prev != nil {
+				t := node.Prev.Type
+				if t == HtmlBlock || t == List || t == Paragraph || t == Header || t == CodeBlock || t == BlockQuote || t == HorizontalRule {
+					r.cr()
+				}
+			}
+			if node.Parent.Type == BlockQuote && node.Prev == nil {
+				r.cr()
+			}
+			r.out(tag("p", attrs, false))
+		} else {
+			r.out(tag("/p", attrs, false))
+			if !(node.Parent.Type == Item && node.Next == nil) {
+				r.cr()
+			}
+		}
+		break
+	case BlockQuote:
+		if entering {
+			r.cr()
+			r.out(tag("blockquote", attrs, false))
+		} else {
+			r.out(tag("/blockquote", nil, false))
+			r.cr()
+		}
+		break
+	case HtmlBlock:
+		r.cr()
+		r.out(node.Literal)
+		r.cr()
+	case Header:
+		tagname := fmt.Sprintf("h%d", node.Level)
+		if entering {
+			if node.IsTitleblock {
+				attrs = append(attrs, `class="title"`)
+			}
+			if node.HeaderID != "" {
+				id := r.ensureUniqueHeaderID(node.HeaderID)
+				if r.parameters.HeaderIDPrefix != "" {
+					id = r.parameters.HeaderIDPrefix + id
+				}
+				if r.parameters.HeaderIDSuffix != "" {
+					id = id + r.parameters.HeaderIDSuffix
+				}
+				attrs = append(attrs, fmt.Sprintf(`id="%s"`, id))
+			}
+			r.cr()
+			r.out(tag(tagname, attrs, false))
+		} else {
+			r.out(tag("/"+tagname, nil, false))
+			if !(node.Parent.Type == Item && node.Next == nil) {
+				r.cr()
+			}
+		}
+		break
+	case HorizontalRule:
+		r.cr()
+		r.out(tag("hr", attrs, r.flags&UseXHTML != 0))
+		r.cr()
+		break
+	case List:
+		tagName := "ul"
+		if node.ListData.Flags&ListTypeOrdered != 0 {
+			tagName = "ol"
+		}
+		if node.ListData.Flags&ListTypeDefinition != 0 {
+			tagName = "dl"
+		}
+		if entering {
+			// var start = node.listStart;
+			// if (start !== null && start !== 1) {
+			//     attrs.push(['start', start.toString()]);
+			// }
+			r.cr()
+			if node.Parent.Type == Item && node.Parent.Parent.ListData.Tight {
+				r.cr()
+			}
+			r.out(tag(tagName, attrs, false))
+			r.cr()
+		} else {
+			r.out(tag("/"+tagName, nil, false))
+			//cr()
+			//if node.parent.Type != Item {
+			//	cr()
+			//}
+			if node.Parent.Type == Item && node.Next != nil {
+				r.cr()
+			}
+			if node.Parent.Type == Document || node.Parent.Type == BlockQuote {
+				r.cr()
+			}
+		}
+	case Item:
+		tagName := "li"
+		if node.ListData.Flags&ListTypeDefinition != 0 {
+			tagName = "dd"
+		}
+		if node.ListData.Flags&ListTypeTerm != 0 {
+			tagName = "dt"
+		}
+		if entering {
+			if itemOpenCR(node) {
+				r.cr()
+			}
+			if node.ListData.RefLink != nil {
+				slug := slugify(node.ListData.RefLink)
+				r.out(footnoteItem(r.parameters.FootnoteAnchorPrefix, slug))
+				break
+			}
+			r.out(tag(tagName, nil, false))
+		} else {
+			if node.ListData.RefLink != nil {
+				slug := slugify(node.ListData.RefLink)
+				if r.flags&FootnoteReturnLinks != 0 {
+					r.out(footnoteReturnLink(r.parameters.FootnoteAnchorPrefix, r.parameters.FootnoteReturnLinkContents, slug))
+				}
+			}
+			r.out(tag("/"+tagName, nil, false))
+			r.cr()
+		}
+	case CodeBlock:
+		attrs = appendLanguageAttr(attrs, node.Info)
+		r.cr()
+		r.out(tag("pre", nil, false))
+		r.out(tag("code", attrs, false))
+		r.out(escCode(node.Literal, false))
+		r.out(tag("/code", nil, false))
+		r.out(tag("/pre", nil, false))
+		if node.Parent.Type != Item {
+			r.cr()
+		}
+	case Table:
+		if entering {
+			r.cr()
+			r.out(tag("table", nil, false))
+		} else {
+			r.out(tag("/table", nil, false))
+			r.cr()
+		}
+	case TableCell:
+		tagName := "td"
+		if node.IsHeader {
+			tagName = "th"
+		}
+		if entering {
+			align := cellAlignment(node.Align)
+			if align != "" {
+				attrs = append(attrs, fmt.Sprintf(`align="%s"`, align))
+			}
+			if node.Prev == nil {
+				r.cr()
+			}
+			r.out(tag(tagName, attrs, false))
+		} else {
+			r.out(tag("/"+tagName, nil, false))
+			r.cr()
+		}
+	case TableHead:
+		if entering {
+			r.cr()
+			r.out(tag("thead", nil, false))
+		} else {
+			r.out(tag("/thead", nil, false))
+			r.cr()
+		}
+	case TableBody:
+		if entering {
+			r.cr()
+			r.out(tag("tbody", nil, false))
+			// XXX: this is to adhere to a rather silly test. Should fix test.
+			if node.FirstChild == nil {
+				r.cr()
+			}
+		} else {
+			r.out(tag("/tbody", nil, false))
+			r.cr()
+		}
+	case TableRow:
+		if entering {
+			r.cr()
+			r.out(tag("tr", nil, false))
+		} else {
+			r.out(tag("/tr", nil, false))
+			r.cr()
+		}
+	default:
+		panic("Unknown node type " + node.Type.String())
+	}
+}
+
 func (r *Html) Render(ast *Node) []byte {
 	//println("render_Blackfriday")
 	//dump(ast)
-	ForEachNode(ast, func(node *Node, entering bool) {
-		attrs := []string{}
-		switch node.Type {
-		case Text:
-			if r.flags&UseSmartypants != 0 && isSmartypantable(node) {
-				// TODO: don't do that in renderer, do that at parse time!
-				r.out(r.Smartypants2(node.Literal))
-			} else {
-				r.out(esc(node.Literal, false))
-			}
-			break
-		case Softbreak:
-			r.out([]byte("\n"))
-			// TODO: make it configurable via out(renderer.softbreak)
-		case Hardbreak:
-			r.out(tag("br", nil, true))
-			r.cr()
-		case Emph:
-			if entering {
-				r.out(tag("em", nil, false))
-			} else {
-				r.out(tag("/em", nil, false))
-			}
-			break
-		case Strong:
-			if entering {
-				r.out(tag("strong", nil, false))
-			} else {
-				r.out(tag("/strong", nil, false))
-			}
-			break
-		case Del:
-			if entering {
-				r.out(tag("del", nil, false))
-			} else {
-				r.out(tag("/del", nil, false))
-			}
-		case HtmlSpan:
-			//if options.safe {
-			//	out("<!-- raw HTML omitted -->")
-			//} else {
-			r.out(node.Literal)
-			//}
-		case Link:
-			// mark it but don't link it if it is not a safe link: no smartypants
-			dest := node.LinkData.Destination
-			if r.flags&Safelink != 0 && !isSafeLink(dest) && !isMailto(dest) {
-				if entering {
-					r.out(tag("tt", nil, false))
-				} else {
-					r.out(tag("/tt", nil, false))
-				}
-			} else {
-				if entering {
-					dest = r.addAbsPrefix(dest)
-					//if (!(options.safe && potentiallyUnsafe(node.destination))) {
-					attrs = append(attrs, fmt.Sprintf("href=%q", esc(dest, true)))
-					//}
-					if node.NoteID != 0 {
-						r.out(footnoteRef(r.parameters.FootnoteAnchorPrefix, node))
-						break
-					}
-					attrs = appendLinkAttrs(attrs, r.flags, dest)
-					if len(node.LinkData.Title) > 0 {
-						attrs = append(attrs, fmt.Sprintf("title=%q", esc(node.LinkData.Title, true)))
-					}
-					r.out(tag("a", attrs, false))
-				} else {
-					if node.NoteID != 0 {
-						break
-					}
-					r.out(tag("/a", nil, false))
-				}
-			}
-		case Image:
-			if entering {
-				dest := node.LinkData.Destination
-				dest = r.addAbsPrefix(dest)
-				if r.disableTags == 0 {
-					//if options.safe && potentiallyUnsafe(dest) {
-					//out(`<img src="" alt="`)
-					//} else {
-					r.out([]byte(fmt.Sprintf(`<img src="%s" alt="`, esc(dest, true))))
-					//}
-				}
-				r.disableTags++
-			} else {
-				r.disableTags--
-				if r.disableTags == 0 {
-					if node.LinkData.Title != nil {
-						r.out([]byte(`" title="`))
-						r.out(esc(node.LinkData.Title, true))
-					}
-					r.out([]byte(`" />`))
-				}
-			}
-		case Code:
-			r.out(tag("code", nil, false))
-			r.out(escCode(node.Literal, false))
-			r.out(tag("/code", nil, false))
-		case Document:
-			break
-		case Paragraph:
-			if skipParagraphTags(node) {
-				break
-			}
-			if entering {
-				// TODO: untangle this clusterfuck about when the newlines need
-				// to be added and when not.
-				if node.Prev != nil {
-					t := node.Prev.Type
-					if t == HtmlBlock || t == List || t == Paragraph || t == Header || t == CodeBlock || t == BlockQuote || t == HorizontalRule {
-						r.cr()
-					}
-				}
-				if node.Parent.Type == BlockQuote && node.Prev == nil {
-					r.cr()
-				}
-				r.out(tag("p", attrs, false))
-			} else {
-				r.out(tag("/p", attrs, false))
-				if !(node.Parent.Type == Item && node.Next == nil) {
-					r.cr()
-				}
-			}
-			break
-		case BlockQuote:
-			if entering {
-				r.cr()
-				r.out(tag("blockquote", attrs, false))
-			} else {
-				r.out(tag("/blockquote", nil, false))
-				r.cr()
-			}
-			break
-		case HtmlBlock:
-			r.cr()
-			r.out(node.Literal)
-			r.cr()
-		case Header:
-			tagname := fmt.Sprintf("h%d", node.Level)
-			if entering {
-				if node.IsTitleblock {
-					attrs = append(attrs, `class="title"`)
-				}
-				if node.HeaderID != "" {
-					id := r.ensureUniqueHeaderID(node.HeaderID)
-					if r.parameters.HeaderIDPrefix != "" {
-						id = r.parameters.HeaderIDPrefix + id
-					}
-					if r.parameters.HeaderIDSuffix != "" {
-						id = id + r.parameters.HeaderIDSuffix
-					}
-					attrs = append(attrs, fmt.Sprintf(`id="%s"`, id))
-				}
-				r.cr()
-				r.out(tag(tagname, attrs, false))
-			} else {
-				r.out(tag("/"+tagname, nil, false))
-				if !(node.Parent.Type == Item && node.Next == nil) {
-					r.cr()
-				}
-			}
-			break
-		case HorizontalRule:
-			r.cr()
-			r.out(tag("hr", attrs, r.flags&UseXHTML != 0))
-			r.cr()
-			break
-		case List:
-			tagName := "ul"
-			if node.ListData.Flags&ListTypeOrdered != 0 {
-				tagName = "ol"
-			}
-			if node.ListData.Flags&ListTypeDefinition != 0 {
-				tagName = "dl"
-			}
-			if entering {
-				// var start = node.listStart;
-				// if (start !== null && start !== 1) {
-				//     attrs.push(['start', start.toString()]);
-				// }
-				r.cr()
-				if node.Parent.Type == Item && node.Parent.Parent.ListData.Tight {
-					r.cr()
-				}
-				r.out(tag(tagName, attrs, false))
-				r.cr()
-			} else {
-				r.out(tag("/"+tagName, nil, false))
-				//cr()
-				//if node.parent.Type != Item {
-				//	cr()
-				//}
-				if node.Parent.Type == Item && node.Next != nil {
-					r.cr()
-				}
-				if node.Parent.Type == Document || node.Parent.Type == BlockQuote {
-					r.cr()
-				}
-			}
-		case Item:
-			tagName := "li"
-			if node.ListData.Flags&ListTypeDefinition != 0 {
-				tagName = "dd"
-			}
-			if node.ListData.Flags&ListTypeTerm != 0 {
-				tagName = "dt"
-			}
-			if entering {
-				if itemOpenCR(node) {
-					r.cr()
-				}
-				if node.ListData.RefLink != nil {
-					slug := slugify(node.ListData.RefLink)
-					r.out(footnoteItem(r.parameters.FootnoteAnchorPrefix, slug))
-					break
-				}
-				r.out(tag(tagName, nil, false))
-			} else {
-				if node.ListData.RefLink != nil {
-					slug := slugify(node.ListData.RefLink)
-					if r.flags&FootnoteReturnLinks != 0 {
-						r.out(footnoteReturnLink(r.parameters.FootnoteAnchorPrefix, r.parameters.FootnoteReturnLinkContents, slug))
-					}
-				}
-				r.out(tag("/"+tagName, nil, false))
-				r.cr()
-			}
-		case CodeBlock:
-			attrs = appendLanguageAttr(attrs, node.Info)
-			r.cr()
-			r.out(tag("pre", nil, false))
-			r.out(tag("code", attrs, false))
-			r.out(escCode(node.Literal, false))
-			r.out(tag("/code", nil, false))
-			r.out(tag("/pre", nil, false))
-			if node.Parent.Type != Item {
-				r.cr()
-			}
-		case Table:
-			if entering {
-				r.cr()
-				r.out(tag("table", nil, false))
-			} else {
-				r.out(tag("/table", nil, false))
-				r.cr()
-			}
-		case TableCell:
-			tagName := "td"
-			if node.IsHeader {
-				tagName = "th"
-			}
-			if entering {
-				align := cellAlignment(node.Align)
-				if align != "" {
-					attrs = append(attrs, fmt.Sprintf(`align="%s"`, align))
-				}
-				if node.Prev == nil {
-					r.cr()
-				}
-				r.out(tag(tagName, attrs, false))
-			} else {
-				r.out(tag("/"+tagName, nil, false))
-				r.cr()
-			}
-		case TableHead:
-			if entering {
-				r.cr()
-				r.out(tag("thead", nil, false))
-			} else {
-				r.out(tag("/thead", nil, false))
-				r.cr()
-			}
-		case TableBody:
-			if entering {
-				r.cr()
-				r.out(tag("tbody", nil, false))
-				// XXX: this is to adhere to a rather silly test. Should fix test.
-				if node.FirstChild == nil {
-					r.cr()
-				}
-			} else {
-				r.out(tag("/tbody", nil, false))
-				r.cr()
-			}
-		case TableRow:
-			if entering {
-				r.cr()
-				r.out(tag("tr", nil, false))
-			} else {
-				r.out(tag("/tr", nil, false))
-				r.cr()
-			}
-		default:
-			panic("Unknown node type " + node.Type.String())
-		}
-	})
+	ForEachNode(ast, r.RenderNode)
 	return r.renderBuffer.Bytes()
 }
