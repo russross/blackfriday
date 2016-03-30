@@ -818,14 +818,15 @@ func TestAutoLink(t *testing.T) {
 var footnoteTests = []string{
 	"testing footnotes.[^a]\n\n[^a]: This is the note\n",
 	`<p>testing footnotes.<sup class="footnote-ref" id="fnref:a"><a rel="footnote" href="#fn:a">1</a></sup></p>
+
 <div class="footnotes">
 
 <hr />
 
 <ol>
-<li id="fn:a">This is the note
-</li>
+<li id="fn:a">This is the note</li>
 </ol>
+
 </div>
 `,
 
@@ -844,6 +845,7 @@ No longer in the footnote
 	`<p>testing long<sup class="footnote-ref" id="fnref:b"><a rel="footnote" href="#fn:b">1</a></sup> notes.</p>
 
 <p>No longer in the footnote</p>
+
 <div class="footnotes">
 
 <hr />
@@ -857,9 +859,9 @@ No longer in the footnote
 some code
 </code></p>
 
-<p>Paragraph 3</p>
-</li>
+<p>Paragraph 3</p></li>
 </ol>
+
 </div>
 `,
 
@@ -882,21 +884,23 @@ what happens here
 <p>omg</p>
 
 <p>what happens here</p>
+
 <div class="footnotes">
 
 <hr />
 
 <ol>
-<li id="fn:c">this is <a href="/link/c">note</a> c
-</li>
-<li id="fn:d">this is note d
-</li>
+<li id="fn:c">this is <a href="/link/c">note</a> c</li>
+
+<li id="fn:d">this is note d</li>
 </ol>
+
 </div>
 `,
 
 	"testing inline^[this is the note] notes.\n",
 	`<p>testing inline<sup class="footnote-ref" id="fnref:this-is-the-note"><a rel="footnote" href="#fn:this-is-the-note">1</a></sup> notes.</p>
+
 <div class="footnotes">
 
 <hr />
@@ -904,11 +908,13 @@ what happens here
 <ol>
 <li id="fn:this-is-the-note">this is the note</li>
 </ol>
+
 </div>
 `,
 
 	"testing multiple[^1] types^[inline note] of notes[^2]\n\n[^2]: the second deferred note\n[^1]: the first deferred note\n\n\twhich happens to be a block\n",
 	`<p>testing multiple<sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup> types<sup class="footnote-ref" id="fnref:inline-note"><a rel="footnote" href="#fn:inline-note">2</a></sup> of notes<sup class="footnote-ref" id="fnref:2"><a rel="footnote" href="#fn:2">3</a></sup></p>
+
 <div class="footnotes">
 
 <hr />
@@ -916,12 +922,13 @@ what happens here
 <ol>
 <li id="fn:1"><p>the first deferred note</p>
 
-<p>which happens to be a block</p>
-</li>
+<p>which happens to be a block</p></li>
+
 <li id="fn:inline-note">inline note</li>
-<li id="fn:2">the second deferred note
-</li>
+
+<li id="fn:2">the second deferred note</li>
 </ol>
+
 </div>
 `,
 
@@ -932,6 +939,7 @@ what happens here
     may be multiple paragraphs.
 `,
 	`<p>This is a footnote<sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup><sup class="footnote-ref" id="fnref:and-this-is-an-i"><a rel="footnote" href="#fn:and-this-is-an-i">2</a></sup></p>
+
 <div class="footnotes">
 
 <hr />
@@ -939,21 +947,22 @@ what happens here
 <ol>
 <li id="fn:1"><p>the footnote text.</p>
 
-<p>may be multiple paragraphs.</p>
-</li>
+<p>may be multiple paragraphs.</p></li>
+
 <li id="fn:and-this-is-an-i">and this is an inline footnote</li>
 </ol>
+
 </div>
 `,
 
 	"empty footnote[^]\n\n[^]: fn text",
-	"<p>empty footnote<sup class=\"footnote-ref\" id=\"fnref:\"><a rel=\"footnote\" href=\"#fn:\">1</a></sup></p>\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:\">fn text\n</li>\n</ol>\n</div>\n",
+	"<p>empty footnote<sup class=\"footnote-ref\" id=\"fnref:\"><a rel=\"footnote\" href=\"#fn:\">1</a></sup></p>\n\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:\">fn text</li>\n</ol>\n\n</div>\n",
 
 	"Some text.[^note1]\n\n[^note1]: fn1",
-	"<p>Some text.<sup class=\"footnote-ref\" id=\"fnref:note1\"><a rel=\"footnote\" href=\"#fn:note1\">1</a></sup></p>\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:note1\">fn1\n</li>\n</ol>\n</div>\n",
+	"<p>Some text.<sup class=\"footnote-ref\" id=\"fnref:note1\"><a rel=\"footnote\" href=\"#fn:note1\">1</a></sup></p>\n\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:note1\">fn1</li>\n</ol>\n\n</div>\n",
 
 	"Some text.[^note1][^note2]\n\n[^note1]: fn1\n[^note2]: fn2\n",
-	"<p>Some text.<sup class=\"footnote-ref\" id=\"fnref:note1\"><a rel=\"footnote\" href=\"#fn:note1\">1</a></sup><sup class=\"footnote-ref\" id=\"fnref:note2\"><a rel=\"footnote\" href=\"#fn:note2\">2</a></sup></p>\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:note1\">fn1\n</li>\n<li id=\"fn:note2\">fn2\n</li>\n</ol>\n</div>\n",
+	"<p>Some text.<sup class=\"footnote-ref\" id=\"fnref:note1\"><a rel=\"footnote\" href=\"#fn:note1\">1</a></sup><sup class=\"footnote-ref\" id=\"fnref:note2\"><a rel=\"footnote\" href=\"#fn:note2\">2</a></sup></p>\n\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:note1\">fn1</li>\n\n<li id=\"fn:note2\">fn2</li>\n</ol>\n\n</div>\n",
 
 	`Bla bla [^1] [WWW][w3]
 
@@ -962,14 +971,15 @@ what happens here
 [w3]: http://www.w3.org/
 `,
 	`<p>Bla bla <sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup> <a href="http://www.w3.org/">WWW</a></p>
+
 <div class="footnotes">
 
 <hr />
 
 <ol>
-<li id="fn:1">This is a footnote
-</li>
+<li id="fn:1">This is a footnote</li>
 </ol>
+
 </div>
 `,
 
@@ -978,14 +988,15 @@ what happens here
 [^fn1]: Fine print
 `,
 	`<p>This is exciting!<sup class="footnote-ref" id="fnref:fn1"><a rel="footnote" href="#fn:fn1">1</a></sup></p>
+
 <div class="footnotes">
 
 <hr />
 
 <ol>
-<li id="fn:fn1">Fine print
-</li>
+<li id="fn:fn1">Fine print</li>
 </ol>
+
 </div>
 `,
 }
@@ -1029,16 +1040,17 @@ func TestNestedFootnotes(t *testing.T) {
 [^fn2]:
   Obelisk`,
 		`<p>Paragraph.<sup class="footnote-ref" id="fnref:fn1"><a rel="footnote" href="#fn:fn1">1</a></sup></p>
+
 <div class="footnotes">
 
 <hr />
 
 <ol>
-<li id="fn:fn1">Asterisk<sup class="footnote-ref" id="fnref:fn2"><a rel="footnote" href="#fn:fn2">2</a></sup>
-</li>
-<li id="fn:fn2">Obelisk
-</li>
+<li id="fn:fn1">Asterisk<sup class="footnote-ref" id="fnref:fn2"><a rel="footnote" href="#fn:fn2">2</a></sup></li>
+
+<li id="fn:fn2">Obelisk</li>
 </ol>
+
 </div>
 `,
 	}
