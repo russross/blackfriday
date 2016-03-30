@@ -218,7 +218,6 @@ type inlineParser func(p *parser, data []byte, offset int) int
 // Parser holds runtime state used by the parser.
 // This is constructed by the Markdown function.
 type parser struct {
-	r              Renderer
 	refOverride    ReferenceOverrideFunc
 	refs           map[string]*reference
 	inlineCallback [256]inlineParser
@@ -396,7 +395,6 @@ func MarkdownOptions(input []byte, renderer Renderer, opts Options) []byte {
 
 	// fill in the render structure
 	p := new(parser)
-	p.r = renderer
 	p.flags = extensions
 	p.refOverride = opts.ReferenceOverride
 	p.refs = make(map[string]*reference)
@@ -569,28 +567,21 @@ func firstPass(p *parser, input []byte) []byte {
 
 // second pass: actual rendering
 func secondPass(p *parser, input []byte) {
-	p.r.DocumentHeader()
 	p.block(input)
 
 	if p.flags&Footnotes != 0 && len(p.notes) > 0 {
-		p.r.BeginFootnotes()
 		flags := ListItemBeginningOfList
 		for i := 0; i < len(p.notes); i += 1 {
 			ref := p.notes[i]
-			var buf bytes.Buffer
 			if ref.hasBlock {
 				flags |= ListItemContainsBlock
 				p.block(ref.title)
 			} else {
 				p.inline(ref.title)
 			}
-			p.r.FootnoteItem(ref.link, buf.Bytes(), flags)
 			flags &^= ListItemBeginningOfList | ListItemContainsBlock
 		}
-		p.r.EndFootnotes()
 	}
-
-	p.r.DocumentFooter()
 
 	if p.nesting != 0 {
 		panic("Nesting level did not end at zero")
