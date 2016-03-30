@@ -108,8 +108,11 @@ type Html struct {
 	// Track header IDs to prevent ID collision in a single generation.
 	headerIDs map[string]int
 
-	smartypants *smartypantsRenderer
-	w           HtmlWriter
+	smartypants   *smartypantsRenderer
+	w             HtmlWriter
+	lastOutputLen int
+	disableTags   int
+	renderBuffer  bytes.Buffer
 }
 
 const (
@@ -1183,84 +1186,85 @@ func cellAlignment(align int) string {
 	}
 }
 
+func esc(text []byte, preserveEntities bool) []byte {
+	return attrEscape2(text)
+}
+
+func escCode(text []byte, preserveEntities bool) []byte {
+	e1 := []byte(html.EscapeString(string(text)))
+	e2 := bytes.Replace(e1, []byte("&#34;"), []byte("&quot;"), -1)
+	return bytes.Replace(e2, []byte("&#39;"), []byte{'\''}, -1)
+}
+
+func (r *Html) out(text []byte) {
+	if r.disableTags > 0 {
+		r.renderBuffer.Write(reHtmlTag.ReplaceAll(text, []byte{}))
+	} else {
+		r.renderBuffer.Write(text)
+	}
+	r.lastOutputLen = len(text)
+}
+
+func (r *Html) cr() {
+	if r.lastOutputLen > 0 {
+		r.out([]byte{'\n'})
+	}
+}
+
 func (r *Html) Render(ast *Node) []byte {
 	//println("render_Blackfriday")
 	//dump(ast)
-	var buff bytes.Buffer
-	var lastOutputLen int
-	disableTags := 0
-	out := func(text []byte) {
-		if disableTags > 0 {
-			buff.Write(reHtmlTag.ReplaceAll(text, []byte{}))
-		} else {
-			buff.Write(text)
-		}
-		lastOutputLen = len(text)
-	}
-	esc := func(text []byte, preserveEntities bool) []byte {
-		return attrEscape2(text)
-	}
-	escCode := func(text []byte, preserveEntities bool) []byte {
-		e1 := []byte(html.EscapeString(string(text)))
-		e2 := bytes.Replace(e1, []byte("&#34;"), []byte("&quot;"), -1)
-		return bytes.Replace(e2, []byte("&#39;"), []byte{'\''}, -1)
-	}
-	cr := func() {
-		if lastOutputLen > 0 {
-			out([]byte{'\n'})
-		}
-	}
 	ForEachNode(ast, func(node *Node, entering bool) {
 		attrs := []string{}
 		switch node.Type {
 		case Text:
 			if r.flags&UseSmartypants != 0 && isSmartypantable(node) {
 				// TODO: don't do that in renderer, do that at parse time!
-				out(r.Smartypants2(node.Literal))
+				r.out(r.Smartypants2(node.Literal))
 			} else {
-				out(esc(node.Literal, false))
+				r.out(esc(node.Literal, false))
 			}
 			break
 		case Softbreak:
-			out([]byte("\n"))
+			r.out([]byte("\n"))
 			// TODO: make it configurable via out(renderer.softbreak)
 		case Hardbreak:
-			out(tag("br", nil, true))
-			cr()
+			r.out(tag("br", nil, true))
+			r.cr()
 		case Emph:
 			if entering {
-				out(tag("em", nil, false))
+				r.out(tag("em", nil, false))
 			} else {
-				out(tag("/em", nil, false))
+				r.out(tag("/em", nil, false))
 			}
 			break
 		case Strong:
 			if entering {
-				out(tag("strong", nil, false))
+				r.out(tag("strong", nil, false))
 			} else {
-				out(tag("/strong", nil, false))
+				r.out(tag("/strong", nil, false))
 			}
 			break
 		case Del:
 			if entering {
-				out(tag("del", nil, false))
+				r.out(tag("del", nil, false))
 			} else {
-				out(tag("/del", nil, false))
+				r.out(tag("/del", nil, false))
 			}
 		case HtmlSpan:
 			//if options.safe {
 			//	out("<!-- raw HTML omitted -->")
 			//} else {
-			out(node.Literal)
+			r.out(node.Literal)
 			//}
 		case Link:
 			// mark it but don't link it if it is not a safe link: no smartypants
 			dest := node.LinkData.Destination
 			if r.flags&Safelink != 0 && !isSafeLink(dest) && !isMailto(dest) {
 				if entering {
-					out(tag("tt", nil, false))
+					r.out(tag("tt", nil, false))
 				} else {
-					out(tag("/tt", nil, false))
+					r.out(tag("/tt", nil, false))
 				}
 			} else {
 				if entering {
@@ -1269,47 +1273,47 @@ func (r *Html) Render(ast *Node) []byte {
 					attrs = append(attrs, fmt.Sprintf("href=%q", esc(dest, true)))
 					//}
 					if node.NoteID != 0 {
-						out(footnoteRef(r.parameters.FootnoteAnchorPrefix, node))
+						r.out(footnoteRef(r.parameters.FootnoteAnchorPrefix, node))
 						break
 					}
 					attrs = appendLinkAttrs(attrs, r.flags, dest)
 					if len(node.LinkData.Title) > 0 {
 						attrs = append(attrs, fmt.Sprintf("title=%q", esc(node.LinkData.Title, true)))
 					}
-					out(tag("a", attrs, false))
+					r.out(tag("a", attrs, false))
 				} else {
 					if node.NoteID != 0 {
 						break
 					}
-					out(tag("/a", nil, false))
+					r.out(tag("/a", nil, false))
 				}
 			}
 		case Image:
 			if entering {
 				dest := node.LinkData.Destination
 				dest = r.addAbsPrefix(dest)
-				if disableTags == 0 {
+				if r.disableTags == 0 {
 					//if options.safe && potentiallyUnsafe(dest) {
 					//out(`<img src="" alt="`)
 					//} else {
-					out([]byte(fmt.Sprintf(`<img src="%s" alt="`, esc(dest, true))))
+					r.out([]byte(fmt.Sprintf(`<img src="%s" alt="`, esc(dest, true))))
 					//}
 				}
-				disableTags++
+				r.disableTags++
 			} else {
-				disableTags--
-				if disableTags == 0 {
+				r.disableTags--
+				if r.disableTags == 0 {
 					if node.LinkData.Title != nil {
-						out([]byte(`" title="`))
-						out(esc(node.LinkData.Title, true))
+						r.out([]byte(`" title="`))
+						r.out(esc(node.LinkData.Title, true))
 					}
-					out([]byte(`" />`))
+					r.out([]byte(`" />`))
 				}
 			}
 		case Code:
-			out(tag("code", nil, false))
-			out(escCode(node.Literal, false))
-			out(tag("/code", nil, false))
+			r.out(tag("code", nil, false))
+			r.out(escCode(node.Literal, false))
+			r.out(tag("/code", nil, false))
 		case Document:
 			break
 		case Paragraph:
@@ -1322,33 +1326,33 @@ func (r *Html) Render(ast *Node) []byte {
 				if node.Prev != nil {
 					t := node.Prev.Type
 					if t == HtmlBlock || t == List || t == Paragraph || t == Header || t == CodeBlock || t == BlockQuote || t == HorizontalRule {
-						cr()
+						r.cr()
 					}
 				}
 				if node.Parent.Type == BlockQuote && node.Prev == nil {
-					cr()
+					r.cr()
 				}
-				out(tag("p", attrs, false))
+				r.out(tag("p", attrs, false))
 			} else {
-				out(tag("/p", attrs, false))
+				r.out(tag("/p", attrs, false))
 				if !(node.Parent.Type == Item && node.Next == nil) {
-					cr()
+					r.cr()
 				}
 			}
 			break
 		case BlockQuote:
 			if entering {
-				cr()
-				out(tag("blockquote", attrs, false))
+				r.cr()
+				r.out(tag("blockquote", attrs, false))
 			} else {
-				out(tag("/blockquote", nil, false))
-				cr()
+				r.out(tag("/blockquote", nil, false))
+				r.cr()
 			}
 			break
 		case HtmlBlock:
-			cr()
-			out(node.Literal)
-			cr()
+			r.cr()
+			r.out(node.Literal)
+			r.cr()
 		case Header:
 			tagname := fmt.Sprintf("h%d", node.Level)
 			if entering {
@@ -1365,19 +1369,19 @@ func (r *Html) Render(ast *Node) []byte {
 					}
 					attrs = append(attrs, fmt.Sprintf(`id="%s"`, id))
 				}
-				cr()
-				out(tag(tagname, attrs, false))
+				r.cr()
+				r.out(tag(tagname, attrs, false))
 			} else {
-				out(tag("/"+tagname, nil, false))
+				r.out(tag("/"+tagname, nil, false))
 				if !(node.Parent.Type == Item && node.Next == nil) {
-					cr()
+					r.cr()
 				}
 			}
 			break
 		case HorizontalRule:
-			cr()
-			out(tag("hr", attrs, r.flags&UseXHTML != 0))
-			cr()
+			r.cr()
+			r.out(tag("hr", attrs, r.flags&UseXHTML != 0))
+			r.cr()
 			break
 		case List:
 			tagName := "ul"
@@ -1392,23 +1396,23 @@ func (r *Html) Render(ast *Node) []byte {
 				// if (start !== null && start !== 1) {
 				//     attrs.push(['start', start.toString()]);
 				// }
-				cr()
+				r.cr()
 				if node.Parent.Type == Item && node.Parent.Parent.ListData.Tight {
-					cr()
+					r.cr()
 				}
-				out(tag(tagName, attrs, false))
-				cr()
+				r.out(tag(tagName, attrs, false))
+				r.cr()
 			} else {
-				out(tag("/"+tagName, nil, false))
+				r.out(tag("/"+tagName, nil, false))
 				//cr()
 				//if node.parent.Type != Item {
 				//	cr()
 				//}
 				if node.Parent.Type == Item && node.Next != nil {
-					cr()
+					r.cr()
 				}
 				if node.Parent.Type == Document || node.Parent.Type == BlockQuote {
-					cr()
+					r.cr()
 				}
 			}
 		case Item:
@@ -1421,42 +1425,42 @@ func (r *Html) Render(ast *Node) []byte {
 			}
 			if entering {
 				if itemOpenCR(node) {
-					cr()
+					r.cr()
 				}
 				if node.ListData.RefLink != nil {
 					slug := slugify(node.ListData.RefLink)
-					out(footnoteItem(r.parameters.FootnoteAnchorPrefix, slug))
+					r.out(footnoteItem(r.parameters.FootnoteAnchorPrefix, slug))
 					break
 				}
-				out(tag(tagName, nil, false))
+				r.out(tag(tagName, nil, false))
 			} else {
 				if node.ListData.RefLink != nil {
 					slug := slugify(node.ListData.RefLink)
 					if r.flags&FootnoteReturnLinks != 0 {
-						out(footnoteReturnLink(r.parameters.FootnoteAnchorPrefix, r.parameters.FootnoteReturnLinkContents, slug))
+						r.out(footnoteReturnLink(r.parameters.FootnoteAnchorPrefix, r.parameters.FootnoteReturnLinkContents, slug))
 					}
 				}
-				out(tag("/"+tagName, nil, false))
-				cr()
+				r.out(tag("/"+tagName, nil, false))
+				r.cr()
 			}
 		case CodeBlock:
 			attrs = appendLanguageAttr(attrs, node.Info)
-			cr()
-			out(tag("pre", nil, false))
-			out(tag("code", attrs, false))
-			out(escCode(node.Literal, false))
-			out(tag("/code", nil, false))
-			out(tag("/pre", nil, false))
+			r.cr()
+			r.out(tag("pre", nil, false))
+			r.out(tag("code", attrs, false))
+			r.out(escCode(node.Literal, false))
+			r.out(tag("/code", nil, false))
+			r.out(tag("/pre", nil, false))
 			if node.Parent.Type != Item {
-				cr()
+				r.cr()
 			}
 		case Table:
 			if entering {
-				cr()
-				out(tag("table", nil, false))
+				r.cr()
+				r.out(tag("table", nil, false))
 			} else {
-				out(tag("/table", nil, false))
-				cr()
+				r.out(tag("/table", nil, false))
+				r.cr()
 			}
 		case TableCell:
 			tagName := "td"
@@ -1469,44 +1473,44 @@ func (r *Html) Render(ast *Node) []byte {
 					attrs = append(attrs, fmt.Sprintf(`align="%s"`, align))
 				}
 				if node.Prev == nil {
-					cr()
+					r.cr()
 				}
-				out(tag(tagName, attrs, false))
+				r.out(tag(tagName, attrs, false))
 			} else {
-				out(tag("/"+tagName, nil, false))
-				cr()
+				r.out(tag("/"+tagName, nil, false))
+				r.cr()
 			}
 		case TableHead:
 			if entering {
-				cr()
-				out(tag("thead", nil, false))
+				r.cr()
+				r.out(tag("thead", nil, false))
 			} else {
-				out(tag("/thead", nil, false))
-				cr()
+				r.out(tag("/thead", nil, false))
+				r.cr()
 			}
 		case TableBody:
 			if entering {
-				cr()
-				out(tag("tbody", nil, false))
+				r.cr()
+				r.out(tag("tbody", nil, false))
 				// XXX: this is to adhere to a rather silly test. Should fix test.
 				if node.FirstChild == nil {
-					cr()
+					r.cr()
 				}
 			} else {
-				out(tag("/tbody", nil, false))
-				cr()
+				r.out(tag("/tbody", nil, false))
+				r.cr()
 			}
 		case TableRow:
 			if entering {
-				cr()
-				out(tag("tr", nil, false))
+				r.cr()
+				r.out(tag("tr", nil, false))
 			} else {
-				out(tag("/tr", nil, false))
-				cr()
+				r.out(tag("/tr", nil, false))
+				r.cr()
 			}
 		default:
 			panic("Unknown node type " + node.Type.String())
 		}
 	})
-	return buff.Bytes()
+	return r.renderBuffer.Bytes()
 }
