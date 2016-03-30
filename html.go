@@ -49,12 +49,6 @@ const (
 )
 
 var (
-	alignments = []string{
-		"left",
-		"right",
-		"center",
-	}
-
 	// TODO: improve this regexp to catch all possible entities:
 	htmlEntity = regexp.MustCompile(`&[a-z]{2,5};`)
 )
