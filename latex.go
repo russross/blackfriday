@@ -15,9 +15,7 @@
 
 package blackfriday
 
-import (
-	"bytes"
-)
+import "bytes"
 
 // Latex is a type that implements the Renderer interface for LaTeX output.
 //
