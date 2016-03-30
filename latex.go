@@ -359,3 +359,7 @@ func (r *Latex) DocumentHeader() {
 func (r *Latex) DocumentFooter() {
 	r.w.WriteString("\n\\end{document}\n")
 }
+
+func (r *Latex) Render(ast *Node) []byte {
+	return nil
+}
