@@ -15,8 +15,21 @@ package blackfriday
 
 import (
 	"bytes"
+	"html"
+	"regexp"
 
 	"github.com/shurcooL/sanitized_anchor_name"
+)
+
+const (
+	Entity    = "&(?:#x[a-f0-9]{1,8}|#[0-9]{1,8}|[a-z][a-z0-9]{1,31});"
+	Escapable = "[!\"#$%&'()*+,./:;<=>?@[\\\\\\]^_`{|}~-]"
+)
+
+var (
+	reBackslashOrAmp      = regexp.MustCompile("[\\&]")
+	reEntityOrEscapedChar = regexp.MustCompile("(?i)\\\\" + Escapable + "|" + Entity)
+	reTrailingWhitespace  = regexp.MustCompile("(\n *)+$")
 )
 
 // Parse block-level data.
@@ -116,7 +129,7 @@ func (p *parser) block(data []byte) {
 		// or
 		// ______
 		if p.isHRule(data) {
-			p.r.HRule()
+			p.addBlock(HorizontalRule, nil)
 			var i int
 			for i = 0; data[i] != '\n'; i++ {
 			}
@@ -189,6 +202,13 @@ func (p *parser) block(data []byte) {
 	p.nesting--
 }
 
+func (p *parser) addBlock(typ NodeType, content []byte) *Node {
+	p.closeUnmatchedBlocks()
+	container := p.addChild(typ, 0)
+	container.content = content
+	return container
+}
+
 func (p *parser) isPrefixHeader(data []byte) bool {
 	if data[0] != '#' {
 		return false
@@ -245,11 +265,9 @@ func (p *parser) prefixHeader(data []byte) int {
 		if id == "" && p.flags&AutoHeaderIDs != 0 {
 			id = sanitized_anchor_name.Create(string(data[i:end]))
 		}
-		p.r.BeginHeader(level, id)
-		header := p.r.CopyWrites(func() {
-			p.inline(data[i:end])
-		})
-		p.r.EndHeader(level, id, header)
+		block := p.addBlock(Header, data[i:end])
+		block.HeaderID = id
+		block.Level = uint32(level)
 	}
 	return skip
 }
@@ -294,9 +312,14 @@ func (p *parser) titleBlock(data []byte, doRender bool) int {
 	}
 
 	data = bytes.Join(splitData[0:i], []byte("\n"))
-	p.r.TitleBlock(data)
+	consumed := len(data)
+	data = bytes.TrimPrefix(data, []byte("% "))
+	data = bytes.Replace(data, []byte("\n% "), []byte("\n"), -1)
+	block := p.addBlock(Header, data)
+	block.Level = 1
+	block.IsTitleblock = true
 
-	return len(data)
+	return consumed
 }
 
 func (p *parser) html(data []byte, doRender bool) int {
@@ -391,10 +414,15 @@ func (p *parser) html(data []byte, doRender bool) int {
 		for end > 0 && data[end-1] == '\n' {
 			end--
 		}
-		p.r.BlockHtml(data[:end])
+		finalizeHtmlBlock(p.addBlock(HtmlBlock, data[:end]))
 	}
 
 	return i
+}
+
+func finalizeHtmlBlock(block *Node) {
+	block.Literal = reTrailingWhitespace.ReplaceAll(block.content, []byte{})
+	block.content = []byte{}
 }
 
 // HTML comment, lax form
@@ -409,7 +437,8 @@ func (p *parser) htmlComment(data []byte, doRender bool) int {
 			for end > 0 && data[end-1] == '\n' {
 				end--
 			}
-			p.r.BlockHtml(data[:end])
+			block := p.addBlock(HtmlBlock, data[:end])
+			finalizeHtmlBlock(block)
 		}
 		return size
 	}
@@ -441,7 +470,7 @@ func (p *parser) htmlHr(data []byte, doRender bool) int {
 				for end > 0 && data[end-1] == '\n' {
 					end--
 				}
-				p.r.BlockHtml(data[:end])
+				finalizeHtmlBlock(p.addBlock(HtmlBlock, data[:end]))
 			}
 			return size
 		}
@@ -464,7 +493,9 @@ func (p *parser) htmlFindTag(data []byte) (string, bool) {
 
 func (p *parser) htmlFindEnd(tag string, data []byte) int {
 	// assume data[0] == '<' && data[1] == '/' already tested
-
+	if tag == "hr" {
+		return 2
+	}
 	// check if tag is a match
 	closetag := []byte("</" + tag + ">")
 	if !bytes.HasPrefix(data, closetag) {
@@ -642,6 +673,10 @@ func (p *parser) fencedCode(data []byte, doRender bool) int {
 	}
 
 	var work bytes.Buffer
+	if lang != nil {
+		work.Write([]byte(*lang))
+		work.WriteByte('\n')
+	}
 
 	for {
 		// safe to assume beg < len(data)
@@ -668,48 +703,76 @@ func (p *parser) fencedCode(data []byte, doRender bool) int {
 		beg = end
 	}
 
-	syntax := ""
-	if lang != nil {
-		syntax = *lang
-	}
+	//syntax := ""
+	//if lang != nil {
+	//	syntax = *lang
+	//}
 
 	if doRender {
-		p.r.BlockCode(work.Bytes(), syntax)
+		block := p.addBlock(CodeBlock, work.Bytes()) // TODO: get rid of temp buffer
+		block.IsFenced = true
+		finalizeCodeBlock(block)
 	}
 
 	return beg
 }
 
+func unescapeChar(str []byte) []byte {
+	if str[0] == '\\' {
+		return []byte{str[1]}
+	}
+	return []byte(html.UnescapeString(string(str)))
+}
+
+func unescapeString(str []byte) []byte {
+	if reBackslashOrAmp.Match(str) {
+		return reEntityOrEscapedChar.ReplaceAllFunc(str, unescapeChar)
+	} else {
+		return str
+	}
+}
+
+func finalizeCodeBlock(block *Node) {
+	if block.IsFenced {
+		newlinePos := bytes.IndexByte(block.content, '\n')
+		firstLine := block.content[:newlinePos]
+		rest := block.content[newlinePos+1:]
+		block.Info = unescapeString(bytes.Trim(firstLine, "\n"))
+		block.Literal = rest
+	} else {
+		block.Literal = reTrailingWhitespace.ReplaceAll(block.content, []byte{'\n'})
+	}
+	block.content = nil
+}
+
 func (p *parser) table(data []byte) int {
-	var header bytes.Buffer
-	i, columns := p.tableHeader(&header, data)
+	table := p.addBlock(Table, nil)
+	i, columns := p.tableHeader(data)
 	if i == 0 {
+		p.tip = table.Parent
+		table.unlink()
 		return 0
 	}
 
-	var body bytes.Buffer
+	p.addBlock(TableBody, nil)
 
-	body.Write(p.r.CaptureWrites(func() {
-		for i < len(data) {
-			pipes, rowStart := 0, i
-			for ; data[i] != '\n'; i++ {
-				if data[i] == '|' {
-					pipes++
-				}
+	for i < len(data) {
+		pipes, rowStart := 0, i
+		for ; data[i] != '\n'; i++ {
+			if data[i] == '|' {
+				pipes++
 			}
-
-			if pipes == 0 {
-				i = rowStart
-				break
-			}
-
-			// include the newline in data sent to tableRow
-			i++
-			p.tableRow(data[rowStart:i], columns, false)
 		}
-	}))
 
-	p.r.Table(header.Bytes(), body.Bytes(), columns)
+		if pipes == 0 {
+			i = rowStart
+			break
+		}
+
+		// include the newline in data sent to tableRow
+		i++
+		p.tableRow(data[rowStart:i], columns, false)
+	}
 
 	return i
 }
@@ -723,7 +786,7 @@ func isBackslashEscaped(data []byte, i int) bool {
 	return backslashes&1 == 1
 }
 
-func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns []int) {
+func (p *parser) tableHeader(data []byte) (size int, columns []int) {
 	i := 0
 	colCount := 1
 	for i = 0; data[i] != '\n'; i++ {
@@ -821,16 +884,15 @@ func (p *parser) tableHeader(out *bytes.Buffer, data []byte) (size int, columns 
 		return
 	}
 
-	out.Write(p.r.CaptureWrites(func() {
-		p.tableRow(header, columns, true)
-	}))
+	p.addBlock(TableHead, nil)
+	p.tableRow(header, columns, true)
 	size = i + 1
 	return
 }
 
 func (p *parser) tableRow(data []byte, columns []int, header bool) {
+	p.addBlock(TableRow, nil)
 	i, col := 0, 0
-	var rowWork bytes.Buffer
 
 	if data[i] == '|' && !isBackslashEscaped(data, i) {
 		i++
@@ -856,29 +918,19 @@ func (p *parser) tableRow(data []byte, columns []int, header bool) {
 			cellEnd--
 		}
 
-		cellWork := p.r.CaptureWrites(func() {
-			p.inline(data[cellStart:cellEnd])
-		})
-
-		if header {
-			p.r.TableHeaderCell(&rowWork, cellWork, columns[col])
-		} else {
-			p.r.TableCell(&rowWork, cellWork, columns[col])
-		}
+		cell := p.addBlock(TableCell, data[cellStart:cellEnd])
+		cell.IsHeader = header
+		cell.Align = columns[col]
 	}
 
 	// pad it out with empty columns to get the right number
 	for ; col < len(columns); col++ {
-		if header {
-			p.r.TableHeaderCell(&rowWork, nil, columns[col])
-		} else {
-			p.r.TableCell(&rowWork, nil, columns[col])
-		}
+		cell := p.addBlock(TableCell, nil)
+		cell.IsHeader = header
+		cell.Align = columns[col]
 	}
 
 	// silently ignore rows with too many cells
-
-	p.r.TableRow(rowWork.Bytes())
 }
 
 // returns blockquote prefix length
@@ -910,6 +962,7 @@ func (p *parser) terminateBlockquote(data []byte, beg, end int) bool {
 
 // parse a blockquote fragment
 func (p *parser) quote(data []byte) int {
+	block := p.addBlock(BlockQuote, nil)
 	var raw bytes.Buffer
 	beg, end := 0, 0
 	for beg < len(data) {
@@ -928,22 +981,18 @@ func (p *parser) quote(data []byte) int {
 			end++
 		}
 		end++
-
 		if pre := p.quotePrefix(data[beg:]); pre > 0 {
 			// skip the prefix
 			beg += pre
 		} else if p.terminateBlockquote(data, beg, end) {
 			break
 		}
-
 		// this line is part of the blockquote
 		raw.Write(data[beg:end])
 		beg = end
 	}
-
-	p.r.BlockQuote(p.r.CaptureWrites(func() {
-		p.block(raw.Bytes())
-	}))
+	p.block(raw.Bytes())
+	p.finalize(block)
 	return end
 }
 
@@ -995,7 +1044,9 @@ func (p *parser) code(data []byte) int {
 
 	work.WriteByte('\n')
 
-	p.r.BlockCode(work.Bytes(), "")
+	block := p.addBlock(CodeBlock, work.Bytes()) // TODO: get rid of temp buffer
+	block.IsFenced = false
+	finalizeCodeBlock(block)
 
 	return i
 }
@@ -1057,10 +1108,19 @@ func (p *parser) dliPrefix(data []byte) int {
 func (p *parser) list(data []byte, flags ListType) int {
 	i := 0
 	flags |= ListItemBeginningOfList
-	p.r.BeginList(flags)
+	block := p.addBlock(List, nil)
+	block.ListData = &ListData{ // TODO: fill in the real ListData
+		Flags:      flags,
+		Tight:      true,
+		BulletChar: '*',
+		Delimiter:  0,
+	}
 
 	for i < len(data) {
 		skip := p.listItem(data[i:], &flags)
+		if flags&ListItemContainsBlock != 0 {
+			block.ListData.Tight = false
+		}
 		i += skip
 		if skip == 0 || flags&ListItemEndOfList != 0 {
 			break
@@ -1068,8 +1128,51 @@ func (p *parser) list(data []byte, flags ListType) int {
 		flags &= ^ListItemBeginningOfList
 	}
 
-	p.r.EndList(flags)
+	above := block.Parent
+	finalizeList(block)
+	p.tip = above
 	return i
+}
+
+// Returns true if block ends with a blank line, descending if needed
+// into lists and sublists.
+func endsWithBlankLine(block *Node) bool {
+	// TODO: figure this out. Always false now.
+	for block != nil {
+		//if block.lastLineBlank {
+		//return true
+		//}
+		t := block.Type
+		if t == List || t == Item {
+			block = block.LastChild
+		} else {
+			break
+		}
+	}
+	return false
+}
+
+func finalizeList(block *Node) {
+	block.open = false
+	item := block.FirstChild
+	for item != nil {
+		// check for non-final list item ending with blank line:
+		if endsWithBlankLine(item) && item.Next != nil {
+			block.ListData.Tight = false
+			break
+		}
+		// recurse into children of list item, to see if there are spaces
+		// between any of them:
+		subItem := item.FirstChild
+		for subItem != nil {
+			if endsWithBlankLine(subItem) && (item.Next != nil || subItem.Next != nil) {
+				block.ListData.Tight = false
+				break
+			}
+			subItem = subItem.Next
+		}
+		item = item.Next
+	}
 }
 
 // Parse a single list item.
@@ -1223,44 +1326,34 @@ gatherlines:
 
 	rawBytes := raw.Bytes()
 
+	block := p.addBlock(Item, nil)
+	block.ListData = &ListData{ // TODO: fill in the real ListData
+		Flags:      *flags,
+		Tight:      false,
+		BulletChar: '*',
+		Delimiter:  0,
+	}
+
 	// render the contents of the list item
-	var cooked bytes.Buffer
 	if *flags&ListItemContainsBlock != 0 && *flags&ListTypeTerm == 0 {
 		// intermediate render of block item, except for definition term
 		if sublist > 0 {
-			cooked.Write(p.r.CaptureWrites(func() {
-				p.block(rawBytes[:sublist])
-				p.block(rawBytes[sublist:])
-			}))
+			p.block(rawBytes[:sublist])
+			p.block(rawBytes[sublist:])
 		} else {
-			cooked.Write(p.r.CaptureWrites(func() {
-				p.block(rawBytes)
-			}))
+			p.block(rawBytes)
 		}
 	} else {
 		// intermediate render of inline item
 		if sublist > 0 {
-			cooked.Write(p.r.CaptureWrites(func() {
-				p.inline(rawBytes[:sublist])
-				p.block(rawBytes[sublist:])
-			}))
+			child := p.addChild(Paragraph, 0)
+			child.content = rawBytes[:sublist]
+			p.block(rawBytes[sublist:])
 		} else {
-			cooked.Write(p.r.CaptureWrites(func() {
-				p.inline(rawBytes)
-			}))
+			child := p.addChild(Paragraph, 0)
+			child.content = rawBytes
 		}
 	}
-
-	// render the actual list item
-	cookedBytes := cooked.Bytes()
-	parsedEnd := len(cookedBytes)
-
-	// strip trailing newlines
-	for parsedEnd > 0 && cookedBytes[parsedEnd-1] == '\n' {
-		parsedEnd--
-	}
-	p.r.ListItem(cookedBytes[:parsedEnd], *flags)
-
 	return line
 }
 
@@ -1284,9 +1377,7 @@ func (p *parser) renderParagraph(data []byte) {
 		end--
 	}
 
-	p.r.BeginParagraph()
-	p.inline(data[beg:end])
-	p.r.EndParagraph()
+	p.addBlock(Paragraph, data[beg:end])
 }
 
 func (p *parser) paragraph(data []byte) int {
@@ -1335,11 +1426,9 @@ func (p *parser) paragraph(data []byte) int {
 					id = sanitized_anchor_name.Create(string(data[prev:eol]))
 				}
 
-				p.r.BeginHeader(level, id)
-				header := p.r.CopyWrites(func() {
-					p.inline(data[prev:eol])
-				})
-				p.r.EndHeader(level, id, header)
+				block := p.addBlock(Header, data[prev:eol])
+				block.Level = uint32(level)
+				block.HeaderID = id
 
 				// find the end of the underline
 				for data[i] != '\n' {

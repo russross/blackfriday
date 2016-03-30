@@ -228,6 +228,12 @@ type parser struct {
 	// presence. If a ref is also a footnote, it's stored both in refs and here
 	// in notes. Slice is nil if footnotes not enabled.
 	notes []*reference
+
+	doc                  *Node
+	tip                  *Node // = doc
+	oldTip               *Node
+	lastMatchedContainer *Node // = doc
+	allClosed            bool
 }
 
 func (p *parser) getRef(refid string) (ref *reference, found bool) {
@@ -248,6 +254,34 @@ func (p *parser) getRef(refid string) (ref *reference, found bool) {
 	// refs are case insensitive
 	ref, found = p.refs[strings.ToLower(refid)]
 	return ref, found
+}
+
+func (p *parser) finalize(block *Node) {
+	above := block.Parent
+	block.open = false
+	p.tip = above
+}
+
+func (p *parser) addChild(node NodeType, offset uint32) *Node {
+	for !p.tip.canContain(node) {
+		p.finalize(p.tip)
+	}
+	newNode := NewNode(node)
+	newNode.content = []byte{}
+	p.tip.appendChild(newNode)
+	p.tip = newNode
+	return newNode
+}
+
+func (p *parser) closeUnmatchedBlocks() {
+	if !p.allClosed {
+		for p.oldTip != p.lastMatchedContainer {
+			parent := p.oldTip.Parent
+			p.finalize(p.oldTip)
+			p.oldTip = parent
+		}
+		p.allClosed = true
+	}
 }
 
 //
@@ -365,6 +399,13 @@ func MarkdownOptions(input []byte, renderer Renderer, opts Options) []byte {
 	p.refs = make(map[string]*reference)
 	p.maxNesting = 16
 	p.insideLink = false
+
+	docNode := NewNode(Document)
+	p.doc = docNode
+	p.tip = docNode
+	p.oldTip = docNode
+	p.lastMatchedContainer = docNode
+	p.allClosed = true
 
 	// register inline parsers
 	p.inlineCallback['*'] = emphasis
