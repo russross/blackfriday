@@ -38,34 +38,8 @@ func LatexRenderer(flags int) Renderer {
 	}
 }
 
-func (r *Latex) CaptureWrites(processor func()) []byte {
-	var output bytes.Buffer
-	// preserve old captureBuff state for possible nested captures:
-	tmp := r.w.captureBuff
-	tmpd := r.w.dirty
-	r.w.captureBuff = &output
-	r.w.dirty = false
-	processor()
-	// restore:
-	r.w.captureBuff = tmp
-	r.w.dirty = tmpd
-	return output.Bytes()
-}
-
-func (r *Latex) CopyWrites(processor func()) []byte {
-	var output bytes.Buffer
-	r.w.copyBuff = &output
-	processor()
-	r.w.copyBuff = nil
-	return output.Bytes()
-}
-
 func (r *Latex) Write(b []byte) (int, error) {
 	return r.w.Write(b)
-}
-
-func (r *Latex) GetResult() []byte {
-	return r.w.output.Bytes()
 }
 
 func (r *Latex) GetFlags() HtmlFlags {
@@ -180,9 +154,7 @@ func (r *Latex) Table(header []byte, body []byte, columnData []int) {
 }
 
 func (r *Latex) TableRow(text []byte) {
-	if r.w.dirty {
-		r.w.WriteString(" \\\\\n")
-	}
+	r.w.WriteString(" \\\\\n")
 	r.w.Write(text)
 }
 

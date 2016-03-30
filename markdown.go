@@ -202,10 +202,7 @@ type Renderer interface {
 	DocumentFooter()
 
 	GetFlags() HtmlFlags
-	CaptureWrites(processor func()) []byte
-	CopyWrites(processor func()) []byte
 	Write(b []byte) (int, error)
-	GetResult() []byte
 
 	Render(ast *Node) []byte
 }
@@ -568,7 +565,7 @@ func firstPass(p *parser, input []byte) []byte {
 }
 
 // second pass: actual rendering
-func secondPass(p *parser, input []byte) []byte {
+func secondPass(p *parser, input []byte) {
 	p.r.DocumentHeader()
 	p.block(input)
 
@@ -580,13 +577,9 @@ func secondPass(p *parser, input []byte) []byte {
 			var buf bytes.Buffer
 			if ref.hasBlock {
 				flags |= ListItemContainsBlock
-				buf.Write(p.r.CaptureWrites(func() {
-					p.block(ref.title)
-				}))
+				p.block(ref.title)
 			} else {
-				buf.Write(p.r.CaptureWrites(func() {
-					p.inline(ref.title)
-				}))
+				p.inline(ref.title)
 			}
 			p.r.FootnoteItem(ref.link, buf.Bytes(), flags)
 			flags &^= ListItemBeginningOfList | ListItemContainsBlock
@@ -599,8 +592,6 @@ func secondPass(p *parser, input []byte) []byte {
 	if p.nesting != 0 {
 		panic("Nesting level did not end at zero")
 	}
-
-	return p.r.GetResult()
 }
 
 //
