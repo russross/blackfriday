@@ -109,7 +109,7 @@ type HTML struct {
 	// Track header IDs to prevent ID collision in a single generation.
 	headerIDs map[string]int
 
-	smartypants   *smartypantsRenderer
+	smartypants   *SPRenderer
 	w             HtmlWriter
 	lastOutputLen int
 	disableTags   int
@@ -183,7 +183,7 @@ func HtmlRendererWithParameters(flags HtmlFlags, title string,
 
 		headerIDs: make(map[string]int),
 
-		smartypants: smartypants(flags),
+		smartypants: NewSmartypantsRenderer(flags),
 		w:           writer,
 	}
 }
@@ -696,13 +696,12 @@ func (r *HTML) NormalText(text []byte) {
 }
 
 func (r *HTML) Smartypants2(text []byte) []byte {
-	smrt := smartypantsData{false, false}
 	var buff bytes.Buffer
 	// first do normal entity escaping
 	text = attrEscape2(text)
 	mark := 0
 	for i := 0; i < len(text); i++ {
-		if action := r.smartypants[text[i]]; action != nil {
+		if action := r.smartypants.callbacks[text[i]]; action != nil {
 			if i > mark {
 				buff.Write(text[mark:i])
 			}
@@ -711,7 +710,7 @@ func (r *HTML) Smartypants2(text []byte) []byte {
 				previousChar = text[i-1]
 			}
 			var tmp bytes.Buffer
-			i += action(&tmp, &smrt, previousChar, text[i:])
+			i += action(&tmp, previousChar, text[i:])
 			buff.Write(tmp.Bytes())
 			mark = i + 1
 		}
@@ -723,32 +722,7 @@ func (r *HTML) Smartypants2(text []byte) []byte {
 }
 
 func (r *HTML) Smartypants(text []byte) {
-	smrt := smartypantsData{false, false}
-
-	// first do normal entity escaping
-	r.attrEscape(text)
-
-	mark := 0
-	for i := 0; i < len(text); i++ {
-		if action := r.smartypants[text[i]]; action != nil {
-			if i > mark {
-				r.w.Write(text[mark:i])
-			}
-
-			previousChar := byte(0)
-			if i > 0 {
-				previousChar = text[i-1]
-			}
-			var tmp bytes.Buffer
-			i += action(&tmp, &smrt, previousChar, text[i:])
-			r.w.Write(tmp.Bytes())
-			mark = i + 1
-		}
-	}
-
-	if mark < len(text) {
-		r.w.Write(text[mark:])
-	}
+	r.w.Write(r.Smartypants2(text))
 }
 
 func (r *HTML) DocumentHeader() {
