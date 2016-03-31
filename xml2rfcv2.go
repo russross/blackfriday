@@ -229,7 +229,7 @@ func (options *xml2) CommentHtml(out *bytes.Buffer, text []byte) {
 			break
 		}
 	}
-	// don't output a cref if it is not name: remark
+	// don't output a cref if it is not name -- remark
 	if len(source) != 0 {
 		source = bytes.TrimSpace(source)
 		text = bytes.TrimSpace(text)
