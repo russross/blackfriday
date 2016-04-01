@@ -87,6 +87,11 @@ type CodeBlockData struct {
 	FenceOffset uint32
 }
 
+type TableCellData struct {
+	IsHeader bool           // This tells if it's under the header row
+	Align    CellAlignFlags // This holds the value for align attribute
+}
+
 type Node struct {
 	Type       NodeType
 	Parent     *Node
@@ -104,10 +109,9 @@ type Node struct {
 	ListData             // If Type == List, this holds list info
 	CodeBlockData        // If Type == CodeBlock, this holds its properties
 	LinkData             // If Type == Link, this holds link info
+	TableCellData        // If Type == TableCell, this holds its properties
 	HeaderID      string // If Type == Header, this might hold header ID, if present
 	IsTitleblock  bool
-	IsHeader      bool           // If Type == TableCell, this tells if it's under the header row
-	Align         CellAlignFlags // If Type == TableCell, this holds the value for align attribute
 }
 
 func NewNode(typ NodeType) *Node {
