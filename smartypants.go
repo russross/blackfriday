@@ -366,7 +366,7 @@ func (smrt *SPRenderer) smartLeftAngle(out *bytes.Buffer, previousChar byte, tex
 
 type smartCallback func(out *bytes.Buffer, previousChar byte, text []byte) int
 
-func NewSmartypantsRenderer(flags HtmlFlags) *SPRenderer {
+func NewSmartypantsRenderer(flags Extensions) *SPRenderer {
 	var r SPRenderer
 	if flags&SmartypantsAngledQuotes == 0 {
 		r.callbacks['"'] = r.smartDoubleQuote
@@ -396,4 +396,30 @@ func NewSmartypantsRenderer(flags HtmlFlags) *SPRenderer {
 	r.callbacks['<'] = r.smartLeftAngle
 	r.callbacks['`'] = r.smartBacktick
 	return &r
+}
+
+func (sr *SPRenderer) Process(text []byte) []byte {
+	var buff bytes.Buffer
+	// first do normal entity escaping
+	text = attrEscape2(text)
+	mark := 0
+	for i := 0; i < len(text); i++ {
+		if action := sr.callbacks[text[i]]; action != nil {
+			if i > mark {
+				buff.Write(text[mark:i])
+			}
+			previousChar := byte(0)
+			if i > 0 {
+				previousChar = text[i-1]
+			}
+			var tmp bytes.Buffer
+			i += action(&tmp, previousChar, text[i:])
+			buff.Write(tmp.Bytes())
+			mark = i + 1
+		}
+	}
+	if mark < len(text) {
+		buff.Write(text[mark:])
+	}
+	return buff.Bytes()
 }

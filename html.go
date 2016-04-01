@@ -29,25 +29,20 @@ type HtmlFlags int
 
 // HTML renderer configuration options.
 const (
-	HtmlFlagsNone           HtmlFlags = 0
-	SkipHTML                HtmlFlags = 1 << iota // Skip preformatted HTML blocks
-	SkipStyle                                     // Skip embedded <style> elements
-	SkipImages                                    // Skip embedded images
-	SkipLinks                                     // Skip all links
-	Safelink                                      // Only link to trusted protocols
-	NofollowLinks                                 // Only link with rel="nofollow"
-	NoreferrerLinks                               // Only link with rel="noreferrer"
-	HrefTargetBlank                               // Add a blank target
-	Toc                                           // Generate a table of contents
-	OmitContents                                  // Skip the main contents (for a standalone table of contents)
-	CompletePage                                  // Generate a complete HTML page
-	UseXHTML                                      // Generate XHTML output instead of HTML
-	UseSmartypants                                // Enable smart punctuation substitutions
-	SmartypantsFractions                          // Enable smart fractions (with UseSmartypants)
-	SmartypantsDashes                             // Enable smart dashes (with UseSmartypants)
-	SmartypantsLatexDashes                        // Enable LaTeX-style dashes (with UseSmartypants)
-	SmartypantsAngledQuotes                       // Enable angled double quotes (with UseSmartypants) for double quotes rendering
-	FootnoteReturnLinks                           // Generate a link at the end of a footnote to return to the source
+	HtmlFlagsNone       HtmlFlags = 0
+	SkipHTML            HtmlFlags = 1 << iota // Skip preformatted HTML blocks
+	SkipStyle                                 // Skip embedded <style> elements
+	SkipImages                                // Skip embedded images
+	SkipLinks                                 // Skip all links
+	Safelink                                  // Only link to trusted protocols
+	NofollowLinks                             // Only link with rel="nofollow"
+	NoreferrerLinks                           // Only link with rel="noreferrer"
+	HrefTargetBlank                           // Add a blank target
+	Toc                                       // Generate a table of contents
+	OmitContents                              // Skip the main contents (for a standalone table of contents)
+	CompletePage                              // Generate a complete HTML page
+	UseXHTML                                  // Generate XHTML output instead of HTML
+	FootnoteReturnLinks                       // Generate a link at the end of a footnote to return to the source
 
 	TagName               = "[A-Za-z][A-Za-z0-9-]*"
 	AttributeName         = "[a-zA-Z_:][a-zA-Z0-9:._-]*"
@@ -109,10 +104,11 @@ type HTML struct {
 	// Track header IDs to prevent ID collision in a single generation.
 	headerIDs map[string]int
 
-	smartypants   *SPRenderer
 	w             HtmlWriter
 	lastOutputLen int
 	disableTags   int
+
+	extensions Extensions // This gives Smartypants renderer access to flags
 }
 
 const (
@@ -127,8 +123,8 @@ const (
 // title is the title of the document, and css is a URL for the document's
 // stylesheet.
 // title and css are only used when HTML_COMPLETE_PAGE is selected.
-func HtmlRenderer(flags HtmlFlags, title string, css string) Renderer {
-	return HtmlRendererWithParameters(flags, title, css, HtmlRendererParameters{})
+func HtmlRenderer(flags HtmlFlags, extensions Extensions, title string, css string) Renderer {
+	return HtmlRendererWithParameters(flags, extensions, title, css, HtmlRendererParameters{})
 }
 
 type HtmlWriter struct {
@@ -157,7 +153,7 @@ func (r *HTML) Write(b []byte) (int, error) {
 	return r.w.Write(b)
 }
 
-func HtmlRendererWithParameters(flags HtmlFlags, title string,
+func HtmlRendererWithParameters(flags HtmlFlags, extensions Extensions, title string,
 	css string, renderParameters HtmlRendererParameters) Renderer {
 	// configure the rendering engine
 	closeTag := htmlClose
@@ -172,6 +168,7 @@ func HtmlRendererWithParameters(flags HtmlFlags, title string,
 	var writer HtmlWriter
 	return &HTML{
 		flags:      flags,
+		extensions: extensions,
 		closeTag:   closeTag,
 		title:      title,
 		css:        css,
@@ -183,8 +180,7 @@ func HtmlRendererWithParameters(flags HtmlFlags, title string,
 
 		headerIDs: make(map[string]int),
 
-		smartypants: NewSmartypantsRenderer(flags),
-		w:           writer,
+		w: writer,
 	}
 }
 
@@ -688,41 +684,15 @@ func (r *HTML) Entity(entity []byte) {
 }
 
 func (r *HTML) NormalText(text []byte) {
-	if r.flags&UseSmartypants != 0 {
+	if r.extensions&Smartypants != 0 {
 		r.Smartypants(text)
 	} else {
 		r.attrEscape(text)
 	}
 }
 
-func (r *HTML) Smartypants2(text []byte) []byte {
-	var buff bytes.Buffer
-	// first do normal entity escaping
-	text = attrEscape2(text)
-	mark := 0
-	for i := 0; i < len(text); i++ {
-		if action := r.smartypants.callbacks[text[i]]; action != nil {
-			if i > mark {
-				buff.Write(text[mark:i])
-			}
-			previousChar := byte(0)
-			if i > 0 {
-				previousChar = text[i-1]
-			}
-			var tmp bytes.Buffer
-			i += action(&tmp, previousChar, text[i:])
-			buff.Write(tmp.Bytes())
-			mark = i + 1
-		}
-	}
-	if mark < len(text) {
-		buff.Write(text[mark:])
-	}
-	return buff.Bytes()
-}
-
 func (r *HTML) Smartypants(text []byte) {
-	r.w.Write(r.Smartypants2(text))
+	r.w.Write(NewSmartypantsRenderer(r.extensions).Process(text))
 }
 
 func (r *HTML) DocumentHeader() {
@@ -1133,12 +1103,7 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) {
 	attrs := []string{}
 	switch node.Type {
 	case Text:
-		if r.flags&UseSmartypants != 0 && isSmartypantable(node) {
-			// TODO: don't do that in renderer, do that at parse time!
-			r.out(w, r.Smartypants2(node.Literal))
-		} else {
-			r.out(w, esc(node.Literal, false))
-		}
+		r.out(w, node.Literal)
 		break
 	case Softbreak:
 		r.out(w, []byte("\n"))
@@ -1431,6 +1396,17 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) {
 func (r *HTML) Render(ast *Node) []byte {
 	//println("render_Blackfriday")
 	//dump(ast)
+	// Run Smartypants if it's enabled or simply escape text if not
+	sr := NewSmartypantsRenderer(r.extensions)
+	ForEachNode(ast, func(node *Node, entering bool) {
+		if node.Type == Text {
+			if r.extensions&Smartypants != 0 {
+				node.Literal = sr.Process(node.Literal)
+			} else {
+				node.Literal = esc(node.Literal, false)
+			}
+		}
+	})
 	var buff bytes.Buffer
 	ForEachNode(ast, func(node *Node, entering bool) {
 		r.RenderNode(&buff, node, entering)

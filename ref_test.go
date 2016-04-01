@@ -20,7 +20,7 @@ import (
 )
 
 func runMarkdownReference(input string, flag Extensions) string {
-	renderer := HtmlRenderer(0, "", "")
+	renderer := HtmlRenderer(0, flag, "", "")
 	return string(Markdown([]byte(input), renderer, flag))
 }
 

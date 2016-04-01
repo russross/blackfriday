@@ -23,13 +23,13 @@ func runMarkdownBlockWithRenderer(input string, extensions Extensions, renderer 
 }
 
 func runMarkdownBlock(input string, extensions Extensions) string {
-	renderer := HtmlRenderer(UseXHTML, "", "")
+	renderer := HtmlRenderer(UseXHTML, extensions, "", "")
 	return runMarkdownBlockWithRenderer(input, extensions, renderer)
 }
 
 func runnerWithRendererParameters(parameters HtmlRendererParameters) func(string, Extensions) string {
 	return func(input string, extensions Extensions) string {
-		renderer := HtmlRendererWithParameters(UseXHTML, "", "", parameters)
+		renderer := HtmlRendererWithParameters(UseXHTML, extensions, "", "", parameters)
 		return runMarkdownBlockWithRenderer(input, extensions, renderer)
 	}
 }
