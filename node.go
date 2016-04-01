@@ -98,24 +98,27 @@ type HeaderData struct {
 	IsTitleblock bool   // Specifies whether it's a title block
 }
 
+// Node is a single element in the abstract syntax tree of the parsed document.
+// It holds connections to the structurally neighboring nodes and, for certain
+// types of nodes, additional information that might be needed when rendering.
 type Node struct {
-	Type       NodeType
-	Parent     *Node
-	FirstChild *Node
-	LastChild  *Node
-	Prev       *Node // prev sibling
-	Next       *Node // next sibling
+	Type       NodeType // Determines the type of the node
+	Parent     *Node    // Points to the parent
+	FirstChild *Node    // Points to the first child, if any
+	LastChild  *Node    // Points to the last child, if any
+	Prev       *Node    // Previous sibling; nil if it's the first child
+	Next       *Node    // Next sibling; nil if it's the last child
 
-	content []byte
-	open    bool
+	Literal []byte // Text contents of the leaf nodes
 
-	Literal []byte
+	HeaderData    // Populated if Type == Header
+	ListData      // Populated if Type == List
+	CodeBlockData // Populated if Type == CodeBlock
+	LinkData      // Populated if Type == Link
+	TableCellData // Populated if Type == TableCell
 
-	HeaderData    // If Type == Header, this holds its properties
-	ListData      // If Type == List, this holds list info
-	CodeBlockData // If Type == CodeBlock, this holds its properties
-	LinkData      // If Type == Link, this holds link info
-	TableCellData // If Type == TableCell, this holds its properties
+	content []byte // Markdown content of the block nodes
+	open    bool   // Specifies an open block node that has not been finished to process yet
 }
 
 func NewNode(typ NodeType) *Node {
