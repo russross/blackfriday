@@ -79,6 +79,14 @@ type LinkData struct {
 	NoteID      int
 }
 
+type CodeBlockData struct {
+	IsFenced    bool   // Specifies whether it's a fenced code block or an indented one
+	Info        []byte // This holds the info string
+	FenceChar   byte
+	FenceLength uint32
+	FenceOffset uint32
+}
+
 type Node struct {
 	Type       NodeType
 	Parent     *Node
@@ -93,17 +101,12 @@ type Node struct {
 	Level   uint32 // If Type == Header, this holds the heading level number
 	Literal []byte
 
-	ListData // If Type == List, this holds list info
-	// TODO: move these fenced code block fields to a substruct
-	IsFenced     bool   // If Type == CodeBlock, specifies whether it's a fenced code block or an indented one
-	Info         []byte // If Type == CodeBlock, this holds the info string
-	FenceChar    byte
-	FenceLength  uint32
-	FenceOffset  uint32
-	LinkData            // If Type == Link, this holds link info
-	HeaderID     string // If Type == Header, this might hold header ID, if present
-	IsTitleblock bool
-	IsHeader     bool // If Type == TableCell, this tells if it's under the header row
+	ListData             // If Type == List, this holds list info
+	CodeBlockData        // If Type == CodeBlock, this holds its properties
+	LinkData             // If Type == Link, this holds link info
+	HeaderID      string // If Type == Header, this might hold header ID, if present
+	IsTitleblock  bool
+	IsHeader      bool // If Type == TableCell, this tells if it's under the header row
 
 	// TODO: convert the int to a proper type
 	Align int // If Type == TableCell, this holds the value for align attribute
