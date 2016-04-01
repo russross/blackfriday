@@ -38,7 +38,7 @@ const (
 	NofollowLinks                             // Only link with rel="nofollow"
 	NoreferrerLinks                           // Only link with rel="noreferrer"
 	HrefTargetBlank                           // Add a blank target
-	Toc                                       // Generate a table of contents
+	TOC                                       // Generate a table of contents
 	OmitContents                              // Skip the main contents (for a standalone table of contents)
 	CompletePage                              // Generate a complete HTML page
 	UseXHTML                                  // Generate XHTML output instead of HTML
@@ -249,7 +249,7 @@ func (r *HTML) TitleBlock(text []byte) {
 func (r *HTML) BeginHeader(level int, id string) {
 	r.w.Newline()
 
-	if id == "" && r.flags&Toc != 0 {
+	if id == "" && r.flags&TOC != 0 {
 		id = fmt.Sprintf("toc_%d", r.headerCount)
 	}
 
@@ -272,7 +272,7 @@ func (r *HTML) BeginHeader(level int, id string) {
 
 func (r *HTML) EndHeader(level int, id string, header []byte) {
 	// are we building a table of contents?
-	if r.flags&Toc != 0 {
+	if r.flags&TOC != 0 {
 		r.TocHeaderWithAnchor(header, level, id)
 	}
 
@@ -733,7 +733,7 @@ func (r *HTML) DocumentHeader() {
 
 func (r *HTML) DocumentFooter() {
 	// finalize and insert the table of contents
-	if r.flags&Toc != 0 {
+	if r.flags&TOC != 0 {
 		r.TocFinalize()
 
 		// now we have to insert the table of contents into the document
