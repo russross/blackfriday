@@ -92,6 +92,12 @@ type TableCellData struct {
 	Align    CellAlignFlags // This holds the value for align attribute
 }
 
+type HeaderData struct {
+	Level        uint32 // This holds the heading level number
+	HeaderID     string // This might hold header ID, if present
+	IsTitleblock bool   // Specifies whether it's a title block
+}
+
 type Node struct {
 	Type       NodeType
 	Parent     *Node
@@ -103,15 +109,13 @@ type Node struct {
 	content []byte
 	open    bool
 
-	Level   uint32 // If Type == Header, this holds the heading level number
 	Literal []byte
 
-	ListData             // If Type == List, this holds list info
-	CodeBlockData        // If Type == CodeBlock, this holds its properties
-	LinkData             // If Type == Link, this holds link info
-	TableCellData        // If Type == TableCell, this holds its properties
-	HeaderID      string // If Type == Header, this might hold header ID, if present
-	IsTitleblock  bool
+	HeaderData    // If Type == Header, this holds its properties
+	ListData      // If Type == List, this holds list info
+	CodeBlockData // If Type == CodeBlock, this holds its properties
+	LinkData      // If Type == Link, this holds link info
+	TableCellData // If Type == TableCell, this holds its properties
 }
 
 func NewNode(typ NodeType) *Node {
