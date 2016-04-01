@@ -238,10 +238,6 @@ func (r *HTML) entityEscapeWithSkip(src []byte, skipRanges [][]int) {
 	r.attrEscape(src[end:])
 }
 
-func (r *HTML) GetFlags() HtmlFlags {
-	return r.flags
-}
-
 func (r *HTML) TitleBlock(text []byte) {
 	text = bytes.TrimPrefix(text, []byte("% "))
 	text = bytes.Replace(text, []byte("\n% "), []byte("\n"), -1)

@@ -40,10 +40,6 @@ func (r *Latex) Write(b []byte) (int, error) {
 	return r.w.Write(b)
 }
 
-func (r *Latex) GetFlags() HtmlFlags {
-	return 0
-}
-
 // render code chunks using verbatim, or listings if we have a language
 func (r *Latex) BlockCode(text []byte, lang string) {
 	if lang == "" {

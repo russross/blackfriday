@@ -210,7 +210,6 @@ type Renderer interface {
 	DocumentHeader()
 	DocumentFooter()
 
-	GetFlags() HtmlFlags
 	Write(b []byte) (int, error)
 
 	Render(ast *Node) []byte
