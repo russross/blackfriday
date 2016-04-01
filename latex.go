@@ -21,7 +21,7 @@ import "bytes"
 //
 // Do not create this directly, instead use the LatexRenderer function.
 type Latex struct {
-	w HtmlWriter
+	w HTMLWriter
 }
 
 // LatexRenderer creates and configures a Latex object, which
@@ -30,7 +30,7 @@ type Latex struct {
 // flags is a set of LATEX_* options ORed together (currently no such options
 // are defined).
 func LatexRenderer(flags int) Renderer {
-	var writer HtmlWriter
+	var writer HTMLWriter
 	return &Latex{
 		w: writer,
 	}

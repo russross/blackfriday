@@ -23,13 +23,13 @@ func runMarkdownBlockWithRenderer(input string, extensions Extensions, renderer 
 }
 
 func runMarkdownBlock(input string, extensions Extensions) string {
-	renderer := HtmlRenderer(UseXHTML, extensions, "", "")
+	renderer := HTMLRenderer(UseXHTML, extensions, "", "")
 	return runMarkdownBlockWithRenderer(input, extensions, renderer)
 }
 
-func runnerWithRendererParameters(parameters HtmlRendererParameters) func(string, Extensions) string {
+func runnerWithRendererParameters(parameters HTMLRendererParameters) func(string, Extensions) string {
 	return func(input string, extensions Extensions) string {
-		renderer := HtmlRendererWithParameters(UseXHTML, extensions, "", "", parameters)
+		renderer := HTMLRendererWithParameters(UseXHTML, extensions, "", "", parameters)
 		return runMarkdownBlockWithRenderer(input, extensions, renderer)
 	}
 }
@@ -298,7 +298,7 @@ func TestPrefixHeaderIdExtensionWithPrefixAndSuffix(t *testing.T) {
 			"<h1 id=\"PRE:someid:POST\">Nested header</h1></li>\n</ul></li>\n</ul>\n",
 	}
 
-	parameters := HtmlRendererParameters{
+	parameters := HTMLRendererParameters{
 		HeaderIDPrefix: "PRE:",
 		HeaderIDSuffix: ":POST",
 	}
@@ -406,7 +406,7 @@ func TestPrefixAutoHeaderIdExtensionWithPrefixAndSuffix(t *testing.T) {
 		"<h1 id=\"PRE:header:POST\">Header</h1>\n\n<h1 id=\"PRE:header-1:POST\">Header 1</h1>\n\n<h1 id=\"PRE:header-1-1:POST\">Header</h1>\n\n<h1 id=\"PRE:header-1-2:POST\">Header</h1>\n",
 	}
 
-	parameters := HtmlRendererParameters{
+	parameters := HTMLRendererParameters{
 		HeaderIDPrefix: "PRE:",
 		HeaderIDSuffix: ":POST",
 	}

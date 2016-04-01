@@ -20,44 +20,44 @@ import (
 	"strings"
 )
 
-func runMarkdownInline(input string, opts Options, htmlFlags HTMLFlags, params HtmlRendererParameters) string {
+func runMarkdownInline(input string, opts Options, htmlFlags HTMLFlags, params HTMLRendererParameters) string {
 	opts.Extensions |= Autolink
 	opts.Extensions |= Strikethrough
 
 	htmlFlags |= UseXHTML
 
-	renderer := HtmlRendererWithParameters(htmlFlags, opts.Extensions, "", "", params)
+	renderer := HTMLRendererWithParameters(htmlFlags, opts.Extensions, "", "", params)
 
 	return string(MarkdownOptions([]byte(input), renderer, opts))
 }
 
 func doTestsInline(t *testing.T, tests []string) {
-	doTestsInlineParam(t, tests, Options{}, 0, HtmlRendererParameters{})
+	doTestsInlineParam(t, tests, Options{}, 0, HTMLRendererParameters{})
 }
 
 func doLinkTestsInline(t *testing.T, tests []string) {
 	doTestsInline(t, tests)
 
 	prefix := "http://localhost"
-	params := HtmlRendererParameters{AbsolutePrefix: prefix}
+	params := HTMLRendererParameters{AbsolutePrefix: prefix}
 	transformTests := transformLinks(tests, prefix)
 	doTestsInlineParam(t, transformTests, Options{}, 0, params)
 	doTestsInlineParam(t, transformTests, Options{}, CommonHtmlFlags, params)
 }
 
 func doSafeTestsInline(t *testing.T, tests []string) {
-	doTestsInlineParam(t, tests, Options{}, Safelink, HtmlRendererParameters{})
+	doTestsInlineParam(t, tests, Options{}, Safelink, HTMLRendererParameters{})
 
 	// All the links in this test should not have the prefix appended, so
 	// just rerun it with different parameters and the same expectations.
 	prefix := "http://localhost"
-	params := HtmlRendererParameters{AbsolutePrefix: prefix}
+	params := HTMLRendererParameters{AbsolutePrefix: prefix}
 	transformTests := transformLinks(tests, prefix)
 	doTestsInlineParam(t, transformTests, Options{}, Safelink, params)
 }
 
 func doTestsInlineParam(t *testing.T, tests []string, opts Options, htmlFlags HTMLFlags,
-	params HtmlRendererParameters) {
+	params HTMLRendererParameters) {
 	// catch and report panics
 	var candidate string
 	/*
@@ -214,7 +214,7 @@ func TestReferenceOverride(t *testing.T) {
 				}, true
 			}
 			return nil, false
-		}}, 0, HtmlRendererParameters{})
+		}}, 0, HTMLRendererParameters{})
 }
 
 func TestStrong(t *testing.T) {
@@ -426,7 +426,7 @@ func TestLineBreak(t *testing.T) {
 	}
 	doTestsInlineParam(t, tests, Options{
 		Extensions: BackslashLineBreak},
-		0, HtmlRendererParameters{})
+		0, HTMLRendererParameters{})
 }
 
 func TestInlineLink(t *testing.T) {
@@ -567,7 +567,7 @@ func TestRelAttrLink(t *testing.T) {
 		"<p><a href=\"../bar\">foo</a></p>\n",
 	}
 	doTestsInlineParam(t, nofollowTests, Options{}, Safelink|NofollowLinks,
-		HtmlRendererParameters{})
+		HTMLRendererParameters{})
 
 	var noreferrerTests = []string{
 		"[foo](http://bar.com/foo/)\n",
@@ -577,7 +577,7 @@ func TestRelAttrLink(t *testing.T) {
 		"<p><a href=\"/bar/\">foo</a></p>\n",
 	}
 	doTestsInlineParam(t, noreferrerTests, Options{}, Safelink|NoreferrerLinks,
-		HtmlRendererParameters{})
+		HTMLRendererParameters{})
 
 	var nofollownoreferrerTests = []string{
 		"[foo](http://bar.com/foo/)\n",
@@ -587,7 +587,7 @@ func TestRelAttrLink(t *testing.T) {
 		"<p><a href=\"/bar/\">foo</a></p>\n",
 	}
 	doTestsInlineParam(t, nofollownoreferrerTests, Options{}, Safelink|NofollowLinks|NoreferrerLinks,
-		HtmlRendererParameters{})
+		HTMLRendererParameters{})
 }
 
 func TestHrefTargetBlank(t *testing.T) {
@@ -614,7 +614,7 @@ func TestHrefTargetBlank(t *testing.T) {
 		"[foo](http://example.com)\n",
 		"<p><a href=\"http://example.com\" target=\"_blank\">foo</a></p>\n",
 	}
-	doTestsInlineParam(t, tests, Options{}, Safelink|HrefTargetBlank, HtmlRendererParameters{})
+	doTestsInlineParam(t, tests, Options{}, Safelink|HrefTargetBlank, HTMLRendererParameters{})
 }
 
 func TestSafeInlineLink(t *testing.T) {
@@ -1002,7 +1002,7 @@ what happens here
 }
 
 func TestFootnotes(t *testing.T) {
-	doTestsInlineParam(t, footnoteTests, Options{Extensions: Footnotes}, 0, HtmlRendererParameters{})
+	doTestsInlineParam(t, footnoteTests, Options{Extensions: Footnotes}, 0, HTMLRendererParameters{})
 }
 
 func TestFootnotesWithParameters(t *testing.T) {
@@ -1022,7 +1022,7 @@ func TestFootnotesWithParameters(t *testing.T) {
 		tests[i] = test
 	}
 
-	params := HtmlRendererParameters{
+	params := HTMLRendererParameters{
 		FootnoteAnchorPrefix:       prefix,
 		FootnoteReturnLinkContents: returnText,
 	}
@@ -1055,7 +1055,7 @@ func TestNestedFootnotes(t *testing.T) {
 `,
 	}
 	doTestsInlineParam(t, tests, Options{Extensions: Footnotes}, 0,
-		HtmlRendererParameters{})
+		HTMLRendererParameters{})
 }
 
 func TestInlineComments(t *testing.T) {
@@ -1084,7 +1084,7 @@ func TestInlineComments(t *testing.T) {
 		"blahblah\n<!--- foo -->\nrhubarb\n",
 		"<p>blahblah\n<!--- foo -->\nrhubarb</p>\n",
 	}
-	doTestsInlineParam(t, tests, Options{Extensions: Smartypants | SmartypantsDashes}, 0, HtmlRendererParameters{})
+	doTestsInlineParam(t, tests, Options{Extensions: Smartypants | SmartypantsDashes}, 0, HTMLRendererParameters{})
 }
 
 func TestSmartDoubleQuotes(t *testing.T) {
@@ -1096,7 +1096,7 @@ func TestSmartDoubleQuotes(t *testing.T) {
 		"two pair of \"some\" quoted \"text\".\n",
 		"<p>two pair of &ldquo;some&rdquo; quoted &ldquo;text&rdquo;.</p>\n"}
 
-	doTestsInlineParam(t, tests, Options{Extensions: Smartypants}, 0, HtmlRendererParameters{})
+	doTestsInlineParam(t, tests, Options{Extensions: Smartypants}, 0, HTMLRendererParameters{})
 }
 
 func TestSmartAngledDoubleQuotes(t *testing.T) {
@@ -1108,7 +1108,7 @@ func TestSmartAngledDoubleQuotes(t *testing.T) {
 		"two pair of \"some\" quoted \"text\".\n",
 		"<p>two pair of &laquo;some&raquo; quoted &laquo;text&raquo;.</p>\n"}
 
-	doTestsInlineParam(t, tests, Options{Extensions: Smartypants | SmartypantsAngledQuotes}, 0, HtmlRendererParameters{})
+	doTestsInlineParam(t, tests, Options{Extensions: Smartypants | SmartypantsAngledQuotes}, 0, HTMLRendererParameters{})
 }
 
 func TestSmartFractions(t *testing.T) {
@@ -1118,7 +1118,7 @@ func TestSmartFractions(t *testing.T) {
 		"1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.\n",
 		"<p>1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.</p>\n"}
 
-	doTestsInlineParam(t, tests, Options{Extensions: Smartypants}, 0, HtmlRendererParameters{})
+	doTestsInlineParam(t, tests, Options{Extensions: Smartypants}, 0, HTMLRendererParameters{})
 
 	tests = []string{
 		"1/2, 2/3, 81/100 and 1000000/1048576.\n",
@@ -1126,7 +1126,7 @@ func TestSmartFractions(t *testing.T) {
 		"1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.\n",
 		"<p>1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.</p>\n"}
 
-	doTestsInlineParam(t, tests, Options{Extensions: Smartypants | SmartypantsFractions}, 0, HtmlRendererParameters{})
+	doTestsInlineParam(t, tests, Options{Extensions: Smartypants | SmartypantsFractions}, 0, HTMLRendererParameters{})
 }
 
 func TestDisableSmartDashes(t *testing.T) {
@@ -1137,7 +1137,7 @@ func TestDisableSmartDashes(t *testing.T) {
 		"<p>foo -- bar</p>\n",
 		"foo --- bar\n",
 		"<p>foo --- bar</p>\n",
-	}, Options{}, 0, HtmlRendererParameters{})
+	}, Options{}, 0, HTMLRendererParameters{})
 	doTestsInlineParam(t, []string{
 		"foo - bar\n",
 		"<p>foo &ndash; bar</p>\n",
@@ -1145,7 +1145,7 @@ func TestDisableSmartDashes(t *testing.T) {
 		"<p>foo &mdash; bar</p>\n",
 		"foo --- bar\n",
 		"<p>foo &mdash;&ndash; bar</p>\n",
-	}, Options{Extensions: Smartypants | SmartypantsDashes}, 0, HtmlRendererParameters{})
+	}, Options{Extensions: Smartypants | SmartypantsDashes}, 0, HTMLRendererParameters{})
 	doTestsInlineParam(t, []string{
 		"foo - bar\n",
 		"<p>foo - bar</p>\n",
@@ -1154,7 +1154,7 @@ func TestDisableSmartDashes(t *testing.T) {
 		"foo --- bar\n",
 		"<p>foo &mdash; bar</p>\n",
 	}, Options{Extensions: Smartypants | SmartypantsLatexDashes | SmartypantsDashes}, 0,
-		HtmlRendererParameters{})
+		HTMLRendererParameters{})
 	doTestsInlineParam(t, []string{
 		"foo - bar\n",
 		"<p>foo - bar</p>\n",
@@ -1164,5 +1164,5 @@ func TestDisableSmartDashes(t *testing.T) {
 		"<p>foo --- bar</p>\n",
 	}, Options{Extensions: Smartypants | SmartypantsLatexDashes},
 		0,
-		HtmlRendererParameters{})
+		HTMLRendererParameters{})
 }

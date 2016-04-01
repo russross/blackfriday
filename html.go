@@ -68,7 +68,7 @@ var (
 	reHtmlTag  = regexp.MustCompile("(?i)^" + HTMLTag)
 )
 
-type HtmlRendererParameters struct {
+type HTMLRendererParameters struct {
 	// Prepend this text to each relative URL.
 	AbsolutePrefix string
 	// Add this text to each footnote anchor, to ensure uniqueness.
@@ -86,14 +86,14 @@ type HtmlRendererParameters struct {
 
 // HTML is a type that implements the Renderer interface for HTML output.
 //
-// Do not create this directly, instead use the HtmlRenderer function.
+// Do not create this directly, instead use the HTMLRenderer function.
 type HTML struct {
 	flags    HTMLFlags
 	closeTag string // how to end singleton tags: either " />" or ">"
 	title    string // document title
 	css      string // optional css file url (used with HTML_COMPLETE_PAGE)
 
-	parameters HtmlRendererParameters
+	parameters HTMLRendererParameters
 
 	// table of contents data
 	tocMarker    int
@@ -104,7 +104,7 @@ type HTML struct {
 	// Track header IDs to prevent ID collision in a single generation.
 	headerIDs map[string]int
 
-	w             HtmlWriter
+	w             HTMLWriter
 	lastOutputLen int
 	disableTags   int
 
@@ -116,36 +116,36 @@ const (
 	htmlClose  = ">"
 )
 
-// HtmlRenderer creates and configures an HTML object, which
+// HTMLRenderer creates and configures an HTML object, which
 // satisfies the Renderer interface.
 //
 // flags is a set of HTMLFlags ORed together.
 // title is the title of the document, and css is a URL for the document's
 // stylesheet.
 // title and css are only used when HTML_COMPLETE_PAGE is selected.
-func HtmlRenderer(flags HTMLFlags, extensions Extensions, title string, css string) Renderer {
-	return HtmlRendererWithParameters(flags, extensions, title, css, HtmlRendererParameters{})
+func HTMLRenderer(flags HTMLFlags, extensions Extensions, title string, css string) Renderer {
+	return HTMLRendererWithParameters(flags, extensions, title, css, HTMLRendererParameters{})
 }
 
-type HtmlWriter struct {
+type HTMLWriter struct {
 	output bytes.Buffer
 }
 
-func (w *HtmlWriter) Write(p []byte) (n int, err error) {
+func (w *HTMLWriter) Write(p []byte) (n int, err error) {
 	return w.output.Write(p)
 }
 
-func (w *HtmlWriter) WriteString(s string) (n int, err error) {
+func (w *HTMLWriter) WriteString(s string) (n int, err error) {
 	return w.output.WriteString(s)
 }
 
-func (w *HtmlWriter) WriteByte(b byte) error {
+func (w *HTMLWriter) WriteByte(b byte) error {
 	return w.output.WriteByte(b)
 }
 
 // Writes out a newline if the output is not pristine. Used at the beginning of
 // every rendering func
-func (w *HtmlWriter) Newline() {
+func (w *HTMLWriter) Newline() {
 	w.WriteByte('\n')
 }
 
@@ -153,8 +153,8 @@ func (r *HTML) Write(b []byte) (int, error) {
 	return r.w.Write(b)
 }
 
-func HtmlRendererWithParameters(flags HTMLFlags, extensions Extensions, title string,
-	css string, renderParameters HtmlRendererParameters) Renderer {
+func HTMLRendererWithParameters(flags HTMLFlags, extensions Extensions, title string,
+	css string, renderParameters HTMLRendererParameters) Renderer {
 	// configure the rendering engine
 	closeTag := htmlClose
 	if flags&UseXHTML != 0 {
@@ -165,7 +165,7 @@ func HtmlRendererWithParameters(flags HTMLFlags, extensions Extensions, title st
 		renderParameters.FootnoteReturnLinkContents = `<sup>[return]</sup>`
 	}
 
-	var writer HtmlWriter
+	var writer HTMLWriter
 	return &HTML{
 		flags:      flags,
 		extensions: extensions,
