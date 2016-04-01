@@ -334,7 +334,7 @@ func (r *HTML) BlockQuote(text []byte) {
 	r.w.WriteString("</blockquote>\n")
 }
 
-func (r *HTML) Table(header []byte, body []byte, columnData []int) {
+func (r *HTML) Table(header []byte, body []byte, columnData []CellAlignFlags) {
 	r.w.Newline()
 	r.w.WriteString("<table>\n<thead>\n")
 	r.w.Write(header)
@@ -356,7 +356,7 @@ func leadingNewline(out *bytes.Buffer) {
 	}
 }
 
-func (r *HTML) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
+func (r *HTML) TableHeaderCell(out *bytes.Buffer, text []byte, align CellAlignFlags) {
 	leadingNewline(out)
 	switch align {
 	case TableAlignmentLeft:
@@ -373,7 +373,7 @@ func (r *HTML) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
 	out.WriteString("</th>")
 }
 
-func (r *HTML) TableCell(out *bytes.Buffer, text []byte, align int) {
+func (r *HTML) TableCell(out *bytes.Buffer, text []byte, align CellAlignFlags) {
 	leadingNewline(out)
 	switch align {
 	case TableAlignmentLeft:
@@ -1057,7 +1057,7 @@ func skipParagraphTags(node *Node) bool {
 	return grandparent.Type == List && tightOrTerm
 }
 
-func cellAlignment(align int) string {
+func cellAlignment(align CellAlignFlags) string {
 	switch align {
 	case TableAlignmentLeft:
 		return "left"

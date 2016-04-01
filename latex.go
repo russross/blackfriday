@@ -128,7 +128,7 @@ func (r *Latex) EndParagraph() {
 	r.w.WriteString("\n")
 }
 
-func (r *Latex) Table(header []byte, body []byte, columnData []int) {
+func (r *Latex) Table(header []byte, body []byte, columnData []CellAlignFlags) {
 	r.w.WriteString("\n\\begin{tabular}{")
 	for _, elt := range columnData {
 		switch elt {
@@ -152,14 +152,14 @@ func (r *Latex) TableRow(text []byte) {
 	r.w.Write(text)
 }
 
-func (r *Latex) TableHeaderCell(out *bytes.Buffer, text []byte, align int) {
+func (r *Latex) TableHeaderCell(out *bytes.Buffer, text []byte, align CellAlignFlags) {
 	if out.Len() > 0 {
 		out.WriteString(" & ")
 	}
 	out.Write(text)
 }
 
-func (r *Latex) TableCell(out *bytes.Buffer, text []byte, align int) {
+func (r *Latex) TableCell(out *bytes.Buffer, text []byte, align CellAlignFlags) {
 	if out.Len() > 0 {
 		out.WriteString(" & ")
 	}

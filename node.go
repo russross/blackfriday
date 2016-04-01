@@ -106,10 +106,8 @@ type Node struct {
 	LinkData             // If Type == Link, this holds link info
 	HeaderID      string // If Type == Header, this might hold header ID, if present
 	IsTitleblock  bool
-	IsHeader      bool // If Type == TableCell, this tells if it's under the header row
-
-	// TODO: convert the int to a proper type
-	Align int // If Type == TableCell, this holds the value for align attribute
+	IsHeader      bool           // If Type == TableCell, this tells if it's under the header row
+	Align         CellAlignFlags // If Type == TableCell, this holds the value for align attribute
 }
 
 func NewNode(typ NodeType) *Node {

@@ -786,7 +786,7 @@ func isBackslashEscaped(data []byte, i int) bool {
 	return backslashes&1 == 1
 }
 
-func (p *parser) tableHeader(data []byte) (size int, columns []int) {
+func (p *parser) tableHeader(data []byte) (size int, columns []CellAlignFlags) {
 	i := 0
 	colCount := 1
 	for i = 0; data[i] != '\n'; i++ {
@@ -811,7 +811,7 @@ func (p *parser) tableHeader(data []byte) (size int, columns []int) {
 		colCount--
 	}
 
-	columns = make([]int, colCount)
+	columns = make([]CellAlignFlags, colCount)
 
 	// move on to the header underline
 	i++
@@ -890,7 +890,7 @@ func (p *parser) tableHeader(data []byte) (size int, columns []int) {
 	return
 }
 
-func (p *parser) tableRow(data []byte, columns []int, header bool) {
+func (p *parser) tableRow(data []byte, columns []CellAlignFlags, header bool) {
 	p.addBlock(TableRow, nil)
 	i, col := 0, 0
 

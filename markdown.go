@@ -93,7 +93,7 @@ const (
 	ListItemEndOfList
 )
 
-type TableFlags int
+type CellAlignFlags int
 
 // These are the possible flag values for the table cell renderer.
 // Only a single one of these values will be used; they are not ORed together.
@@ -180,10 +180,10 @@ type Renderer interface {
 	ListItem(text []byte, flags ListType)
 	BeginParagraph()
 	EndParagraph()
-	Table(header []byte, body []byte, columnData []int)
+	Table(header []byte, body []byte, columnData []CellAlignFlags)
 	TableRow(text []byte)
-	TableHeaderCell(out *bytes.Buffer, text []byte, flags int)
-	TableCell(out *bytes.Buffer, text []byte, flags int)
+	TableHeaderCell(out *bytes.Buffer, text []byte, flags CellAlignFlags)
+	TableCell(out *bytes.Buffer, text []byte, flags CellAlignFlags)
 	BeginFootnotes()
 	EndFootnotes()
 	FootnoteItem(name, text []byte, flags ListType)
