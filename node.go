@@ -216,6 +216,15 @@ func (n *Node) canContain(t NodeType) bool {
 	return false
 }
 
+func (root *Node) Walk(visitor func(node *Node, entering bool)) {
+	walker := NewNodeWalker(root)
+	node, entering := walker.next()
+	for node != nil {
+		visitor(node, entering)
+		node, entering = walker.next()
+	}
+}
+
 type NodeWalker struct {
 	current  *Node
 	root     *Node
@@ -261,15 +270,6 @@ func (nw *NodeWalker) next() (*Node, bool) {
 func (nw *NodeWalker) resumeAt(node *Node, entering bool) {
 	nw.current = node
 	nw.entering = entering
-}
-
-func ForEachNode(root *Node, f func(node *Node, entering bool)) {
-	walker := NewNodeWalker(root)
-	node, entering := walker.next()
-	for node != nil {
-		f(node, entering)
-		node, entering = walker.next()
-	}
 }
 
 func dump(ast *Node) {

@@ -1394,7 +1394,7 @@ func (r *HTML) Render(ast *Node) []byte {
 	//dump(ast)
 	// Run Smartypants if it's enabled or simply escape text if not
 	sr := NewSmartypantsRenderer(r.extensions)
-	ForEachNode(ast, func(node *Node, entering bool) {
+	ast.Walk(func(node *Node, entering bool) {
 		if node.Type == Text {
 			if r.extensions&Smartypants != 0 {
 				node.Literal = sr.Process(node.Literal)
@@ -1404,7 +1404,7 @@ func (r *HTML) Render(ast *Node) []byte {
 		}
 	})
 	var buff bytes.Buffer
-	ForEachNode(ast, func(node *Node, entering bool) {
+	ast.Walk(func(node *Node, entering bool) {
 		r.RenderNode(&buff, node, entering)
 	})
 	return buff.Bytes()

@@ -450,7 +450,7 @@ func Parse(input []byte, opts Options) *Node {
 		p.finalize(p.tip)
 	}
 	// Walk the tree again and process inline markdown in each block
-	ForEachNode(p.doc, func(node *Node, entering bool) {
+	p.doc.Walk(func(node *Node, entering bool) {
 		if node.Type == Paragraph || node.Type == Header || node.Type == TableCell {
 			p.currBlock = node
 			p.inline(node.content)
@@ -493,7 +493,7 @@ func (p *parser) parseRefsToAST() {
 	finalizeList(block)
 	p.tip = above
 	finalizeHtmlBlock(p.addBlock(HtmlBlock, []byte("</div>")))
-	ForEachNode(block, func(node *Node, entering bool) {
+	block.Walk(func(node *Node, entering bool) {
 		if node.Type == Paragraph || node.Type == Header {
 			p.currBlock = node
 			p.inline(node.content)
