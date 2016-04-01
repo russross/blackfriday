@@ -55,7 +55,7 @@ const (
 	SmartypantsLatexDashes                         // Enable LaTeX-style dashes (with Smartypants)
 	SmartypantsAngledQuotes                        // Enable angled double quotes (with Smartypants) for double quotes rendering
 
-	CommonHtmlFlags HtmlFlags = UseXHTML
+	CommonHtmlFlags HTMLFlags = UseXHTML
 
 	CommonExtensions Extensions = NoIntraEmphasis | Tables | FencedCode |
 		Autolink | Strikethrough | SpaceHeaders | HeaderIDs |

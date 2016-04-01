@@ -20,7 +20,7 @@ import (
 	"strings"
 )
 
-func runMarkdownInline(input string, opts Options, htmlFlags HtmlFlags, params HtmlRendererParameters) string {
+func runMarkdownInline(input string, opts Options, htmlFlags HTMLFlags, params HtmlRendererParameters) string {
 	opts.Extensions |= Autolink
 	opts.Extensions |= Strikethrough
 
@@ -56,7 +56,7 @@ func doSafeTestsInline(t *testing.T, tests []string) {
 	doTestsInlineParam(t, transformTests, Options{}, Safelink, params)
 }
 
-func doTestsInlineParam(t *testing.T, tests []string, opts Options, htmlFlags HtmlFlags,
+func doTestsInlineParam(t *testing.T, tests []string, opts Options, htmlFlags HTMLFlags,
 	params HtmlRendererParameters) {
 	// catch and report panics
 	var candidate string

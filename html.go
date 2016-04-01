@@ -25,12 +25,12 @@ import (
 	"strings"
 )
 
-type HtmlFlags int
+type HTMLFlags int
 
 // HTML renderer configuration options.
 const (
-	HtmlFlagsNone       HtmlFlags = 0
-	SkipHTML            HtmlFlags = 1 << iota // Skip preformatted HTML blocks
+	HTMLFlagsNone       HTMLFlags = 0
+	SkipHTML            HTMLFlags = 1 << iota // Skip preformatted HTML blocks
 	SkipStyle                                 // Skip embedded <style> elements
 	SkipImages                                // Skip embedded images
 	SkipLinks                                 // Skip all links
@@ -88,7 +88,7 @@ type HtmlRendererParameters struct {
 //
 // Do not create this directly, instead use the HtmlRenderer function.
 type HTML struct {
-	flags    HtmlFlags
+	flags    HTMLFlags
 	closeTag string // how to end singleton tags: either " />" or ">"
 	title    string // document title
 	css      string // optional css file url (used with HTML_COMPLETE_PAGE)
@@ -119,11 +119,11 @@ const (
 // HtmlRenderer creates and configures an HTML object, which
 // satisfies the Renderer interface.
 //
-// flags is a set of HtmlFlags ORed together.
+// flags is a set of HTMLFlags ORed together.
 // title is the title of the document, and css is a URL for the document's
 // stylesheet.
 // title and css are only used when HTML_COMPLETE_PAGE is selected.
-func HtmlRenderer(flags HtmlFlags, extensions Extensions, title string, css string) Renderer {
+func HtmlRenderer(flags HTMLFlags, extensions Extensions, title string, css string) Renderer {
 	return HtmlRendererWithParameters(flags, extensions, title, css, HtmlRendererParameters{})
 }
 
@@ -153,7 +153,7 @@ func (r *HTML) Write(b []byte) (int, error) {
 	return r.w.Write(b)
 }
 
-func HtmlRendererWithParameters(flags HtmlFlags, extensions Extensions, title string,
+func HtmlRendererWithParameters(flags HTMLFlags, extensions Extensions, title string,
 	css string, renderParameters HtmlRendererParameters) Renderer {
 	// configure the rendering engine
 	closeTag := htmlClose
@@ -976,7 +976,7 @@ func (r *HTML) addAbsPrefix(link []byte) []byte {
 	return link
 }
 
-func appendLinkAttrs(attrs []string, flags HtmlFlags, link []byte) []string {
+func appendLinkAttrs(attrs []string, flags HTMLFlags, link []byte) []string {
 	if isRelativeLink(link) {
 		return attrs
 	}
