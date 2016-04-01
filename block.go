@@ -1195,7 +1195,7 @@ func (p *parser) listItem(data []byte, flags *ListType) int {
 		}
 	}
 	if i == 0 {
-		// if in defnition list, set term flag and continue
+		// if in definition list, set term flag and continue
 		if *flags&ListTypeDefinition != 0 {
 			*flags |= ListTypeTerm
 		} else {
@@ -1309,12 +1309,11 @@ gatherlines:
 			*flags |= ListItemContainsBlock
 		}
 
-		// if this line was preceeded by one or more blanks,
+		// if this line was preceded by one or more blanks,
 		// re-introduce the blank into the buffer
 		if containsBlankLine {
 			containsBlankLine = false
 			raw.WriteByte('\n')
-
 		}
 
 		// add the line into the working buffer without prefix
