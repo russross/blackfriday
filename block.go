@@ -414,7 +414,7 @@ func (p *parser) html(data []byte, doRender bool) int {
 		for end > 0 && data[end-1] == '\n' {
 			end--
 		}
-		finalizeHtmlBlock(p.addBlock(HtmlBlock, data[:end]))
+		finalizeHtmlBlock(p.addBlock(HTMLBlock, data[:end]))
 	}
 
 	return i
@@ -437,7 +437,7 @@ func (p *parser) htmlComment(data []byte, doRender bool) int {
 			for end > 0 && data[end-1] == '\n' {
 				end--
 			}
-			block := p.addBlock(HtmlBlock, data[:end])
+			block := p.addBlock(HTMLBlock, data[:end])
 			finalizeHtmlBlock(block)
 		}
 		return size
@@ -470,7 +470,7 @@ func (p *parser) htmlHr(data []byte, doRender bool) int {
 				for end > 0 && data[end-1] == '\n' {
 					end--
 				}
-				finalizeHtmlBlock(p.addBlock(HtmlBlock, data[:end]))
+				finalizeHtmlBlock(p.addBlock(HTMLBlock, data[:end]))
 			}
 			return size
 		}

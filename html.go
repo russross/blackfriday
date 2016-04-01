@@ -1127,7 +1127,7 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) {
 		} else {
 			r.out(w, tag("/del", nil, false))
 		}
-	case HtmlSpan:
+	case HTMLSpan:
 		//if options.safe {
 		//	out(w, "<!-- raw HTML omitted -->")
 		//} else {
@@ -1201,7 +1201,7 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) {
 			// to be added and when not.
 			if node.Prev != nil {
 				t := node.Prev.Type
-				if t == HtmlBlock || t == List || t == Paragraph || t == Header || t == CodeBlock || t == BlockQuote || t == HorizontalRule {
+				if t == HTMLBlock || t == List || t == Paragraph || t == Header || t == CodeBlock || t == BlockQuote || t == HorizontalRule {
 					r.cr(w)
 				}
 			}
@@ -1225,7 +1225,7 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) {
 			r.cr(w)
 		}
 		break
-	case HtmlBlock:
+	case HTMLBlock:
 		r.cr(w)
 		r.out(w, node.Literal)
 		r.cr(w)

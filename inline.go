@@ -658,7 +658,7 @@ func leftAngle(p *parser, data []byte, offset int) int {
 				node.appendChild(text(stripMailto(link)))
 			}
 		} else {
-			htmlTag := NewNode(HtmlSpan)
+			htmlTag := NewNode(HTMLSpan)
 			htmlTag.Literal = data[:end]
 			p.currBlock.appendChild(htmlTag)
 		}
@@ -782,7 +782,7 @@ func autoLink(p *parser, data []byte, offset int) int {
 
 	anchorStr := anchorRe.Find(data[anchorStart:])
 	if anchorStr != nil {
-		anchorClose := NewNode(HtmlSpan)
+		anchorClose := NewNode(HTMLSpan)
 		anchorClose.Literal = anchorStr[offsetFromAnchor:]
 		p.currBlock.appendChild(anchorClose)
 		return len(anchorStr) - offsetFromAnchor

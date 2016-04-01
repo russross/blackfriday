@@ -21,12 +21,12 @@ const (
 	Link
 	Image
 	Text
-	HtmlBlock
+	HTMLBlock
 	CodeBlock
 	Softbreak
 	Hardbreak
 	Code
-	HtmlSpan
+	HTMLSpan
 	Table
 	TableCell
 	TableHead
@@ -48,12 +48,12 @@ var nodeTypeNames = []string{
 	Link:           "Link",
 	Image:          "Image",
 	Text:           "Text",
-	HtmlBlock:      "HtmlBlock",
+	HTMLBlock:      "HTMLBlock",
 	CodeBlock:      "CodeBlock",
 	Softbreak:      "Softbreak",
 	Hardbreak:      "Hardbreak",
 	Code:           "Code",
-	HtmlSpan:       "HtmlSpan",
+	HTMLSpan:       "HTMLSpan",
 	Table:          "Table",
 	TableCell:      "TableCell",
 	TableHead:      "TableHead",
