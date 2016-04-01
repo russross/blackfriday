@@ -1109,12 +1109,8 @@ func (p *parser) list(data []byte, flags ListType) int {
 	i := 0
 	flags |= ListItemBeginningOfList
 	block := p.addBlock(List, nil)
-	block.ListData = &ListData{ // TODO: fill in the real ListData
-		Flags:      flags,
-		Tight:      true,
-		BulletChar: '*',
-		Delimiter:  0,
-	}
+	block.ListFlags = flags
+	block.Tight = true
 
 	for i < len(data) {
 		skip := p.listItem(data[i:], &flags)
@@ -1184,9 +1180,12 @@ func (p *parser) listItem(data []byte, flags *ListType) int {
 		itemIndent++
 	}
 
+	var bulletChar byte = '*'
 	i := p.uliPrefix(data)
 	if i == 0 {
 		i = p.oliPrefix(data)
+	} else {
+		bulletChar = data[i-2]
 	}
 	if i == 0 {
 		i = p.dliPrefix(data)
@@ -1327,12 +1326,10 @@ gatherlines:
 	rawBytes := raw.Bytes()
 
 	block := p.addBlock(Item, nil)
-	block.ListData = &ListData{ // TODO: fill in the real ListData
-		Flags:      *flags,
-		Tight:      false,
-		BulletChar: '*',
-		Delimiter:  0,
-	}
+	block.ListFlags = *flags
+	block.Tight = false
+	block.BulletChar = bulletChar
+	block.Delimiter = '.' // Only '.' is possible in Markdown, but ')' will also be possible in CommonMark
 
 	// render the contents of the list item
 	if *flags&ListItemContainsBlock != 0 && *flags&ListTypeTerm == 0 {

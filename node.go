@@ -66,7 +66,7 @@ func (t NodeType) String() string {
 }
 
 type ListData struct {
-	Flags      ListType
+	ListFlags  ListType
 	Tight      bool   // Skip <p>s around list item data if true
 	BulletChar byte   // '*', '+' or '-' in bullet lists
 	Delimiter  byte   // '.' or ')' after the number in ordered lists
@@ -93,7 +93,7 @@ type Node struct {
 	Level   uint32 // If Type == Header, this holds the heading level number
 	Literal []byte
 
-	ListData *ListData // If Type == List, this holds list info
+	ListData // If Type == List, this holds list info
 	// TODO: move these fenced code block fields to a substruct
 	IsFenced     bool   // If Type == CodeBlock, specifies whether it's a fenced code block or an indented one
 	Info         []byte // If Type == CodeBlock, this holds the info string

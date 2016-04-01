@@ -469,12 +469,7 @@ func (p *parser) parseRefsToAST() {
 	finalizeHtmlBlock(p.addBlock(HtmlBlock, []byte(`<div class="footnotes">`)))
 	p.addBlock(HorizontalRule, nil)
 	block := p.addBlock(List, nil)
-	block.ListData = &ListData{ // TODO: fill in the real ListData
-		Flags:      ListTypeOrdered,
-		Tight:      false,
-		BulletChar: '*',
-		Delimiter:  0,
-	}
+	block.ListFlags = ListTypeOrdered
 	flags := ListItemBeginningOfList
 	// Note: this loop is intentionally explicit, not range-form. This is
 	// because the body of the loop will append nested footnotes to p.notes and
@@ -483,13 +478,8 @@ func (p *parser) parseRefsToAST() {
 	for i := 0; i < len(p.notes); i++ {
 		ref := p.notes[i]
 		block := p.addBlock(Item, nil)
-		block.ListData = &ListData{ // TODO: fill in the real ListData
-			Flags:      ListTypeOrdered,
-			Tight:      false,
-			BulletChar: '*',
-			Delimiter:  0,
-			RefLink:    ref.link,
-		}
+		block.ListFlags = ListTypeOrdered
+		block.RefLink = ref.link
 		if ref.hasBlock {
 			flags |= ListItemContainsBlock
 			p.block(ref.title)

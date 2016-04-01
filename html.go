@@ -1045,15 +1045,15 @@ func itemOpenCR(node *Node) bool {
 		return false
 	}
 	ld := node.Parent.ListData
-	return !ld.Tight && ld.Flags&ListTypeDefinition == 0
+	return !ld.Tight && ld.ListFlags&ListTypeDefinition == 0
 }
 
 func skipParagraphTags(node *Node) bool {
 	grandparent := node.Parent.Parent
-	if grandparent == nil || grandparent.ListData == nil {
+	if grandparent == nil || grandparent.Type != List {
 		return false
 	}
-	tightOrTerm := grandparent.ListData.Tight || node.Parent.ListData.Flags&ListTypeTerm != 0
+	tightOrTerm := grandparent.Tight || node.Parent.ListFlags&ListTypeTerm != 0
 	return grandparent.Type == List && tightOrTerm
 }
 
@@ -1261,10 +1261,10 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) {
 		break
 	case List:
 		tagName := "ul"
-		if node.ListData.Flags&ListTypeOrdered != 0 {
+		if node.ListFlags&ListTypeOrdered != 0 {
 			tagName = "ol"
 		}
-		if node.ListData.Flags&ListTypeDefinition != 0 {
+		if node.ListFlags&ListTypeDefinition != 0 {
 			tagName = "dl"
 		}
 		if entering {
@@ -1273,7 +1273,7 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) {
 			//     attrs.push(['start', start.toString()]);
 			// }
 			r.cr(w)
-			if node.Parent.Type == Item && node.Parent.Parent.ListData.Tight {
+			if node.Parent.Type == Item && node.Parent.Parent.Tight {
 				r.cr(w)
 			}
 			r.out(w, tag(tagName, attrs, false))
@@ -1293,10 +1293,10 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) {
 		}
 	case Item:
 		tagName := "li"
-		if node.ListData.Flags&ListTypeDefinition != 0 {
+		if node.ListFlags&ListTypeDefinition != 0 {
 			tagName = "dd"
 		}
-		if node.ListData.Flags&ListTypeTerm != 0 {
+		if node.ListFlags&ListTypeTerm != 0 {
 			tagName = "dt"
 		}
 		if entering {
