@@ -18,57 +18,6 @@ import (
 	"testing"
 )
 
-func runMarkdownBlockWithRenderer(input string, extensions Extensions, renderer Renderer) string {
-	return string(Markdown([]byte(input), renderer, extensions))
-}
-
-func runMarkdownBlock(input string, extensions Extensions) string {
-	renderer := HTMLRenderer(UseXHTML, extensions, "", "")
-	return runMarkdownBlockWithRenderer(input, extensions, renderer)
-}
-
-func runnerWithRendererParameters(parameters HTMLRendererParameters) func(string, Extensions) string {
-	return func(input string, extensions Extensions) string {
-		renderer := HTMLRendererWithParameters(UseXHTML, extensions, "", "", parameters)
-		return runMarkdownBlockWithRenderer(input, extensions, renderer)
-	}
-}
-
-func doTestsBlock(t *testing.T, tests []string, extensions Extensions) {
-	doTestsBlockWithRunner(t, tests, extensions, runMarkdownBlock)
-}
-
-func doTestsBlockWithRunner(t *testing.T, tests []string, extensions Extensions, runner func(string, Extensions) string) {
-	// catch and report panics
-	var candidate string
-	defer func() {
-		if err := recover(); err != nil {
-			t.Errorf("\npanic while processing [%#v]: %s\n", candidate, err)
-		}
-	}()
-
-	for i := 0; i+1 < len(tests); i += 2 {
-		input := tests[i]
-		candidate = input
-		expected := tests[i+1]
-		actual := runner(candidate, extensions)
-		if actual != expected {
-			t.Errorf("\nInput   [%#v]\nExpected[%#v]\nActual  [%#v]",
-				candidate, expected, actual)
-		}
-
-		// now test every substring to stress test bounds checking
-		if !testing.Short() {
-			for start := 0; start < len(input); start++ {
-				for end := start + 1; end <= len(input); end++ {
-					candidate = input[start:end]
-					_ = runMarkdownBlock(candidate, extensions)
-				}
-			}
-		}
-	}
-}
-
 func TestPrefixHeaderNoExtensions(t *testing.T) {
 	var tests = []string{
 		"# Header 1\n",
