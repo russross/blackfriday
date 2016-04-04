@@ -26,6 +26,22 @@ type TestParams struct {
 	HTMLRendererParameters
 }
 
+func execRecoverableTestSuite(t *testing.T, tests []string, params TestParams, suite func(candidate *string)) {
+	// Catch and report panics. This is useful when running 'go test -v' on
+	// the integration server. When developing, though, crash dump is often
+	// preferable, so recovery can be easily turned off with doRecover = false.
+	var candidate string
+	const doRecover = true
+	if doRecover {
+		defer func() {
+			if err := recover(); err != nil {
+				t.Errorf("\npanic while processing [%#v]: %s\n", candidate, err)
+			}
+		}()
+	}
+	suite(&candidate)
+}
+
 func runMarkdownBlockWithRenderer(input string, extensions Extensions, renderer Renderer) string {
 	return string(Markdown([]byte(input), renderer, extensions))
 }
@@ -47,34 +63,28 @@ func doTestsBlockWithRunner(t *testing.T, tests []string, params TestParams, run
 }
 
 func doTestsWithRunner(t *testing.T, tests []string, params TestParams, runner func(string, TestParams) string) {
-	// catch and report panics
-	var candidate string
-	defer func() {
-		if err := recover(); err != nil {
-			t.Errorf("\npanic while processing [%#v]: %s\n", candidate, err)
-		}
-	}()
+	execRecoverableTestSuite(t, tests, params, func(candidate *string) {
+		for i := 0; i+1 < len(tests); i += 2 {
+			input := tests[i]
+			*candidate = input
+			expected := tests[i+1]
+			actual := runner(*candidate, params)
+			if actual != expected {
+				t.Errorf("\nInput   [%#v]\nExpected[%#v]\nActual  [%#v]",
+					candidate, expected, actual)
+			}
 
-	for i := 0; i+1 < len(tests); i += 2 {
-		input := tests[i]
-		candidate = input
-		expected := tests[i+1]
-		actual := runner(candidate, params)
-		if actual != expected {
-			t.Errorf("\nInput   [%#v]\nExpected[%#v]\nActual  [%#v]",
-				candidate, expected, actual)
-		}
-
-		// now test every substring to stress test bounds checking
-		if !testing.Short() {
-			for start := 0; start < len(input); start++ {
-				for end := start + 1; end <= len(input); end++ {
-					candidate = input[start:end]
-					runner(candidate, params)
+			// now test every substring to stress test bounds checking
+			if !testing.Short() {
+				for start := 0; start < len(input); start++ {
+					for end := start + 1; end <= len(input); end++ {
+						*candidate = input[start:end]
+						runner(*candidate, params)
+					}
 				}
 			}
 		}
-	}
+	})
 }
 
 func runMarkdownInline(input string, params TestParams) string {
@@ -139,54 +149,46 @@ func transformLinks(tests []string, prefix string) []string {
 	return newTests
 }
 
-func runMarkdownReference(input string, flag Extensions) string {
-	renderer := HTMLRenderer(0, flag, "", "")
-	return string(Markdown([]byte(input), renderer, flag))
+func runMarkdownReference(input string, params TestParams) string {
+	renderer := HTMLRenderer(0, params.Options.Extensions, "", "")
+	return string(Markdown([]byte(input), renderer, params.Options.Extensions))
 }
 
 func doTestsReference(t *testing.T, files []string, flag Extensions) {
-	// catch and report panics
-	var candidate string
-	defer func() {
-		if err := recover(); err != nil {
-			t.Errorf("\npanic while processing [%#v]\n", candidate)
-		}
-	}()
+	params := TestParams{Options: Options{Extensions: flag}}
+	execRecoverableTestSuite(t, files, params, func(candidate *string) {
+		for _, basename := range files {
+			filename := filepath.Join("testdata", basename+".text")
+			inputBytes, err := ioutil.ReadFile(filename)
+			if err != nil {
+				t.Errorf("Couldn't open '%s', error: %v\n", filename, err)
+				continue
+			}
+			input := string(inputBytes)
 
-	for _, basename := range files {
-		filename := filepath.Join("testdata", basename+".text")
-		inputBytes, err := ioutil.ReadFile(filename)
-		if err != nil {
-			t.Errorf("Couldn't open '%s', error: %v\n", filename, err)
-			continue
-		}
-		input := string(inputBytes)
+			filename = filepath.Join("testdata", basename+".html")
+			expectedBytes, err := ioutil.ReadFile(filename)
+			if err != nil {
+				t.Errorf("Couldn't open '%s', error: %v\n", filename, err)
+				continue
+			}
+			expected := string(expectedBytes)
 
-		filename = filepath.Join("testdata", basename+".html")
-		expectedBytes, err := ioutil.ReadFile(filename)
-		if err != nil {
-			t.Errorf("Couldn't open '%s', error: %v\n", filename, err)
-			continue
-		}
-		expected := string(expectedBytes)
+			actual := string(runMarkdownReference(input, params))
+			if actual != expected {
+				t.Errorf("\n    [%#v]\nExpected[%#v]\nActual  [%#v]",
+					basename+".text", expected, actual)
+			}
 
-		// fmt.Fprintf(os.Stderr, "processing %s ...", filename)
-		actual := string(runMarkdownReference(input, flag))
-		if actual != expected {
-			t.Errorf("\n    [%#v]\nExpected[%#v]\nActual  [%#v]",
-				basename+".text", expected, actual)
-		}
-		// fmt.Fprintf(os.Stderr, " ok\n")
-
-		// now test every prefix of every input to check for
-		// bounds checking
-		if !testing.Short() {
-			start, max := 0, len(input)
-			for end := start + 1; end <= max; end++ {
-				candidate = input[start:end]
-				// fmt.Fprintf(os.Stderr, "  %s %d:%d/%d\n", filename, start, end, max)
-				_ = runMarkdownReference(candidate, flag)
+			// now test every prefix of every input to check for
+			// bounds checking
+			if !testing.Short() {
+				start, max := 0, len(input)
+				for end := start + 1; end <= max; end++ {
+					*candidate = input[start:end]
+					_ = runMarkdownReference(*candidate, params)
+				}
 			}
 		}
-	}
+	})
 }
