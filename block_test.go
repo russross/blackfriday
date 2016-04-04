@@ -252,10 +252,11 @@ func TestPrefixHeaderIdExtensionWithPrefixAndSuffix(t *testing.T) {
 		HeaderIDSuffix: ":POST",
 	}
 
-	doTestsBlockWithRunner(t, tests, TestParams{
+	doTestsParam(t, tests, TestParams{
 		Options:                Options{Extensions: HeaderIDs},
+		HTMLFlags:              UseXHTML,
 		HTMLRendererParameters: parameters,
-	}, runMarkdownBlock)
+	})
 }
 
 func TestPrefixAutoHeaderIdExtension(t *testing.T) {
@@ -363,10 +364,11 @@ func TestPrefixAutoHeaderIdExtensionWithPrefixAndSuffix(t *testing.T) {
 		HeaderIDSuffix: ":POST",
 	}
 
-	doTestsBlockWithRunner(t, tests, TestParams{
+	doTestsParam(t, tests, TestParams{
 		Options:                Options{Extensions: AutoHeaderIDs},
+		HTMLFlags:              UseXHTML,
 		HTMLRendererParameters: parameters,
-	}, runMarkdownBlock)
+	})
 }
 
 func TestPrefixMultipleHeaderExtensions(t *testing.T) {

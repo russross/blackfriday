@@ -42,33 +42,26 @@ func execRecoverableTestSuite(t *testing.T, tests []string, params TestParams, s
 	suite(&candidate)
 }
 
-func runMarkdownBlockWithRenderer(input string, extensions Extensions, renderer Renderer) string {
-	return string(Markdown([]byte(input), renderer, extensions))
-}
-
-func runMarkdownBlock(input string, params TestParams) string {
-	renderer := HTMLRendererWithParameters(params.HTMLFlags|UseXHTML,
+func runMarkdown(input string, params TestParams) string {
+	renderer := HTMLRendererWithParameters(params.HTMLFlags,
 		params.Options.Extensions, "", "", params.HTMLRendererParameters)
-	return runMarkdownBlockWithRenderer(input, params.Options.Extensions, renderer)
+	return string(MarkdownOptions([]byte(input), renderer, params.Options))
 }
 
 func doTestsBlock(t *testing.T, tests []string, extensions Extensions) {
-	doTestsBlockWithRunner(t, tests, TestParams{
-		Options: Options{Extensions: extensions},
-	}, runMarkdownBlock)
+	doTestsParam(t, tests, TestParams{
+		Options:   Options{Extensions: extensions},
+		HTMLFlags: UseXHTML,
+	})
 }
 
-func doTestsBlockWithRunner(t *testing.T, tests []string, params TestParams, runner func(string, TestParams) string) {
-	doTestsWithRunner(t, tests, params, runner)
-}
-
-func doTestsWithRunner(t *testing.T, tests []string, params TestParams, runner func(string, TestParams) string) {
+func doTestsParam(t *testing.T, tests []string, params TestParams) {
 	execRecoverableTestSuite(t, tests, params, func(candidate *string) {
 		for i := 0; i+1 < len(tests); i += 2 {
 			input := tests[i]
 			*candidate = input
 			expected := tests[i+1]
-			actual := runner(*candidate, params)
+			actual := runMarkdown(*candidate, params)
 			if actual != expected {
 				t.Errorf("\nInput   [%#v]\nExpected[%#v]\nActual  [%#v]",
 					candidate, expected, actual)
@@ -79,23 +72,12 @@ func doTestsWithRunner(t *testing.T, tests []string, params TestParams, runner f
 				for start := 0; start < len(input); start++ {
 					for end := start + 1; end <= len(input); end++ {
 						*candidate = input[start:end]
-						runner(*candidate, params)
+						runMarkdown(*candidate, params)
 					}
 				}
 			}
 		}
 	})
-}
-
-func runMarkdownInline(input string, params TestParams) string {
-	opts := params.Options
-	opts.Extensions |= Autolink
-	opts.Extensions |= Strikethrough
-
-	renderer := HTMLRendererWithParameters(params.HTMLFlags|UseXHTML,
-		opts.Extensions, "", "", params.HTMLRendererParameters)
-
-	return string(MarkdownOptions([]byte(input), renderer, opts))
 }
 
 func doTestsInline(t *testing.T, tests []string) {
@@ -132,7 +114,10 @@ func doSafeTestsInline(t *testing.T, tests []string) {
 }
 
 func doTestsInlineParam(t *testing.T, tests []string, params TestParams) {
-	doTestsWithRunner(t, tests, params, runMarkdownInline)
+	params.Options.Extensions |= Autolink
+	params.Options.Extensions |= Strikethrough
+	params.HTMLFlags |= UseXHTML
+	doTestsParam(t, tests, params)
 }
 
 func transformLinks(tests []string, prefix string) []string {
@@ -147,11 +132,6 @@ func transformLinks(tests []string, prefix string) []string {
 		newTests[i] = test
 	}
 	return newTests
-}
-
-func runMarkdownReference(input string, params TestParams) string {
-	renderer := HTMLRenderer(0, params.Options.Extensions, "", "")
-	return string(Markdown([]byte(input), renderer, params.Options.Extensions))
 }
 
 func doTestsReference(t *testing.T, files []string, flag Extensions) {
@@ -174,7 +154,7 @@ func doTestsReference(t *testing.T, files []string, flag Extensions) {
 			}
 			expected := string(expectedBytes)
 
-			actual := string(runMarkdownReference(input, params))
+			actual := string(runMarkdown(input, params))
 			if actual != expected {
 				t.Errorf("\n    [%#v]\nExpected[%#v]\nActual  [%#v]",
 					basename+".text", expected, actual)
@@ -186,7 +166,7 @@ func doTestsReference(t *testing.T, files []string, flag Extensions) {
 				start, max := 0, len(input)
 				for end := start + 1; end <= max; end++ {
 					*candidate = input[start:end]
-					_ = runMarkdownReference(*candidate, params)
+					runMarkdown(*candidate, params)
 				}
 			}
 		}
