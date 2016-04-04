@@ -43,6 +43,10 @@ func doTestsBlock(t *testing.T, tests []string, extensions Extensions) {
 }
 
 func doTestsBlockWithRunner(t *testing.T, tests []string, params TestParams, runner func(string, TestParams) string) {
+	doTestsWithRunner(t, tests, params, runner)
+}
+
+func doTestsWithRunner(t *testing.T, tests []string, params TestParams, runner func(string, TestParams) string) {
 	// catch and report panics
 	var candidate string
 	defer func() {
@@ -118,34 +122,7 @@ func doSafeTestsInline(t *testing.T, tests []string) {
 }
 
 func doTestsInlineParam(t *testing.T, tests []string, params TestParams) {
-	// catch and report panics
-	var candidate string
-	defer func() {
-		if err := recover(); err != nil {
-			t.Errorf("\npanic while processing [%#v] (%v)\n", candidate, err)
-		}
-	}()
-
-	for i := 0; i+1 < len(tests); i += 2 {
-		input := tests[i]
-		candidate = input
-		expected := tests[i+1]
-		actual := runMarkdownInline(candidate, params)
-		if actual != expected {
-			t.Errorf("\nInput   [%#v]\nExpected[%#v]\nActual  [%#v]",
-				candidate, expected, actual)
-		}
-
-		// now test every substring to stress test bounds checking
-		if !testing.Short() {
-			for start := 0; start < len(input); start++ {
-				for end := start + 1; end <= len(input); end++ {
-					candidate = input[start:end]
-					runMarkdownInline(candidate, params)
-				}
-			}
-		}
-	}
+	doTestsWithRunner(t, tests, params, runMarkdownInline)
 }
 
 func transformLinks(tests []string, prefix string) []string {
