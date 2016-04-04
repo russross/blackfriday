@@ -999,6 +999,13 @@ func isMailto(link []byte) bool {
 	return bytes.HasPrefix(link, []byte("mailto:"))
 }
 
+func needSkipLink(flags HTMLFlags, dest []byte) bool {
+	if flags&SkipLinks != 0 {
+		return true
+	}
+	return flags&Safelink != 0 && !isSafeLink(dest) && !isMailto(dest)
+}
+
 func isSmartypantable(node *Node) bool {
 	pt := node.Parent.Type
 	return pt != Link && pt != CodeBlock && pt != Code
@@ -1134,7 +1141,7 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) {
 	case Link:
 		// mark it but don't link it if it is not a safe link: no smartypants
 		dest := node.LinkData.Destination
-		if r.flags&Safelink != 0 && !isSafeLink(dest) && !isMailto(dest) {
+		if needSkipLink(r.flags, dest) {
 			if entering {
 				r.out(w, tag("tt", nil, false))
 			} else {

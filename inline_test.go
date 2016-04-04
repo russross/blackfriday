@@ -1114,5 +1114,18 @@ func TestDisableSmartDashes(t *testing.T) {
 		"foo --- bar\n",
 		"<p>foo --- bar</p>\n",
 	}, TestParams{
-		Options: Options{Extensions: Smartypants | SmartypantsLatexDashes}})
+		Options: Options{Extensions: Smartypants | SmartypantsLatexDashes},
+	})
+}
+
+func TestSkipLinks(t *testing.T) {
+	doTestsInlineParam(t, []string{
+		"[foo](gopher://foo.bar)",
+		"<p><tt>foo</tt></p>\n",
+
+		"[foo](mailto://bar/)\n",
+		"<p><tt>foo</tt></p>\n",
+	}, TestParams{
+		HTMLFlags: SkipLinks,
+	})
 }
