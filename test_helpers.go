@@ -20,6 +20,12 @@ import (
 	"testing"
 )
 
+type TestParams struct {
+	Options
+	HTMLFlags
+	HTMLRendererParameters
+}
+
 func runMarkdownBlockWithRenderer(input string, extensions Extensions, renderer Renderer) string {
 	return string(Markdown([]byte(input), renderer, extensions))
 }
@@ -71,19 +77,19 @@ func doTestsBlockWithRunner(t *testing.T, tests []string, extensions Extensions,
 	}
 }
 
-func runMarkdownInline(input string, opts Options, htmlFlags HTMLFlags, params HTMLRendererParameters) string {
+func runMarkdownInline(input string, params TestParams) string {
+	opts := params.Options
 	opts.Extensions |= Autolink
 	opts.Extensions |= Strikethrough
 
-	htmlFlags |= UseXHTML
-
-	renderer := HTMLRendererWithParameters(htmlFlags, opts.Extensions, "", "", params)
+	renderer := HTMLRendererWithParameters(params.HTMLFlags|UseXHTML,
+		opts.Extensions, "", "", params.HTMLRendererParameters)
 
 	return string(MarkdownOptions([]byte(input), renderer, opts))
 }
 
 func doTestsInline(t *testing.T, tests []string) {
-	doTestsInlineParam(t, tests, Options{}, 0, HTMLRendererParameters{})
+	doTestsInlineParam(t, tests, TestParams{})
 }
 
 func doLinkTestsInline(t *testing.T, tests []string) {
@@ -92,22 +98,30 @@ func doLinkTestsInline(t *testing.T, tests []string) {
 	prefix := "http://localhost"
 	params := HTMLRendererParameters{AbsolutePrefix: prefix}
 	transformTests := transformLinks(tests, prefix)
-	doTestsInlineParam(t, transformTests, Options{}, 0, params)
-	doTestsInlineParam(t, transformTests, Options{}, CommonHtmlFlags, params)
+	doTestsInlineParam(t, transformTests, TestParams{
+		HTMLRendererParameters: params,
+	})
+	doTestsInlineParam(t, transformTests, TestParams{
+		HTMLFlags:              CommonHtmlFlags,
+		HTMLRendererParameters: params,
+	})
 }
 
 func doSafeTestsInline(t *testing.T, tests []string) {
-	doTestsInlineParam(t, tests, Options{}, Safelink, HTMLRendererParameters{})
+	doTestsInlineParam(t, tests, TestParams{HTMLFlags: Safelink})
 
 	// All the links in this test should not have the prefix appended, so
 	// just rerun it with different parameters and the same expectations.
 	prefix := "http://localhost"
 	params := HTMLRendererParameters{AbsolutePrefix: prefix}
 	transformTests := transformLinks(tests, prefix)
-	doTestsInlineParam(t, transformTests, Options{}, Safelink, params)
+	doTestsInlineParam(t, transformTests, TestParams{
+		HTMLFlags:              Safelink,
+		HTMLRendererParameters: params,
+	})
 }
 
-func doTestsInlineParam(t *testing.T, tests []string, opts Options, htmlFlags HTMLFlags, params HTMLRendererParameters) {
+func doTestsInlineParam(t *testing.T, tests []string, params TestParams) {
 	// catch and report panics
 	var candidate string
 	defer func() {
@@ -120,7 +134,7 @@ func doTestsInlineParam(t *testing.T, tests []string, opts Options, htmlFlags HT
 		input := tests[i]
 		candidate = input
 		expected := tests[i+1]
-		actual := runMarkdownInline(candidate, opts, htmlFlags, params)
+		actual := runMarkdownInline(candidate, params)
 		if actual != expected {
 			t.Errorf("\nInput   [%#v]\nExpected[%#v]\nActual  [%#v]",
 				candidate, expected, actual)
@@ -131,7 +145,7 @@ func doTestsInlineParam(t *testing.T, tests []string, opts Options, htmlFlags HT
 			for start := 0; start < len(input); start++ {
 				for end := start + 1; end <= len(input); end++ {
 					candidate = input[start:end]
-					_ = runMarkdownInline(candidate, opts, htmlFlags, params)
+					runMarkdownInline(candidate, params)
 				}
 			}
 		}

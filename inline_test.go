@@ -99,38 +99,41 @@ func TestReferenceOverride(t *testing.T) {
 		"test [ref5][]\n",
 		"<p>test <a href=\"http://www.ref5.com/\" title=\"Reference 5\">Moo</a></p>\n",
 	}
-	doTestsInlineParam(t, tests, Options{
-		ReferenceOverride: func(reference string) (rv *Reference, overridden bool) {
-			switch reference {
-			case "ref1":
-				// just an overriden reference exists without definition
-				return &Reference{
-					Link:  "http://www.ref1.com/",
-					Title: "Reference 1"}, true
-			case "ref2":
-				// overridden exists and reference defined
-				return &Reference{
-					Link:  "http://www.overridden.com/",
-					Title: "Reference Overridden"}, true
-			case "ref3":
-				// not overridden and reference defined
+	doTestsInlineParam(t, tests, TestParams{
+		Options: Options{
+			ReferenceOverride: func(reference string) (rv *Reference, overridden bool) {
+				switch reference {
+				case "ref1":
+					// just an overriden reference exists without definition
+					return &Reference{
+						Link:  "http://www.ref1.com/",
+						Title: "Reference 1"}, true
+				case "ref2":
+					// overridden exists and reference defined
+					return &Reference{
+						Link:  "http://www.overridden.com/",
+						Title: "Reference Overridden"}, true
+				case "ref3":
+					// not overridden and reference defined
+					return nil, false
+				case "ref4":
+					// overridden missing and defined
+					return nil, true
+				case "!(*http.ServeMux).ServeHTTP":
+					return &Reference{
+						Link:  "http://localhost:6060/pkg/net/http/#ServeMux.ServeHTTP",
+						Title: "ServeHTTP docs"}, true
+				case "ref5":
+					return &Reference{
+						Link:  "http://www.ref5.com/",
+						Title: "Reference 5",
+						Text:  "Moo",
+					}, true
+				}
 				return nil, false
-			case "ref4":
-				// overridden missing and defined
-				return nil, true
-			case "!(*http.ServeMux).ServeHTTP":
-				return &Reference{
-					Link:  "http://localhost:6060/pkg/net/http/#ServeMux.ServeHTTP",
-					Title: "ServeHTTP docs"}, true
-			case "ref5":
-				return &Reference{
-					Link:  "http://www.ref5.com/",
-					Title: "Reference 5",
-					Text:  "Moo",
-				}, true
-			}
-			return nil, false
-		}}, 0, HTMLRendererParameters{})
+			},
+		},
+	})
 }
 
 func TestStrong(t *testing.T) {
@@ -340,9 +343,8 @@ func TestLineBreak(t *testing.T) {
 		"this has an   \nextra space\n",
 		"<p>this has an<br />\nextra space</p>\n",
 	}
-	doTestsInlineParam(t, tests, Options{
-		Extensions: BackslashLineBreak},
-		0, HTMLRendererParameters{})
+	doTestsInlineParam(t, tests, TestParams{Options: Options{
+		Extensions: BackslashLineBreak}})
 }
 
 func TestInlineLink(t *testing.T) {
@@ -482,8 +484,9 @@ func TestRelAttrLink(t *testing.T) {
 		"[foo](../bar)\n",
 		"<p><a href=\"../bar\">foo</a></p>\n",
 	}
-	doTestsInlineParam(t, nofollowTests, Options{}, Safelink|NofollowLinks,
-		HTMLRendererParameters{})
+	doTestsInlineParam(t, nofollowTests, TestParams{
+		HTMLFlags: Safelink | NofollowLinks,
+	})
 
 	var noreferrerTests = []string{
 		"[foo](http://bar.com/foo/)\n",
@@ -492,8 +495,9 @@ func TestRelAttrLink(t *testing.T) {
 		"[foo](/bar/)\n",
 		"<p><a href=\"/bar/\">foo</a></p>\n",
 	}
-	doTestsInlineParam(t, noreferrerTests, Options{}, Safelink|NoreferrerLinks,
-		HTMLRendererParameters{})
+	doTestsInlineParam(t, noreferrerTests, TestParams{
+		HTMLFlags: Safelink | NoreferrerLinks,
+	})
 
 	var nofollownoreferrerTests = []string{
 		"[foo](http://bar.com/foo/)\n",
@@ -502,8 +506,9 @@ func TestRelAttrLink(t *testing.T) {
 		"[foo](/bar/)\n",
 		"<p><a href=\"/bar/\">foo</a></p>\n",
 	}
-	doTestsInlineParam(t, nofollownoreferrerTests, Options{}, Safelink|NofollowLinks|NoreferrerLinks,
-		HTMLRendererParameters{})
+	doTestsInlineParam(t, nofollownoreferrerTests, TestParams{
+		HTMLFlags: Safelink | NofollowLinks | NoreferrerLinks,
+	})
 }
 
 func TestHrefTargetBlank(t *testing.T) {
@@ -530,7 +535,9 @@ func TestHrefTargetBlank(t *testing.T) {
 		"[foo](http://example.com)\n",
 		"<p><a href=\"http://example.com\" target=\"_blank\">foo</a></p>\n",
 	}
-	doTestsInlineParam(t, tests, Options{}, Safelink|HrefTargetBlank, HTMLRendererParameters{})
+	doTestsInlineParam(t, tests, TestParams{
+		HTMLFlags: Safelink | HrefTargetBlank,
+	})
 }
 
 func TestSafeInlineLink(t *testing.T) {
@@ -918,7 +925,9 @@ what happens here
 }
 
 func TestFootnotes(t *testing.T) {
-	doTestsInlineParam(t, footnoteTests, Options{Extensions: Footnotes}, 0, HTMLRendererParameters{})
+	doTestsInlineParam(t, footnoteTests, TestParams{
+		Options: Options{Extensions: Footnotes},
+	})
 }
 
 func TestFootnotesWithParameters(t *testing.T) {
@@ -943,7 +952,11 @@ func TestFootnotesWithParameters(t *testing.T) {
 		FootnoteReturnLinkContents: returnText,
 	}
 
-	doTestsInlineParam(t, tests, Options{Extensions: Footnotes}, FootnoteReturnLinks, params)
+	doTestsInlineParam(t, tests, TestParams{
+		Options:                Options{Extensions: Footnotes},
+		HTMLFlags:              FootnoteReturnLinks,
+		HTMLRendererParameters: params,
+	})
 }
 
 func TestNestedFootnotes(t *testing.T) {
@@ -970,8 +983,7 @@ func TestNestedFootnotes(t *testing.T) {
 </div>
 `,
 	}
-	doTestsInlineParam(t, tests, Options{Extensions: Footnotes}, 0,
-		HTMLRendererParameters{})
+	doTestsInlineParam(t, tests, TestParams{Options: Options{Extensions: Footnotes}})
 }
 
 func TestInlineComments(t *testing.T) {
@@ -1000,7 +1012,11 @@ func TestInlineComments(t *testing.T) {
 		"blahblah\n<!--- foo -->\nrhubarb\n",
 		"<p>blahblah\n<!--- foo -->\nrhubarb</p>\n",
 	}
-	doTestsInlineParam(t, tests, Options{Extensions: Smartypants | SmartypantsDashes}, 0, HTMLRendererParameters{})
+	doTestsInlineParam(t, tests, TestParams{
+		Options: Options{
+			Extensions: Smartypants | SmartypantsDashes,
+		},
+	})
 }
 
 func TestSmartDoubleQuotes(t *testing.T) {
@@ -1012,7 +1028,11 @@ func TestSmartDoubleQuotes(t *testing.T) {
 		"two pair of \"some\" quoted \"text\".\n",
 		"<p>two pair of &ldquo;some&rdquo; quoted &ldquo;text&rdquo;.</p>\n"}
 
-	doTestsInlineParam(t, tests, Options{Extensions: Smartypants}, 0, HTMLRendererParameters{})
+	doTestsInlineParam(t, tests, TestParams{
+		Options: Options{
+			Extensions: Smartypants,
+		},
+	})
 }
 
 func TestSmartAngledDoubleQuotes(t *testing.T) {
@@ -1024,7 +1044,11 @@ func TestSmartAngledDoubleQuotes(t *testing.T) {
 		"two pair of \"some\" quoted \"text\".\n",
 		"<p>two pair of &laquo;some&raquo; quoted &laquo;text&raquo;.</p>\n"}
 
-	doTestsInlineParam(t, tests, Options{Extensions: Smartypants | SmartypantsAngledQuotes}, 0, HTMLRendererParameters{})
+	doTestsInlineParam(t, tests, TestParams{
+		Options: Options{
+			Extensions: Smartypants | SmartypantsAngledQuotes,
+		},
+	})
 }
 
 func TestSmartFractions(t *testing.T) {
@@ -1034,7 +1058,11 @@ func TestSmartFractions(t *testing.T) {
 		"1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.\n",
 		"<p>1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.</p>\n"}
 
-	doTestsInlineParam(t, tests, Options{Extensions: Smartypants}, 0, HTMLRendererParameters{})
+	doTestsInlineParam(t, tests, TestParams{
+		Options: Options{
+			Extensions: Smartypants,
+		},
+	})
 
 	tests = []string{
 		"1/2, 2/3, 81/100 and 1000000/1048576.\n",
@@ -1042,7 +1070,11 @@ func TestSmartFractions(t *testing.T) {
 		"1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.\n",
 		"<p>1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.</p>\n"}
 
-	doTestsInlineParam(t, tests, Options{Extensions: Smartypants | SmartypantsFractions}, 0, HTMLRendererParameters{})
+	doTestsInlineParam(t, tests, TestParams{
+		Options: Options{
+			Extensions: Smartypants | SmartypantsFractions,
+		},
+	})
 }
 
 func TestDisableSmartDashes(t *testing.T) {
@@ -1053,7 +1085,7 @@ func TestDisableSmartDashes(t *testing.T) {
 		"<p>foo -- bar</p>\n",
 		"foo --- bar\n",
 		"<p>foo --- bar</p>\n",
-	}, Options{}, 0, HTMLRendererParameters{})
+	}, TestParams{})
 	doTestsInlineParam(t, []string{
 		"foo - bar\n",
 		"<p>foo &ndash; bar</p>\n",
@@ -1061,7 +1093,7 @@ func TestDisableSmartDashes(t *testing.T) {
 		"<p>foo &mdash; bar</p>\n",
 		"foo --- bar\n",
 		"<p>foo &mdash;&ndash; bar</p>\n",
-	}, Options{Extensions: Smartypants | SmartypantsDashes}, 0, HTMLRendererParameters{})
+	}, TestParams{Options: Options{Extensions: Smartypants | SmartypantsDashes}})
 	doTestsInlineParam(t, []string{
 		"foo - bar\n",
 		"<p>foo - bar</p>\n",
@@ -1069,8 +1101,11 @@ func TestDisableSmartDashes(t *testing.T) {
 		"<p>foo &ndash; bar</p>\n",
 		"foo --- bar\n",
 		"<p>foo &mdash; bar</p>\n",
-	}, Options{Extensions: Smartypants | SmartypantsLatexDashes | SmartypantsDashes}, 0,
-		HTMLRendererParameters{})
+	}, TestParams{
+		Options: Options{
+			Extensions: Smartypants | SmartypantsLatexDashes | SmartypantsDashes,
+		},
+	})
 	doTestsInlineParam(t, []string{
 		"foo - bar\n",
 		"<p>foo - bar</p>\n",
@@ -1078,7 +1113,6 @@ func TestDisableSmartDashes(t *testing.T) {
 		"<p>foo -- bar</p>\n",
 		"foo --- bar\n",
 		"<p>foo --- bar</p>\n",
-	}, Options{Extensions: Smartypants | SmartypantsLatexDashes},
-		0,
-		HTMLRendererParameters{})
+	}, TestParams{
+		Options: Options{Extensions: Smartypants | SmartypantsLatexDashes}})
 }
