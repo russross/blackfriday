@@ -66,7 +66,7 @@ func doTestsBlockWithRunner(t *testing.T, tests []string, params TestParams, run
 			for start := 0; start < len(input); start++ {
 				for end := start + 1; end <= len(input); end++ {
 					candidate = input[start:end]
-					_ = runMarkdownBlock(candidate, params)
+					runner(candidate, params)
 				}
 			}
 		}
