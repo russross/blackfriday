@@ -30,23 +30,19 @@ func runMarkdownBlockWithRenderer(input string, extensions Extensions, renderer 
 	return string(Markdown([]byte(input), renderer, extensions))
 }
 
-func runMarkdownBlock(input string, extensions Extensions) string {
-	renderer := HTMLRenderer(UseXHTML, extensions, "", "")
-	return runMarkdownBlockWithRenderer(input, extensions, renderer)
-}
-
-func runnerWithRendererParameters(parameters HTMLRendererParameters) func(string, Extensions) string {
-	return func(input string, extensions Extensions) string {
-		renderer := HTMLRendererWithParameters(UseXHTML, extensions, "", "", parameters)
-		return runMarkdownBlockWithRenderer(input, extensions, renderer)
-	}
+func runMarkdownBlock(input string, params TestParams) string {
+	renderer := HTMLRendererWithParameters(params.HTMLFlags|UseXHTML,
+		params.Options.Extensions, "", "", params.HTMLRendererParameters)
+	return runMarkdownBlockWithRenderer(input, params.Options.Extensions, renderer)
 }
 
 func doTestsBlock(t *testing.T, tests []string, extensions Extensions) {
-	doTestsBlockWithRunner(t, tests, extensions, runMarkdownBlock)
+	doTestsBlockWithRunner(t, tests, TestParams{
+		Options: Options{Extensions: extensions},
+	}, runMarkdownBlock)
 }
 
-func doTestsBlockWithRunner(t *testing.T, tests []string, extensions Extensions, runner func(string, Extensions) string) {
+func doTestsBlockWithRunner(t *testing.T, tests []string, params TestParams, runner func(string, TestParams) string) {
 	// catch and report panics
 	var candidate string
 	defer func() {
@@ -59,7 +55,7 @@ func doTestsBlockWithRunner(t *testing.T, tests []string, extensions Extensions,
 		input := tests[i]
 		candidate = input
 		expected := tests[i+1]
-		actual := runner(candidate, extensions)
+		actual := runner(candidate, params)
 		if actual != expected {
 			t.Errorf("\nInput   [%#v]\nExpected[%#v]\nActual  [%#v]",
 				candidate, expected, actual)
@@ -70,7 +66,7 @@ func doTestsBlockWithRunner(t *testing.T, tests []string, extensions Extensions,
 			for start := 0; start < len(input); start++ {
 				for end := start + 1; end <= len(input); end++ {
 					candidate = input[start:end]
-					_ = runMarkdownBlock(candidate, extensions)
+					_ = runMarkdownBlock(candidate, params)
 				}
 			}
 		}
