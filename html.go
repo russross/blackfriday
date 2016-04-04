@@ -38,8 +38,6 @@ const (
 	NofollowLinks                             // Only link with rel="nofollow"
 	NoreferrerLinks                           // Only link with rel="noreferrer"
 	HrefTargetBlank                           // Add a blank target
-	TOC                                       // Generate a table of contents
-	OmitContents                              // Skip the main contents (for a standalone table of contents)
 	CompletePage                              // Generate a complete HTML page
 	UseXHTML                                  // Generate XHTML output instead of HTML
 	FootnoteReturnLinks                       // Generate a link at the end of a footnote to return to the source
@@ -249,7 +247,7 @@ func (r *HTML) TitleBlock(text []byte) {
 func (r *HTML) BeginHeader(level int, id string) {
 	r.w.Newline()
 
-	if id == "" && r.flags&TOC != 0 {
+	if id == "" && r.extensions&TOC != 0 {
 		id = fmt.Sprintf("toc_%d", r.headerCount)
 	}
 
@@ -272,7 +270,7 @@ func (r *HTML) BeginHeader(level int, id string) {
 
 func (r *HTML) EndHeader(level int, id string, header []byte) {
 	// are we building a table of contents?
-	if r.flags&TOC != 0 {
+	if r.extensions&TOC != 0 {
 		r.TocHeaderWithAnchor(header, level, id)
 	}
 
@@ -733,7 +731,7 @@ func (r *HTML) DocumentHeader() {
 
 func (r *HTML) DocumentFooter() {
 	// finalize and insert the table of contents
-	if r.flags&TOC != 0 {
+	if r.extensions&TOC != 0 {
 		r.TocFinalize()
 
 		// now we have to insert the table of contents into the document
@@ -756,12 +754,12 @@ func (r *HTML) DocumentFooter() {
 		r.w.WriteString("</nav>\n")
 
 		// corner case spacing issue
-		if r.flags&CompletePage == 0 && r.flags&OmitContents == 0 {
+		if r.flags&CompletePage == 0 && r.extensions&OmitContents == 0 {
 			r.w.WriteByte('\n')
 		}
 
 		// write out everything that came after it
-		if r.flags&OmitContents == 0 {
+		if r.extensions&OmitContents == 0 {
 			r.w.Write(temp.Bytes())
 		}
 	}
@@ -1389,6 +1387,54 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) {
 	}
 }
 
+func (r *HTML) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
+	if r.flags&CompletePage == 0 {
+		return
+	}
+	ending := ""
+	if r.flags&UseXHTML != 0 {
+		w.WriteString("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" ")
+		w.WriteString("\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n")
+		w.WriteString("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n")
+		ending = " /"
+	} else {
+		w.WriteString("<!DOCTYPE html>\n")
+		w.WriteString("<html>\n")
+	}
+	w.WriteString("<head>\n")
+	w.WriteString("  <title>")
+	if r.extensions&Smartypants != 0 {
+		w.Write(sr.Process([]byte(r.title)))
+	} else {
+		w.Write(esc([]byte(r.title), false))
+	}
+	w.WriteString("</title>\n")
+	w.WriteString("  <meta name=\"GENERATOR\" content=\"Blackfriday Markdown Processor v")
+	w.WriteString(VERSION)
+	w.WriteString("\"")
+	w.WriteString(ending)
+	w.WriteString(">\n")
+	w.WriteString("  <meta charset=\"utf-8\"")
+	w.WriteString(ending)
+	w.WriteString(">\n")
+	if r.css != "" {
+		w.WriteString("  <link rel=\"stylesheet\" type=\"text/css\" href=\"")
+		r.attrEscape([]byte(r.css))
+		w.WriteString("\"")
+		w.WriteString(ending)
+		w.WriteString(">\n")
+	}
+	w.WriteString("</head>\n")
+	w.WriteString("<body>\n\n")
+}
+
+func (r *HTML) writeDocumentFooter(w *bytes.Buffer) {
+	if r.flags&CompletePage == 0 {
+		return
+	}
+	w.WriteString("\n</body>\n</html>\n")
+}
+
 func (r *HTML) Render(ast *Node) []byte {
 	//println("render_Blackfriday")
 	//dump(ast)
@@ -1404,8 +1450,10 @@ func (r *HTML) Render(ast *Node) []byte {
 		}
 	})
 	var buff bytes.Buffer
+	r.writeDocumentHeader(&buff, sr)
 	ast.Walk(func(node *Node, entering bool) {
 		r.RenderNode(&buff, node, entering)
 	})
+	r.writeDocumentFooter(&buff)
 	return buff.Bytes()
 }

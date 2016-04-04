@@ -1522,3 +1522,82 @@ func TestBlockComments(t *testing.T) {
 	}
 	doTestsBlock(t, tests, 0)
 }
+
+func TestTOC(t *testing.T) {
+	var tests = []string{
+		"# Title\n\n##Subtitle1\n\n##Subtitle2",
+		//"<nav>\n<ul>\n<li><a href=\"#toc_0\">Title</a>\n<ul>\n<li><a href=\"#toc_1\">Subtitle1</a></li>\n<li><a href=\"#toc_2\">Subtitle2</a></li>\n</ul></li>\n</ul>\n</nav>\n\n<h1 id=\"toc_0\">Title</h1>\n\n<h2 id=\"toc_1\">Subtitle1</h2>\n\n<h2 id=\"toc_2\">Subtitle2</h2>\n",
+		`<nav>
+
+<ul>
+<li><a href="#toc_0">Title</a>
+<ul>
+<li><a href="#toc_1">Subtitle1</a></li>
+
+<li><a href="#toc_2">Subtitle2</a></li>
+</ul></li>
+</ul>
+
+</nav>
+
+<h1 id="toc_0">Title</h1>
+
+<h2 id="toc_1">Subtitle1</h2>
+
+<h2 id="toc_2">Subtitle2</h2>
+`,
+
+		"# Title\n\n##Subtitle\n\n#Title2",
+		//"<nav>\n<ul>\n<li><a href=\"#toc_0\">Title</a>\n<ul>\n<li><a href=\"#toc_1\">Subtitle</a></li>\n</ul></li>\n<li><a href=\"#toc_2\">Title2</a></li>\n</ul>\n</nav>\n\n<h1 id=\"toc_0\">Title</h1>\n\n<h2 id=\"toc_1\">Subtitle</h2>\n\n<h1 id=\"toc_2\">Title2</h1>\n",
+		`<nav>
+
+<ul>
+<li><a href="#toc_0">Title</a>
+<ul>
+<li><a href="#toc_1">Subtitle</a></li>
+</ul></li>
+
+<li><a href="#toc_2">Title2</a></li>
+</ul>
+
+</nav>
+
+<h1 id="toc_0">Title</h1>
+
+<h2 id="toc_1">Subtitle</h2>
+
+<h1 id="toc_2">Title2</h1>
+`,
+
+		// Trigger empty TOC
+		"#",
+		"",
+	}
+	doTestsBlock(t, tests, TOC)
+}
+
+func TestOmitContents(t *testing.T) {
+	var tests = []string{
+		"# Title\n\n##Subtitle\n\n#Title2",
+		`<nav>
+
+<ul>
+<li><a href="#toc_0">Title</a>
+<ul>
+<li><a href="#toc_1">Subtitle</a></li>
+</ul></li>
+
+<li><a href="#toc_2">Title2</a></li>
+</ul>
+
+</nav>
+`,
+
+		// Make sure OmitContents omits even with no TOC
+		"#\n\nfoo",
+		"",
+	}
+	doTestsBlock(t, tests, TOC|OmitContents)
+	// Now run again: make sure OmitContents implies TOC
+	doTestsBlock(t, tests, OmitContents)
+}

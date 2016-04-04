@@ -157,6 +157,20 @@ func (n *Node) appendChild(child *Node) {
 	}
 }
 
+func (n *Node) insertBefore(sibling *Node) {
+	sibling.unlink()
+	sibling.Prev = n.Prev
+	if sibling.Prev != nil {
+		sibling.Prev.Next = sibling
+	}
+	sibling.Next = n
+	n.Prev = sibling
+	sibling.Parent = n.Parent
+	if sibling.Prev == nil {
+		sibling.Parent.FirstChild = sibling
+	}
+}
+
 func (n *Node) isContainer() bool {
 	switch n.Type {
 	case Document:

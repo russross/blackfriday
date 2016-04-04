@@ -54,6 +54,8 @@ const (
 	SmartypantsDashes                              // Enable smart dashes (with Smartypants)
 	SmartypantsLatexDashes                         // Enable LaTeX-style dashes (with Smartypants)
 	SmartypantsAngledQuotes                        // Enable angled double quotes (with Smartypants) for double quotes rendering
+	TOC                                            // Generate a table of contents
+	OmitContents                                   // Skip the main contents (for a standalone table of contents)
 
 	CommonHtmlFlags HTMLFlags = UseXHTML
 
@@ -458,7 +460,70 @@ func Parse(input []byte, opts Options) *Node {
 		}
 	})
 	p.parseRefsToAST()
+	p.generateTOC()
 	return p.doc
+}
+
+func (p *parser) generateTOC() {
+	if p.flags&TOC == 0 && p.flags&OmitContents == 0 {
+		return
+	}
+	navNode := NewNode(HTMLBlock)
+	navNode.Literal = []byte("<nav>")
+	navNode.open = false
+
+	var topList *Node
+	var listNode *Node
+	var lastItem *Node
+	headerCount := 0
+	var currentLevel uint32
+	p.doc.Walk(func(node *Node, entering bool) {
+		if entering && node.Type == Header {
+			if node.Level > currentLevel {
+				currentLevel++
+				newList := NewNode(List)
+				if lastItem != nil {
+					lastItem.appendChild(newList)
+					listNode = newList
+				} else {
+					listNode = newList
+					topList = listNode
+				}
+			}
+			if node.Level < currentLevel {
+				finalizeList(listNode)
+				lastItem = listNode.Parent
+				listNode = lastItem.Parent
+			}
+			node.HeaderID = fmt.Sprintf("toc_%d", headerCount)
+			headerCount++
+			lastItem = NewNode(Item)
+			listNode.appendChild(lastItem)
+			anchorNode := NewNode(Link)
+			anchorNode.Destination = []byte("#" + node.HeaderID)
+			lastItem.appendChild(anchorNode)
+			anchorNode.appendChild(text(node.FirstChild.Literal))
+		}
+	})
+	firstChild := p.doc.FirstChild
+	// Insert TOC only if there is anything to insert
+	if topList != nil {
+		finalizeList(topList)
+		firstChild.insertBefore(navNode)
+		firstChild.insertBefore(topList)
+		navCloseNode := NewNode(HTMLBlock)
+		navCloseNode.Literal = []byte("</nav>")
+		navCloseNode.open = false
+		firstChild.insertBefore(navCloseNode)
+	}
+	// Drop everything after the TOC if OmitContents was requested
+	if p.flags&OmitContents != 0 {
+		for firstChild != nil {
+			next := firstChild.Next
+			firstChild.unlink()
+			firstChild = next
+		}
+	}
 }
 
 func (p *parser) parseRefsToAST() {
