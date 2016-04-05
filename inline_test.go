@@ -1158,3 +1158,13 @@ func TestUseXHTML(t *testing.T) {
 		"<hr />\n",
 	}, TestParams{HTMLFlags: UseXHTML})
 }
+
+func TestSkipHTML(t *testing.T) {
+	doTestsParam(t, []string{
+		"<div class=\"foo\"></div>\n\ntext\n\n<form>the form</form>",
+		"<p>text</p>\n",
+
+		"text <em>inline html</em> more text",
+		"<p>text inline html more text</p>\n",
+	}, TestParams{HTMLFlags: SkipHTML})
+}

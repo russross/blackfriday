@@ -1133,6 +1133,9 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) WalkStatus {
 			r.out(w, tag("/del", nil, false))
 		}
 	case HTMLSpan:
+		if r.flags&SkipHTML != 0 {
+			break
+		}
 		if r.flags&SkipStyle != 0 && isHtmlTag(node.Literal, "style") {
 			break
 		}
@@ -1237,6 +1240,9 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) WalkStatus {
 		}
 		break
 	case HTMLBlock:
+		if r.flags&SkipHTML != 0 {
+			break
+		}
 		r.cr(w)
 		r.out(w, node.Literal)
 		r.cr(w)
