@@ -126,19 +126,7 @@ func HTMLRenderer(flags HTMLFlags, extensions Extensions, title string, css stri
 }
 
 type HTMLWriter struct {
-	output bytes.Buffer
-}
-
-func (w *HTMLWriter) Write(p []byte) (n int, err error) {
-	return w.output.Write(p)
-}
-
-func (w *HTMLWriter) WriteString(s string) (n int, err error) {
-	return w.output.WriteString(s)
-}
-
-func (w *HTMLWriter) WriteByte(b byte) error {
-	return w.output.WriteByte(b)
+	bytes.Buffer
 }
 
 // Writes out a newline if the output is not pristine. Used at the beginning of
@@ -726,7 +714,7 @@ func (r *HTML) DocumentHeader() {
 	r.w.WriteString("</head>\n")
 	r.w.WriteString("<body>\n")
 
-	r.tocMarker = r.w.output.Len() // XXX
+	r.tocMarker = r.w.Len() // XXX
 }
 
 func (r *HTML) DocumentFooter() {
@@ -738,10 +726,10 @@ func (r *HTML) DocumentFooter() {
 		var temp bytes.Buffer
 
 		// start by making a copy of everything after the document header
-		temp.Write(r.w.output.Bytes()[r.tocMarker:])
+		temp.Write(r.w.Bytes()[r.tocMarker:])
 
 		// now clear the copied material from the main output buffer
-		r.w.output.Truncate(r.tocMarker)
+		r.w.Truncate(r.tocMarker)
 
 		// corner case spacing issue
 		if r.flags&CompletePage != 0 {
