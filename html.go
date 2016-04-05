@@ -884,7 +884,7 @@ func findHtmlTagPos(tag []byte, tagname string) (bool, int) {
 	}
 
 	rightAngle := skipUntilCharIgnoreQuotes(tag, i, '>')
-	if rightAngle > i {
+	if rightAngle >= i {
 		return true, rightAngle
 	}
 
@@ -1133,6 +1133,9 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) WalkStatus {
 			r.out(w, tag("/del", nil, false))
 		}
 	case HTMLSpan:
+		if r.flags&SkipStyle != 0 && isHtmlTag(node.Literal, "style") {
+			break
+		}
 		//if options.safe {
 		//	out(w, "<!-- raw HTML omitted -->")
 		//} else {
