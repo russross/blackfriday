@@ -1100,7 +1100,7 @@ func (r *HTML) cr(w io.Writer) {
 	}
 }
 
-func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) {
+func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) WalkStatus {
 	attrs := []string{}
 	switch node.Type {
 	case Text:
@@ -1392,6 +1392,7 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) {
 	default:
 		panic("Unknown node type " + node.Type.String())
 	}
+	return GoToNext
 }
 
 func (r *HTML) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
@@ -1447,7 +1448,7 @@ func (r *HTML) Render(ast *Node) []byte {
 	//dump(ast)
 	// Run Smartypants if it's enabled or simply escape text if not
 	sr := NewSmartypantsRenderer(r.extensions)
-	ast.Walk(func(node *Node, entering bool) {
+	ast.Walk(func(node *Node, entering bool) WalkStatus {
 		if node.Type == Text {
 			if r.extensions&Smartypants != 0 {
 				node.Literal = sr.Process(node.Literal)
@@ -1455,11 +1456,12 @@ func (r *HTML) Render(ast *Node) []byte {
 				node.Literal = esc(node.Literal, false)
 			}
 		}
+		return GoToNext
 	})
 	var buff bytes.Buffer
 	r.writeDocumentHeader(&buff, sr)
-	ast.Walk(func(node *Node, entering bool) {
-		r.RenderNode(&buff, node, entering)
+	ast.Walk(func(node *Node, entering bool) WalkStatus {
+		return r.RenderNode(&buff, node, entering)
 	})
 	r.writeDocumentFooter(&buff)
 	return buff.Bytes()

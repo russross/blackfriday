@@ -230,17 +230,35 @@ func (n *Node) canContain(t NodeType) bool {
 	return false
 }
 
+// WalkStatus allows NodeVisitor to have some control over the tree traversal.
+// It is returned from NodeVisitor and different values allow Node.Walk to
+// decide which node to go to next.
+type WalkStatus int
+
+const (
+	GoToNext     WalkStatus = iota // The default traversal of every node.
+	SkipChildren                   // Skips all children of current node.
+	Terminate                      // Terminates the traversal.
+)
+
 // NodeVisitor is a callback to be called when traversing the syntax tree.
 // Called twice for every node: once with entering=true when the branch is
 // first visited, then with entering=false after all the children are done.
-type NodeVisitor func(node *Node, entering bool)
+type NodeVisitor func(node *Node, entering bool) WalkStatus
 
 func (root *Node) Walk(visitor NodeVisitor) {
 	walker := NewNodeWalker(root)
 	node, entering := walker.next()
 	for node != nil {
-		visitor(node, entering)
-		node, entering = walker.next()
+		status := visitor(node, entering)
+		switch status {
+		case GoToNext:
+			node, entering = walker.next()
+		case SkipChildren:
+			node, entering = walker.resumeAt(node, false)
+		case Terminate:
+			return
+		}
 	}
 }
 
@@ -286,9 +304,10 @@ func (nw *NodeWalker) next() (*Node, bool) {
 	return nw.current, nw.entering
 }
 
-func (nw *NodeWalker) resumeAt(node *Node, entering bool) {
+func (nw *NodeWalker) resumeAt(node *Node, entering bool) (*Node, bool) {
 	nw.current = node
 	nw.entering = entering
+	return nw.next()
 }
 
 func dump(ast *Node) {

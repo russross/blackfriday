@@ -452,12 +452,13 @@ func Parse(input []byte, opts Options) *Node {
 		p.finalize(p.tip)
 	}
 	// Walk the tree again and process inline markdown in each block
-	p.doc.Walk(func(node *Node, entering bool) {
+	p.doc.Walk(func(node *Node, entering bool) WalkStatus {
 		if node.Type == Paragraph || node.Type == Header || node.Type == TableCell {
 			p.currBlock = node
 			p.inline(node.content)
 			node.content = nil
 		}
+		return GoToNext
 	})
 	p.parseRefsToAST()
 	p.generateTOC()
@@ -477,7 +478,7 @@ func (p *parser) generateTOC() {
 	var lastItem *Node
 	headerCount := 0
 	var currentLevel uint32
-	p.doc.Walk(func(node *Node, entering bool) {
+	p.doc.Walk(func(node *Node, entering bool) WalkStatus {
 		if entering && node.Type == Header {
 			if node.Level > currentLevel {
 				currentLevel++
@@ -504,6 +505,7 @@ func (p *parser) generateTOC() {
 			lastItem.appendChild(anchorNode)
 			anchorNode.appendChild(text(node.FirstChild.Literal))
 		}
+		return GoToNext
 	})
 	firstChild := p.doc.FirstChild
 	// Insert TOC only if there is anything to insert
@@ -558,12 +560,13 @@ func (p *parser) parseRefsToAST() {
 	finalizeList(block)
 	p.tip = above
 	finalizeHtmlBlock(p.addBlock(HTMLBlock, []byte("</div>")))
-	block.Walk(func(node *Node, entering bool) {
+	block.Walk(func(node *Node, entering bool) WalkStatus {
 		if node.Type == Paragraph || node.Type == Header {
 			p.currBlock = node
 			p.inline(node.content)
 			node.content = nil
 		}
+		return GoToNext
 	})
 }
 
