@@ -230,7 +230,12 @@ func (n *Node) canContain(t NodeType) bool {
 	return false
 }
 
-func (root *Node) Walk(visitor func(node *Node, entering bool)) {
+// NodeVisitor is a callback to be called when traversing the syntax tree.
+// Called twice for every node: once with entering=true when the branch is
+// first visited, then with entering=false after all the children are done.
+type NodeVisitor func(node *Node, entering bool)
+
+func (root *Node) Walk(visitor NodeVisitor) {
 	walker := NewNodeWalker(root)
 	node, entering := walker.next()
 	for node != nil {
