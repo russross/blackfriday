@@ -64,7 +64,7 @@ func doTestsParam(t *testing.T, tests []string, params TestParams) {
 			actual := runMarkdown(*candidate, params)
 			if actual != expected {
 				t.Errorf("\nInput   [%#v]\nExpected[%#v]\nActual  [%#v]",
-					candidate, expected, actual)
+					*candidate, expected, actual)
 			}
 
 			// now test every substring to stress test bounds checking
