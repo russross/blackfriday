@@ -1129,3 +1129,14 @@ func TestSkipLinks(t *testing.T) {
 		HTMLFlags: SkipLinks,
 	})
 }
+
+func TestUseXHTML(t *testing.T) {
+	doTestsParam(t, []string{
+		"---",
+		"<hr>\n",
+	}, TestParams{})
+	doTestsParam(t, []string{
+		"---",
+		"<hr />\n",
+	}, TestParams{HTMLFlags: UseXHTML})
+}
