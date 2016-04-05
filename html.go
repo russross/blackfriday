@@ -80,16 +80,20 @@ type HTMLRendererParameters struct {
 	HeaderIDPrefix string
 	// If set, add this text to the back of each Header ID, to ensure uniqueness.
 	HeaderIDSuffix string
+
+	Title string // Document title (used if CompletePage is set)
+	CSS   string // Optional CSS file URL (used if CompletePage is set)
+
+	Flags      HTMLFlags
+	Extensions Extensions
 }
 
 // HTML is a type that implements the Renderer interface for HTML output.
 //
-// Do not create this directly, instead use the HTMLRenderer function.
+// Do not create this directly, instead use the NewHTMLRenderer function.
 type HTML struct {
 	flags    HTMLFlags
 	closeTag string // how to end singleton tags: either " />" or ">"
-	title    string // document title
-	css      string // optional css file url (used with HTML_COMPLETE_PAGE)
 
 	parameters HTMLRendererParameters
 
@@ -114,17 +118,6 @@ const (
 	htmlClose  = ">"
 )
 
-// HTMLRenderer creates and configures an HTML object, which
-// satisfies the Renderer interface.
-//
-// flags is a set of HTMLFlags ORed together.
-// title is the title of the document, and css is a URL for the document's
-// stylesheet.
-// title and css are only used when HTML_COMPLETE_PAGE is selected.
-func HTMLRenderer(flags HTMLFlags, extensions Extensions, title string, css string) Renderer {
-	return HTMLRendererWithParameters(flags, extensions, title, css, HTMLRendererParameters{})
-}
-
 type HTMLWriter struct {
 	bytes.Buffer
 }
@@ -139,26 +132,25 @@ func (r *HTML) Write(b []byte) (int, error) {
 	return r.w.Write(b)
 }
 
-func HTMLRendererWithParameters(flags HTMLFlags, extensions Extensions, title string,
-	css string, renderParameters HTMLRendererParameters) Renderer {
+// NewHTMLRenderer creates and configures an HTML object, which
+// satisfies the Renderer interface.
+func NewHTMLRenderer(params HTMLRendererParameters) Renderer {
 	// configure the rendering engine
 	closeTag := htmlClose
-	if flags&UseXHTML != 0 {
+	if params.Flags&UseXHTML != 0 {
 		closeTag = xhtmlClose
 	}
 
-	if renderParameters.FootnoteReturnLinkContents == "" {
-		renderParameters.FootnoteReturnLinkContents = `<sup>[return]</sup>`
+	if params.FootnoteReturnLinkContents == "" {
+		params.FootnoteReturnLinkContents = `<sup>[return]</sup>`
 	}
 
 	var writer HTMLWriter
 	return &HTML{
-		flags:      flags,
-		extensions: extensions,
+		flags:      params.Flags,
+		extensions: params.Extensions,
 		closeTag:   closeTag,
-		title:      title,
-		css:        css,
-		parameters: renderParameters,
+		parameters: params,
 
 		headerCount:  0,
 		currentLevel: 0,
@@ -694,7 +686,7 @@ func (r *HTML) DocumentHeader() {
 	}
 	r.w.WriteString("<head>\n")
 	r.w.WriteString("  <title>")
-	r.NormalText([]byte(r.title))
+	r.NormalText([]byte(r.parameters.Title))
 	r.w.WriteString("</title>\n")
 	r.w.WriteString("  <meta name=\"GENERATOR\" content=\"Blackfriday Markdown Processor v")
 	r.w.WriteString(VERSION)
@@ -704,9 +696,9 @@ func (r *HTML) DocumentHeader() {
 	r.w.WriteString("  <meta charset=\"utf-8\"")
 	r.w.WriteString(ending)
 	r.w.WriteString(">\n")
-	if r.css != "" {
+	if r.parameters.CSS != "" {
 		r.w.WriteString("  <link rel=\"stylesheet\" type=\"text/css\" href=\"")
-		r.attrEscape([]byte(r.css))
+		r.attrEscape([]byte(r.parameters.CSS))
 		r.w.WriteString("\"")
 		r.w.WriteString(ending)
 		r.w.WriteString(">\n")
@@ -1412,9 +1404,9 @@ func (r *HTML) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
 	w.WriteString("<head>\n")
 	w.WriteString("  <title>")
 	if r.extensions&Smartypants != 0 {
-		w.Write(sr.Process([]byte(r.title)))
+		w.Write(sr.Process([]byte(r.parameters.Title)))
 	} else {
-		w.Write(esc([]byte(r.title), false))
+		w.Write(esc([]byte(r.parameters.Title), false))
 	}
 	w.WriteString("</title>\n")
 	w.WriteString("  <meta name=\"GENERATOR\" content=\"Blackfriday Markdown Processor v")
@@ -1425,9 +1417,9 @@ func (r *HTML) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
 	w.WriteString("  <meta charset=\"utf-8\"")
 	w.WriteString(ending)
 	w.WriteString(">\n")
-	if r.css != "" {
+	if r.parameters.CSS != "" {
 		w.WriteString("  <link rel=\"stylesheet\" type=\"text/css\" href=\"")
-		r.attrEscape([]byte(r.css))
+		r.attrEscape([]byte(r.parameters.CSS))
 		w.WriteString("\"")
 		w.WriteString(ending)
 		w.WriteString(">\n")

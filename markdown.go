@@ -345,8 +345,10 @@ type Options struct {
 // It processes markdown input with no extensions enabled.
 func MarkdownBasic(input []byte) []byte {
 	// set up the HTML renderer
-	htmlFlags := UseXHTML
-	renderer := HTMLRenderer(htmlFlags, CommonExtensions, "", "")
+	renderer := NewHTMLRenderer(HTMLRendererParameters{
+		Flags:      UseXHTML,
+		Extensions: CommonExtensions,
+	})
 
 	// set up the parser
 	return Markdown(input, renderer, Options{Extensions: 0})
@@ -373,7 +375,10 @@ func MarkdownBasic(input []byte) []byte {
 // * Custom Header IDs
 func MarkdownCommon(input []byte) []byte {
 	// set up the HTML renderer
-	renderer := HTMLRenderer(CommonHtmlFlags, CommonExtensions, "", "")
+	renderer := NewHTMLRenderer(HTMLRendererParameters{
+		Flags:      CommonHtmlFlags,
+		Extensions: CommonExtensions,
+	})
 	return Markdown(input, renderer, DefaultOptions)
 }
 
@@ -382,8 +387,8 @@ func MarkdownCommon(input []byte) []byte {
 // The supplied Renderer is used to format the output, and extensions dictates
 // which non-standard extensions are enabled.
 //
-// To use the supplied Html or LaTeX renderers, see HtmlRenderer and
-// LatexRenderer, respectively.
+// To use the supplied HTML or LaTeX renderers, see NewHTMLRenderer and
+// NewLatexRenderer, respectively.
 func Markdown(input []byte, renderer Renderer, options Options) []byte {
 	if renderer == nil {
 		return nil
