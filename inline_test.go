@@ -1130,6 +1130,15 @@ func TestSkipLinks(t *testing.T) {
 	})
 }
 
+func TestSkipImages(t *testing.T) {
+	doTestsInlineParam(t, []string{
+		"![foo](/bar/)\n",
+		"<p></p>\n",
+	}, TestParams{
+		HTMLFlags: SkipImages,
+	})
+}
+
 func TestUseXHTML(t *testing.T) {
 	doTestsParam(t, []string{
 		"---",

@@ -1170,6 +1170,9 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) WalkStatus {
 			}
 		}
 	case Image:
+		if r.flags&SkipImages != 0 {
+			return SkipChildren
+		}
 		if entering {
 			dest := node.LinkData.Destination
 			dest = r.addAbsPrefix(dest)
