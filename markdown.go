@@ -349,7 +349,7 @@ func MarkdownBasic(input []byte) []byte {
 	renderer := HTMLRenderer(htmlFlags, CommonExtensions, "", "")
 
 	// set up the parser
-	return MarkdownOptions(input, renderer, Options{Extensions: 0})
+	return Markdown(input, renderer, Options{Extensions: 0})
 }
 
 // Call Markdown with most useful extensions enabled
@@ -374,7 +374,7 @@ func MarkdownBasic(input []byte) []byte {
 func MarkdownCommon(input []byte) []byte {
 	// set up the HTML renderer
 	renderer := HTMLRenderer(CommonHtmlFlags, CommonExtensions, "", "")
-	return MarkdownOptions(input, renderer, DefaultOptions)
+	return Markdown(input, renderer, DefaultOptions)
 }
 
 // Markdown is the main rendering function.
@@ -384,19 +384,11 @@ func MarkdownCommon(input []byte) []byte {
 //
 // To use the supplied Html or LaTeX renderers, see HtmlRenderer and
 // LatexRenderer, respectively.
-func Markdown(input []byte, renderer Renderer, extensions Extensions) []byte {
-	return MarkdownOptions(input, renderer, Options{
-		Extensions: extensions})
-}
-
-// MarkdownOptions is just like Markdown but takes additional options through
-// the Options struct.
-func MarkdownOptions(input []byte, renderer Renderer, opts Options) []byte {
-	// no point in parsing if we can't render
+func Markdown(input []byte, renderer Renderer, options Options) []byte {
 	if renderer == nil {
 		return nil
 	}
-	return renderer.Render(Parse(input, opts))
+	return renderer.Render(Parse(input, options))
 }
 
 func Parse(input []byte, opts Options) *Node {
