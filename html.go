@@ -101,7 +101,7 @@ type HTML struct {
 	tocMarker    int
 	headerCount  int
 	currentLevel int
-	toc          *bytes.Buffer
+	toc          bytes.Buffer
 
 	// Track header IDs to prevent ID collision in a single generation.
 	headerIDs map[string]int
@@ -151,10 +151,6 @@ func NewHTMLRenderer(params HTMLRendererParameters) Renderer {
 		extensions: params.Extensions,
 		closeTag:   closeTag,
 		parameters: params,
-
-		headerCount:  0,
-		currentLevel: 0,
-		toc:          new(bytes.Buffer),
 
 		headerIDs: make(map[string]int),
 

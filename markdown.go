@@ -351,7 +351,7 @@ func MarkdownBasic(input []byte) []byte {
 	})
 
 	// set up the parser
-	return Markdown(input, renderer, Options{Extensions: 0})
+	return Markdown(input, renderer, Options{})
 }
 
 // Call Markdown with most useful extensions enabled
