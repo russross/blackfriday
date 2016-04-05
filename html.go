@@ -84,18 +84,17 @@ type HTMLRendererParameters struct {
 	Title string // Document title (used if CompletePage is set)
 	CSS   string // Optional CSS file URL (used if CompletePage is set)
 
-	Flags      HTMLFlags
-	Extensions Extensions
+	Flags      HTMLFlags  // Flags allow customizing this renderer's behavior
+	Extensions Extensions // Extensions give Smartypants and HTML renderer access to Blackfriday's global extensions
 }
 
 // HTML is a type that implements the Renderer interface for HTML output.
 //
 // Do not create this directly, instead use the NewHTMLRenderer function.
 type HTML struct {
-	flags    HTMLFlags
-	closeTag string // how to end singleton tags: either " />" or ">"
+	HTMLRendererParameters
 
-	parameters HTMLRendererParameters
+	closeTag string // how to end singleton tags: either " />" or ">"
 
 	// table of contents data
 	tocMarker    int
@@ -109,8 +108,6 @@ type HTML struct {
 	w             HTMLWriter
 	lastOutputLen int
 	disableTags   int
-
-	extensions Extensions // This gives Smartypants renderer access to flags
 }
 
 const (
@@ -147,14 +144,11 @@ func NewHTMLRenderer(params HTMLRendererParameters) Renderer {
 
 	var writer HTMLWriter
 	return &HTML{
-		flags:      params.Flags,
-		extensions: params.Extensions,
-		closeTag:   closeTag,
-		parameters: params,
+		HTMLRendererParameters: params,
 
+		closeTag:  closeTag,
 		headerIDs: make(map[string]int),
-
-		w: writer,
+		w:         writer,
 	}
 }
 
@@ -223,19 +217,19 @@ func (r *HTML) TitleBlock(text []byte) {
 func (r *HTML) BeginHeader(level int, id string) {
 	r.w.Newline()
 
-	if id == "" && r.extensions&TOC != 0 {
+	if id == "" && r.Extensions&TOC != 0 {
 		id = fmt.Sprintf("toc_%d", r.headerCount)
 	}
 
 	if id != "" {
 		id = r.ensureUniqueHeaderID(id)
 
-		if r.parameters.HeaderIDPrefix != "" {
-			id = r.parameters.HeaderIDPrefix + id
+		if r.HeaderIDPrefix != "" {
+			id = r.HeaderIDPrefix + id
 		}
 
-		if r.parameters.HeaderIDSuffix != "" {
-			id = id + r.parameters.HeaderIDSuffix
+		if r.HeaderIDSuffix != "" {
+			id = id + r.HeaderIDSuffix
 		}
 
 		r.w.WriteString(fmt.Sprintf("<h%d id=\"%s\">", level, id))
@@ -246,7 +240,7 @@ func (r *HTML) BeginHeader(level int, id string) {
 
 func (r *HTML) EndHeader(level int, id string, header []byte) {
 	// are we building a table of contents?
-	if r.extensions&TOC != 0 {
+	if r.Extensions&TOC != 0 {
 		r.TocHeaderWithAnchor(header, level, id)
 	}
 
@@ -254,7 +248,7 @@ func (r *HTML) EndHeader(level int, id string, header []byte) {
 }
 
 func (r *HTML) BlockHtml(text []byte) {
-	if r.flags&SkipHTML != 0 {
+	if r.Flags&SkipHTML != 0 {
 		return
 	}
 
@@ -382,17 +376,17 @@ func (r *HTML) FootnoteItem(name, text []byte, flags ListType) {
 	slug := slugify(name)
 	r.w.WriteString(`<li id="`)
 	r.w.WriteString(`fn:`)
-	r.w.WriteString(r.parameters.FootnoteAnchorPrefix)
+	r.w.WriteString(r.FootnoteAnchorPrefix)
 	r.w.Write(slug)
 	r.w.WriteString(`">`)
 	r.w.Write(text)
-	if r.flags&FootnoteReturnLinks != 0 {
+	if r.Flags&FootnoteReturnLinks != 0 {
 		r.w.WriteString(` <a class="footnote-return" href="#`)
 		r.w.WriteString(`fnref:`)
-		r.w.WriteString(r.parameters.FootnoteAnchorPrefix)
+		r.w.WriteString(r.FootnoteAnchorPrefix)
 		r.w.Write(slug)
 		r.w.WriteString(`">`)
-		r.w.WriteString(r.parameters.FootnoteReturnLinkContents)
+		r.w.WriteString(r.FootnoteReturnLinkContents)
 		r.w.WriteString(`</a>`)
 	}
 	r.w.WriteString("</li>\n")
@@ -453,7 +447,7 @@ func (r *HTML) EndParagraph() {
 
 func (r *HTML) AutoLink(link []byte, kind LinkType) {
 	skipRanges := htmlEntity.FindAllIndex(link, -1)
-	if r.flags&Safelink != 0 && !isSafeLink(link) && kind != LinkTypeEmail {
+	if r.Flags&Safelink != 0 && !isSafeLink(link) && kind != LinkTypeEmail {
 		// mark it but don't link it if it is not a safe link: no smartypants
 		r.w.WriteString("<tt>")
 		r.entityEscapeWithSkip(link, skipRanges)
@@ -471,10 +465,10 @@ func (r *HTML) AutoLink(link []byte, kind LinkType) {
 	r.entityEscapeWithSkip(link, skipRanges)
 
 	var relAttrs []string
-	if r.flags&NofollowLinks != 0 && !isRelativeLink(link) {
+	if r.Flags&NofollowLinks != 0 && !isRelativeLink(link) {
 		relAttrs = append(relAttrs, "nofollow")
 	}
-	if r.flags&NoreferrerLinks != 0 && !isRelativeLink(link) {
+	if r.Flags&NoreferrerLinks != 0 && !isRelativeLink(link) {
 		relAttrs = append(relAttrs, "noreferrer")
 	}
 	if len(relAttrs) > 0 {
@@ -482,7 +476,7 @@ func (r *HTML) AutoLink(link []byte, kind LinkType) {
 	}
 
 	// blank target only add to external link
-	if r.flags&HrefTargetBlank != 0 && !isRelativeLink(link) {
+	if r.Flags&HrefTargetBlank != 0 && !isRelativeLink(link) {
 		r.w.WriteString("\" target=\"_blank")
 	}
 
@@ -525,8 +519,8 @@ func (r *HTML) Emphasis(text []byte) {
 }
 
 func (r *HTML) maybeWriteAbsolutePrefix(link []byte) {
-	if r.parameters.AbsolutePrefix != "" && isRelativeLink(link) && link[0] != '.' {
-		r.w.WriteString(r.parameters.AbsolutePrefix)
+	if r.AbsolutePrefix != "" && isRelativeLink(link) && link[0] != '.' {
+		r.w.WriteString(r.AbsolutePrefix)
 		if link[0] != '/' {
 			r.w.WriteByte('/')
 		}
@@ -534,7 +528,7 @@ func (r *HTML) maybeWriteAbsolutePrefix(link []byte) {
 }
 
 func (r *HTML) Image(link []byte, title []byte, alt []byte) {
-	if r.flags&SkipImages != 0 {
+	if r.Flags&SkipImages != 0 {
 		return
 	}
 
@@ -561,7 +555,7 @@ func (r *HTML) LineBreak() {
 }
 
 func (r *HTML) Link(link []byte, title []byte, content []byte) {
-	if r.flags&SkipLinks != 0 {
+	if r.Flags&SkipLinks != 0 {
 		// write the link text out but don't link it, just mark it with typewriter font
 		r.w.WriteString("<tt>")
 		r.attrEscape(content)
@@ -569,7 +563,7 @@ func (r *HTML) Link(link []byte, title []byte, content []byte) {
 		return
 	}
 
-	if r.flags&Safelink != 0 && !isSafeLink(link) {
+	if r.Flags&Safelink != 0 && !isSafeLink(link) {
 		// write the link text out but don't link it, just mark it with typewriter font
 		r.w.WriteString("<tt>")
 		r.attrEscape(content)
@@ -585,10 +579,10 @@ func (r *HTML) Link(link []byte, title []byte, content []byte) {
 		r.attrEscape(title)
 	}
 	var relAttrs []string
-	if r.flags&NofollowLinks != 0 && !isRelativeLink(link) {
+	if r.Flags&NofollowLinks != 0 && !isRelativeLink(link) {
 		relAttrs = append(relAttrs, "nofollow")
 	}
-	if r.flags&NoreferrerLinks != 0 && !isRelativeLink(link) {
+	if r.Flags&NoreferrerLinks != 0 && !isRelativeLink(link) {
 		relAttrs = append(relAttrs, "noreferrer")
 	}
 	if len(relAttrs) > 0 {
@@ -596,7 +590,7 @@ func (r *HTML) Link(link []byte, title []byte, content []byte) {
 	}
 
 	// blank target only add to external link
-	if r.flags&HrefTargetBlank != 0 && !isRelativeLink(link) {
+	if r.Flags&HrefTargetBlank != 0 && !isRelativeLink(link) {
 		r.w.WriteString("\" target=\"_blank")
 	}
 
@@ -607,16 +601,16 @@ func (r *HTML) Link(link []byte, title []byte, content []byte) {
 }
 
 func (r *HTML) RawHtmlTag(text []byte) {
-	if r.flags&SkipHTML != 0 {
+	if r.Flags&SkipHTML != 0 {
 		return
 	}
-	if r.flags&SkipStyle != 0 && isHtmlTag(text, "style") {
+	if r.Flags&SkipStyle != 0 && isHtmlTag(text, "style") {
 		return
 	}
-	if r.flags&SkipLinks != 0 && isHtmlTag(text, "a") {
+	if r.Flags&SkipLinks != 0 && isHtmlTag(text, "a") {
 		return
 	}
-	if r.flags&SkipImages != 0 && isHtmlTag(text, "img") {
+	if r.Flags&SkipImages != 0 && isHtmlTag(text, "img") {
 		return
 	}
 	r.w.Write(text)
@@ -638,11 +632,11 @@ func (r *HTML) FootnoteRef(ref []byte, id int) {
 	slug := slugify(ref)
 	r.w.WriteString(`<sup class="footnote-ref" id="`)
 	r.w.WriteString(`fnref:`)
-	r.w.WriteString(r.parameters.FootnoteAnchorPrefix)
+	r.w.WriteString(r.FootnoteAnchorPrefix)
 	r.w.Write(slug)
 	r.w.WriteString(`"><a rel="footnote" href="#`)
 	r.w.WriteString(`fn:`)
-	r.w.WriteString(r.parameters.FootnoteAnchorPrefix)
+	r.w.WriteString(r.FootnoteAnchorPrefix)
 	r.w.Write(slug)
 	r.w.WriteString(`">`)
 	r.w.WriteString(strconv.Itoa(id))
@@ -654,7 +648,7 @@ func (r *HTML) Entity(entity []byte) {
 }
 
 func (r *HTML) NormalText(text []byte) {
-	if r.extensions&Smartypants != 0 {
+	if r.Extensions&Smartypants != 0 {
 		r.Smartypants(text)
 	} else {
 		r.attrEscape(text)
@@ -662,16 +656,16 @@ func (r *HTML) NormalText(text []byte) {
 }
 
 func (r *HTML) Smartypants(text []byte) {
-	r.w.Write(NewSmartypantsRenderer(r.extensions).Process(text))
+	r.w.Write(NewSmartypantsRenderer(r.Extensions).Process(text))
 }
 
 func (r *HTML) DocumentHeader() {
-	if r.flags&CompletePage == 0 {
+	if r.Flags&CompletePage == 0 {
 		return
 	}
 
 	ending := ""
-	if r.flags&UseXHTML != 0 {
+	if r.Flags&UseXHTML != 0 {
 		r.w.WriteString("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" ")
 		r.w.WriteString("\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n")
 		r.w.WriteString("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n")
@@ -682,7 +676,7 @@ func (r *HTML) DocumentHeader() {
 	}
 	r.w.WriteString("<head>\n")
 	r.w.WriteString("  <title>")
-	r.NormalText([]byte(r.parameters.Title))
+	r.NormalText([]byte(r.Title))
 	r.w.WriteString("</title>\n")
 	r.w.WriteString("  <meta name=\"GENERATOR\" content=\"Blackfriday Markdown Processor v")
 	r.w.WriteString(VERSION)
@@ -692,9 +686,9 @@ func (r *HTML) DocumentHeader() {
 	r.w.WriteString("  <meta charset=\"utf-8\"")
 	r.w.WriteString(ending)
 	r.w.WriteString(">\n")
-	if r.parameters.CSS != "" {
+	if r.CSS != "" {
 		r.w.WriteString("  <link rel=\"stylesheet\" type=\"text/css\" href=\"")
-		r.attrEscape([]byte(r.parameters.CSS))
+		r.attrEscape([]byte(r.CSS))
 		r.w.WriteString("\"")
 		r.w.WriteString(ending)
 		r.w.WriteString(">\n")
@@ -707,7 +701,7 @@ func (r *HTML) DocumentHeader() {
 
 func (r *HTML) DocumentFooter() {
 	// finalize and insert the table of contents
-	if r.extensions&TOC != 0 {
+	if r.Extensions&TOC != 0 {
 		r.TocFinalize()
 
 		// now we have to insert the table of contents into the document
@@ -720,7 +714,7 @@ func (r *HTML) DocumentFooter() {
 		r.w.Truncate(r.tocMarker)
 
 		// corner case spacing issue
-		if r.flags&CompletePage != 0 {
+		if r.Flags&CompletePage != 0 {
 			r.w.WriteByte('\n')
 		}
 
@@ -730,17 +724,17 @@ func (r *HTML) DocumentFooter() {
 		r.w.WriteString("</nav>\n")
 
 		// corner case spacing issue
-		if r.flags&CompletePage == 0 && r.extensions&OmitContents == 0 {
+		if r.Flags&CompletePage == 0 && r.Extensions&OmitContents == 0 {
 			r.w.WriteByte('\n')
 		}
 
 		// write out everything that came after it
-		if r.extensions&OmitContents == 0 {
+		if r.Extensions&OmitContents == 0 {
 			r.w.Write(temp.Bytes())
 		}
 	}
 
-	if r.flags&CompletePage != 0 {
+	if r.Flags&CompletePage != 0 {
 		r.w.WriteString("\n</body>\n")
 		r.w.WriteString("</html>\n")
 	}
@@ -939,8 +933,8 @@ func (r *HTML) ensureUniqueHeaderID(id string) string {
 }
 
 func (r *HTML) addAbsPrefix(link []byte) []byte {
-	if r.parameters.AbsolutePrefix != "" && isRelativeLink(link) && link[0] != '.' {
-		newDest := r.parameters.AbsolutePrefix
+	if r.AbsolutePrefix != "" && isRelativeLink(link) && link[0] != '.' {
+		newDest := r.AbsolutePrefix
 		if link[0] != '/' {
 			newDest += "/"
 		}
@@ -1109,10 +1103,10 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) WalkStatus {
 			r.out(w, tag("/del", nil, false))
 		}
 	case HTMLSpan:
-		if r.flags&SkipHTML != 0 {
+		if r.Flags&SkipHTML != 0 {
 			break
 		}
-		if r.flags&SkipStyle != 0 && isHtmlTag(node.Literal, "style") {
+		if r.Flags&SkipStyle != 0 && isHtmlTag(node.Literal, "style") {
 			break
 		}
 		//if options.safe {
@@ -1123,7 +1117,7 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) WalkStatus {
 	case Link:
 		// mark it but don't link it if it is not a safe link: no smartypants
 		dest := node.LinkData.Destination
-		if needSkipLink(r.flags, dest) {
+		if needSkipLink(r.Flags, dest) {
 			if entering {
 				r.out(w, tag("tt", nil, false))
 			} else {
@@ -1136,10 +1130,10 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) WalkStatus {
 				attrs = append(attrs, fmt.Sprintf("href=%q", esc(dest, true)))
 				//}
 				if node.NoteID != 0 {
-					r.out(w, footnoteRef(r.parameters.FootnoteAnchorPrefix, node))
+					r.out(w, footnoteRef(r.FootnoteAnchorPrefix, node))
 					break
 				}
-				attrs = appendLinkAttrs(attrs, r.flags, dest)
+				attrs = appendLinkAttrs(attrs, r.Flags, dest)
 				if len(node.LinkData.Title) > 0 {
 					attrs = append(attrs, fmt.Sprintf("title=%q", esc(node.LinkData.Title, true)))
 				}
@@ -1152,7 +1146,7 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) WalkStatus {
 			}
 		}
 	case Image:
-		if r.flags&SkipImages != 0 {
+		if r.Flags&SkipImages != 0 {
 			return SkipChildren
 		}
 		if entering {
@@ -1216,7 +1210,7 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) WalkStatus {
 		}
 		break
 	case HTMLBlock:
-		if r.flags&SkipHTML != 0 {
+		if r.Flags&SkipHTML != 0 {
 			break
 		}
 		r.cr(w)
@@ -1230,11 +1224,11 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) WalkStatus {
 			}
 			if node.HeaderID != "" {
 				id := r.ensureUniqueHeaderID(node.HeaderID)
-				if r.parameters.HeaderIDPrefix != "" {
-					id = r.parameters.HeaderIDPrefix + id
+				if r.HeaderIDPrefix != "" {
+					id = r.HeaderIDPrefix + id
 				}
-				if r.parameters.HeaderIDSuffix != "" {
-					id = id + r.parameters.HeaderIDSuffix
+				if r.HeaderIDSuffix != "" {
+					id = id + r.HeaderIDSuffix
 				}
 				attrs = append(attrs, fmt.Sprintf(`id="%s"`, id))
 			}
@@ -1249,7 +1243,7 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) WalkStatus {
 		break
 	case HorizontalRule:
 		r.cr(w)
-		r.out(w, tag("hr", attrs, r.flags&UseXHTML != 0))
+		r.out(w, tag("hr", attrs, r.Flags&UseXHTML != 0))
 		r.cr(w)
 		break
 	case List:
@@ -1298,15 +1292,15 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) WalkStatus {
 			}
 			if node.ListData.RefLink != nil {
 				slug := slugify(node.ListData.RefLink)
-				r.out(w, footnoteItem(r.parameters.FootnoteAnchorPrefix, slug))
+				r.out(w, footnoteItem(r.FootnoteAnchorPrefix, slug))
 				break
 			}
 			r.out(w, tag(tagName, nil, false))
 		} else {
 			if node.ListData.RefLink != nil {
 				slug := slugify(node.ListData.RefLink)
-				if r.flags&FootnoteReturnLinks != 0 {
-					r.out(w, footnoteReturnLink(r.parameters.FootnoteAnchorPrefix, r.parameters.FootnoteReturnLinkContents, slug))
+				if r.Flags&FootnoteReturnLinks != 0 {
+					r.out(w, footnoteReturnLink(r.FootnoteAnchorPrefix, r.FootnoteReturnLinkContents, slug))
 				}
 			}
 			r.out(w, tag("/"+tagName, nil, false))
@@ -1384,11 +1378,11 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) WalkStatus {
 }
 
 func (r *HTML) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
-	if r.flags&CompletePage == 0 {
+	if r.Flags&CompletePage == 0 {
 		return
 	}
 	ending := ""
-	if r.flags&UseXHTML != 0 {
+	if r.Flags&UseXHTML != 0 {
 		w.WriteString("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" ")
 		w.WriteString("\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n")
 		w.WriteString("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n")
@@ -1399,10 +1393,10 @@ func (r *HTML) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
 	}
 	w.WriteString("<head>\n")
 	w.WriteString("  <title>")
-	if r.extensions&Smartypants != 0 {
-		w.Write(sr.Process([]byte(r.parameters.Title)))
+	if r.Extensions&Smartypants != 0 {
+		w.Write(sr.Process([]byte(r.Title)))
 	} else {
-		w.Write(esc([]byte(r.parameters.Title), false))
+		w.Write(esc([]byte(r.Title), false))
 	}
 	w.WriteString("</title>\n")
 	w.WriteString("  <meta name=\"GENERATOR\" content=\"Blackfriday Markdown Processor v")
@@ -1413,9 +1407,9 @@ func (r *HTML) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
 	w.WriteString("  <meta charset=\"utf-8\"")
 	w.WriteString(ending)
 	w.WriteString(">\n")
-	if r.parameters.CSS != "" {
+	if r.CSS != "" {
 		w.WriteString("  <link rel=\"stylesheet\" type=\"text/css\" href=\"")
-		r.attrEscape([]byte(r.parameters.CSS))
+		r.attrEscape([]byte(r.CSS))
 		w.WriteString("\"")
 		w.WriteString(ending)
 		w.WriteString(">\n")
@@ -1425,7 +1419,7 @@ func (r *HTML) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
 }
 
 func (r *HTML) writeDocumentFooter(w *bytes.Buffer) {
-	if r.flags&CompletePage == 0 {
+	if r.Flags&CompletePage == 0 {
 		return
 	}
 	w.WriteString("\n</body>\n</html>\n")
@@ -1435,10 +1429,10 @@ func (r *HTML) Render(ast *Node) []byte {
 	//println("render_Blackfriday")
 	//dump(ast)
 	// Run Smartypants if it's enabled or simply escape text if not
-	sr := NewSmartypantsRenderer(r.extensions)
+	sr := NewSmartypantsRenderer(r.Extensions)
 	ast.Walk(func(node *Node, entering bool) WalkStatus {
 		if node.Type == Text {
-			if r.extensions&Smartypants != 0 {
+			if r.Extensions&Smartypants != 0 {
 				node.Literal = sr.Process(node.Literal)
 			} else {
 				node.Literal = esc(node.Literal, false)
