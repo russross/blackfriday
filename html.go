@@ -145,58 +145,11 @@ func NewHTMLRenderer(params HTMLRendererParameters) Renderer {
 	}
 }
 
-// Using if statements is a bit faster than a switch statement. As the compiler
-// improves, this should be unnecessary this is only worthwhile because
-// attrEscape is the single largest CPU user in normal use.
-// Also tried using map, but that gave a ~3x slowdown.
-func escapeSingleChar(char byte) (string, bool) {
-	if char == '"' {
-		return "&quot;", true
-	}
-	if char == '&' {
-		return "&amp;", true
-	}
-	if char == '<' {
-		return "&lt;", true
-	}
-	if char == '>' {
-		return "&gt;", true
-	}
-	return "", false
-}
-
-func (r *HTMLRenderer) attrEscape(src []byte) {
-	org := 0
-	for i, ch := range src {
-		if entity, ok := escapeSingleChar(ch); ok {
-			if i > org {
-				// copy all the normal characters since the last escape
-				r.w.Write(src[org:i])
-			}
-			org = i + 1
-			r.w.WriteString(entity)
-		}
-	}
-	if org < len(src) {
-		r.w.Write(src[org:])
-	}
-}
-
-func attrEscape2(src []byte) []byte {
+func attrEscape(src []byte) []byte {
 	unesc := []byte(html.UnescapeString(string(src)))
 	esc1 := []byte(html.EscapeString(string(unesc)))
 	esc2 := bytes.Replace(esc1, []byte("&#34;"), []byte("&quot;"), -1)
 	return bytes.Replace(esc2, []byte("&#39;"), []byte{'\''}, -1)
-}
-
-func (r *HTMLRenderer) entityEscapeWithSkip(src []byte, skipRanges [][]int) {
-	end := 0
-	for _, rang := range skipRanges {
-		r.attrEscape(src[end:rang[0]])
-		r.w.Write(src[rang[0]:rang[1]])
-		end = rang[1]
-	}
-	r.attrEscape(src[end:])
 }
 
 func isHtmlTag(tag []byte, tagname string) bool {
@@ -448,7 +401,7 @@ func cellAlignment(align CellAlignFlags) string {
 }
 
 func esc(text []byte, preserveEntities bool) []byte {
-	return attrEscape2(text)
+	return attrEscape(text)
 }
 
 func escCode(text []byte, preserveEntities bool) []byte {
@@ -811,7 +764,7 @@ func (r *HTMLRenderer) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
 	w.WriteString(">\n")
 	if r.CSS != "" {
 		w.WriteString("  <link rel=\"stylesheet\" type=\"text/css\" href=\"")
-		r.attrEscape([]byte(r.CSS))
+		attrEscape([]byte(r.CSS))
 		w.WriteString("\"")
 		w.WriteString(ending)
 		w.WriteString(">\n")
