@@ -22,6 +22,9 @@ import (
 var (
 	urlRe    = `((https?|ftp):\/\/|\/)[-A-Za-z0-9+&@#\/%?=~_|!:,.;\(\)]+`
 	anchorRe = regexp.MustCompile(`^(<a\shref="` + urlRe + `"(\stitle="[^"<>]+")?\s?>` + urlRe + `<\/a>)`)
+
+	// TODO: improve this regexp to catch all possible entities:
+	htmlEntityRe = regexp.MustCompile(`&[a-z]{2,5};`)
 )
 
 // Functions to parse text within a block
@@ -742,7 +745,7 @@ func entity(p *parser, data []byte, offset int) int {
 }
 
 func linkEndsWithEntity(data []byte, linkEnd int) bool {
-	entityRanges := htmlEntity.FindAllIndex(data[:linkEnd], -1)
+	entityRanges := htmlEntityRe.FindAllIndex(data[:linkEnd], -1)
 	return entityRanges != nil && entityRanges[len(entityRanges)-1][1] == linkEnd
 }
 

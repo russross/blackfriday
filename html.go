@@ -60,9 +60,7 @@ const (
 )
 
 var (
-	// TODO: improve this regexp to catch all possible entities:
-	htmlEntity = regexp.MustCompile(`&[a-z]{2,5};`)
-	reHtmlTag  = regexp.MustCompile("(?i)^" + HTMLTag)
+	htmlTagRe = regexp.MustCompile("(?i)^" + HTMLTag)
 )
 
 type HTMLRendererParameters struct {
@@ -461,7 +459,7 @@ func escCode(text []byte, preserveEntities bool) []byte {
 
 func (r *HTML) out(w io.Writer, text []byte) {
 	if r.disableTags > 0 {
-		w.Write(reHtmlTag.ReplaceAll(text, []byte{}))
+		w.Write(htmlTagRe.ReplaceAll(text, []byte{}))
 	} else {
 		w.Write(text)
 	}
