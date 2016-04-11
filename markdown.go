@@ -170,48 +170,6 @@ var blockTags = map[string]struct{}{
 //
 // Currently Html and Latex implementations are provided
 type Renderer interface {
-	// block-level callbacks
-	BlockCode(text []byte, lang string)
-	BlockQuote(text []byte)
-	BlockHtml(text []byte)
-	BeginHeader(level int, id string)
-	EndHeader(level int, id string, header []byte)
-	HRule()
-	BeginList(flags ListType)
-	EndList(flags ListType)
-	ListItem(text []byte, flags ListType)
-	BeginParagraph()
-	EndParagraph()
-	Table(header []byte, body []byte, columnData []CellAlignFlags)
-	TableRow(text []byte)
-	TableHeaderCell(out *bytes.Buffer, text []byte, flags CellAlignFlags)
-	TableCell(out *bytes.Buffer, text []byte, flags CellAlignFlags)
-	BeginFootnotes()
-	EndFootnotes()
-	FootnoteItem(name, text []byte, flags ListType)
-	TitleBlock(text []byte)
-
-	// Span-level callbacks
-	AutoLink(link []byte, kind LinkType)
-	CodeSpan(text []byte)
-	DoubleEmphasis(text []byte)
-	Emphasis(text []byte)
-	Image(link []byte, title []byte, alt []byte)
-	LineBreak()
-	Link(link []byte, title []byte, content []byte)
-	RawHtmlTag(tag []byte)
-	TripleEmphasis(text []byte)
-	StrikeThrough(text []byte)
-	FootnoteRef(ref []byte, id int)
-
-	// Low-level callbacks
-	Entity(entity []byte)
-	NormalText(text []byte)
-
-	// Header and footer
-	DocumentHeader()
-	DocumentFooter()
-
 	Render(ast *Node) []byte
 }
 
