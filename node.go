@@ -83,8 +83,8 @@ type CodeBlockData struct {
 	IsFenced    bool   // Specifies whether it's a fenced code block or an indented one
 	Info        []byte // This holds the info string
 	FenceChar   byte
-	FenceLength uint32
-	FenceOffset uint32
+	FenceLength int
+	FenceOffset int
 }
 
 type TableCellData struct {
@@ -93,7 +93,7 @@ type TableCellData struct {
 }
 
 type HeaderData struct {
-	Level        uint32 // This holds the heading level number
+	Level        int    // This holds the heading level number
 	HeaderID     string // This might hold header ID, if present
 	IsTitleblock bool   // Specifies whether it's a title block
 }

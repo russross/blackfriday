@@ -267,7 +267,7 @@ func (p *parser) prefixHeader(data []byte) int {
 		}
 		block := p.addBlock(Header, data[i:end])
 		block.HeaderID = id
-		block.Level = uint32(level)
+		block.Level = level
 	}
 	return skip
 }
@@ -1423,7 +1423,7 @@ func (p *parser) paragraph(data []byte) int {
 				}
 
 				block := p.addBlock(Header, data[prev:eol])
-				block.Level = uint32(level)
+				block.Level = level
 				block.HeaderID = id
 
 				// find the end of the underline

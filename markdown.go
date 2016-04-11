@@ -472,7 +472,7 @@ func (p *parser) generateTOC() {
 	var listNode *Node
 	var lastItem *Node
 	headerCount := 0
-	var currentLevel uint32
+	currentLevel := 0
 	p.doc.Walk(func(node *Node, entering bool) WalkStatus {
 		if entering && node.Type == Header {
 			if node.Level > currentLevel {
