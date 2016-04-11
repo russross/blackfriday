@@ -1485,3 +1485,19 @@ func (p *parser) paragraph(data []byte) int {
 	p.renderParagraph(data[:i])
 	return i
 }
+
+func skipChar(data []byte, start int, char byte) int {
+	i := start
+	for i < len(data) && data[i] == char {
+		i++
+	}
+	return i
+}
+
+func skipUntilChar(text []byte, start int, char byte) int {
+	i := start
+	for i < len(text) && text[i] != char {
+		i++
+	}
+	return i
+}
