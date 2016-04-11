@@ -36,10 +36,6 @@ func NewLatexRenderer(flags int) Renderer {
 	}
 }
 
-func (r *Latex) Write(b []byte) (int, error) {
-	return r.w.Write(b)
-}
-
 // render code chunks using verbatim, or listings if we have a language
 func (r *Latex) BlockCode(text []byte, lang string) {
 	if lang == "" {

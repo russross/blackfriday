@@ -125,10 +125,6 @@ func (w *HTMLWriter) Newline() {
 	w.WriteByte('\n')
 }
 
-func (r *HTML) Write(b []byte) (int, error) {
-	return r.w.Write(b)
-}
-
 // NewHTMLRenderer creates and configures an HTML object, which
 // satisfies the Renderer interface.
 func NewHTMLRenderer(params HTMLRendererParameters) Renderer {

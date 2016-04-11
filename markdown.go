@@ -212,8 +212,6 @@ type Renderer interface {
 	DocumentHeader()
 	DocumentFooter()
 
-	Write(b []byte) (int, error)
-
 	Render(ast *Node) []byte
 }
 
