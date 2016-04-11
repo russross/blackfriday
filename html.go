@@ -85,10 +85,10 @@ type HTMLRendererParameters struct {
 	Extensions Extensions // Extensions give Smartypants and HTML renderer access to Blackfriday's global extensions
 }
 
-// HTML is a type that implements the Renderer interface for HTML output.
+// HTMLRenderer is a type that implements the Renderer interface for HTML output.
 //
 // Do not create this directly, instead use the NewHTMLRenderer function.
-type HTML struct {
+type HTMLRenderer struct {
 	HTMLRendererParameters
 
 	closeTag string // how to end singleton tags: either " />" or ">"
@@ -122,7 +122,7 @@ func (w *HTMLWriter) Newline() {
 	w.WriteByte('\n')
 }
 
-// NewHTMLRenderer creates and configures an HTML object, which
+// NewHTMLRenderer creates and configures an HTMLRenderer object, which
 // satisfies the Renderer interface.
 func NewHTMLRenderer(params HTMLRendererParameters) Renderer {
 	// configure the rendering engine
@@ -136,7 +136,7 @@ func NewHTMLRenderer(params HTMLRendererParameters) Renderer {
 	}
 
 	var writer HTMLWriter
-	return &HTML{
+	return &HTMLRenderer{
 		HTMLRendererParameters: params,
 
 		closeTag:  closeTag,
@@ -165,7 +165,7 @@ func escapeSingleChar(char byte) (string, bool) {
 	return "", false
 }
 
-func (r *HTML) attrEscape(src []byte) {
+func (r *HTMLRenderer) attrEscape(src []byte) {
 	org := 0
 	for i, ch := range src {
 		if entity, ok := escapeSingleChar(ch); ok {
@@ -189,7 +189,7 @@ func attrEscape2(src []byte) []byte {
 	return bytes.Replace(esc2, []byte("&#39;"), []byte{'\''}, -1)
 }
 
-func (r *HTML) entityEscapeWithSkip(src []byte, skipRanges [][]int) {
+func (r *HTMLRenderer) entityEscapeWithSkip(src []byte, skipRanges [][]int) {
 	end := 0
 	for _, rang := range skipRanges {
 		r.attrEscape(src[end:rang[0]])
@@ -315,7 +315,7 @@ func isRelativeLink(link []byte) (yes bool) {
 	return false
 }
 
-func (r *HTML) ensureUniqueHeaderID(id string) string {
+func (r *HTMLRenderer) ensureUniqueHeaderID(id string) string {
 	for count, found := r.headerIDs[id]; found; count, found = r.headerIDs[id] {
 		tmp := fmt.Sprintf("%s-%d", id, count+1)
 
@@ -334,7 +334,7 @@ func (r *HTML) ensureUniqueHeaderID(id string) string {
 	return id
 }
 
-func (r *HTML) addAbsPrefix(link []byte) []byte {
+func (r *HTMLRenderer) addAbsPrefix(link []byte) []byte {
 	if r.AbsolutePrefix != "" && isRelativeLink(link) && link[0] != '.' {
 		newDest := r.AbsolutePrefix
 		if link[0] != '/' {
@@ -457,7 +457,7 @@ func escCode(text []byte, preserveEntities bool) []byte {
 	return bytes.Replace(e2, []byte("&#39;"), []byte{'\''}, -1)
 }
 
-func (r *HTML) out(w io.Writer, text []byte) {
+func (r *HTMLRenderer) out(w io.Writer, text []byte) {
 	if r.disableTags > 0 {
 		w.Write(htmlTagRe.ReplaceAll(text, []byte{}))
 	} else {
@@ -466,13 +466,13 @@ func (r *HTML) out(w io.Writer, text []byte) {
 	r.lastOutputLen = len(text)
 }
 
-func (r *HTML) cr(w io.Writer) {
+func (r *HTMLRenderer) cr(w io.Writer) {
 	if r.lastOutputLen > 0 {
 		r.out(w, []byte{'\n'})
 	}
 }
 
-func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) WalkStatus {
+func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkStatus {
 	attrs := []string{}
 	switch node.Type {
 	case Text:
@@ -779,7 +779,7 @@ func (r *HTML) RenderNode(w io.Writer, node *Node, entering bool) WalkStatus {
 	return GoToNext
 }
 
-func (r *HTML) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
+func (r *HTMLRenderer) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
 	if r.Flags&CompletePage == 0 {
 		return
 	}
@@ -820,14 +820,14 @@ func (r *HTML) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
 	w.WriteString("<body>\n\n")
 }
 
-func (r *HTML) writeDocumentFooter(w *bytes.Buffer) {
+func (r *HTMLRenderer) writeDocumentFooter(w *bytes.Buffer) {
 	if r.Flags&CompletePage == 0 {
 		return
 	}
 	w.WriteString("\n</body>\n</html>\n")
 }
 
-func (r *HTML) Render(ast *Node) []byte {
+func (r *HTMLRenderer) Render(ast *Node) []byte {
 	//println("render_Blackfriday")
 	//dump(ast)
 	// Run Smartypants if it's enabled or simply escape text if not
