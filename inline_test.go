@@ -722,6 +722,10 @@ func TestReferenceLink(t *testing.T) {
 
 		"[link][ref]\n   [ref]: /url/",
 		"<p><a href=\"/url/\">link</a></p>\n",
+
+		// Issue 172 in blackfriday
+		"[]:<",
+		"<p>[]:&lt;</p>\n",
 	}
 	doLinkTestsInline(t, tests)
 }
