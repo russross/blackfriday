@@ -146,21 +146,19 @@ func (options *xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	out.WriteString(" ipr=\"" + options.titleBlock.Ipr + "\"")
 	out.WriteString(" category=\"" + options.titleBlock.Category + "\"")
 	out.WriteString(" docName=\"" + options.titleBlock.DocName + "\"")
-	if len(options.titleBlock.Updates) >= 1 {
+	if len(options.titleBlock.Updates) > 0 {
 		updates := make([]string, len(options.titleBlock.Updates))
 		for i := range updates {
 			updates[i] = strconv.Itoa(options.titleBlock.Updates[i])
 		}
-		out.WriteString(" updates=\"" +
-			strings.Join(updates, ", ") + "\"")
+		out.WriteString(" updates=\"" + strings.Join(updates, ", ") + "\"")
 	}
-	if len(options.titleBlock.Obsoletes) >= 1 {
+	if len(options.titleBlock.Obsoletes) > 0 {
 		obsoletes := make([]string, len(options.titleBlock.Obsoletes))
 		for i := range obsoletes {
 			obsoletes[i] = strconv.Itoa(options.titleBlock.Obsoletes[i])
 		}
-		out.WriteString(" obsoletes=\"" +
-			strings.Join(obsoletes, ", ") + "\"")
+		out.WriteString(" obsoletes=\"" + strings.Join(obsoletes, ", ") + "\"")
 	}
 	out.WriteString(">\n")
 
