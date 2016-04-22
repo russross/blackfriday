@@ -104,7 +104,7 @@ func (options *xml) BlockCode(out *bytes.Buffer, text []byte, lang string, capti
 		ial.GetOrDefaultAttr("type", lang)
 	}
 	prefix := ial.Value("prefix")
-	ial.DropAttr("prefix")  // it's a fake attribute, so drop it
+	ial.DropAttr("prefix") // it's a fake attribute, so drop it
 
 	s := options.AttrString(ial)
 
@@ -150,9 +150,27 @@ func (options *xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	}
 	// Processing Instructions are attribute of <rfc> know.
 	options.titleBlock = block
-	out.WriteString("<rfc xmlns:xi=\"http://www.w3.org/2001/XInclude\" ipr=\"" +
-		options.titleBlock.Ipr + "\" category=\"" +
-		options.titleBlock.Category + "\" docName=\"" + options.titleBlock.DocName + "\">\n")
+	out.WriteString("<rfc xmlns:xi=\"http://www.w3.org/2001/XInclude\"")
+	out.WriteString(" ipr=\"" + options.titleBlock.Ipr + "\"")
+	out.WriteString(" category=\"" + options.titleBlock.Category + "\"")
+	out.WriteString(" docName=\"" + options.titleBlock.DocName + "\">")
+	if len(options.titleBlock.Updates) >= 1 {
+		updates := make([]string, len(options.titleBlock.Updates))
+		for i := range updates {
+			updates[i] = strconv.Itoa(options.titleBlock.Updates[i])
+		}
+		out.WriteString(" updates=\"" +
+			strings.Join(updates, ", ") + "\"")
+	}
+	if len(options.titleBlock.Obsoletes) >= 1 {
+		obsoletes := make([]string, len(options.titleBlock.Obsoletes))
+		for i := range obsoletes {
+			obsoletes[i] = strconv.Itoa(options.titleBlock.Obsoletes[i])
+		}
+		out.WriteString(" obsoletes=\"" +
+			strings.Join(obsoletes, ", ") + "\"")
+	}
+	out.WriteString("\n")
 	out.WriteString("<front>\n")
 	out.WriteString("<title abbrev=\"" + options.titleBlock.Abbrev + "\">")
 	out.WriteString(options.titleBlock.Title + "</title>\n\n")
