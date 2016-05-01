@@ -1174,6 +1174,15 @@ gatherlines:
 			p.dliPrefix(chunk) > 0:
 
 			if containsBlankLine {
+				// if lax lists mode is disabled, end the list if the type
+				// changed after a blank line.
+				if p.flags&EXTENSION_LAX_LISTS == 0 &&
+					((*flags&LIST_TYPE_ORDERED != 0 && p.uliPrefix(chunk) > 0) ||
+						(*flags&LIST_TYPE_ORDERED == 0 && p.oliPrefix(chunk) > 0)) {
+
+					*flags |= LIST_ITEM_END_OF_LIST
+					break gatherlines
+				}
 				*flags |= LIST_ITEM_CONTAINS_BLOCK
 			}
 

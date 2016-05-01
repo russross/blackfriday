@@ -657,6 +657,9 @@ func TestUnorderedList(t *testing.T) {
 		"Paragraph\n\n* Linebreak\n",
 		"<p>Paragraph</p>\n\n<ul>\n<li>Linebreak</li>\n</ul>\n",
 
+		"*   List\n\n1. Spacer Mixed listing\n",
+		"<ul>\n<li>List</li>\n</ul>\n\n<ol>\n<li>Spacer Mixed listing</li>\n</ol>\n",
+
 		"*   List\n    * Nested list\n",
 		"<ul>\n<li>List\n\n<ul>\n<li>Nested list</li>\n</ul></li>\n</ul>\n",
 
@@ -815,6 +818,12 @@ func TestOrderedList(t *testing.T) {
 		"1. List\n\n          code block with spaces\n",
 		"<ol>\n<li><p>List</p>\n\n<pre><code>  code block with spaces\n</code></pre></li>\n</ol>\n",
 
+		"1. List\n\n* Spacer Mixed listing\n",
+		"<ol>\n<li>List</li>\n</ol>\n\n<ul>\n<li>Spacer Mixed listing</li>\n</ul>\n",
+
+		"1. List\n* Mixed listing\n",
+		"<ol>\n<li>List</li>\n<li>Mixed listing</li>\n</ol>\n",
+
 		"1. List\n    * Mixted list\n",
 		"<ol>\n<li>List\n\n<ul>\n<li>Mixted list</li>\n</ul></li>\n</ol>\n",
 
@@ -851,6 +860,25 @@ qux
 `,
 	}
 	doTestsBlock(t, tests, 0)
+}
+
+func TestLaxLists(t *testing.T) {
+	var tests = []string{
+		// ordered to unordered
+		"1. First\n\n* Mixed list\n",
+		"<ol>\n<li><p>First</p></li>\n\n<li><p>Mixed list</p></li>\n</ol>\n",
+
+		"1. First\n\n2. Second\n\n* Mixed list\n\n* Another\n",
+		"<ol>\n<li><p>First</p></li>\n\n<li><p>Second</p></li>\n\n<li><p>Mixed list</p></li>\n\n<li><p>Another</p></li>\n</ol>\n",
+
+		// unordered to ordered
+		"* First\n* Second\n\n1. Mixed list\n1. Another\n",
+		"<ul>\n<li>First</li>\n\n<li><p>Second</p></li>\n\n<li><p>Mixed list</p></li>\n\n<li><p>Another</p></li>\n</ul>\n",
+
+		"* First\n\n* Second\n\n1. Mixed list\n\n1. Another\n",
+		"<ul>\n<li><p>First</p></li>\n\n<li><p>Second</p></li>\n\n<li><p>Mixed list</p></li>\n\n<li><p>Another</p></li>\n</ul>\n",
+	}
+	doTestsBlock(t, tests, EXTENSION_LAX_LISTS)
 }
 
 func TestDefinitionList(t *testing.T) {

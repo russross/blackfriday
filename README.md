@@ -180,6 +180,16 @@ implements the following extensions:
 
     Terms must be separated from the previous definition by a blank line.
 
+*   **Lax Lists**. Merge adjacent lists of differing types that are separated by
+    blank lines into a single list.  This extension allows the following example
+    to be rendered as a single unordered list instead of two distinct lists.
+
+        * Lions
+        * Tigers
+
+        1. Bears
+        2. Goats
+
 *   **Footnotes**. A marker in the text that will become a superscript number;
     a footnote definition that will be placed in a list of footnotes at the
     end of the document. A footnote looks like this:
