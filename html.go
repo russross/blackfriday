@@ -482,8 +482,12 @@ func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	out.WriteString("</a>")
 }
 
-func (options *Html) CodeSpan(out *bytes.Buffer, text []byte) {
-	out.WriteString("<code>")
+func (options *Html) CodeSpan(out *bytes.Buffer, text []byte, lang string) {
+	if lang != "" {
+		out.WriteString("<code class=\"language-" + lang + "\">")
+	} else {
+		out.WriteString("<code>")
+	}
 	attrEscape(out, text)
 	out.WriteString("</code>")
 }
