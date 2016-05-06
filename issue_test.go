@@ -26,3 +26,17 @@ func TestIssue59(t *testing.T) {
 	}
 	doTestsBlockXML(t, tests, EXTENSION_MATTER)
 }
+
+func TestIssue73(t *testing.T) {
+	tests := []string{
+		`* [foo](http://bar)
+
+(@good)  Example
+
+As (@good) says
+`,
+		"<ul>\n<li><eref target=\"http://bar\">foo</eref></li>\n</ul>\n<ol group=\"good\">\n<li>Example</li>\n</ol>\n<t>\nAs (1) says\n</t>\n",
+	}
+
+	doTestsBlockXML(t, tests, commonXmlExtensions)
+}

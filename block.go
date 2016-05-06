@@ -2179,6 +2179,12 @@ gatherlines:
 			p.oliPrefix(chunk) > 0 || p.eliPrefix(chunk) > 0 ||
 			p.dliPrefix(chunk) > 0:
 
+			if *flags&_LIST_TYPE_ORDERED_GROUP == 0 && p.eliPrefix(chunk) > 0 {
+				// This ends this list.
+				*flags |= _LIST_ITEM_END_OF_LIST
+				break gatherlines
+			}
+
 			if containsBlankLine {
 				*flags |= _LIST_ITEM_CONTAINS_BLOCK
 			}
