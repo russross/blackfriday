@@ -42,11 +42,11 @@ type addressPostal struct {
 	PostalLine []string
 
 	// Plurals when these need to be specified multiple times.
-	Streets  []string
-	Cities   []string
-	Codes    []string
+	Streets   []string
+	Cities    []string
+	Codes     []string
 	Countries []string
-	Regions  []string
+	Regions   []string
 }
 
 // PIs the processing instructions.

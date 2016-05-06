@@ -41,8 +41,8 @@ func (p *parser) rfc7328Index(out *bytes.Buffer, text []byte) int {
 
 	subItemStart := i
 	if subItemStart != len(text) {
-		printf(p, "rfc 7328 style index parsed to: ((%s, %s))", string(text[1:itemEnd]), text[subItemStart:len(text)])
-		p.r.Index(out, text[1:itemEnd], text[subItemStart:len(text)], false)
+		printf(p, "rfc 7328 style index parsed to: ((%s, %s))", string(text[1:itemEnd]), text[subItemStart:])
+		p.r.Index(out, text[1:itemEnd], text[subItemStart:], false)
 		return len(text)
 	}
 	printf(p, "rfc 7328 style index parsed to: ((%s))", string(text[1:itemEnd]))

@@ -1849,9 +1849,9 @@ func (p *parser) uliPrefix(data []byte) int {
 	for i < 3 && data[i] == ' ' {
 		i++
 	}
-
-	// need a *, +, #, or - followed by a space
-	if (data[i] != '*' && data[i] != '+' && data[i] != '-' && data[i] != ' ') || data[i+1] != ' ' {
+	// need a *, +, or - followed by a space
+	if (data[i] != '*' && data[i] != '+' && data[i] != '-') ||
+		data[i+1] != ' ' {
 		return 0
 	}
 	return i + 2
@@ -2224,7 +2224,6 @@ gatherlines:
 				*flags |= _LIST_ITEM_END_OF_LIST
 			}
 			break gatherlines
-
 
 		// a blank line means this should be parsed as a block
 		case containsBlankLine:

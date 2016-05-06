@@ -348,7 +348,7 @@ func (options *html) BlockCode(out *bytes.Buffer, text []byte, lang string, capt
 	ial := options.Attr()
 
 	prefix := ial.Value("prefix")
-	ial.DropAttr("prefix")  // it's a fake attribute, so drop it, works on text bytes
+	ial.DropAttr("prefix") // it's a fake attribute, so drop it, works on text bytes
 
 	s := options.AttrString(ial)
 
