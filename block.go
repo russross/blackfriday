@@ -2196,6 +2196,18 @@ gatherlines:
 					*flags |= _LIST_ITEM_END_OF_LIST
 					break gatherlines
 				}
+
+				if indent <= itemIndent &&
+					((*flags&_LIST_TYPE_DEFINITION != 0 && p.uliPrefix(chunk) > 0) ||
+						(*flags&_LIST_TYPE_DEFINITION != 0 && p.oliPrefix(chunk) > 0) ||
+						(*flags&_LIST_TYPE_DEFINITION != 0 && p.aliPrefix(chunk) > 0) ||
+						(*flags&_LIST_TYPE_DEFINITION != 0 && p.aliPrefixU(chunk) > 0) ||
+						(*flags&_LIST_TYPE_DEFINITION != 0 && p.rliPrefix(chunk) > 0) ||
+						(*flags&_LIST_TYPE_DEFINITION != 0 && p.rliPrefixU(chunk) > 0)) {
+					*flags |= _LIST_ITEM_END_OF_LIST
+					break gatherlines
+				}
+
 				*flags |= _LIST_ITEM_CONTAINS_BLOCK
 			}
 

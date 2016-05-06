@@ -36,7 +36,24 @@ func TestIssue73(t *testing.T) {
 As (@good) says
 `,
 		"<ul>\n<li><eref target=\"http://bar\">foo</eref></li>\n</ul>\n<ol group=\"good\">\n<li>Example</li>\n</ol>\n<t>\nAs (1) says\n</t>\n",
-	}
 
+		`Mmark
+: A Markdown-superset converter
+
+* [foo](http://bar)`,
+		"<dl>\n<dt>Mmark</dt>\n<dd>A Markdown-superset converter</dd>\n</dl>\n<ul>\n<li><eref target=\"http://bar\">foo</eref></li>\n</ul>\n",
+
+		`Mmark
+: A Markdown-superset converter
+
+ * [foo](http://bar)`,
+		"<dl>\n<dt>Mmark</dt>\n<dd><t>\nA Markdown-superset converter\n</t>\n<ul>\n<li><eref target=\"http://bar\">foo</eref></li>\n</ul></dd>\n</dl>\n",
+
+		`Mmark
+: A Markdown-superset converter
+
+1. [foo](http://bar)`,
+		"<dl>\n<dt>Mmark</dt>\n<dd>A Markdown-superset converter</dd>\n</dl>\n<ol>\n<li><eref target=\"http://bar\">foo</eref></li>\n</ol>\n",
+	}
 	doTestsBlockXML(t, tests, commonXmlExtensions)
 }
