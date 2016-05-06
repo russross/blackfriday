@@ -600,6 +600,41 @@ qux
 </code></pre></li>
 </ul>
 `,
+
+		`* un1
+* un2
+
+a.  or1
+b.  or2`,
+		"<ul>\n<li>un1</li>\n<li>un2</li>\n</ul>\n\n<ol type=\"a\">\n<li>or1</li>\n<li>or2</li>\n</ol>\n",
+
+		`* un1
+* un2
+
+A.  or1
+B.  or2`,
+		"<ul>\n<li>un1</li>\n<li>un2</li>\n</ul>\n\n<ol type=\"A\">\n<li>or1</li>\n<li>or2</li>\n</ol>\n",
+
+		`* un1
+* un2
+
+I.  or1
+II.  or2`,
+		"<ul>\n<li>un1</li>\n<li>un2</li>\n</ul>\n\n<ol type=\"I\">\n<li>or1</li>\n<li>or2</li>\n</ol>\n",
+
+		`* un1
+* un2
+
+1. or1
+2. or2`,
+		"<ul>\n<li>un1</li>\n<li>un2</li>\n</ul>\n\n<ol>\n<li>or1</li>\n<li>or2</li>\n</ol>\n",
+
+		`1. or1
+2. or2
+
+* un1
+* un2`,
+		"<ol>\n<li>or1</li>\n<li>or2</li>\n</ol>\n\n<ul>\n<li>un1</li>\n<li>un2</li>\n</ul>\n",
 	}
 	doTestsBlock(t, tests, 0)
 }
