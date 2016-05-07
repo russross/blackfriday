@@ -39,8 +39,8 @@ var SourceCodeTypes = map[string]bool{
 	"go": true,
 }
 
-// parseCode parses a code address directive.
-func parseCode(addr []byte, file []byte) []byte {
+// parseAddress parses a code address directive and returns the bytes.
+func parseAddress(addr []byte, file []byte) []byte {
 	bytes.TrimSpace(addr)
 
 	textBytes, err := ioutil.ReadFile(string(file))

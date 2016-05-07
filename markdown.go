@@ -4,7 +4,6 @@ package mmark
 
 import (
 	"bytes"
-	"io/ioutil"
 	"path"
 	"unicode/utf8"
 )
@@ -913,16 +912,27 @@ func (p *parser) include(out *bytes.Buffer, data []byte, depth int) int {
 	if j < 2 && end >= len(data) {
 		return 0
 	}
+	filename := data[i+2 : end-2]
 
-	name := string(data[i+2 : end-2])
-	input, err := ioutil.ReadFile(name)
-	if err != nil {
-		printf(p, "failed: `%s': %s", name, err)
-		return end
+	// Now a possible address in blockquotes
+	var address []byte
+	if end < len(data) && data[end] == '[' {
+		j = end
+		for j < len(data) && data[j] != ']' {
+			j++
+		}
+		if j == len(data) {
+			// assuming no address
+			address = nil
+		} else {
+			address = data[end+1 : j]
+			end = j + 1
+		}
 	}
 
-	if len(input) == 0 {
-		input = []byte{'\n'}
+	input := parseAddress(address, filename)
+	if input == nil {
+		return end
 	}
 	if input[len(input)-1] != '\n' {
 		input = append(input, '\n')
@@ -989,7 +999,7 @@ func (p *parser) codeInclude(out *bytes.Buffer, data []byte) int {
 		}
 	}
 
-	code := parseCode(address, filename)
+	code := parseAddress(address, filename)
 
 	if len(code) == 0 {
 		code = []byte{'\n'}
