@@ -1,7 +1,7 @@
 # Mmark
 
-Mmark is a powerful markdown processor Go geared for writing IETF document. It is, however also
-suited for writing books and other technical documentation.
+Mmark is a powerful markdown processor Go geared towards writing IETF document.s It is, however,
+also suited for writing books and other technical documentation.
 
 Further documentation can be [found at my site](https://miek.nl/tags/mmark/). A complete syntax
 document [can be found here](https://github.com/miekg/mmark/wiki/Syntax).
@@ -30,7 +30,7 @@ Mmark adds the following syntax elements to [black friday](https://github.com/ru
 * More enumerated lists.
 * Table and codeblock captions.
 * Quote attribution (quote "captions").
-* Table footers, header and block tables
+* Table footers, header and block tables.
 * Subfigures.
 * Inline Attribute Lists.
 * Indices.
