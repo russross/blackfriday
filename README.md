@@ -4,8 +4,7 @@ Mmark is a powerful markdown processor Go geared for writing IETF document. It i
 suited for writing books and other technical documentation.
 
 Further documentation can be [found at my site](https://miek.nl/tags/mmark/). A complete syntax
-document [is being created](https://github.com/miekg/mmark/wiki/Syntax). That syntax doc will also
-be mirrored on my website.
+document [can be found here](https://github.com/miekg/mmark/wiki/Syntax).
 
 With Mmark your can write RFCs using markdown. Mmark (written in Go) provides an advanced markdown
 dialect that processes a (single) file to produce internet-drafts in XML format. Internet-drafts
