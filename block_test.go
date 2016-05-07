@@ -635,6 +635,11 @@ II.  or2`,
 * un1
 * un2`,
 		"<ol>\n<li>or1</li>\n<li>or2</li>\n</ol>\n\n<ul>\n<li>un1</li>\n<li>un2</li>\n</ul>\n",
+
+		`- [ ] This is an incomplete task.
+- [x] This is done.
+`,
+		"<ul>\n<li><input type=\"checkbox\" disabled=\"\"> This is an incomplete task.</li>\n<li><input type=\"checkbox\" checked=\"\" disabled=\"\"> This is done.</li>\n</ul>\n",
 	}
 	doTestsBlock(t, tests, 0)
 }

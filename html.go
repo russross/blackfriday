@@ -602,6 +602,14 @@ func (options *html) ListItem(out *bytes.Buffer, text []byte, flags int) {
 		out.WriteString("</dt>")
 		return
 	}
+	// task lists
+	switch {
+	case bytes.HasPrefix(text, []byte("[ ] ")):
+		text = append([]byte(`<input type="checkbox" disabled="">`), text[3:]...)
+	case bytes.HasPrefix(text, []byte("[x] ")) || bytes.HasPrefix(text, []byte("[X] ")):
+		text = append([]byte(`<input type="checkbox" checked="" disabled="">`), text[3:]...)
+	}
+
 	out.WriteString("<li>")
 	out.Write(text)
 	out.WriteString("</li>\n")

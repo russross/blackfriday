@@ -27,7 +27,7 @@ Mmark adds the following syntax elements to [black friday](https://github.com/ru
 
 * TOML titleblock.
 * Including other files.
-* More enumerated lists.
+* More enumerated lists and task-lists.
 * Table and codeblock captions.
 * Quote attribution (quote "captions").
 * Table footers, header and block tables.
