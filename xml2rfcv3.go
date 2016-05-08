@@ -701,6 +701,11 @@ func (options *xml) Abbreviation(out *bytes.Buffer, abbr, title []byte) {
 }
 
 func (options *xml) RawHtmlTag(out *bytes.Buffer, tag []byte) {
+	switch {
+	case bytes.Compare(tag, []byte("<br/>")) == 0:
+		out.WriteString("<vspace/>")
+		return
+	}
 	printf(nil, "syntax not supported: RawHtmlTag: %s", string(tag))
 }
 

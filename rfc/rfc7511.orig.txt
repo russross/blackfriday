@@ -1,0 +1,451 @@
+
+
+
+
+
+
+Independent Submission                                        M. Wilhelm
+Request for Comments: 7511                                  1 April 2015
+Category: Informational
+ISSN: 2070-1721
+
+
+                        Scenic Routing for IPv6
+
+Abstract
+
+   This document specifies a new routing scheme for the current version
+   of the Internet Protocol version 6 (IPv6) in the spirit of "Green
+   IT", whereby packets will be routed to get as much fresh-air time as
+   possible.
+
+Status of This Memo
+
+   This document is not an Internet Standards Track specification; it is
+   published for informational purposes.
+
+   This is a contribution to the RFC Series, independently of any other
+   RFC stream.  The RFC Editor has chosen to publish this document at
+   its discretion and makes no statement about its value for
+   implementation or deployment.  Documents approved for publication by
+   the RFC Editor are not a candidate for any level of Internet
+   Standard; see Section 2 of RFC 5741.
+
+   Information about the current status of this document, any errata,
+   and how to provide feedback on it may be obtained at
+   http://www.rfc-editor.org/info/rfc7511.
+
+Copyright Notice
+
+   Copyright (c) 2015 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.
+
+
+
+
+
+
+
+
+
+Wilhelm                       Informational                     [Page 1]
+
+RFC 7511                     Scenic Routing                 1 April 2015
+
+
+Table of Contents
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+     1.1.  Conventions and Terminology . . . . . . . . . . . . . . .   3
+   2.  Scenic Routing  . . . . . . . . . . . . . . . . . . . . . . .   3
+     2.1.  Scenic Routing Option (SRO) . . . . . . . . . . . . . . .   3
+   3.  Implications  . . . . . . . . . . . . . . . . . . . . . . . .   5
+     3.1.  Routing Implications  . . . . . . . . . . . . . . . . . .   5
+     3.2.  Implications for Hosts  . . . . . . . . . . . . . . . . .   5
+     3.3.  Proxy Servers . . . . . . . . . . . . . . . . . . . . . .   6
+   4.  Security Considerations . . . . . . . . . . . . . . . . . . .   6
+   5.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   6
+   6.  Related Work  . . . . . . . . . . . . . . . . . . . . . . . .   6
+   7.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   7
+     7.1.  Normative References  . . . . . . . . . . . . . . . . . .   7
+     7.2.  Informative References  . . . . . . . . . . . . . . . . .   7
+   Acknowledgements  . . . . . . . . . . . . . . . . . . . . . . . .   8
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   8
+
+1.  Introduction
+
+   In times of Green IT, a lot of effort is put into reducing the energy
+   consumption of routers, switches, servers, hosts, etc., to preserve
+   our environment.  This document looks at Green IT from a different
+   angle and focuses on network packets being routed and switched around
+   the world.
+
+   Most likely, no one ever thought about the millions of packets being
+   disassembled into bits every second and forced through copper wires
+   or being shot through dark fiber lines by powerful lasers at
+   continuously increasing speeds.  Although RFC 5841 [RFC5841] provided
+   some thoughts about Packet Moods and began to represent them as a TCP
+   option, this doesn't help the packets escape their torturous routine.
+
+   This document defines another way to deal with Green IT for traffic
+   and network engineers and will hopefully aid the wellbeing of a
+   myriad of network packets around the world.  It proposes Scenic
+   Routing, which incorporates the green-ness of a network path into the
+   routing decision.  A routing engine implementing Scenic Routing
+   should therefore choose paths based on Avian IP Carriers [RFC1149]
+   and/or wireless technologies so the packets will get out of the
+   miles/kilometers of dark fibers that are in the ground and get as
+   much fresh-air time and sunlight as possible.
+
+   As of the widely known acceptance of the current version of the
+   Internet Protocol (IPv6), this document only focuses on version 6 and
+   ignores communication still based on Vintage IP [RFC791].
+
+
+
+
+Wilhelm                       Informational                     [Page 2]
+
+RFC 7511                     Scenic Routing                 1 April 2015
+
+
+1.1.  Conventions and Terminology
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in RFC 2119 [RFC2119].
+
+   Additionally, the key words "MIGHT", "COULD", "MAY WISH TO", "WOULD
+   PROBABLY", "SHOULD CONSIDER", and "MUST (BUT WE KNOW YOU WON'T)" in
+   this document are to interpreted as described in RFC 6919 [RFC6919].
+
+2.  Scenic Routing
+
+   Scenic Routing can be enabled with a new option for IPv6 datagrams.
+
+2.1.  Scenic Routing Option (SRO)
+
+   The Scenic Routing Option (SRO) is placed in the IPv6 Hop-by-Hop
+   Options Header that must be examined by every node along a packet's
+   delivery path [RFC2460].
+
+   The SRO can be included in any IPv6 datagram, but multiple SROs MUST
+   NOT be present in the same IPv6 datagram.  The SRO has no alignment
+   requirement.
+
+   If the SRO is set for a packet, every node en route from the packet
+   source to the packet's final destination MUST preserve the option.
+
+   The following Hop-by-Hop Option is proposed according to the
+   specification in Section 4.2 of RFC 2460 [RFC2460].
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+                                     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                                     |  Option Type  | Option Length |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |   SRO Param   |                                               |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+                  Figure 1: Scenic Routing Option Layout
+
+   Option Type
+
+      8-bit identifier of the type of option.  The option identifier
+      0x0A (On Air) is proposed for Scenic Routing.
+
+
+
+
+
+
+
+Wilhelm                       Informational                     [Page 3]
+
+RFC 7511                     Scenic Routing                 1 April 2015
+
+
+           HEX         act  chg  rest
+           ---         ---  ---  -----
+           0A           00   0   01010     Scenic Routing
+
+                   Figure 2: Scenic Routing Option Type
+
+      The highest-order two bits are set to 00 so any node not
+      implementing Scenic Routing will skip over this option and
+      continue processing the header.  The third-highest-order bit
+      indicates that the SRO does not change en route to the packet's
+      final destination.
+
+   Option Length
+
+      8-bit unsigned integer.  The length of the option in octets
+      (excluding the Option Type and Option Length fields).  The value
+      MUST be greater than 0.
+
+   SRO Param
+
+      8-bit identifier indicating Scenic Routing parameters encoded as a
+      bit string.
+
+                             +-+-+-+-+-+-+-+-+
+                             | SR A W AA X Y |
+                             +-+-+-+-+-+-+-+-+
+
+                   Figure 3: SRO Param Bit String Layout
+
+      The highest-order two bits (SR) define the urgency of Scenic
+      Routing:
+
+         00 - Scenic Routing MUST NOT be used for this packet.
+
+         01 - Scenic Routing MIGHT be used for this packet.
+
+         10 - Scenic Routing SHOULD be used for this packet.
+
+         11 - Scenic Routing MUST be used for this packet.
+
+      The following BIT (A) defines if Avian IP Carriers should be used:
+
+         0 - Don't use Avian IP Carrier links (maybe the packet is
+             afraid of pigeons).
+
+         1 - Avian IP Carrier links may be used.
+
+
+
+
+
+Wilhelm                       Informational                     [Page 4]
+
+RFC 7511                     Scenic Routing                 1 April 2015
+
+
+      The following BIT (W) defines if wireless links should be used:
+
+         0 - Don't use wireless links (maybe the packet is afraid of
+             radiation).
+
+         1 - Wireless links may be used.
+
+      The following two bits (AA) define the affinity for link types:
+
+         00 - No affinity.
+
+         01 - Avian IP Carriers SHOULD be preferred.
+
+         10 - Wireless links SHOULD be preferred.
+
+         11 - RESERVED
+
+      The lowest-order two bits (XY) are currently unused and reserved
+      for future use.
+
+3.  Implications
+
+3.1.  Routing Implications
+
+   If Scenic Routing is requested for a packet, the path with the known
+   longest Avian IP Carrier and/or wireless portion MUST be used.
+
+   Backbone operators who desire to be fully compliant with Scenic
+   Routing MAY WISH TO -- well, they SHOULD -- have separate MPLS paths
+   ready that provide the most fresh-air time for a given path and are
+   to be used when Scenic Routing is requested by a packet.  If such a
+   path exists, the path MUST be used in favor of any other path, even
+   if another path is considered cheaper according to the path costs
+   used regularly, without taking Scenic Routing into account.
+
+3.2.  Implications for Hosts
+
+   Host systems implementing this option of receiving packets with
+   Scenic Routing requested MUST honor this request and MUST activate
+   Scenic Routing for any packets sent back to the originating host for
+   the current connection.
+
+   If Scenic Routing is requested for connections of local origin, the
+   host MUST obey the request and route the packet(s) over a wireless
+   link or use Avian IP Carriers (if available and as requested within
+   the SRO Params).
+
+
+
+
+
+Wilhelm                       Informational                     [Page 5]
+
+RFC 7511                     Scenic Routing                 1 April 2015
+
+
+   System administrators MIGHT want to configure sensible default
+   parameters for Scenic Routing, when Scenic Routing has been widely
+   adopted by operating systems.  System administrators SHOULD deploy
+   Scenic Routing information where applicable.
+
+3.3.  Proxy Servers
+
+   If a host is running a proxy server or any other packet-relaying
+   application, an application implementing Scenic Routing MUST set the
+   same SRO Params on the outgoing packet as seen on the incoming
+   packet.
+
+   Developers SHOULD CONSIDER Scenic Routing when designing and
+   implementing any network service.
+
+4.  Security Considerations
+
+   The security considerations of RFC 6214 [RFC6214] apply for links
+   provided by Avian IP Carriers.
+
+   General security considerations of wireless communication apply for
+   links using wireless technologies.
+
+   As the user is able to influence where flows and packets are being
+   routed within the network, this MIGHT influence traffic-engineering
+   considerations and network operators MAY WISH TO take this into
+   account before enabling Scenic Routing on their devices.
+
+5.  IANA Considerations
+
+   This document defines a new IPv6 Hop-by-Hop Option, the Scenic
+   Routing Option, described in Section 2.1.  If this work is
+   standardized, IANA is requested to assign a value from the
+   "Destination Options and Hop-by-Hop Options" registry for the purpose
+   of Scenic Routing.
+
+   There are no IANA actions requested at this time.
+
+6.  Related Work
+
+   As Scenic Routing is heavily dependent on network paths and routing
+   information, it might be worth looking at designing extensions for
+   popular routing protocols like BGP or OSPF to leverage the full
+   potential of Scenic Routing in large networks built upon lots of
+   wireless links and/or Avian IP Carriers.  When incorporating
+   information about links compatible with Scenic Routing, the routing
+   algorithms could easily calculate the optimal paths providing the
+   most fresh-air time for a packet for any given destination.
+
+
+
+Wilhelm                       Informational                     [Page 6]
+
+RFC 7511                     Scenic Routing                 1 April 2015
+
+
+   This would even allow preference for wireless paths going alongside
+   popular or culturally important places.  This way, the packets don't
+   only avoid the dark fibers, but they get to see the world outside of
+   the Internet and are exposed to different cultures around the globe,
+   which may help build an understanding of cultural differences and
+   promote acceptance of these differences.
+
+7.  References
+
+7.1.  Normative References
+
+   [RFC1149]  Waitzman, D., "Standard for the transmission of IP
+              datagrams on avian carriers", RFC 1149, April 1990,
+              <http://www.rfc-editor.org/info/rfc1149>.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119, March 1997,
+              <http://www.rfc-editor.org/info/rfc2119>.
+
+   [RFC2460]  Deering, S. and R. Hinden, "Internet Protocol, Version 6
+              (IPv6) Specification", RFC 2460, December 1998,
+              <http://www.rfc-editor.org/info/rfc2460>.
+
+   [RFC6214]  Carpenter, B. and R. Hinden, "Adaptation of RFC 1149 for
+              IPv6", RFC 6214, April 2011,
+              <http://www.rfc-editor.org/info/rfc6214>.
+
+   [RFC6919]  Barnes, R., Kent, S., and E. Rescorla, "Further Key Words
+              for Use in RFCs to Indicate Requirement Levels", RFC 6919,
+              April 2013, <http://www.rfc-editor.org/info/rfc6919>.
+
+7.2.  Informative References
+
+   [RFC5841]  Hay, R. and W. Turkal, "TCP Option to Denote Packet Mood",
+              RFC 5841, April 2010,
+              <http://www.rfc-editor.org/info/rfc5841>.
+
+   [RFC791]   Postel, J., "Internet Protocol", STD 5, RFC 791, September
+              1981, <http://www.rfc-editor.org/info/rfc791>.
+
+
+
+
+
+
+
+
+
+
+
+
+Wilhelm                       Informational                     [Page 7]
+
+RFC 7511                     Scenic Routing                 1 April 2015
+
+
+Acknowledgements
+
+   The author wishes to thank all those poor friends who were kindly
+   forced to read this document and that provided some nifty comments.
+
+Author's Address
+
+   Maximilian Wilhelm
+   Paderborn, NRW
+   Germany
+
+   Phone: +49 176 62 05 94 27
+   EMail: max@rfc2324.org
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Wilhelm                       Informational                     [Page 8]
+

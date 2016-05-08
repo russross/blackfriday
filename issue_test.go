@@ -57,3 +57,19 @@ As (@good) says
 	}
 	doTestsBlockXML(t, tests, commonXmlExtensions)
 }
+
+func TestIssue82(t *testing.T) {
+	tests := []string{
+		`Option Type
+
+: 8-bit identifier of the type of option.
+
+  ~~~~~
+  HEX         act  chg  rest
+  ~~~~~
+  Figure: Scenic Routing Option Type`,
+		"<dl>\n<dt>Option Type</dt>\n<dd><t>\n8-bit identifier of the type of option.\n</t></dd>\n</dl>\n<figure>\n<name>Scenic Routing Option Type</name>\n<artwork>\nHEX         act  chg  rest\n</artwork>\n</figure>\n",
+	}
+
+	doTestsBlockXML(t, tests, commonXmlExtensions)
+}

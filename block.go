@@ -1240,8 +1240,7 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 		beg = end
 	}
 	var caption bytes.Buffer
-	line := beg
-	j := beg
+	line, j := beg, beg
 	if bytes.HasPrefix(bytes.TrimSpace(data[j:]), []byte("Figure: ")) {
 		for line < len(data) {
 			j++
@@ -1254,8 +1253,8 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 			}
 			line = j
 		}
-		if beg+8 < j-1 {
-			p.inline(&caption, data[beg+8:j-1])
+		if beg+8+indent < j-1 {
+			p.inline(&caption, data[beg+indent+8:j-1])
 		}
 	}
 
@@ -1780,11 +1779,17 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 			work.Write(data[beg:i])
 		}
 	}
-	caption := ""
-	line := i
-	j := i
+	var caption []byte
+	line, j := i, i
+
 	// In the case of F> there may be spaces in front of it
 	if bytes.HasPrefix(bytes.TrimSpace(data[j:]), []byte("Figure: ")) {
+		indent := j
+		for data[indent] == ' ' && indent < len(data) {
+			indent++
+		}
+		indent = indent - j
+
 		for line < len(data) {
 			j++
 			// find the end of this line
@@ -1797,8 +1802,8 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 			line = j
 		}
 		// save for later processing.
-		if i+8 < j-1 {
-			caption = string(data[i+8 : j-1]) // +8 for 'Figure: '
+		if i+8+indent < j-1 {
+			caption = data[i+8+indent : j-1] // +8 for 'Figure: '
 		}
 	}
 
@@ -1827,11 +1832,11 @@ func (p *parser) code(out *bytes.Buffer, data []byte) int {
 	if co != "" {
 		var callout bytes.Buffer
 		callouts(p, &callout, work.Bytes(), 0, co)
-		p.inline(&capb, []byte(caption))
+		p.inline(&capb, caption)
 		p.r.BlockCode(out, callout.Bytes(), "", capb.Bytes(), p.insideFigure, true)
 	} else {
 		p.callouts = nil
-		p.inline(&capb, []byte(caption))
+		p.inline(&capb, caption)
 		p.r.BlockCode(out, work.Bytes(), "", capb.Bytes(), p.insideFigure, false)
 	}
 
