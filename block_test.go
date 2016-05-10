@@ -960,6 +960,14 @@ func TestDefinitionList(t *testing.T) {
 			"<dd><p>Definition b</p></dd>\n" +
 			"</dl>\n" +
 			"\n<p>Text 2</p>\n",
+
+		"Term 1\n:   Definition a\n\n    Text 1\n\n    1. First\n    2. Second",
+		"<dl>\n" +
+			"<dt>Term 1</dt>\n" +
+			"<dd><p>Definition a</p>\n\n" +
+			"<p>Text 1</p>\n\n" +
+			"<ol>\n<li>First</li>\n<li>Second</li>\n</ol></dd>\n" +
+			"</dl>\n",
 	}
 	doTestsBlock(t, tests, EXTENSION_DEFINITION_LISTS)
 }

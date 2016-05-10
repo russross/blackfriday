@@ -1175,8 +1175,9 @@ gatherlines:
 
 			if containsBlankLine {
 				// end the list if the type changed after a blank line
-				if (*flags&LIST_TYPE_ORDERED != 0 && p.uliPrefix(chunk) > 0) ||
-					(*flags&LIST_TYPE_ORDERED == 0 && p.oliPrefix(chunk) > 0) {
+				if indent <= itemIndent &&
+					((*flags&LIST_TYPE_ORDERED != 0 && p.uliPrefix(chunk) > 0) ||
+						(*flags&LIST_TYPE_ORDERED == 0 && p.oliPrefix(chunk) > 0)) {
 
 					*flags |= LIST_ITEM_END_OF_LIST
 					break gatherlines
