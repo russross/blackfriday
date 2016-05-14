@@ -85,9 +85,11 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		if p.flags&EXTENSION_TITLEBLOCK_TOML != 0 && len(data) > 2 {
 			// only one % at the left
 			if data[0] == '%' && data[1] != '%' {
-				if i := p.titleBlock(out, data, true); i > 0 {
-					data = data[i:]
-					continue
+				if out.Len() <= p.headerLen {
+					if i := p.titleBlock(out, data, true); i > 0 {
+						data = data[i:]
+						continue
+					}
 				}
 			}
 		}
@@ -99,11 +101,12 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// %%%
 		if p.flags&EXTENSION_TITLEBLOCK_TOML != 0 && len(data) > 3 {
 			if data[0] == '%' && data[1] == '%' && data[2] == '%' {
-				if i := p.titleBlockBlock(out, data, true); i > 0 {
-					data = data[i:]
-					continue
+				if out.Len() <= p.headerLen {
+					if i := p.titleBlockBlock(out, data, true); i > 0 {
+						data = data[i:]
+						continue
+					}
 				}
-
 			}
 		}
 

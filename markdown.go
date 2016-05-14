@@ -283,6 +283,7 @@ type parser struct {
 
 	appendix   bool // have we seen a {backmatter}?
 	titleblock bool // have we seen a titleblock
+	headerLen  int  // if a header is written what is length
 
 	partCount    int // TODO, keep track of part counts (-#)
 	chapterCount int // TODO, keep track of chapter count (#)
@@ -468,6 +469,7 @@ func secondPass(p *parser, input []byte, depth int) *bytes.Buffer {
 	var output bytes.Buffer
 
 	p.r.DocumentHeader(&output, depth == 0)
+	p.headerLen = output.Len()
 	p.block(&output, input)
 
 	if p.flags&EXTENSION_FOOTNOTES != 0 && len(p.notes) > 0 {
