@@ -341,7 +341,7 @@ func (options *Latex) Math(out *bytes.Buffer, equation []byte, inline bool) {
 	out.Write(equation)
 
 	if inline {
-		out.WriteString("\\(")
+		out.WriteString("\\)")
 	} else {
 		out.WriteString("\\]")
 	}
