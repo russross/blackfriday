@@ -76,3 +76,6 @@ trying to stay current with the latest draft for the V3 spec:
 
 See the [syntax](https://github.com/miekg/mmark/wiki/Syntax) document on all syntax elements that
 are supported by Mmark.
+
+[1]: https://daringfireball.net/projects/markdown/ "Markdown"
+[2]: https://golang.org/ "Go Language"
