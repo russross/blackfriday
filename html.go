@@ -698,6 +698,16 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 			r.out(w, tag("/tr", nil, false))
 			r.cr(w)
 		}
+	case Math:
+		r.out(w, []byte("\\("))
+		r.out(w, escCode(node.Literal))
+		r.out(w, []byte("\\)"))
+	case MathBlock:
+		r.out(w, []byte("\\["))
+		r.out(w, escCode(node.Literal))
+		r.out(w, []byte("\\]"))
+		r.cr(w)
+
 	default:
 		panic("Unknown node type " + node.Type.String())
 	}

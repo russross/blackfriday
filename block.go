@@ -194,6 +194,13 @@ func (p *parser) block(data []byte) {
 			}
 		}
 
+		if p.flags&LaTeXMath != 0 {
+			if i := p.latexMath(data); i > 0 {
+				data = data[i:]
+				continue
+			}
+		}
+
 		// anything else must look like a normal paragraph
 		// note: this finds underlined headers, too
 		data = data[p.paragraph(data):]
@@ -1483,6 +1490,29 @@ func (p *parser) paragraph(data []byte) int {
 
 	p.renderParagraph(data[:i])
 	return i
+}
+
+func (p *parser) latexMath(data []byte) int {
+	if len(data) > 4 && data[0] == '$' && data[1] == '$' && data[2] != '$' {
+		// find the next '$$'
+		end := 2
+		for end+1 < len(data) && (data[end] != '$' || data[end+1] != '$') {
+			end++
+		}
+
+		// no matching delimiter?
+		if end+1 == len(data) {
+			return 0
+		}
+
+		// render the display math
+		if end != 0 {
+			container := p.addChild(MathBlock, 0)
+			container.Literal = data[2:end]
+		}
+		return end + 2
+	}
+	return 0
 }
 
 func skipChar(data []byte, start int, char byte) int {

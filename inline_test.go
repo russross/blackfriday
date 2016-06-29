@@ -1168,3 +1168,11 @@ func TestSkipHTML(t *testing.T) {
 		"<p>text inline html more text</p>\n",
 	}, TestParams{HTMLFlags: SkipHTML})
 }
+
+func TestMathInline(t *testing.T) {
+	var tests = []string{
+		"$f(x) = x^2$\n",
+		"<p>\\(f(x) = x^2\\)</p>\n",
+	}
+	doTestsParam(t, tests, TestParams{Options: Options{Extensions: LaTeXMath}})
+}

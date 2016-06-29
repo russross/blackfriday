@@ -1656,3 +1656,20 @@ func TestIsFenceLine(t *testing.T) {
 		}
 	}
 }
+
+func TestMathBlock(t *testing.T) {
+	var tests = []string{
+		"$$f(x) = x^2$$\n",
+		"\\[f(x) = x^2\\]\n",
+
+		"$$x<y$$\n",
+		"\\[x&lt;y\\]\n",
+
+		"$$x^2\n",
+		"<p>$$x^2</p>\n",
+
+		"x^2$$\n",
+		"<p>x^2$$</p>\n",
+	}
+	doTestsBlock(t, tests, LaTeXMath)
+}
