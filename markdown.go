@@ -56,6 +56,7 @@ const (
 	SmartypantsAngledQuotes                        // Enable angled double quotes (with Smartypants) for double quotes rendering
 	TOC                                            // Generate a table of contents
 	OmitContents                                   // Skip the main contents (for a standalone table of contents)
+	LaTeXMath                                      // LaTeX inline and display math surrounded by '$' or '$$'
 
 	CommonHtmlFlags HTMLFlags = UseXHTML
 
@@ -396,6 +397,10 @@ func Parse(input []byte, opts Options) *Node {
 
 	if extensions&Footnotes != 0 {
 		p.notes = make([]*reference, 0)
+	}
+
+	if extensions&LaTeXMath != 0 {
+		p.inlineCallback['$'] = math
 	}
 
 	first := firstPass(p, input)

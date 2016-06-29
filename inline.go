@@ -1234,6 +1234,35 @@ func helperTripleEmphasis(p *parser, data []byte, offset int, c byte) int {
 	return 0
 }
 
+// LaTeX math surrounded by '$' or '$$'
+func math(p *parser, data []byte, offset int) int {
+	data = data[offset:]
+
+	// inline math
+	if len(data) > 2 && data[1] != '$' {
+		// find the next '$'
+		end := 1
+		for end < len(data) && data[end] != '$' {
+			end++
+		}
+
+		// no matching delimiter?
+		if end == len(data) {
+			return 0
+		}
+
+		// render the inline math
+		if end != 0 {
+			math := NewNode(Math)
+			math.Literal = data[1:end]
+			p.currBlock.appendChild(math)
+		}
+		return end + 1
+	}
+
+	return 0
+}
+
 func text(s []byte) *Node {
 	node := NewNode(Text)
 	node.Literal = s
