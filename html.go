@@ -748,7 +748,7 @@ func (r *HTMLRenderer) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
 	w.WriteString(">\n")
 	if r.CSS != "" {
 		w.WriteString("  <link rel=\"stylesheet\" type=\"text/css\" href=\"")
-		attrEscape([]byte(r.CSS))
+		w.Write(attrEscape([]byte(r.CSS)))
 		w.WriteString("\"")
 		w.WriteString(ending)
 		w.WriteString(">\n")
