@@ -310,6 +310,10 @@ func (nw *NodeWalker) resumeAt(node *Node, entering bool) (*Node, bool) {
 	return nw.next()
 }
 
+func (ast *Node) String() string {
+	return dumpString(ast)
+}
+
 func dump(ast *Node) {
 	fmt.Println(dumpString(ast))
 }
