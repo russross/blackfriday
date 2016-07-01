@@ -432,31 +432,46 @@ func (p *parser) generateTOC() {
 	headerCount := 0
 	currentLevel := 0
 	p.doc.Walk(func(node *Node, entering bool) WalkStatus {
-		if entering && node.Type == Header {
-			if node.Level > currentLevel {
+		if entering && node.Type == Header && !node.HeaderData.IsTitleblock {
+			// log.Printf("node level: %v (current: %v), node literal: %v", node.Level, currentLevel, string(node.FirstChild.Literal))
+			for node.Level > currentLevel {
 				currentLevel++
-				newList := NewNode(List)
-				if lastItem != nil {
-					lastItem.appendChild(newList)
-					listNode = newList
-				} else {
-					listNode = newList
+				if topList == nil {
+					listNode = NewNode(List)
 					topList = listNode
+					continue
+				} else {
+					if lastItem == nil {
+						// To go down one level, list must be in an item.
+						// If there is no last item (e.g. descending several levels at once), create one.
+						lastItem = NewNode(Item)
+						listNode.appendChild(lastItem)
+					}
+
+					listNode = NewNode(List)
+					lastItem.appendChild(listNode)
 				}
+				lastItem = nil
 			}
-			if node.Level < currentLevel {
+			for node.Level < currentLevel {
+				currentLevel--
 				finalizeList(listNode)
 				lastItem = listNode.Parent
 				listNode = lastItem.Parent
 			}
 			node.HeaderID = fmt.Sprintf("toc_%d", headerCount)
 			headerCount++
-			lastItem = NewNode(Item)
-			listNode.appendChild(lastItem)
 			anchorNode := NewNode(Link)
 			anchorNode.Destination = []byte("#" + node.HeaderID)
+			// Append a copy of all childrens of node to anchorNode.
+			for c := node.FirstChild; c != nil; c = c.Next {
+				anchorNode.appendChild(c.deepCopy())
+			}
+
+			lastItem = NewNode(Item)
 			lastItem.appendChild(anchorNode)
-			anchorNode.appendChild(text(node.FirstChild.Literal))
+			listNode.appendChild(lastItem)
+			return SkipChildren
 		}
 		return GoToNext
 	})

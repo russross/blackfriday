@@ -171,6 +171,43 @@ func (n *Node) insertBefore(sibling *Node) {
 	}
 }
 
+// deepCopy returns a copy of n and all its children.
+// The resulting root node is not linked, i.e. Parent, Prev and Next fields are
+// set to nil.
+func (n *Node) deepCopy() *Node {
+	new := new(Node)
+	*new = *n
+	if n.FirstChild != nil {
+		new.FirstChild = n.FirstChild.deepCopy()
+		new.FirstChild.Parent = new
+		new.FirstChild.Prev = nil
+		new.FirstChild.Next = nil
+		new.LastChild = new.FirstChild
+		new.LastChild.Parent = new
+		new.LastChild.Prev = nil
+		new.LastChild.Next = nil
+		for c, newc := n.FirstChild, new.FirstChild; c.Next != nil; c, newc = c.Next, newc.Next {
+			newc.Next = c.Next.deepCopy()
+			newc.Next.Parent = new
+			newc.Next.Prev = newc
+			new.LastChild = newc.Next
+			new.LastChild.Parent = new
+			new.LastChild.Prev = newc
+		}
+	}
+
+	new.Parent = nil
+	new.Prev = nil
+	new.Next = nil
+
+	new.Literal = make([]byte, len(n.Literal))
+	copy(new.Literal, n.Literal)
+
+	new.content = make([]byte, len(n.content))
+	copy(new.content, n.content)
+	return new
+}
+
 func (n *Node) isContainer() bool {
 	switch n.Type {
 	case Document:

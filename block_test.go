@@ -1526,6 +1526,71 @@ func TestTOC(t *testing.T) {
 <h1 id="toc_2">Title2</h1>
 `,
 
+		"## Subtitle\n\n# Title",
+		`<nav>
+
+<ul>
+<li>
+<ul>
+<li><a href="#toc_0">Subtitle</a></li>
+</ul></li>
+
+<li><a href="#toc_1">Title</a></li>
+</ul>
+
+</nav>
+
+<h2 id="toc_0">Subtitle</h2>
+
+<h1 id="toc_1">Title</h1>
+`,
+
+		"# Title 1\n\n## Subtitle 1\n\n### Subsubtitle 1\n\n# Title 2\n\n### Subsubtitle 2",
+		`<nav>
+
+<ul>
+<li><a href="#toc_0">Title 1</a>
+<ul>
+<li><a href="#toc_1">Subtitle 1</a>
+<ul>
+<li><a href="#toc_2">Subsubtitle 1</a></li>
+</ul></li>
+</ul></li>
+
+<li><a href="#toc_3">Title 2</a>
+<ul>
+<li>
+<ul>
+<li><a href="#toc_4">Subsubtitle 2</a></li>
+</ul></li>
+</ul></li>
+</ul>
+
+</nav>
+
+<h1 id="toc_0">Title 1</h1>
+
+<h2 id="toc_1">Subtitle 1</h2>
+
+<h3 id="toc_2">Subsubtitle 1</h3>
+
+<h1 id="toc_3">Title 2</h1>
+
+<h3 id="toc_4">Subsubtitle 2</h3>
+`,
+
+		"# Title with `code`",
+		`<nav>
+
+<ul>
+<li><a href="#toc_0">Title with <code>code</code></a></li>
+</ul>
+
+</nav>
+
+<h1 id="toc_0">Title with <code>code</code></h1>
+`,
+
 		// Trigger empty TOC
 		"#",
 		"",
