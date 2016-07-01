@@ -439,29 +439,27 @@ func (p *parser) generateTOC() {
 	p.doc.Walk(func(node *Node, entering bool) WalkStatus {
 		if entering && node.Type == Header {
 			if node.Level > currentLevel {
-				currentLevel++
-				newList := NewNode(List)
+				currentLevel = node.Level
+				listNode = NewNode(List)
 				if lastItem != nil {
-					lastItem.appendChild(newList)
-					listNode = newList
+					lastItem.appendChild(listNode)
 				} else {
-					listNode = newList
 					topList = listNode
 				}
-			}
-			if node.Level < currentLevel {
+			} else if node.Level < currentLevel {
+				currentLevel = node.Level
 				finalizeList(listNode)
 				lastItem = listNode.Parent
 				listNode = lastItem.Parent
 			}
 			node.HeaderID = fmt.Sprintf("toc_%d", headerCount)
 			headerCount++
-			lastItem = NewNode(Item)
-			listNode.appendChild(lastItem)
 			anchorNode := NewNode(Link)
 			anchorNode.Destination = []byte("#" + node.HeaderID)
-			lastItem.appendChild(anchorNode)
 			anchorNode.appendChild(text(node.FirstChild.Literal))
+			lastItem = NewNode(Item)
+			lastItem.appendChild(anchorNode)
+			listNode.appendChild(lastItem)
 		}
 		return GoToNext
 	})
