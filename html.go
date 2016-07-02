@@ -145,13 +145,6 @@ func NewHTMLRenderer(params HTMLRendererParameters) Renderer {
 	}
 }
 
-func attrEscape(src []byte) []byte {
-	unesc := []byte(html.UnescapeString(string(src)))
-	esc1 := []byte(html.EscapeString(string(unesc)))
-	esc2 := bytes.Replace(esc1, []byte("&#34;"), []byte("&quot;"), -1)
-	return bytes.Replace(esc2, []byte("&#39;"), []byte{'\''}, -1)
-}
-
 func isHtmlTag(tag []byte, tagname string) bool {
 	found, _ := findHtmlTagPos(tag, tagname)
 	return found
@@ -384,11 +377,12 @@ func cellAlignment(align CellAlignFlags) string {
 	}
 }
 
-func esc(text []byte, preserveEntities bool) []byte {
-	return attrEscape(text)
+func esc(text []byte) []byte {
+	unesc := []byte(html.UnescapeString(string(text)))
+	return escCode(unesc)
 }
 
-func escCode(text []byte, preserveEntities bool) []byte {
+func escCode(text []byte) []byte {
 	e1 := []byte(html.EscapeString(string(text)))
 	e2 := bytes.Replace(e1, []byte("&#34;"), []byte("&quot;"), -1)
 	return bytes.Replace(e2, []byte("&#39;"), []byte{'\''}, -1)
@@ -466,7 +460,7 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 			if entering {
 				dest = r.addAbsPrefix(dest)
 				//if (!(options.safe && potentiallyUnsafe(node.destination))) {
-				attrs = append(attrs, fmt.Sprintf("href=%q", esc(dest, true)))
+				attrs = append(attrs, fmt.Sprintf("href=%q", esc(dest)))
 				//}
 				if node.NoteID != 0 {
 					r.out(w, footnoteRef(r.FootnoteAnchorPrefix, node))
@@ -474,7 +468,7 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 				}
 				attrs = appendLinkAttrs(attrs, r.Flags, dest)
 				if len(node.LinkData.Title) > 0 {
-					attrs = append(attrs, fmt.Sprintf("title=%q", esc(node.LinkData.Title, true)))
+					attrs = append(attrs, fmt.Sprintf("title=%q", esc(node.LinkData.Title)))
 				}
 				r.out(w, tag("a", attrs, false))
 			} else {
@@ -495,7 +489,7 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 				//if options.safe && potentiallyUnsafe(dest) {
 				//out(w, `<img src="" alt="`)
 				//} else {
-				r.out(w, []byte(fmt.Sprintf(`<img src="%s" alt="`, esc(dest, true))))
+				r.out(w, []byte(fmt.Sprintf(`<img src="%s" alt="`, esc(dest))))
 				//}
 			}
 			r.disableTags++
@@ -504,14 +498,14 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 			if r.disableTags == 0 {
 				if node.LinkData.Title != nil {
 					r.out(w, []byte(`" title="`))
-					r.out(w, esc(node.LinkData.Title, true))
+					r.out(w, esc(node.LinkData.Title))
 				}
 				r.out(w, []byte(`" />`))
 			}
 		}
 	case Code:
 		r.out(w, tag("code", nil, false))
-		r.out(w, escCode(node.Literal, false))
+		r.out(w, escCode(node.Literal))
 		r.out(w, tag("/code", nil, false))
 	case Document:
 		break
@@ -650,7 +644,7 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 		r.cr(w)
 		r.out(w, tag("pre", nil, false))
 		r.out(w, tag("code", attrs, false))
-		r.out(w, escCode(node.Literal, false))
+		r.out(w, escCode(node.Literal))
 		r.out(w, tag("/code", nil, false))
 		r.out(w, tag("/pre", nil, false))
 		if node.Parent.Type != Item {
@@ -735,7 +729,7 @@ func (r *HTMLRenderer) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
 	if r.Extensions&Smartypants != 0 {
 		w.Write(sr.Process([]byte(r.Title)))
 	} else {
-		w.Write(esc([]byte(r.Title), false))
+		w.Write(esc([]byte(r.Title)))
 	}
 	w.WriteString("</title>\n")
 	w.WriteString("  <meta name=\"GENERATOR\" content=\"Blackfriday Markdown Processor v")
@@ -748,7 +742,7 @@ func (r *HTMLRenderer) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
 	w.WriteString(">\n")
 	if r.CSS != "" {
 		w.WriteString("  <link rel=\"stylesheet\" type=\"text/css\" href=\"")
-		w.Write(attrEscape([]byte(r.CSS)))
+		w.Write(esc([]byte(r.CSS)))
 		w.WriteString("\"")
 		w.WriteString(ending)
 		w.WriteString(">\n")
@@ -774,7 +768,7 @@ func (r *HTMLRenderer) Render(ast *Node) []byte {
 			if r.Extensions&Smartypants != 0 {
 				node.Literal = sr.Process(node.Literal)
 			} else {
-				node.Literal = esc(node.Literal, false)
+				node.Literal = esc(node.Literal)
 			}
 		}
 		return GoToNext
