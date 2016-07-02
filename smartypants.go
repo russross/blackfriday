@@ -401,7 +401,7 @@ func NewSmartypantsRenderer(flags Extensions) *SPRenderer {
 func (sr *SPRenderer) Process(text []byte) []byte {
 	var buff bytes.Buffer
 	// first do normal entity escaping
-	text = attrEscape(text)
+	text = esc(text)
 	mark := 0
 	for i := 0; i < len(text); i++ {
 		if action := sr.callbacks[text[i]]; action != nil {
