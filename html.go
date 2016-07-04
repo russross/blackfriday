@@ -102,7 +102,6 @@ type HTMLRenderer struct {
 	// Track header IDs to prevent ID collision in a single generation.
 	headerIDs map[string]int
 
-	w             HTMLWriter
 	lastOutputLen int
 	disableTags   int
 }
@@ -111,16 +110,6 @@ const (
 	xhtmlClose = " />"
 	htmlClose  = ">"
 )
-
-type HTMLWriter struct {
-	bytes.Buffer
-}
-
-// Writes out a newline if the output is not pristine. Used at the beginning of
-// every rendering func
-func (w *HTMLWriter) Newline() {
-	w.WriteByte('\n')
-}
 
 // NewHTMLRenderer creates and configures an HTMLRenderer object, which
 // satisfies the Renderer interface.
@@ -135,13 +124,11 @@ func NewHTMLRenderer(params HTMLRendererParameters) Renderer {
 		params.FootnoteReturnLinkContents = `<sup>[return]</sup>`
 	}
 
-	var writer HTMLWriter
 	return &HTMLRenderer{
 		HTMLRendererParameters: params,
 
 		closeTag:  closeTag,
 		headerIDs: make(map[string]int),
-		w:         writer,
 	}
 }
 
