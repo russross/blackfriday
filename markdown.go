@@ -21,6 +21,7 @@ package blackfriday
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"strings"
 	"unicode/utf8"
 )
@@ -168,9 +169,10 @@ var blockTags = map[string]struct{}{
 // If the callback returns false, the rendering function should reset the
 // output buffer as though it had never been called.
 //
-// Currently Html and Latex implementations are provided
+// Currently HTML and Latex implementations are provided
 type Renderer interface {
 	Render(ast *Node) []byte
+	RenderNode(w io.Writer, node *Node, entering bool) WalkStatus
 }
 
 // Callback functions for inline parsing. One such function is defined

@@ -15,7 +15,10 @@
 
 package blackfriday
 
-import "bytes"
+import (
+	"bytes"
+	"io"
+)
 
 // Latex is a type that implements the Renderer interface for LaTeX output.
 //
@@ -323,5 +326,11 @@ func (r *Latex) DocumentFooter() {
 }
 
 func (r *Latex) Render(ast *Node) []byte {
+	// TODO
 	return nil
+}
+
+func (r *Latex) RenderNode(w io.Writer, node *Node, entering bool) WalkStatus {
+	// TODO
+	return GoToNext
 }
