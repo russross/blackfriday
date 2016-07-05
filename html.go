@@ -93,12 +93,6 @@ type HTMLRenderer struct {
 
 	closeTag string // how to end singleton tags: either " />" or ">"
 
-	// table of contents data
-	tocMarker    int
-	headerCount  int
-	currentLevel int
-	toc          bytes.Buffer
-
 	// Track header IDs to prevent ID collision in a single generation.
 	headerIDs map[string]int
 
