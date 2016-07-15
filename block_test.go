@@ -1130,6 +1130,12 @@ func TestFencedCodeBlock(t *testing.T) {
 
 		"Some text before a fenced code block\n``` oz\ncode blocks breakup paragraphs\n```\nSome text in between\n``` oz\nmultiple code blocks work okay\n```\nAnd some text after a fenced code block",
 		"<p>Some text before a fenced code block</p>\n\n<pre><code class=\"language-oz\">code blocks breakup paragraphs\n</code></pre>\n\n<p>Some text in between</p>\n\n<pre><code class=\"language-oz\">multiple code blocks work okay\n</code></pre>\n\n<p>And some text after a fenced code block</p>\n",
+
+		"```\n[]:()\n```\n",
+		"<pre><code>[]:()\n</code></pre>\n",
+
+		"```\n[]:()\n[]:)\n[]:(\n[]:x\n[]:testing\n[:testing\n\n[]:\nlinebreak\n[]()\n\n[]:\n[]()\n```",
+		"<pre><code>[]:()\n[]:)\n[]:(\n[]:x\n[]:testing\n[:testing\n\n[]:\nlinebreak\n[]()\n\n[]:\n[]()\n</code></pre>\n",
 	}
 	doTestsBlock(t, tests, EXTENSION_FENCED_CODE)
 }
@@ -1635,4 +1641,69 @@ func TestCDATA(t *testing.T) {
 ]]>
 `,
 	}, EXTENSION_FENCED_CODE)
+}
+
+func TestIsFenceLine(t *testing.T) {
+	tests := []struct {
+		data            []byte
+		syntaxRequested bool
+		newlineOptional bool
+		wantEnd         int
+		wantMarker      string
+		wantSyntax      string
+	}{
+		{
+			data:    []byte("```"),
+			wantEnd: 0,
+		},
+		{
+			data:       []byte("```\nstuff here\n"),
+			wantEnd:    4,
+			wantMarker: "```",
+		},
+		{
+			data:    []byte("stuff here\n```\n"),
+			wantEnd: 0,
+		},
+		{
+			data:            []byte("```"),
+			newlineOptional: true,
+			wantEnd:         3,
+			wantMarker:      "```",
+		},
+		{
+			data:            []byte("```"),
+			syntaxRequested: true,
+			newlineOptional: true,
+			wantEnd:         3,
+			wantMarker:      "```",
+		},
+		{
+			data:            []byte("``` go"),
+			syntaxRequested: true,
+			newlineOptional: true,
+			wantEnd:         6,
+			wantMarker:      "```",
+			wantSyntax:      "go",
+		},
+	}
+
+	for _, test := range tests {
+		var syntax *string
+		if test.syntaxRequested {
+			syntax = new(string)
+		}
+		end, marker := isFenceLine(test.data, syntax, "```", test.newlineOptional)
+		if got, want := end, test.wantEnd; got != want {
+			t.Errorf("got end %v, want %v", got, want)
+		}
+		if got, want := marker, test.wantMarker; got != want {
+			t.Errorf("got marker %q, want %q", got, want)
+		}
+		if test.syntaxRequested {
+			if got, want := *syntax, test.wantSyntax; got != want {
+				t.Errorf("got syntax %q, want %q", got, want)
+			}
+		}
+	}
 }
