@@ -59,13 +59,11 @@ func doTestsInlineParam(t *testing.T, tests []string, opts Options, htmlFlags in
 	params HtmlRendererParameters) {
 	// catch and report panics
 	var candidate string
-	/*
-		defer func() {
-			if err := recover(); err != nil {
-				t.Errorf("\npanic while processing [%#v] (%v)\n", candidate, err)
-			}
-		}()
-	*/
+	defer func() {
+		if err := recover(); err != nil {
+			t.Errorf("\npanic while processing [%#v]: %s\n", candidate, err)
+		}
+	}()
 
 	for i := 0; i+1 < len(tests); i += 2 {
 		input := tests[i]
@@ -722,10 +720,6 @@ func TestReferenceLink(t *testing.T) {
 
 		"[link][ref]\n   [ref]: /url/",
 		"<p><a href=\"/url/\">link</a></p>\n",
-
-		// Issue 172 in blackfriday
-		"[]:<",
-		"<p>[]:&lt;</p>\n",
 	}
 	doLinkTestsInline(t, tests)
 }

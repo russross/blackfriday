@@ -515,7 +515,7 @@ func (p *parser) htmlFindEnd(tag string, data []byte) int {
 	return i + skip
 }
 
-func (p *parser) isEmpty(data []byte) int {
+func (*parser) isEmpty(data []byte) int {
 	// it is okay to call isEmpty on an empty buffer
 	if len(data) == 0 {
 		return 0
@@ -530,7 +530,7 @@ func (p *parser) isEmpty(data []byte) int {
 	return i + 1
 }
 
-func (p *parser) isHRule(data []byte) bool {
+func (*parser) isHRule(data []byte) bool {
 	i := 0
 
 	// skip up to three spaces
