@@ -559,21 +559,24 @@ func (*parser) isHRule(data []byte) bool {
 	return n >= 3
 }
 
-func (p *parser) isFencedCode(data []byte, syntax **string, oldmarker string) (skip int, marker string) {
+// isFenceLine checks if there's a fence line (e.g., ``` or ``` go) at the beginning of data,
+// and returns the end index if so, or 0 otherwise. It also returns the marker found.
+// If syntax is not nil, it gets set to the syntax specified in the fence line.
+// A final newline is mandatory to recognize the fence line, unless newlineOptional is true.
+func isFenceLine(data []byte, syntax *string, oldmarker string, newlineOptional bool) (end int, marker string) {
 	i, size := 0, 0
-	skip = 0
 
 	// skip up to three spaces
 	for i < len(data) && i < 3 && data[i] == ' ' {
 		i++
 	}
-	if i >= len(data) {
-		return
-	}
 
 	// check for the marker characters: ~ or `
+	if i >= len(data) {
+		return 0, ""
+	}
 	if data[i] != '~' && data[i] != '`' {
-		return
+		return 0, ""
 	}
 
 	c := data[i]
@@ -584,27 +587,28 @@ func (p *parser) isFencedCode(data []byte, syntax **string, oldmarker string) (s
 		i++
 	}
 
-	if i >= len(data) {
-		return
-	}
-
 	// the marker char must occur at least 3 times
 	if size < 3 {
-		return
+		return 0, ""
 	}
 	marker = string(data[i-size : i])
 
 	// if this is the end marker, it must match the beginning marker
 	if oldmarker != "" && marker != oldmarker {
-		return
+		return 0, ""
 	}
 
+	// TODO(shurcooL): It's probably a good idea to simplify the 2 code paths here
+	// into one, always get the syntax, and discard it if the caller doesn't care.
 	if syntax != nil {
 		syn := 0
 		i = skipChar(data, i, ' ')
 
 		if i >= len(data) {
-			return
+			if newlineOptional && i == len(data) {
+				return i, marker
+			}
+			return 0, ""
 		}
 
 		syntaxStart := i
@@ -619,7 +623,7 @@ func (p *parser) isFencedCode(data []byte, syntax **string, oldmarker string) (s
 			}
 
 			if i >= len(data) || data[i] != '}' {
-				return
+				return 0, ""
 			}
 
 			// strip all whitespace at the beginning and the end
@@ -641,22 +645,23 @@ func (p *parser) isFencedCode(data []byte, syntax **string, oldmarker string) (s
 			}
 		}
 
-		language := string(data[syntaxStart : syntaxStart+syn])
-		*syntax = &language
+		*syntax = string(data[syntaxStart : syntaxStart+syn])
 	}
 
 	i = skipChar(data, i, ' ')
 	if i >= len(data) || data[i] != '\n' {
-		return
+		if newlineOptional && i == len(data) {
+			return i, marker
+		}
+		return 0, ""
 	}
 
-	skip = i + 1
-	return
+	return i + 1, marker // Take newline into account.
 }
 
 func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
-	var lang *string
-	beg, marker := p.isFencedCode(data, &lang, "")
+	var syntax string
+	beg, marker := isFenceLine(data, &syntax, "", true)
 	if beg == 0 || beg >= len(data) {
 		return 0
 	}
@@ -667,7 +672,7 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 		// safe to assume beg < len(data)
 
 		// check for the end of the code block
-		fenceEnd, _ := p.isFencedCode(data[beg:], nil, marker)
+		fenceEnd, _ := isFenceLine(data[beg:], nil, marker, true)
 		if fenceEnd != 0 {
 			beg += fenceEnd
 			break
@@ -686,11 +691,6 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 			work.Write(data[beg:end])
 		}
 		beg = end
-	}
-
-	syntax := ""
-	if lang != nil {
-		syntax = *lang
 	}
 
 	if doRender {
