@@ -49,6 +49,17 @@ func runMarkdown(input string, params TestParams) string {
 	return string(Markdown([]byte(input), renderer, params.Options))
 }
 
+// doTests runs full document tests using MarkdownCommon configuration.
+func doTests(t *testing.T, tests []string) {
+	doTestsParam(t, tests, TestParams{
+		Options: DefaultOptions,
+		HTMLRendererParameters: HTMLRendererParameters{
+			Flags:      CommonHtmlFlags,
+			Extensions: CommonExtensions,
+		},
+	})
+}
+
 func doTestsBlock(t *testing.T, tests []string, extensions Extensions) {
 	doTestsParam(t, tests, TestParams{
 		Options:   Options{Extensions: extensions},
