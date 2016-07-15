@@ -664,7 +664,7 @@ func isFenceLine(data []byte, syntax *string, oldmarker string, newlineOptional 
 // If doRender is true, a final newline is mandatory to recognize the fenced code block.
 func (p *parser) fencedCodeBlock(out *bytes.Buffer, data []byte, doRender bool) int {
 	var syntax string
-	beg, marker := isFenceLine(data, &syntax, "", true)
+	beg, marker := isFenceLine(data, &syntax, "", false)
 	if beg == 0 || beg >= len(data) {
 		return 0
 	}
