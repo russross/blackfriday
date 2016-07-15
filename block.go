@@ -102,7 +102,7 @@ func (p *parser) block(out *bytes.Buffer, data []byte) {
 		// }
 		// ```
 		if p.flags&EXTENSION_FENCED_CODE != 0 {
-			if i := p.fencedCode(out, data, true); i > 0 {
+			if i := p.fencedCodeBlock(out, data, true); i > 0 {
 				data = data[i:]
 				continue
 			}
@@ -659,7 +659,10 @@ func isFenceLine(data []byte, syntax *string, oldmarker string, newlineOptional 
 	return i + 1, marker // Take newline into account.
 }
 
-func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
+// fencedCodeBlock returns the end index if data contains a fenced code block at the beginning,
+// or 0 otherwise. It writes to out if doRender is true, otherwise it has no side effects.
+// If doRender is true, a final newline is mandatory to recognize the fenced code block.
+func (p *parser) fencedCodeBlock(out *bytes.Buffer, data []byte, doRender bool) int {
 	var syntax string
 	beg, marker := isFenceLine(data, &syntax, "", true)
 	if beg == 0 || beg >= len(data) {
@@ -672,7 +675,8 @@ func (p *parser) fencedCode(out *bytes.Buffer, data []byte, doRender bool) int {
 		// safe to assume beg < len(data)
 
 		// check for the end of the code block
-		fenceEnd, _ := isFenceLine(data[beg:], nil, marker, true)
+		newlineOptional := !doRender
+		fenceEnd, _ := isFenceLine(data[beg:], nil, marker, newlineOptional)
 		if fenceEnd != 0 {
 			beg += fenceEnd
 			break
@@ -934,7 +938,7 @@ func (p *parser) quote(out *bytes.Buffer, data []byte) int {
 		// irregardless of any contents inside it
 		for data[end] != '\n' {
 			if p.flags&EXTENSION_FENCED_CODE != 0 {
-				if i := p.fencedCode(out, data[end:], false); i > 0 {
+				if i := p.fencedCodeBlock(out, data[end:], false); i > 0 {
 					// -1 to compensate for the extra end++ after the loop:
 					end += i - 1
 					break
@@ -1384,7 +1388,7 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 
 		// if there's a fenced code block, paragraph is over
 		if p.flags&EXTENSION_FENCED_CODE != 0 {
-			if p.fencedCode(out, current, false) > 0 {
+			if p.fencedCodeBlock(out, current, false) > 0 {
 				p.renderParagraph(out, data[:i])
 				return i
 			}
