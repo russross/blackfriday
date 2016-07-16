@@ -1662,6 +1662,12 @@ func TestIsFenceLine(t *testing.T) {
 			wantMarker: "```",
 		},
 		{
+			data:            []byte("```\nstuff here\n"),
+			syntaxRequested: true,
+			wantEnd:         4,
+			wantMarker:      "```",
+		},
+		{
 			data:    []byte("stuff here\n```\n"),
 			wantEnd: 0,
 		},
