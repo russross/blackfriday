@@ -19,6 +19,7 @@ import (
 	"bytes"
 )
 
+// SPRenderer is a struct containing state of a Smartypants renderer.
 type SPRenderer struct {
 	inSingleQuote bool
 	inDoubleQuote bool
@@ -366,6 +367,7 @@ func (smrt *SPRenderer) smartLeftAngle(out *bytes.Buffer, previousChar byte, tex
 
 type smartCallback func(out *bytes.Buffer, previousChar byte, text []byte) int
 
+// NewSmartypantsRenderer constructs a Smartypants renderer object.
 func NewSmartypantsRenderer(flags Extensions) *SPRenderer {
 	var r SPRenderer
 	if flags&SmartypantsAngledQuotes == 0 {
@@ -398,13 +400,14 @@ func NewSmartypantsRenderer(flags Extensions) *SPRenderer {
 	return &r
 }
 
-func (sr *SPRenderer) Process(text []byte) []byte {
+// Process is the entry point of the Smartypants renderer.
+func (smrt *SPRenderer) Process(text []byte) []byte {
 	var buff bytes.Buffer
 	// first do normal entity escaping
 	text = esc(text)
 	mark := 0
 	for i := 0; i < len(text); i++ {
-		if action := sr.callbacks[text[i]]; action != nil {
+		if action := smrt.callbacks[text[i]]; action != nil {
 			if i > mark {
 				buff.Write(text[mark:i])
 			}
