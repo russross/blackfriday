@@ -492,7 +492,7 @@ func (p *parser) parseRefsToAST() {
 		return
 	}
 	p.tip = p.doc
-	finalizeHtmlBlock(p.addBlock(HTMLBlock, []byte(`<div class="footnotes">`)))
+	finalizeHTMLBlock(p.addBlock(HTMLBlock, []byte(`<div class="footnotes">`)))
 	p.addBlock(HorizontalRule, nil)
 	block := p.addBlock(List, nil)
 	block.ListFlags = ListTypeOrdered
@@ -518,7 +518,7 @@ func (p *parser) parseRefsToAST() {
 	above := block.Parent
 	finalizeList(block)
 	p.tip = above
-	finalizeHtmlBlock(p.addBlock(HTMLBlock, []byte("</div>")))
+	finalizeHTMLBlock(p.addBlock(HTMLBlock, []byte("</div>")))
 	block.Walk(func(node *Node, entering bool) WalkStatus {
 		if node.Type == Paragraph || node.Type == Header {
 			p.currBlock = node
