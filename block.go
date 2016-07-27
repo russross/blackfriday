@@ -22,13 +22,13 @@ import (
 )
 
 const (
-	Entity    = "&(?:#x[a-f0-9]{1,8}|#[0-9]{1,8}|[a-z][a-z0-9]{1,31});"
-	Escapable = "[!\"#$%&'()*+,./:;<=>?@[\\\\\\]^_`{|}~-]"
+	charEntity = "&(?:#x[a-f0-9]{1,8}|#[0-9]{1,8}|[a-z][a-z0-9]{1,31});"
+	escapable  = "[!\"#$%&'()*+,./:;<=>?@[\\\\\\]^_`{|}~-]"
 )
 
 var (
 	reBackslashOrAmp      = regexp.MustCompile("[\\&]")
-	reEntityOrEscapedChar = regexp.MustCompile("(?i)\\\\" + Escapable + "|" + Entity)
+	reEntityOrEscapedChar = regexp.MustCompile("(?i)\\\\" + escapable + "|" + charEntity)
 	reTrailingWhitespace  = regexp.MustCompile("(\n *)+$")
 )
 
@@ -279,9 +279,8 @@ func (p *parser) isUnderlinedHeader(data []byte) int {
 		i = skipChar(data, i, ' ')
 		if data[i] == '\n' {
 			return 1
-		} else {
-			return 0
 		}
+		return 0
 	}
 
 	// test of level 2 header
@@ -290,9 +289,8 @@ func (p *parser) isUnderlinedHeader(data []byte) int {
 		i = skipChar(data, i, ' ')
 		if data[i] == '\n' {
 			return 2
-		} else {
-			return 0
 		}
+		return 0
 	}
 
 	return 0
@@ -414,13 +412,13 @@ func (p *parser) html(data []byte, doRender bool) int {
 		for end > 0 && data[end-1] == '\n' {
 			end--
 		}
-		finalizeHtmlBlock(p.addBlock(HTMLBlock, data[:end]))
+		finalizeHTMLBlock(p.addBlock(HTMLBlock, data[:end]))
 	}
 
 	return i
 }
 
-func finalizeHtmlBlock(block *Node) {
+func finalizeHTMLBlock(block *Node) {
 	block.Literal = reTrailingWhitespace.ReplaceAll(block.content, []byte{})
 	block.content = []byte{}
 }
@@ -438,7 +436,7 @@ func (p *parser) htmlComment(data []byte, doRender bool) int {
 				end--
 			}
 			block := p.addBlock(HTMLBlock, data[:end])
-			finalizeHtmlBlock(block)
+			finalizeHTMLBlock(block)
 		}
 		return size
 	}
@@ -470,7 +468,7 @@ func (p *parser) htmlHr(data []byte, doRender bool) int {
 				for end > 0 && data[end-1] == '\n' {
 					end--
 				}
-				finalizeHtmlBlock(p.addBlock(HTMLBlock, data[:end]))
+				finalizeHTMLBlock(p.addBlock(HTMLBlock, data[:end]))
 			}
 			return size
 		}
@@ -729,9 +727,8 @@ func unescapeChar(str []byte) []byte {
 func unescapeString(str []byte) []byte {
 	if reBackslashOrAmp.Match(str) {
 		return reEntityOrEscapedChar.ReplaceAllFunc(str, unescapeChar)
-	} else {
-		return str
 	}
+	return str
 }
 
 func finalizeCodeBlock(block *Node) {
