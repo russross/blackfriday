@@ -54,7 +54,7 @@ func doTests(t *testing.T, tests []string) {
 	doTestsParam(t, tests, TestParams{
 		Options: DefaultOptions,
 		HTMLRendererParameters: HTMLRendererParameters{
-			Flags:      CommonHtmlFlags,
+			Flags:      CommonHTMLFlags,
 			Extensions: CommonExtensions,
 		},
 	})
@@ -106,7 +106,7 @@ func doLinkTestsInline(t *testing.T, tests []string) {
 		HTMLRendererParameters: params,
 	})
 	doTestsInlineParam(t, transformTests, TestParams{
-		HTMLFlags:              CommonHtmlFlags,
+		HTMLFlags:              CommonHTMLFlags,
 		HTMLRendererParameters: params,
 	})
 }

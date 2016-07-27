@@ -1572,7 +1572,7 @@ func TestCompletePage(t *testing.T) {
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <title></title>
-  <meta name="GENERATOR" content="Blackfriday Markdown Processor v1.4" />
+  <meta name="GENERATOR" content="Blackfriday Markdown Processor v2.0" />
   <meta charset="utf-8" />
 </head>
 <body>

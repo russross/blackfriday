@@ -727,7 +727,7 @@ func (r *HTMLRenderer) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
 	}
 	w.WriteString("</title>\n")
 	w.WriteString("  <meta name=\"GENERATOR\" content=\"Blackfriday Markdown Processor v")
-	w.WriteString(VERSION)
+	w.WriteString(Version)
 	w.WriteString("\"")
 	w.WriteString(ending)
 	w.WriteString(">\n")
