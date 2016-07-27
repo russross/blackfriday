@@ -427,7 +427,7 @@ func finalizeHtmlBlock(block *Node) {
 
 // HTML comment, lax form
 func (p *parser) htmlComment(data []byte, doRender bool) int {
-	i := p.inlineHtmlComment(data)
+	i := p.inlineHTMLComment(data)
 	// needs to end with a blank line
 	if j := p.isEmpty(data[i:]); j > 0 {
 		size := i + j
