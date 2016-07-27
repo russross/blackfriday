@@ -128,6 +128,16 @@ func NewNode(typ NodeType) *Node {
 	}
 }
 
+func (n *Node) String() string {
+	ellipsis := ""
+	snippet := n.Literal
+	if len(snippet) > 16 {
+		snippet = snippet[:16]
+		ellipsis = "..."
+	}
+	return fmt.Sprintf("%s: '%s%s'", n.Type, snippet, ellipsis)
+}
+
 func (n *Node) unlink() {
 	if n.Prev != nil {
 		n.Prev.Next = n.Next
@@ -308,10 +318,6 @@ func (nw *NodeWalker) resumeAt(node *Node, entering bool) (*Node, bool) {
 	nw.current = node
 	nw.entering = entering
 	return nw.next()
-}
-
-func (ast *Node) String() string {
-	return dumpString(ast)
 }
 
 func dump(ast *Node) {
