@@ -32,7 +32,7 @@ type Latex struct {
 //
 // flags is a set of LATEX_* options ORed together (currently no such options
 // are defined).
-func NewLatexRenderer(flags int) Renderer {
+func NewLatexRenderer(flags int) *Latex {
 	var writer bytes.Buffer
 	return &Latex{
 		w: writer,
