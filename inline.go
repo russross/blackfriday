@@ -285,7 +285,7 @@ func link(p *parser, data []byte, offset int) int {
 
 	var (
 		i                       = 1
-		noteId                  int
+		noteID                  int
 		title, link, altContent []byte
 		textHasNl               = false
 	)
@@ -501,7 +501,7 @@ func link(p *parser, data []byte, offset int) int {
 
 		if t == linkInlineFootnote {
 			// create a new reference
-			noteId = len(p.notes) + 1
+			noteID = len(p.notes) + 1
 
 			var fragment []byte
 			if len(id) > 0 {
@@ -512,11 +512,11 @@ func link(p *parser, data []byte, offset int) int {
 				}
 				copy(fragment, slugify(id))
 			} else {
-				fragment = append([]byte("footnote-"), []byte(strconv.Itoa(noteId))...)
+				fragment = append([]byte("footnote-"), []byte(strconv.Itoa(noteID))...)
 			}
 
 			ref := &reference{
-				noteId:   noteId,
+				noteID:   noteID,
 				hasBlock: false,
 				link:     fragment,
 				title:    id,
@@ -534,7 +534,7 @@ func link(p *parser, data []byte, offset int) int {
 			}
 
 			if t == linkDeferredFootnote {
-				lr.noteId = len(p.notes) + 1
+				lr.noteID = len(p.notes) + 1
 				p.notes = append(p.notes, lr)
 			}
 
@@ -542,7 +542,7 @@ func link(p *parser, data []byte, offset int) int {
 			link = lr.link
 			// if inline footnote, title == footnote contents
 			title = lr.title
-			noteId = lr.noteId
+			noteID = lr.noteID
 		}
 
 		// rewind the whitespace
@@ -596,7 +596,7 @@ func link(p *parser, data []byte, offset int) int {
 		linkNode := NewNode(Link)
 		linkNode.Destination = link
 		linkNode.Title = title
-		linkNode.NoteID = noteId
+		linkNode.NoteID = noteID
 		p.currBlock.appendChild(linkNode)
 		if t == linkInlineFootnote {
 			i++
