@@ -5,8 +5,12 @@ import (
 	"fmt"
 )
 
+// NodeType specifies a type of a single node of a syntax tree. Usually one
+// node (and its type) corresponds to a single markdown feature, e.g. emphasis
+// or code block.
 type NodeType int
 
+// Constants for identifying different types of nodes. See NodeType.
 const (
 	Document NodeType = iota
 	BlockQuote
@@ -65,6 +69,7 @@ func (t NodeType) String() string {
 	return nodeTypeNames[t]
 }
 
+// ListData contains fields relevant to a List node type.
 type ListData struct {
 	ListFlags  ListType
 	Tight      bool   // Skip <p>s around list item data if true
@@ -73,12 +78,14 @@ type ListData struct {
 	RefLink    []byte // If not nil, turns this list item into a footnote item and triggers different rendering
 }
 
+// LinkData contains fields relevant to a Link node type.
 type LinkData struct {
 	Destination []byte
 	Title       []byte
 	NoteID      int
 }
 
+// CodeBlockData contains fields relevant to a CodeBlock node type.
 type CodeBlockData struct {
 	IsFenced    bool   // Specifies whether it's a fenced code block or an indented one
 	Info        []byte // This holds the info string
@@ -87,11 +94,13 @@ type CodeBlockData struct {
 	FenceOffset int
 }
 
+// TableCellData contains fields relevant to a TableCell node type.
 type TableCellData struct {
 	IsHeader bool           // This tells if it's under the header row
 	Align    CellAlignFlags // This holds the value for align attribute
 }
 
+// HeaderData contains fields relevant to a Header node type.
 type HeaderData struct {
 	Level        int    // This holds the heading level number
 	HeaderID     string // This might hold header ID, if present
@@ -111,16 +120,17 @@ type Node struct {
 
 	Literal []byte // Text contents of the leaf nodes
 
-	HeaderData    // Populated if Type == Header
-	ListData      // Populated if Type == List
-	CodeBlockData // Populated if Type == CodeBlock
-	LinkData      // Populated if Type == Link
-	TableCellData // Populated if Type == TableCell
+	HeaderData    // Populated if Type is Header
+	ListData      // Populated if Type is List
+	CodeBlockData // Populated if Type is CodeBlock
+	LinkData      // Populated if Type is Link
+	TableCellData // Populated if Type is TableCell
 
 	content []byte // Markdown content of the block nodes
 	open    bool   // Specifies an open block node that has not been finished to process yet
 }
 
+// NewNode allocates a node of a specified type.
 func NewNode(typ NodeType) *Node {
 	return &Node{
 		Type: typ,
@@ -218,7 +228,6 @@ func (n *Node) isContainer() bool {
 	default:
 		return false
 	}
-	return false
 }
 
 func (n *Node) canContain(t NodeType) bool {
@@ -246,9 +255,12 @@ func (n *Node) canContain(t NodeType) bool {
 type WalkStatus int
 
 const (
-	GoToNext     WalkStatus = iota // The default traversal of every node.
-	SkipChildren                   // Skips all children of current node.
-	Terminate                      // Terminates the traversal.
+	// GoToNext is the default traversal of every node.
+	GoToNext WalkStatus = iota
+	// SkipChildren tells walker to skip all children of current node.
+	SkipChildren
+	// Terminate tells walker to terminate the traversal.
+	Terminate
 )
 
 // NodeVisitor is a callback to be called when traversing the syntax tree.
@@ -256,8 +268,10 @@ const (
 // first visited, then with entering=false after all the children are done.
 type NodeVisitor func(node *Node, entering bool) WalkStatus
 
-func (root *Node) Walk(visitor NodeVisitor) {
-	walker := NewNodeWalker(root)
+// Walk is a convenience method that instantiates a walker and starts a
+// traversal of subtree rooted at n.
+func (n *Node) Walk(visitor NodeVisitor) {
+	walker := newNodeWalker(n)
 	node, entering := walker.next()
 	for node != nil {
 		status := visitor(node, entering)
@@ -272,21 +286,21 @@ func (root *Node) Walk(visitor NodeVisitor) {
 	}
 }
 
-type NodeWalker struct {
+type nodeWalker struct {
 	current  *Node
 	root     *Node
 	entering bool
 }
 
-func NewNodeWalker(root *Node) *NodeWalker {
-	return &NodeWalker{
+func newNodeWalker(root *Node) *nodeWalker {
+	return &nodeWalker{
 		current:  root,
 		root:     nil,
 		entering: true,
 	}
 }
 
-func (nw *NodeWalker) next() (*Node, bool) {
+func (nw *nodeWalker) next() (*Node, bool) {
 	if nw.current == nil {
 		return nil, false
 	}
@@ -314,7 +328,7 @@ func (nw *NodeWalker) next() (*Node, bool) {
 	return nw.current, nw.entering
 }
 
-func (nw *NodeWalker) resumeAt(node *Node, entering bool) (*Node, bool) {
+func (nw *nodeWalker) resumeAt(node *Node, entering bool) (*Node, bool) {
 	nw.current = node
 	nw.entering = entering
 	return nw.next()
@@ -324,7 +338,7 @@ func dump(ast *Node) {
 	fmt.Println(dumpString(ast))
 }
 
-func dump_r(ast *Node, depth int) string {
+func dumpR(ast *Node, depth int) string {
 	if ast == nil {
 		return ""
 	}
@@ -335,11 +349,11 @@ func dump_r(ast *Node, depth int) string {
 	}
 	result := fmt.Sprintf("%s%s(%q)\n", indent, ast.Type, content)
 	for n := ast.FirstChild; n != nil; n = n.Next {
-		result += dump_r(n, depth+1)
+		result += dumpR(n, depth+1)
 	}
 	return result
 }
 
 func dumpString(ast *Node) string {
-	return dump_r(ast, 0)
+	return dumpR(ast, 0)
 }
