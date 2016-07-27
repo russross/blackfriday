@@ -107,7 +107,7 @@ const (
 
 // NewHTMLRenderer creates and configures an HTMLRenderer object, which
 // satisfies the Renderer interface.
-func NewHTMLRenderer(params HTMLRendererParameters) Renderer {
+func NewHTMLRenderer(params HTMLRendererParameters) *HTMLRenderer {
 	// configure the rendering engine
 	closeTag := htmlClose
 	if params.Flags&UseXHTML != 0 {
