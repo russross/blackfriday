@@ -177,9 +177,9 @@ func (r *Latex) FootnoteItem(name, text []byte, flags ListType) {
 
 }
 
-func (r *Latex) AutoLink(link []byte, kind LinkType) {
+func (r *Latex) AutoLink(link []byte, kind autoLinkType) {
 	r.w.WriteString("\\href{")
-	if kind == LinkTypeEmail {
+	if kind == emailAutolink {
 		r.w.WriteString("mailto:")
 	}
 	r.w.Write(link)

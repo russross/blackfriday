@@ -638,23 +638,33 @@ func stripMailto(link []byte) []byte {
 	}
 }
 
+// autoLinkType specifies a kind of autolink that gets detected.
+type autoLinkType int
+
+// These are the possible flag values for the autolink renderer.
+// Only a single one of these values will be used; they are not ORed together.
+const (
+	notAutolink autoLinkType = iota
+	normalAutolink
+	emailAutolink
+)
+
 // '<' when tags or autolinks are allowed
 func leftAngle(p *parser, data []byte, offset int) int {
 	data = data[offset:]
-	altype := LinkTypeNotAutolink
-	end := tagLength(data, &altype)
+	altype, end := tagLength(data)
 	if size := p.inlineHTMLComment(data); size > 0 {
 		end = size
 	}
 	if end > 2 {
-		if altype != LinkTypeNotAutolink {
+		if altype != notAutolink {
 			var uLink bytes.Buffer
 			unescapeText(&uLink, data[1:end+1-2])
 			if uLink.Len() > 0 {
 				link := uLink.Bytes()
 				node := NewNode(Link)
 				node.Destination = link
-				if altype == LinkTypeEmail {
+				if altype == emailAutolink {
 					node.Destination = append([]byte("mailto:"), link...)
 				}
 				p.currBlock.appendChild(node)
@@ -924,17 +934,17 @@ func isSafeLink(link []byte) bool {
 }
 
 // return the length of the given tag, or 0 is it's not valid
-func tagLength(data []byte, autolink *LinkType) int {
+func tagLength(data []byte) (autolink autoLinkType, end int) {
 	var i, j int
 
 	// a valid tag can't be shorter than 3 chars
 	if len(data) < 3 {
-		return 0
+		return notAutolink, 0
 	}
 
 	// begins with a '<' optionally followed by '/', followed by letter or number
 	if data[0] != '<' {
-		return 0
+		return notAutolink, 0
 	}
 	if data[1] == '/' {
 		i = 2
@@ -943,11 +953,11 @@ func tagLength(data []byte, autolink *LinkType) int {
 	}
 
 	if !isalnum(data[i]) {
-		return 0
+		return notAutolink, 0
 	}
 
 	// scheme test
-	*autolink = LinkTypeNotAutolink
+	autolink = notAutolink
 
 	// try to find the beginning of an URI
 	for i < len(data) && (isalnum(data[i]) || data[i] == '.' || data[i] == '+' || data[i] == '-') {
@@ -956,21 +966,20 @@ func tagLength(data []byte, autolink *LinkType) int {
 
 	if i > 1 && i < len(data) && data[i] == '@' {
 		if j = isMailtoAutoLink(data[i:]); j != 0 {
-			*autolink = LinkTypeEmail
-			return i + j
+			return emailAutolink, i + j
 		}
 	}
 
 	if i > 2 && i < len(data) && data[i] == ':' {
-		*autolink = LinkTypeNormal
+		autolink = normalAutolink
 		i++
 	}
 
 	// complete autolink test: no whitespace or ' or "
 	switch {
 	case i >= len(data):
-		*autolink = LinkTypeNotAutolink
-	case *autolink != 0:
+		autolink = notAutolink
+	case autolink != notAutolink:
 		j = i
 
 		for i < len(data) {
@@ -985,24 +994,20 @@ func tagLength(data []byte, autolink *LinkType) int {
 		}
 
 		if i >= len(data) {
-			return 0
+			return autolink, 0
 		}
 		if i > j && data[i] == '>' {
-			return i + 1
+			return autolink, i + 1
 		}
 
 		// one of the forbidden chars has been found
-		*autolink = LinkTypeNotAutolink
+		autolink = notAutolink
 	}
-
-	// look for something looking like a tag end
-	for i < len(data) && data[i] != '>' {
-		i++
+	i += bytes.IndexByte(data[i:], '>')
+	if i < 0 {
+		return autolink, 0
 	}
-	if i >= len(data) {
-		return 0
-	}
-	return i + 1
+	return autolink, i + 1
 }
 
 // look for the address part of a mail autolink and '>'
