@@ -324,12 +324,19 @@ func MarkdownBasic(input []byte) []byte {
 // Markdown with most useful extensions enabled, including:
 //
 // * Smartypants processing with smart fractions and LaTeX dashes
+//
 // * Intra-word emphasis suppression
+//
 // * Tables
+//
 // * Fenced code blocks
+//
 // * Autolinking
+//
 // * Strikethrough support
+//
 // * Strict header parsing
+//
 // * Custom Header IDs
 func MarkdownCommon(input []byte) []byte {
 	// set up the HTML renderer
