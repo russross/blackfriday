@@ -24,6 +24,7 @@ import (
 	"strings"
 )
 
+// HTMLFlags control optional behavior of HTML renderer.
 type HTMLFlags int
 
 // HTML renderer configuration options.
@@ -63,6 +64,8 @@ var (
 	htmlTagRe = regexp.MustCompile("(?i)^" + HTMLTag)
 )
 
+// HTMLRendererParameters is a collection of supplementary parameters tweaking
+// the behavior of various parts of HTML renderer.
 type HTMLRendererParameters struct {
 	// Prepend this text to each relative URL.
 	AbsolutePrefix string
@@ -126,8 +129,8 @@ func NewHTMLRenderer(params HTMLRendererParameters) *HTMLRenderer {
 	}
 }
 
-func isHtmlTag(tag []byte, tagname string) bool {
-	found, _ := findHtmlTagPos(tag, tagname)
+func isHTMLTag(tag []byte, tagname string) bool {
+	found, _ := findHTMLTagPos(tag, tagname)
 	return found
 }
 
@@ -154,7 +157,7 @@ func skipUntilCharIgnoreQuotes(html []byte, start int, char byte) int {
 	return start
 }
 
-func findHtmlTagPos(tag []byte, tagname string) (bool, int) {
+func findHTMLTagPos(tag []byte, tagname string) (bool, int) {
 	i := 0
 	if i < len(tag) && tag[0] != '<' {
 		return false, -1
@@ -384,6 +387,16 @@ func (r *HTMLRenderer) cr(w io.Writer) {
 	}
 }
 
+// RenderNode is a default renderer of a single node of a syntax tree. For
+// block nodes it will be called twice: first time with entering=true, second
+// time with entering=false, so that it could know when it's working on an open
+// tag and when on close. It writes the result to w.
+//
+// The return value is a way to tell the calling walker to adjust its walk
+// pattern: e.g. it can terminate the traversal by returning Terminate. Or it
+// can ask the walker to skip a subtree of this node by returning SkipChildren.
+// The typical behavior is to return GoToNext, which asks for the usual
+// traversal to the next node.
 func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkStatus {
 	attrs := []string{}
 	switch node.Type {
@@ -420,7 +433,7 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 		if r.Flags&SkipHTML != 0 {
 			break
 		}
-		if r.Flags&SkipStyle != 0 && isHtmlTag(node.Literal, "style") {
+		if r.Flags&SkipStyle != 0 && isHTMLTag(node.Literal, "style") {
 			break
 		}
 		//if options.safe {
@@ -714,7 +727,7 @@ func (r *HTMLRenderer) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
 	}
 	w.WriteString("</title>\n")
 	w.WriteString("  <meta name=\"GENERATOR\" content=\"Blackfriday Markdown Processor v")
-	w.WriteString(VERSION)
+	w.WriteString(Version)
 	w.WriteString("\"")
 	w.WriteString(ending)
 	w.WriteString(">\n")
@@ -739,6 +752,7 @@ func (r *HTMLRenderer) writeDocumentFooter(w *bytes.Buffer) {
 	w.WriteString("\n</body>\n</html>\n")
 }
 
+// Render walks the specified syntax (sub)tree and returns a HTML document.
 func (r *HTMLRenderer) Render(ast *Node) []byte {
 	//println("render_Blackfriday")
 	//dump(ast)

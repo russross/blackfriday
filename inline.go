@@ -266,13 +266,13 @@ func link(p *parser, data []byte, offset int) int {
 	// ![alt] == image
 	case offset >= 0 && data[offset] == '!':
 		t = linkImg
-		offset += 1
+		offset++
 	// ^[text] == inline footnote
 	// [^refId] == deferred footnote
 	case p.flags&Footnotes != 0:
 		if offset >= 0 && data[offset] == '^' {
 			t = linkInlineFootnote
-			offset += 1
+			offset++
 		} else if len(data)-1 > offset && data[offset+1] == '^' {
 			t = linkDeferredFootnote
 		}
@@ -285,7 +285,7 @@ func link(p *parser, data []byte, offset int) int {
 
 	var (
 		i                       = 1
-		noteId                  int
+		noteID                  int
 		title, link, altContent []byte
 		textHasNl               = false
 	)
@@ -501,7 +501,7 @@ func link(p *parser, data []byte, offset int) int {
 
 		if t == linkInlineFootnote {
 			// create a new reference
-			noteId = len(p.notes) + 1
+			noteID = len(p.notes) + 1
 
 			var fragment []byte
 			if len(id) > 0 {
@@ -512,11 +512,11 @@ func link(p *parser, data []byte, offset int) int {
 				}
 				copy(fragment, slugify(id))
 			} else {
-				fragment = append([]byte("footnote-"), []byte(strconv.Itoa(noteId))...)
+				fragment = append([]byte("footnote-"), []byte(strconv.Itoa(noteID))...)
 			}
 
 			ref := &reference{
-				noteId:   noteId,
+				noteID:   noteID,
 				hasBlock: false,
 				link:     fragment,
 				title:    id,
@@ -534,7 +534,7 @@ func link(p *parser, data []byte, offset int) int {
 			}
 
 			if t == linkDeferredFootnote {
-				lr.noteId = len(p.notes) + 1
+				lr.noteID = len(p.notes) + 1
 				p.notes = append(p.notes, lr)
 			}
 
@@ -542,7 +542,7 @@ func link(p *parser, data []byte, offset int) int {
 			link = lr.link
 			// if inline footnote, title == footnote contents
 			title = lr.title
-			noteId = lr.noteId
+			noteID = lr.noteID
 		}
 
 		// rewind the whitespace
@@ -590,13 +590,13 @@ func link(p *parser, data []byte, offset int) int {
 		linkNode.Title = title
 		p.currBlock.appendChild(linkNode)
 		linkNode.appendChild(text(data[1:txtE]))
-		i += 1
+		i++
 
 	case linkInlineFootnote, linkDeferredFootnote:
 		linkNode := NewNode(Link)
 		linkNode.Destination = link
 		linkNode.Title = title
-		linkNode.NoteID = noteId
+		linkNode.NoteID = noteID
 		p.currBlock.appendChild(linkNode)
 		if t == linkInlineFootnote {
 			i++
@@ -609,7 +609,7 @@ func link(p *parser, data []byte, offset int) int {
 	return i
 }
 
-func (p *parser) inlineHtmlComment(data []byte) int {
+func (p *parser) inlineHTMLComment(data []byte) int {
 	if len(data) < 5 {
 		return 0
 	}
@@ -643,7 +643,7 @@ func leftAngle(p *parser, data []byte, offset int) int {
 	data = data[offset:]
 	altype := LinkTypeNotAutolink
 	end := tagLength(data, &altype)
-	if size := p.inlineHtmlComment(data); size > 0 {
+	if size := p.inlineHTMLComment(data); size > 0 {
 		end = size
 	}
 	if end > 2 {
@@ -1026,9 +1026,8 @@ func isMailtoAutoLink(data []byte) int {
 		case '>':
 			if nb == 1 {
 				return i + 1
-			} else {
-				return 0
 			}
+			return 0
 		default:
 			return 0
 		}
@@ -1091,9 +1090,8 @@ func helperFindEmphChar(data []byte, c byte) int {
 			if data[i] != '[' && data[i] != '(' { // not a link
 				if tmpI > 0 {
 					return tmpI
-				} else {
-					continue
 				}
+				continue
 			}
 			cc := data[i]
 			i++
@@ -1218,17 +1216,15 @@ func helperTripleEmphasis(p *parser, data []byte, offset int, c byte) int {
 			length = helperEmphasis(p, origData[offset-2:], c)
 			if length == 0 {
 				return 0
-			} else {
-				return length - 2
 			}
+			return length - 2
 		default:
 			// single symbol found, hand over to emph2
 			length = helperDoubleEmphasis(p, origData[offset-1:], c)
 			if length == 0 {
 				return 0
-			} else {
-				return length - 1
 			}
+			return length - 1
 		}
 	}
 	return 0

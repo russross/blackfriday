@@ -13,7 +13,7 @@
 //
 //
 
-// Blackfriday markdown processor.
+// Package blackfriday is a markdown processor.
 //
 // Translates plain text with simple formatting rules into HTML or LaTeX.
 package blackfriday
@@ -26,8 +26,11 @@ import (
 	"unicode/utf8"
 )
 
-const VERSION = "1.4"
+// Version string of the package.
+const Version = "2.0"
 
+// Extensions is a bitwise or'ed collection of enabled Blackfriday's
+// extensions.
 type Extensions int
 
 // These are the supported markdown parsing extensions.
@@ -58,7 +61,7 @@ const (
 	TOC                                            // Generate a table of contents
 	OmitContents                                   // Skip the main contents (for a standalone table of contents)
 
-	CommonHtmlFlags HTMLFlags = UseXHTML
+	CommonHTMLFlags HTMLFlags = UseXHTML
 
 	CommonExtensions Extensions = NoIntraEmphasis | Tables | FencedCode |
 		Autolink | Strikethrough | SpaceHeaders | HeaderIDs |
@@ -66,10 +69,13 @@ const (
 		SmartypantsFractions | SmartypantsDashes | SmartypantsLatexDashes
 )
 
+// DefaultOptions is a convenience variable with all the options that are
+// enabled by default.
 var DefaultOptions = Options{
 	Extensions: CommonExtensions,
 }
 
+// TODO: this should probably be unexported. Or moved to node.go
 type LinkType int
 
 // These are the possible flag values for the link renderer.
@@ -81,6 +87,7 @@ const (
 	LinkTypeEmail
 )
 
+// ListType contains bitwise or'ed flags for list and list item objects.
 type ListType int
 
 // These are the possible flag values for the ListItem renderer.
@@ -96,6 +103,7 @@ const (
 	ListItemEndOfList
 )
 
+// CellAlignFlags holds a type of alignment in a table cell.
 type CellAlignFlags int
 
 // These are the possible flag values for the table cell renderer.
@@ -213,7 +221,7 @@ func (p *parser) getRef(refid string) (ref *reference, found bool) {
 			return &reference{
 				link:     []byte(r.Link),
 				title:    []byte(r.Title),
-				noteId:   0,
+				noteID:   0,
 				hasBlock: false,
 				text:     []byte(r.Text)}, true
 		}
@@ -312,9 +320,8 @@ func MarkdownBasic(input []byte) []byte {
 	return Markdown(input, renderer, Options{})
 }
 
-// Call Markdown with most useful extensions enabled
-// MarkdownCommon is a convenience function for simple rendering.
-// It processes markdown input with common extensions enabled, including:
+// MarkdownCommon is a convenience function for simple rendering. It calls
+// Markdown with most useful extensions enabled, including:
 //
 // * Smartypants processing with smart fractions and LaTeX dashes
 //
@@ -334,7 +341,7 @@ func MarkdownBasic(input []byte) []byte {
 func MarkdownCommon(input []byte) []byte {
 	// set up the HTML renderer
 	renderer := NewHTMLRenderer(HTMLRendererParameters{
-		Flags:      CommonHtmlFlags,
+		Flags:      CommonHTMLFlags,
 		Extensions: CommonExtensions,
 	})
 	return Markdown(input, renderer, DefaultOptions)
@@ -354,6 +361,10 @@ func Markdown(input []byte, renderer Renderer, options Options) []byte {
 	return renderer.Render(Parse(input, options))
 }
 
+// Parse is an entry point to the parsing part of Blackfriday. It takes an
+// input markdown document and produces a syntax tree for its contents. This
+// tree can then be rendered with a default or custom renderer, or
+// analyzed/transformed by the caller to whatever non-standard needs they have.
 func Parse(input []byte, opts Options) *Node {
 	extensions := opts.Extensions
 
@@ -488,7 +499,7 @@ func (p *parser) parseRefsToAST() {
 		return
 	}
 	p.tip = p.doc
-	finalizeHtmlBlock(p.addBlock(HTMLBlock, []byte(`<div class="footnotes">`)))
+	finalizeHTMLBlock(p.addBlock(HTMLBlock, []byte(`<div class="footnotes">`)))
 	p.addBlock(HorizontalRule, nil)
 	block := p.addBlock(List, nil)
 	block.ListFlags = ListTypeOrdered
@@ -514,7 +525,7 @@ func (p *parser) parseRefsToAST() {
 	above := block.Parent
 	finalizeList(block)
 	p.tip = above
-	finalizeHtmlBlock(p.addBlock(HTMLBlock, []byte("</div>")))
+	finalizeHTMLBlock(p.addBlock(HTMLBlock, []byte("</div>")))
 	block.Walk(func(node *Node, entering bool) WalkStatus {
 		if node.Type == Paragraph || node.Type == Header {
 			p.currBlock = node
@@ -592,7 +603,7 @@ func secondPass(p *parser, input []byte) {
 
 	if p.flags&Footnotes != 0 && len(p.notes) > 0 {
 		flags := ListItemBeginningOfList
-		for i := 0; i < len(p.notes); i += 1 {
+		for i := 0; i < len(p.notes); i++ {
 			ref := p.notes[i]
 			if ref.hasBlock {
 				flags |= ListItemContainsBlock
@@ -642,14 +653,14 @@ func secondPass(p *parser, input []byte) {
 type reference struct {
 	link     []byte
 	title    []byte
-	noteId   int // 0 if not a footnote ref
+	noteID   int // 0 if not a footnote ref
 	hasBlock bool
 	text     []byte
 }
 
 func (r *reference) String() string {
-	return fmt.Sprintf("{link: %q, title: %q, text: %q, noteId: %d, hasBlock: %v}",
-		r.link, r.title, r.text, r.noteId, r.hasBlock)
+	return fmt.Sprintf("{link: %q, title: %q, text: %q, noteID: %d, hasBlock: %v}",
+		r.link, r.title, r.text, r.noteID, r.hasBlock)
 }
 
 // Check whether or not data starts with a reference link.
@@ -667,7 +678,7 @@ func isReference(p *parser, data []byte, tabSize int) int {
 		i++
 	}
 
-	noteId := 0
+	noteID := 0
 
 	// id part: anything but a newline between brackets
 	if data[i] != '[' {
@@ -678,7 +689,7 @@ func isReference(p *parser, data []byte, tabSize int) int {
 		if i < len(data) && data[i] == '^' {
 			// we can set it to anything here because the proper noteIds will
 			// be assigned later during the second pass. It just has to be != 0
-			noteId = 1
+			noteID = 1
 			i++
 		}
 	}
@@ -721,7 +732,7 @@ func isReference(p *parser, data []byte, tabSize int) int {
 		hasBlock              bool
 	)
 
-	if p.flags&Footnotes != 0 && noteId != 0 {
+	if p.flags&Footnotes != 0 && noteID != 0 {
 		linkOffset, linkEnd, raw, hasBlock = scanFootnote(p, data, i, tabSize)
 		lineEnd = linkEnd
 	} else {
@@ -734,11 +745,11 @@ func isReference(p *parser, data []byte, tabSize int) int {
 	// a valid ref has been found
 
 	ref := &reference{
-		noteId:   noteId,
+		noteID:   noteID,
 		hasBlock: hasBlock,
 	}
 
-	if noteId > 0 {
+	if noteID > 0 {
 		// reusing the link field for the id since footnotes don't have links
 		ref.link = data[idOffset:idEnd]
 		// if footnote, it's not really a title, it's the contained text

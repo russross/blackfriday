@@ -311,7 +311,7 @@ func (r *Latex) DocumentHeader() {
 	r.w.WriteString("  pdfstartview=FitH,%\n")
 	r.w.WriteString("  breaklinks=true,%\n")
 	r.w.WriteString("  pdfauthor={Blackfriday Markdown Processor v")
-	r.w.WriteString(VERSION)
+	r.w.WriteString(Version)
 	r.w.WriteString("}}\n")
 	r.w.WriteString("\n")
 	r.w.WriteString("\\newcommand{\\HRule}{\\rule{\\linewidth}{0.5mm}}\n")
