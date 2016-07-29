@@ -638,13 +638,12 @@ func stripMailto(link []byte) []byte {
 	}
 }
 
-// autoLinkType specifies a kind of autolink that gets detected.
-type autoLinkType int
+// autolinkType specifies a kind of autolink that gets detected.
+type autolinkType int
 
 // These are the possible flag values for the autolink renderer.
-// Only a single one of these values will be used; they are not ORed together.
 const (
-	notAutolink autoLinkType = iota
+	notAutolink autolinkType = iota
 	normalAutolink
 	emailAutolink
 )
@@ -934,7 +933,7 @@ func isSafeLink(link []byte) bool {
 }
 
 // return the length of the given tag, or 0 is it's not valid
-func tagLength(data []byte) (autolink autoLinkType, end int) {
+func tagLength(data []byte) (autolink autolinkType, end int) {
 	var i, j int
 
 	// a valid tag can't be shorter than 3 chars
