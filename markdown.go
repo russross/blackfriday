@@ -75,18 +75,6 @@ var DefaultOptions = Options{
 	Extensions: CommonExtensions,
 }
 
-// TODO: this should probably be unexported. Or moved to node.go
-type LinkType int
-
-// These are the possible flag values for the link renderer.
-// Only a single one of these values will be used; they are not ORed together.
-// These are mostly of interest if you are writing a new output format.
-const (
-	LinkTypeNotAutolink LinkType = iota
-	LinkTypeNormal
-	LinkTypeEmail
-)
-
 // ListType contains bitwise or'ed flags for list and list item objects.
 type ListType int
 
