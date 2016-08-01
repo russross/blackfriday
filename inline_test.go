@@ -104,7 +104,7 @@ func TestReferenceOverride(t *testing.T) {
 			ReferenceOverride: func(reference string) (rv *Reference, overridden bool) {
 				switch reference {
 				case "ref1":
-					// just an overriden reference exists without definition
+					// just an overridden reference exists without definition
 					return &Reference{
 						Link:  "http://www.ref1.com/",
 						Title: "Reference 1"}, true
