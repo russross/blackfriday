@@ -270,16 +270,16 @@ type NodeVisitor func(node *Node, entering bool) WalkStatus
 
 // Walk is a convenience method that instantiates a walker and starts a
 // traversal of subtree rooted at n.
-func (n *Node) Walk(visitor NodeVisitor) {
-	walker := newNodeWalker(n)
-	node, entering := walker.next()
-	for node != nil {
-		status := visitor(node, entering)
+func (root *Node) Walk(visitor NodeVisitor) {
+	w := newNodeWalker(root)
+	for w.current != nil {
+		status := visitor(w.current, w.entering)
 		switch status {
 		case GoToNext:
-			node, entering = walker.next()
+			w.next()
 		case SkipChildren:
-			node, entering = walker.resumeAt(node, false)
+			w.entering = false
+			w.next()
 		case Terminate:
 			return
 		}
@@ -295,18 +295,15 @@ type nodeWalker struct {
 func newNodeWalker(root *Node) *nodeWalker {
 	return &nodeWalker{
 		current:  root,
-		root:     nil,
+		root:     root,
 		entering: true,
 	}
 }
 
-func (nw *nodeWalker) next() (*Node, bool) {
-	if nw.current == nil {
-		return nil, false
-	}
-	if nw.root == nil {
-		nw.root = nw.current
-		return nw.current, nw.entering
+func (nw *nodeWalker) next() {
+	if !nw.entering && nw.current == nw.root {
+		nw.current = nil
+		return
 	}
 	if nw.entering && nw.current.isContainer() {
 		if nw.current.FirstChild != nil {
@@ -322,16 +319,6 @@ func (nw *nodeWalker) next() (*Node, bool) {
 		nw.current = nw.current.Next
 		nw.entering = true
 	}
-	if nw.current == nw.root {
-		return nil, false
-	}
-	return nw.current, nw.entering
-}
-
-func (nw *nodeWalker) resumeAt(node *Node, entering bool) (*Node, bool) {
-	nw.current = node
-	nw.entering = entering
-	return nw.next()
 }
 
 func dump(ast *Node) {
