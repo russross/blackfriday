@@ -60,9 +60,9 @@ func (p *parser) inline(data []byte) {
 			if data[end] == ' ' {
 				consumed, br := maybeLineBreak(p, data, end)
 				if consumed > 0 {
-					p.currBlock.appendChild(text(data[i:end]))
+					p.currBlock.AppendChild(text(data[i:end]))
 					if br {
-						p.currBlock.appendChild(NewNode(Hardbreak))
+						p.currBlock.AppendChild(NewNode(Hardbreak))
 					}
 					i = end
 					i += consumed
@@ -83,7 +83,7 @@ func (p *parser) inline(data []byte) {
 			}
 		}
 
-		p.currBlock.appendChild(text(data[i:end]))
+		p.currBlock.AppendChild(text(data[i:end]))
 
 		if end >= len(data) {
 			break
@@ -189,7 +189,7 @@ func codeSpan(p *parser, data []byte, offset int) int {
 	if fBegin != fEnd {
 		code := NewNode(Code)
 		code.Literal = data[fBegin:fEnd]
-		p.currBlock.appendChild(code)
+		p.currBlock.AppendChild(code)
 	}
 
 	return end
@@ -214,7 +214,7 @@ func maybeLineBreak(p *parser, data []byte, offset int) (int, bool) {
 // newline without two spaces works when HardLineBreak is enabled
 func lineBreak(p *parser, data []byte, offset int) int {
 	if p.flags&HardLineBreak != 0 {
-		p.currBlock.appendChild(NewNode(Hardbreak))
+		p.currBlock.AppendChild(NewNode(Hardbreak))
 		return 1
 	}
 	return 0
@@ -569,9 +569,9 @@ func link(p *parser, data []byte, offset int) int {
 		linkNode := NewNode(Link)
 		linkNode.Destination = normalizeURI(uLink)
 		linkNode.Title = title
-		p.currBlock.appendChild(linkNode)
+		p.currBlock.AppendChild(linkNode)
 		if len(altContent) > 0 {
-			linkNode.appendChild(text(altContent))
+			linkNode.AppendChild(text(altContent))
 		} else {
 			// links cannot contain other links, so turn off link parsing
 			// temporarily and recurse
@@ -588,8 +588,8 @@ func link(p *parser, data []byte, offset int) int {
 		linkNode := NewNode(Image)
 		linkNode.Destination = uLink
 		linkNode.Title = title
-		p.currBlock.appendChild(linkNode)
-		linkNode.appendChild(text(data[1:txtE]))
+		p.currBlock.AppendChild(linkNode)
+		linkNode.AppendChild(text(data[1:txtE]))
 		i++
 
 	case linkInlineFootnote, linkDeferredFootnote:
@@ -597,7 +597,7 @@ func link(p *parser, data []byte, offset int) int {
 		linkNode.Destination = link
 		linkNode.Title = title
 		linkNode.NoteID = noteID
-		p.currBlock.appendChild(linkNode)
+		p.currBlock.AppendChild(linkNode)
 		if t == linkInlineFootnote {
 			i++
 		}
@@ -666,13 +666,13 @@ func leftAngle(p *parser, data []byte, offset int) int {
 				if altype == emailAutolink {
 					node.Destination = append([]byte("mailto:"), link...)
 				}
-				p.currBlock.appendChild(node)
-				node.appendChild(text(stripMailto(link)))
+				p.currBlock.AppendChild(node)
+				node.AppendChild(text(stripMailto(link)))
 			}
 		} else {
 			htmlTag := NewNode(HTMLSpan)
 			htmlTag.Literal = data[:end]
-			p.currBlock.appendChild(htmlTag)
+			p.currBlock.AppendChild(htmlTag)
 		}
 	}
 
@@ -687,14 +687,14 @@ func escape(p *parser, data []byte, offset int) int {
 
 	if len(data) > 1 {
 		if p.flags&BackslashLineBreak != 0 && data[1] == '\n' {
-			p.currBlock.appendChild(NewNode(Hardbreak))
+			p.currBlock.AppendChild(NewNode(Hardbreak))
 			return 2
 		}
 		if bytes.IndexByte(escapeChars, data[1]) < 0 {
 			return 0
 		}
 
-		p.currBlock.appendChild(text(data[1:2]))
+		p.currBlock.AppendChild(text(data[1:2]))
 	}
 
 	return 2
@@ -748,7 +748,7 @@ func entity(p *parser, data []byte, offset int) int {
 	if bytes.Equal(ent, []byte("&amp;")) {
 		ent = []byte{'&'}
 	}
-	p.currBlock.appendChild(text(ent))
+	p.currBlock.AppendChild(text(ent))
 
 	return end
 }
@@ -796,7 +796,7 @@ func autoLink(p *parser, data []byte, offset int) int {
 	if anchorStr != nil {
 		anchorClose := NewNode(HTMLSpan)
 		anchorClose.Literal = anchorStr[offsetFromAnchor:]
-		p.currBlock.appendChild(anchorClose)
+		p.currBlock.AppendChild(anchorClose)
 		return len(anchorStr) - offsetFromAnchor
 	}
 
@@ -896,8 +896,8 @@ func autoLink(p *parser, data []byte, offset int) int {
 	if uLink.Len() > 0 {
 		node := NewNode(Link)
 		node.Destination = uLink.Bytes()
-		p.currBlock.appendChild(node)
-		node.appendChild(text(uLink.Bytes()))
+		p.currBlock.AppendChild(node)
+		node.AppendChild(text(uLink.Bytes()))
 	}
 
 	return linkEnd
@@ -1146,7 +1146,7 @@ func helperEmphasis(p *parser, data []byte, c byte) int {
 			}
 
 			emph := NewNode(Emph)
-			p.currBlock.appendChild(emph)
+			p.currBlock.AppendChild(emph)
 			tmp := p.currBlock
 			p.currBlock = emph
 			p.inline(data[:i])
@@ -1174,7 +1174,7 @@ func helperDoubleEmphasis(p *parser, data []byte, c byte) int {
 				nodeType = Del
 			}
 			node := NewNode(nodeType)
-			p.currBlock.appendChild(node)
+			p.currBlock.AppendChild(node)
 			tmp := p.currBlock
 			p.currBlock = node
 			p.inline(data[:i])
@@ -1208,8 +1208,8 @@ func helperTripleEmphasis(p *parser, data []byte, offset int, c byte) int {
 			// triple symbol found
 			strong := NewNode(Strong)
 			em := NewNode(Emph)
-			strong.appendChild(em)
-			p.currBlock.appendChild(strong)
+			strong.AppendChild(em)
+			p.currBlock.AppendChild(strong)
 			tmp := p.currBlock
 			p.currBlock = em
 			p.inline(data[:i])

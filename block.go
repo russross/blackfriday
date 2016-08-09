@@ -749,7 +749,7 @@ func (p *parser) table(data []byte) int {
 	i, columns := p.tableHeader(data)
 	if i == 0 {
 		p.tip = table.Parent
-		table.unlink()
+		table.Unlink()
 		return 0
 	}
 

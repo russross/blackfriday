@@ -231,7 +231,7 @@ func (p *parser) addChild(node NodeType, offset uint32) *Node {
 	}
 	newNode := NewNode(node)
 	newNode.content = []byte{}
-	p.tip.appendChild(newNode)
+	p.tip.AppendChild(newNode)
 	p.tip = newNode
 	return newNode
 }

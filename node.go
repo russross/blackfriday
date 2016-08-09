@@ -148,7 +148,9 @@ func (n *Node) String() string {
 	return fmt.Sprintf("%s: '%s%s'", n.Type, snippet, ellipsis)
 }
 
-func (n *Node) unlink() {
+// Unlink removes node 'n' from the tree.
+// It panics if the node is nil.
+func (n *Node) Unlink() {
 	if n.Prev != nil {
 		n.Prev.Next = n.Next
 	} else if n.Parent != nil {
@@ -164,8 +166,10 @@ func (n *Node) unlink() {
 	n.Prev = nil
 }
 
-func (n *Node) appendChild(child *Node) {
-	child.unlink()
+// AppendChild adds a node 'child' as a child of 'n'.
+// It panics if either node is nil.
+func (n *Node) AppendChild(child *Node) {
+	child.Unlink()
 	child.Parent = n
 	if n.LastChild != nil {
 		n.LastChild.Next = child
@@ -177,8 +181,10 @@ func (n *Node) appendChild(child *Node) {
 	}
 }
 
-func (n *Node) insertBefore(sibling *Node) {
-	sibling.unlink()
+// InsertBefore inserts 'sibling' immediately before 'n'.
+// It panics if either node is nil.
+func (n *Node) InsertBefore(sibling *Node) {
+	sibling.Unlink()
 	sibling.Prev = n.Prev
 	if sibling.Prev != nil {
 		sibling.Prev.Next = sibling
