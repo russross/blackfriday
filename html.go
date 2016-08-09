@@ -745,6 +745,54 @@ func (r *HTMLRenderer) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
 	w.WriteString("<body>\n\n")
 }
 
+func (r *HTMLRenderer) writeTOC(w *bytes.Buffer, ast *Node) {
+	w.WriteString("<nav>\n")
+	inHeader := false
+	tocLevel := 0
+	headerCount := 0
+
+	ast.Walk(func(node *Node, entering bool) WalkStatus {
+		if node.Type == Header && !node.HeaderData.IsTitleblock {
+			inHeader = entering
+			if entering {
+				headerCount++
+				node.HeaderID = fmt.Sprintf("toc_%d", headerCount)
+				if node.Level == tocLevel {
+					w.WriteString("</li>\n<li>")
+				} else if node.Level < tocLevel {
+					for node.Level < tocLevel {
+						tocLevel--
+						w.WriteString("</li>\n</ul>\n")
+					}
+					w.WriteString("<li>")
+				} else {
+					for node.Level > tocLevel {
+						tocLevel++
+						w.WriteString("\n<ul>\n<li>")
+					}
+				}
+
+				fmt.Fprintf(w, `<a href="#toc_%d">`, headerCount)
+			} else {
+				w.WriteString("</a>")
+			}
+			return GoToNext
+		}
+
+		if inHeader {
+			return r.RenderNode(w, node, entering)
+		}
+
+		return GoToNext
+	})
+
+	for ; tocLevel > 0; tocLevel-- {
+		w.WriteString("</li>\n</ul>\n")
+	}
+
+	w.WriteString("</nav>\n")
+}
+
 func (r *HTMLRenderer) writeDocumentFooter(w *bytes.Buffer) {
 	if r.Flags&CompletePage == 0 {
 		return
@@ -770,6 +818,9 @@ func (r *HTMLRenderer) Render(ast *Node) []byte {
 	})
 	var buff bytes.Buffer
 	r.writeDocumentHeader(&buff, sr)
+	if r.Extensions&TOC != 0 || r.Extensions&OmitContents != 0 {
+		r.writeTOC(&buff, ast)
+	}
 	ast.Walk(func(node *Node, entering bool) WalkStatus {
 		return r.RenderNode(&buff, node, entering)
 	})
