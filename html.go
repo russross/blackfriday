@@ -746,7 +746,8 @@ func (r *HTMLRenderer) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
 }
 
 func (r *HTMLRenderer) writeTOC(w *bytes.Buffer, ast *Node) {
-	w.WriteString("<nav>\n")
+	buf := bytes.Buffer{}
+
 	inHeader := false
 	tocLevel := 0
 	headerCount := 0
@@ -755,42 +756,46 @@ func (r *HTMLRenderer) writeTOC(w *bytes.Buffer, ast *Node) {
 		if node.Type == Header && !node.HeaderData.IsTitleblock {
 			inHeader = entering
 			if entering {
-				headerCount++
 				node.HeaderID = fmt.Sprintf("toc_%d", headerCount)
 				if node.Level == tocLevel {
-					w.WriteString("</li>\n<li>")
+					buf.WriteString("</li>\n\n<li>")
 				} else if node.Level < tocLevel {
 					for node.Level < tocLevel {
 						tocLevel--
-						w.WriteString("</li>\n</ul>\n")
+						buf.WriteString("</li>\n</ul>")
 					}
-					w.WriteString("<li>")
+					buf.WriteString("</li>\n\n<li>")
 				} else {
 					for node.Level > tocLevel {
 						tocLevel++
-						w.WriteString("\n<ul>\n<li>")
+						buf.WriteString("\n<ul>\n<li>")
 					}
 				}
 
-				fmt.Fprintf(w, `<a href="#toc_%d">`, headerCount)
+				fmt.Fprintf(&buf, `<a href="#toc_%d">`, headerCount)
+				headerCount++
 			} else {
-				w.WriteString("</a>")
+				buf.WriteString("</a>")
 			}
 			return GoToNext
 		}
 
 		if inHeader {
-			return r.RenderNode(w, node, entering)
+			return r.RenderNode(&buf, node, entering)
 		}
 
 		return GoToNext
 	})
 
 	for ; tocLevel > 0; tocLevel-- {
-		w.WriteString("</li>\n</ul>\n")
+		buf.WriteString("</li>\n</ul>")
 	}
 
-	w.WriteString("</nav>\n")
+	if buf.Len() > 0 {
+		w.WriteString("<nav>\n")
+		w.Write(buf.Bytes())
+		w.WriteString("\n\n</nav>\n")
+	}
 }
 
 func (r *HTMLRenderer) writeDocumentFooter(w *bytes.Buffer) {
@@ -820,6 +825,9 @@ func (r *HTMLRenderer) Render(ast *Node) []byte {
 	r.writeDocumentHeader(&buff, sr)
 	if r.Extensions&TOC != 0 || r.Extensions&OmitContents != 0 {
 		r.writeTOC(&buff, ast)
+		if r.Extensions&OmitContents != 0 {
+			return buff.Bytes()
+		}
 	}
 	ast.Walk(func(node *Node, entering bool) WalkStatus {
 		return r.RenderNode(&buff, node, entering)
