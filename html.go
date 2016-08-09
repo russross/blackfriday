@@ -83,6 +83,7 @@ type HTMLRendererParameters struct {
 
 	Title string // Document title (used if CompletePage is set)
 	CSS   string // Optional CSS file URL (used if CompletePage is set)
+	Icon  string // Optional icon file URL (used if CompletePage is set)
 
 	Flags      HTMLFlags  // Flags allow customizing this renderer's behavior
 	Extensions Extensions // Extensions give Smartypants and HTML renderer access to Blackfriday's global extensions
@@ -737,6 +738,13 @@ func (r *HTMLRenderer) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
 	if r.CSS != "" {
 		w.WriteString("  <link rel=\"stylesheet\" type=\"text/css\" href=\"")
 		w.Write(esc([]byte(r.CSS)))
+		w.WriteString("\"")
+		w.WriteString(ending)
+		w.WriteString(">\n")
+	}
+	if r.Icon != "" {
+		w.WriteString("  <link rel=\"icon\" type=\"image/x-icon\" href=\"")
+		w.Write(esc([]byte(r.Icon)))
 		w.WriteString("\"")
 		w.WriteString(ending)
 		w.WriteString(">\n")
