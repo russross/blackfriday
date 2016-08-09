@@ -745,6 +745,59 @@ func (r *HTMLRenderer) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
 	w.WriteString("<body>\n\n")
 }
 
+func (r *HTMLRenderer) writeTOC(w *bytes.Buffer, ast *Node) {
+	buf := bytes.Buffer{}
+
+	inHeader := false
+	tocLevel := 0
+	headerCount := 0
+
+	ast.Walk(func(node *Node, entering bool) WalkStatus {
+		if node.Type == Header && !node.HeaderData.IsTitleblock {
+			inHeader = entering
+			if entering {
+				node.HeaderID = fmt.Sprintf("toc_%d", headerCount)
+				if node.Level == tocLevel {
+					buf.WriteString("</li>\n\n<li>")
+				} else if node.Level < tocLevel {
+					for node.Level < tocLevel {
+						tocLevel--
+						buf.WriteString("</li>\n</ul>")
+					}
+					buf.WriteString("</li>\n\n<li>")
+				} else {
+					for node.Level > tocLevel {
+						tocLevel++
+						buf.WriteString("\n<ul>\n<li>")
+					}
+				}
+
+				fmt.Fprintf(&buf, `<a href="#toc_%d">`, headerCount)
+				headerCount++
+			} else {
+				buf.WriteString("</a>")
+			}
+			return GoToNext
+		}
+
+		if inHeader {
+			return r.RenderNode(&buf, node, entering)
+		}
+
+		return GoToNext
+	})
+
+	for ; tocLevel > 0; tocLevel-- {
+		buf.WriteString("</li>\n</ul>")
+	}
+
+	if buf.Len() > 0 {
+		w.WriteString("<nav>\n")
+		w.Write(buf.Bytes())
+		w.WriteString("\n\n</nav>\n")
+	}
+}
+
 func (r *HTMLRenderer) writeDocumentFooter(w *bytes.Buffer) {
 	if r.Flags&CompletePage == 0 {
 		return
@@ -770,6 +823,12 @@ func (r *HTMLRenderer) Render(ast *Node) []byte {
 	})
 	var buff bytes.Buffer
 	r.writeDocumentHeader(&buff, sr)
+	if r.Extensions&TOC != 0 || r.Extensions&OmitContents != 0 {
+		r.writeTOC(&buff, ast)
+		if r.Extensions&OmitContents != 0 {
+			return buff.Bytes()
+		}
+	}
 	ast.Walk(func(node *Node, entering bool) WalkStatus {
 		return r.RenderNode(&buff, node, entering)
 	})
