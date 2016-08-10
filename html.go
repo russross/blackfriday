@@ -813,6 +813,27 @@ func (r *HTMLRenderer) writeDocumentFooter(w *bytes.Buffer) {
 	w.WriteString("\n</body>\n</html>\n")
 }
 
+// expandTitle sets to title to the first line of the title block, in Markdown.
+func (r *HTMLRenderer) expandTitle(ast *Node) {
+	if r.Title == "" && r.Extensions&Titleblock != 0 {
+		ast.Walk(func(node *Node, entering bool) WalkStatus {
+			if node.Type == Header && node.HeaderData.IsTitleblock {
+				node.Walk(func(c *Node, entering bool) WalkStatus {
+					if c.Type == Text {
+						if bytes.Contains(c.Literal, []byte("\n")) {
+							return Terminate
+						}
+						r.Title += string(c.Literal)
+					}
+					return GoToNext
+				})
+				return Terminate
+			}
+			return GoToNext
+		})
+	}
+}
+
 // Render walks the specified syntax (sub)tree and returns a HTML document.
 func (r *HTMLRenderer) Render(ast *Node) []byte {
 	//println("render_Blackfriday")
@@ -830,6 +851,7 @@ func (r *HTMLRenderer) Render(ast *Node) []byte {
 		return GoToNext
 	})
 	var buff bytes.Buffer
+	r.expandTitle(ast)
 	r.writeDocumentHeader(&buff, sr)
 	if r.Extensions&TOC != 0 || r.Extensions&OmitContents != 0 {
 		r.writeTOC(&buff, ast)
