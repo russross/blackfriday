@@ -36,37 +36,32 @@ type Extensions int
 // These are the supported markdown parsing extensions.
 // OR these values together to select multiple extensions.
 const (
-	NoExtensions            Extensions = 0
-	NoIntraEmphasis         Extensions = 1 << iota // Ignore emphasis markers inside words
-	Tables                                         // Render tables
-	FencedCode                                     // Render fenced code blocks
-	Autolink                                       // Detect embedded URLs that are not explicitly marked
-	Strikethrough                                  // Strikethrough text using ~~test~~
-	LaxHTMLBlocks                                  // Loosen up HTML block parsing rules
-	SpaceHeaders                                   // Be strict about prefix header rules
-	HardLineBreak                                  // Translate newlines into line breaks
-	TabSizeEight                                   // Expand tabs to eight spaces instead of four
-	Footnotes                                      // Pandoc-style footnotes
-	NoEmptyLineBeforeBlock                         // No need to insert an empty line to start a (code, quote, ordered list, unordered list) block
-	HeaderIDs                                      // specify header IDs  with {#id}
-	Titleblock                                     // Titleblock ala pandoc
-	AutoHeaderIDs                                  // Create the header ID from the text
-	BackslashLineBreak                             // Translate trailing backslashes into line breaks
-	DefinitionLists                                // Render definition lists
-	Smartypants                                    // Enable smart punctuation substitutions
-	SmartypantsFractions                           // Enable smart fractions (with Smartypants)
-	SmartypantsDashes                              // Enable smart dashes (with Smartypants)
-	SmartypantsLatexDashes                         // Enable LaTeX-style dashes (with Smartypants)
-	SmartypantsAngledQuotes                        // Enable angled double quotes (with Smartypants) for double quotes rendering
-	TOC                                            // Generate a table of contents
-	OmitContents                                   // Skip the main contents (for a standalone table of contents)
+	NoExtensions           Extensions = 0
+	NoIntraEmphasis        Extensions = 1 << iota // Ignore emphasis markers inside words
+	Tables                                        // Render tables
+	FencedCode                                    // Render fenced code blocks
+	Autolink                                      // Detect embedded URLs that are not explicitly marked
+	Strikethrough                                 // Strikethrough text using ~~test~~
+	LaxHTMLBlocks                                 // Loosen up HTML block parsing rules
+	SpaceHeaders                                  // Be strict about prefix header rules
+	HardLineBreak                                 // Translate newlines into line breaks
+	TabSizeEight                                  // Expand tabs to eight spaces instead of four
+	Footnotes                                     // Pandoc-style footnotes
+	NoEmptyLineBeforeBlock                        // No need to insert an empty line to start a (code, quote, ordered list, unordered list) block
+	HeaderIDs                                     // specify header IDs  with {#id}
+	Titleblock                                    // Titleblock ala pandoc
+	AutoHeaderIDs                                 // Create the header ID from the text
+	BackslashLineBreak                            // Translate trailing backslashes into line breaks
+	DefinitionLists                               // Render definition lists
+	TOC                                           // Generate a table of contents
+	OmitContents                                  // Skip the main contents (for a standalone table of contents)
 
-	CommonHTMLFlags HTMLFlags = UseXHTML
+	CommonHTMLFlags HTMLFlags = UseXHTML | Smartypants |
+		SmartypantsFractions | SmartypantsDashes | SmartypantsLatexDashes
 
 	CommonExtensions Extensions = NoIntraEmphasis | Tables | FencedCode |
 		Autolink | Strikethrough | SpaceHeaders | HeaderIDs |
-		BackslashLineBreak | DefinitionLists | Smartypants |
-		SmartypantsFractions | SmartypantsDashes | SmartypantsLatexDashes
+		BackslashLineBreak | DefinitionLists
 )
 
 // DefaultOptions is a convenience variable with all the options that are

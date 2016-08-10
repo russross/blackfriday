@@ -29,18 +29,23 @@ type HTMLFlags int
 
 // HTML renderer configuration options.
 const (
-	HTMLFlagsNone       HTMLFlags = 0
-	SkipHTML            HTMLFlags = 1 << iota // Skip preformatted HTML blocks
-	SkipStyle                                 // Skip embedded <style> elements
-	SkipImages                                // Skip embedded images
-	SkipLinks                                 // Skip all links
-	Safelink                                  // Only link to trusted protocols
-	NofollowLinks                             // Only link with rel="nofollow"
-	NoreferrerLinks                           // Only link with rel="noreferrer"
-	HrefTargetBlank                           // Add a blank target
-	CompletePage                              // Generate a complete HTML page
-	UseXHTML                                  // Generate XHTML output instead of HTML
-	FootnoteReturnLinks                       // Generate a link at the end of a footnote to return to the source
+	HTMLFlagsNone           HTMLFlags = 0
+	SkipHTML                HTMLFlags = 1 << iota // Skip preformatted HTML blocks
+	SkipStyle                                     // Skip embedded <style> elements
+	SkipImages                                    // Skip embedded images
+	SkipLinks                                     // Skip all links
+	Safelink                                      // Only link to trusted protocols
+	NofollowLinks                                 // Only link with rel="nofollow"
+	NoreferrerLinks                               // Only link with rel="noreferrer"
+	HrefTargetBlank                               // Add a blank target
+	CompletePage                                  // Generate a complete HTML page
+	UseXHTML                                      // Generate XHTML output instead of HTML
+	FootnoteReturnLinks                           // Generate a link at the end of a footnote to return to the source
+	Smartypants                                   // Enable smart punctuation substitutions
+	SmartypantsFractions                          // Enable smart fractions (with Smartypants)
+	SmartypantsDashes                             // Enable smart dashes (with Smartypants)
+	SmartypantsLatexDashes                        // Enable LaTeX-style dashes (with Smartypants)
+	SmartypantsAngledQuotes                       // Enable angled double quotes (with Smartypants) for double quotes rendering
 
 	TagName               = "[A-Za-z][A-Za-z0-9-]*"
 	AttributeName         = "[a-zA-Z_:][a-zA-Z0-9:._-]*"
@@ -102,6 +107,8 @@ type HTMLRenderer struct {
 
 	lastOutputLen int
 	disableTags   int
+
+	sr *SPRenderer
 }
 
 const (
@@ -127,6 +134,8 @@ func NewHTMLRenderer(params HTMLRendererParameters) *HTMLRenderer {
 
 		closeTag:  closeTag,
 		headerIDs: make(map[string]int),
+
+		sr: NewSmartypantsRenderer(params.Flags),
 	}
 }
 
@@ -402,6 +411,10 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 	attrs := []string{}
 	switch node.Type {
 	case Text:
+		node.Literal = esc(node.Literal)
+		if r.Flags&Smartypants != 0 {
+			node.Literal = r.sr.Process(node.Literal)
+		}
 		r.out(w, node.Literal)
 		break
 	case Softbreak:
@@ -705,7 +718,7 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 	return GoToNext
 }
 
-func (r *HTMLRenderer) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
+func (r *HTMLRenderer) writeDocumentHeader(w *bytes.Buffer) {
 	if r.Flags&CompletePage == 0 {
 		return
 	}
@@ -721,8 +734,8 @@ func (r *HTMLRenderer) writeDocumentHeader(w *bytes.Buffer, sr *SPRenderer) {
 	}
 	w.WriteString("<head>\n")
 	w.WriteString("  <title>")
-	if r.Extensions&Smartypants != 0 {
-		w.Write(sr.Process([]byte(r.Title)))
+	if r.Flags&Smartypants != 0 {
+		w.Write(r.sr.Process([]byte(r.Title)))
 	} else {
 		w.Write(esc([]byte(r.Title)))
 	}
@@ -817,20 +830,8 @@ func (r *HTMLRenderer) writeDocumentFooter(w *bytes.Buffer) {
 func (r *HTMLRenderer) Render(ast *Node) []byte {
 	//println("render_Blackfriday")
 	//dump(ast)
-	// Run Smartypants if it's enabled or simply escape text if not
-	sr := NewSmartypantsRenderer(r.Extensions)
-	ast.Walk(func(node *Node, entering bool) WalkStatus {
-		if node.Type == Text {
-			if r.Extensions&Smartypants != 0 {
-				node.Literal = sr.Process(node.Literal)
-			} else {
-				node.Literal = esc(node.Literal)
-			}
-		}
-		return GoToNext
-	})
 	var buff bytes.Buffer
-	r.writeDocumentHeader(&buff, sr)
+	r.writeDocumentHeader(&buff)
 	if r.Extensions&TOC != 0 || r.Extensions&OmitContents != 0 {
 		r.writeTOC(&buff, ast)
 		if r.Extensions&OmitContents != 0 {
