@@ -1012,11 +1012,7 @@ func TestInlineComments(t *testing.T) {
 		"blahblah\n<!--- foo -->\nrhubarb\n",
 		"<p>blahblah\n<!--- foo -->\nrhubarb</p>\n",
 	}
-	doTestsInlineParam(t, tests, TestParams{
-		Options: Options{
-			Extensions: Smartypants | SmartypantsDashes,
-		},
-	})
+	doTestsInlineParam(t, tests, TestParams{HTMLFlags: Smartypants | SmartypantsDashes})
 }
 
 func TestSmartDoubleQuotes(t *testing.T) {
@@ -1028,11 +1024,7 @@ func TestSmartDoubleQuotes(t *testing.T) {
 		"two pair of \"some\" quoted \"text\".\n",
 		"<p>two pair of &ldquo;some&rdquo; quoted &ldquo;text&rdquo;.</p>\n"}
 
-	doTestsInlineParam(t, tests, TestParams{
-		Options: Options{
-			Extensions: Smartypants,
-		},
-	})
+	doTestsInlineParam(t, tests, TestParams{HTMLFlags: Smartypants})
 }
 
 func TestSmartAngledDoubleQuotes(t *testing.T) {
@@ -1044,11 +1036,7 @@ func TestSmartAngledDoubleQuotes(t *testing.T) {
 		"two pair of \"some\" quoted \"text\".\n",
 		"<p>two pair of &laquo;some&raquo; quoted &laquo;text&raquo;.</p>\n"}
 
-	doTestsInlineParam(t, tests, TestParams{
-		Options: Options{
-			Extensions: Smartypants | SmartypantsAngledQuotes,
-		},
-	})
+	doTestsInlineParam(t, tests, TestParams{HTMLFlags: Smartypants | SmartypantsAngledQuotes})
 }
 
 func TestSmartFractions(t *testing.T) {
@@ -1058,11 +1046,7 @@ func TestSmartFractions(t *testing.T) {
 		"1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.\n",
 		"<p>1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.</p>\n"}
 
-	doTestsInlineParam(t, tests, TestParams{
-		Options: Options{
-			Extensions: Smartypants,
-		},
-	})
+	doTestsInlineParam(t, tests, TestParams{HTMLFlags: Smartypants})
 
 	tests = []string{
 		"1/2, 2/3, 81/100 and 1000000/1048576.\n",
@@ -1070,11 +1054,7 @@ func TestSmartFractions(t *testing.T) {
 		"1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.\n",
 		"<p>1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.</p>\n"}
 
-	doTestsInlineParam(t, tests, TestParams{
-		Options: Options{
-			Extensions: Smartypants | SmartypantsFractions,
-		},
-	})
+	doTestsInlineParam(t, tests, TestParams{HTMLFlags: Smartypants | SmartypantsFractions})
 }
 
 func TestDisableSmartDashes(t *testing.T) {
@@ -1093,7 +1073,7 @@ func TestDisableSmartDashes(t *testing.T) {
 		"<p>foo &mdash; bar</p>\n",
 		"foo --- bar\n",
 		"<p>foo &mdash;&ndash; bar</p>\n",
-	}, TestParams{Options: Options{Extensions: Smartypants | SmartypantsDashes}})
+	}, TestParams{HTMLFlags: Smartypants | SmartypantsDashes})
 	doTestsInlineParam(t, []string{
 		"foo - bar\n",
 		"<p>foo - bar</p>\n",
@@ -1101,11 +1081,7 @@ func TestDisableSmartDashes(t *testing.T) {
 		"<p>foo &ndash; bar</p>\n",
 		"foo --- bar\n",
 		"<p>foo &mdash; bar</p>\n",
-	}, TestParams{
-		Options: Options{
-			Extensions: Smartypants | SmartypantsLatexDashes | SmartypantsDashes,
-		},
-	})
+	}, TestParams{HTMLFlags: Smartypants | SmartypantsLatexDashes | SmartypantsDashes})
 	doTestsInlineParam(t, []string{
 		"foo - bar\n",
 		"<p>foo - bar</p>\n",
@@ -1113,9 +1089,7 @@ func TestDisableSmartDashes(t *testing.T) {
 		"<p>foo -- bar</p>\n",
 		"foo --- bar\n",
 		"<p>foo --- bar</p>\n",
-	}, TestParams{
-		Options: Options{Extensions: Smartypants | SmartypantsLatexDashes},
-	})
+	}, TestParams{HTMLFlags: Smartypants | SmartypantsLatexDashes})
 }
 
 func TestSkipLinks(t *testing.T) {
