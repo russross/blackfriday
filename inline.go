@@ -17,6 +17,7 @@ import (
 	"bytes"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 var (
@@ -74,6 +75,9 @@ func (p *parser) inline(data []byte) {
 			}
 			if p.inlineCallback[data[end]] != nil {
 				if end+1 < len(data) && data[end] == 'h' && data[end+1] != 't' {
+					end++
+				} else if strings.ContainsRune("hHmMfF", rune(data[end])) && !isAutoLink(p, data, end) {
+					// Autolink callback on something that is not a link.
 					end++
 				} else {
 					break
@@ -758,10 +762,10 @@ func linkEndsWithEntity(data []byte, linkEnd int) bool {
 	return entityRanges != nil && entityRanges[len(entityRanges)-1][1] == linkEnd
 }
 
-func maybeAutoLink(p *parser, data []byte, offset int) int {
+func isAutoLink(p *parser, data []byte, offset int) bool {
 	// quick check to rule out most false hits
 	if p.insideLink || len(data) < offset+6 { // 6 is the len() of the shortest prefix below
-		return 0
+		return false
 	}
 	prefixes := []string{
 		"http://",
@@ -777,10 +781,10 @@ func maybeAutoLink(p *parser, data []byte, offset int) int {
 		}
 		head := bytes.ToLower(data[offset:endOfHead])
 		if bytes.HasPrefix(head, []byte(prefix)) {
-			return autoLink(p, data, offset)
+			return true
 		}
 	}
-	return 0
+	return false
 }
 
 func autoLink(p *parser, data []byte, offset int) int {
