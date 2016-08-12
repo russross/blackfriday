@@ -416,9 +416,8 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 			node.Literal = r.sr.Process(node.Literal)
 		}
 		r.out(w, node.Literal)
-		break
 	case Softbreak:
-		r.out(w, []byte("\n"))
+		r.out(w, []byte{'\n'})
 		// TODO: make it configurable via out(renderer.softbreak)
 	case Hardbreak:
 		r.out(w, tag("br", nil, true))
@@ -429,14 +428,12 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 		} else {
 			r.out(w, tag("/em", nil, false))
 		}
-		break
 	case Strong:
 		if entering {
 			r.out(w, tag("strong", nil, false))
 		} else {
 			r.out(w, tag("/strong", nil, false))
 		}
-		break
 	case Del:
 		if entering {
 			r.out(w, tag("del", nil, false))
@@ -525,8 +522,8 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 			// TODO: untangle this clusterfuck about when the newlines need
 			// to be added and when not.
 			if node.Prev != nil {
-				t := node.Prev.Type
-				if t == HTMLBlock || t == List || t == Paragraph || t == Header || t == CodeBlock || t == BlockQuote || t == HorizontalRule {
+				switch node.Prev.Type {
+				case HTMLBlock, List, Paragraph, Header, CodeBlock, BlockQuote, HorizontalRule:
 					r.cr(w)
 				}
 			}
@@ -540,7 +537,6 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 				r.cr(w)
 			}
 		}
-		break
 	case BlockQuote:
 		if entering {
 			r.cr(w)
@@ -549,7 +545,6 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 			r.out(w, tag("/blockquote", nil, false))
 			r.cr(w)
 		}
-		break
 	case HTMLBlock:
 		if r.Flags&SkipHTML != 0 {
 			break
@@ -581,12 +576,10 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 				r.cr(w)
 			}
 		}
-		break
 	case HorizontalRule:
 		r.cr(w)
 		r.out(w, tag("hr", attrs, r.Flags&UseXHTML != 0))
 		r.cr(w)
-		break
 	case List:
 		tagName := "ul"
 		if node.ListFlags&ListTypeOrdered != 0 {
