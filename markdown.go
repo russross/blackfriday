@@ -382,12 +382,12 @@ func Parse(input []byte, opts Options) *Node {
 	p.inlineCallback['^'] = maybeInlineFootnote
 
 	if extensions&Autolink != 0 {
-		p.inlineCallback['h'] = maybeAutoLink
-		p.inlineCallback['m'] = maybeAutoLink
-		p.inlineCallback['f'] = maybeAutoLink
-		p.inlineCallback['H'] = maybeAutoLink
-		p.inlineCallback['M'] = maybeAutoLink
-		p.inlineCallback['F'] = maybeAutoLink
+		p.inlineCallback['h'] = autoLink
+		p.inlineCallback['m'] = autoLink
+		p.inlineCallback['f'] = autoLink
+		p.inlineCallback['H'] = autoLink
+		p.inlineCallback['M'] = autoLink
+		p.inlineCallback['F'] = autoLink
 	}
 
 	if extensions&Footnotes != 0 {
