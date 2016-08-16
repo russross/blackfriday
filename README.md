@@ -55,7 +55,7 @@ In the mmark subdirectory you can build the mmark tool:
     % cd mmark
     % go build
     % ./mmark -version
-    1.3.1
+    1.3.4
 
 To output v2 xml just give it a markdown file and:
 
@@ -71,6 +71,46 @@ Outputting v3 xml is done with the `-xml` switch. There is not yet a processor f
 should be able to validate the resulting XML against the schema from the xml2rfc v3 draft. I'm
 trying to stay current with the latest draft for the V3 spec:
 <https://tools.ietf.org/html/draft-iab-xml2rfc-03>
+
+## Running from a Docker Container
+
+To use mmark and xml2rfc without installing and configuring the separate software packages and
+dependencies, you can also use mmark via a Docker container.  You can use
+https://github.com/paulej/rfctools to build a Docker image or you can use the one already
+created and available in Docker Hub (https://hub.docker.com/r/paulej/rfctools/).
+
+To use Docker, you invoke commands like this:
+
+    % docker run --rm paulej/rfctools mmark -version
+    1.3.4
+
+To output a v2 XML file as demonstrated in the previous section, use this command:
+
+    % docker run --rm -v $(pwd):/rfc paulej/rfctools mmark -xml2 -page mmark2rfc.md
+
+Making a draft in text form: 
+
+    % docker run --rm -v $(pwd):/rfc paulej/rfctools mmark -xml2 -page mmark2rfc.md >x.xml \
+    && docker run --rm -v $(pwd):/rfc -v $HOME/.cache/xml2rfc:/var/cache/xml2rfc \
+    --user=$(id -u):$(id -g) paulej/rfctools xml2rfc --text x.xml \
+    && rm x.xml && mv x.xml mmark2rfc.txt
+
+The docker container expects source files to be stored in /rfc, so the above command maps
+the current directory to /rfc.  Likewise, xml2rfc will attempt to write cache files to
+/var/cache/xml2rfc, so the above command maps the user's cache directory in the container.
+
+Note also that the xml2rfc program will write an output file that will be owned by "root".
+To prevent that (and the cache files) from being owned by root, we instruct docker to run
+using the user's default user ID and group ID via the --user switch.
+    
+There is a script available called "md2rfc" simplifies the above to this:
+
+    % docker run --rm -v $(pwd):/rfc -v $HOME/.cache/xml2rfc:/var/cache/xml2rfc \
+    --user=$(id -u):$(id -g) paulej/rfctools mmark2rfc.md
+
+Still appreciating that is a lot to type, there is an example directory in the
+https://github.com/paulej/rfctools repository that contains a Makefile.  Place your .md file
+in a directory along with that Makefile and just type "make" to produce the .txt file.
 
 ## Syntax
 
