@@ -168,7 +168,7 @@ type Renderer interface {
 
 // Callback functions for inline parsing. One such function is defined
 // for each character that triggers a response when parsing inline data.
-type inlineParser func(p *parser, data []byte, offset int) int
+type inlineParser func(p *parser, data []byte, offset int) (int, *Node)
 
 // Parser holds runtime state used by the parser.
 // This is constructed by the Markdown function.
@@ -191,7 +191,6 @@ type parser struct {
 	oldTip               *Node
 	lastMatchedContainer *Node // = doc
 	allClosed            bool
-	currBlock            *Node // a block node currently being parsed by inline parser
 }
 
 func (p *parser) getRef(refid string) (ref *reference, found bool) {
@@ -367,6 +366,7 @@ func Parse(input []byte, opts Options) *Node {
 	p.allClosed = true
 
 	// register inline parsers
+	p.inlineCallback[' '] = maybeLineBreak
 	p.inlineCallback['*'] = emphasis
 	p.inlineCallback['_'] = emphasis
 	if extensions&Strikethrough != 0 {
@@ -403,8 +403,7 @@ func Parse(input []byte, opts Options) *Node {
 	// Walk the tree again and process inline markdown in each block
 	p.doc.Walk(func(node *Node, entering bool) WalkStatus {
 		if node.Type == Paragraph || node.Type == Header || node.Type == TableCell {
-			p.currBlock = node
-			p.inline(node.content)
+			p.inline(node, node.content)
 			node.content = nil
 		}
 		return GoToNext
@@ -436,8 +435,7 @@ func (p *parser) parseRefsToAST() {
 			flags |= ListItemContainsBlock
 			p.block(ref.title)
 		} else {
-			p.currBlock = block
-			p.inline(ref.title)
+			p.inline(block, ref.title)
 		}
 		flags &^= ListItemBeginningOfList | ListItemContainsBlock
 	}
@@ -447,8 +445,7 @@ func (p *parser) parseRefsToAST() {
 	finalizeHTMLBlock(p.addBlock(HTMLBlock, []byte("</div>")))
 	block.Walk(func(node *Node, entering bool) WalkStatus {
 		if node.Type == Paragraph || node.Type == Header {
-			p.currBlock = node
-			p.inline(node.content)
+			p.inline(node, node.content)
 			node.content = nil
 		}
 		return GoToNext
@@ -528,7 +525,7 @@ func secondPass(p *parser, input []byte) {
 				flags |= ListItemContainsBlock
 				p.block(ref.title)
 			} else {
-				p.inline(ref.title)
+				p.inline(nil, ref.title)
 			}
 			flags &^= ListItemBeginningOfList | ListItemContainsBlock
 		}
