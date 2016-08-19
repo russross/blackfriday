@@ -192,10 +192,8 @@ func maybeLineBreak(p *parser, data []byte, offset int) (int, *Node) {
 // newline without two spaces works when HardLineBreak is enabled
 func lineBreak(p *parser, data []byte, offset int) (int, *Node) {
 	if p.flags&HardLineBreak != 0 {
-		// log.Print("LINEBREAK")
 		return 1, NewNode(Hardbreak)
 	}
-	// log.Print("NOLINEBREAK")
 	return 0, nil
 }
 
