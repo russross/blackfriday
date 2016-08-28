@@ -82,7 +82,7 @@ const (
 	ListTypeTerm
 
 	ListItemContainsBlock
-	ListItemBeginningOfList
+	ListItemBeginningOfList // TODO: figure out if this is of any use now
 	ListItemEndOfList
 )
 
@@ -428,7 +428,7 @@ func (p *parser) parseRefsToAST() {
 	for i := 0; i < len(p.notes); i++ {
 		ref := p.notes[i]
 		block := p.addBlock(Item, nil)
-		block.ListFlags = ListTypeOrdered
+		block.ListFlags = flags | ListTypeOrdered
 		block.RefLink = ref.link
 		if ref.hasBlock {
 			flags |= ListItemContainsBlock
