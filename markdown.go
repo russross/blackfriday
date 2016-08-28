@@ -394,8 +394,7 @@ func Parse(input []byte, opts Options) *Node {
 		p.notes = make([]*reference, 0)
 	}
 
-	first := firstPass(p, input)
-	secondPass(p, first)
+	p.block(firstPass(p, input))
 	// Walk the tree and finish up some of unfinished blocks
 	for p.tip != nil {
 		p.finalize(p.tip)
@@ -511,29 +510,6 @@ func firstPass(p *parser, input []byte) []byte {
 	}
 
 	return out.Bytes()
-}
-
-// second pass: actual rendering
-func secondPass(p *parser, input []byte) {
-	p.block(input)
-
-	if p.flags&Footnotes != 0 && len(p.notes) > 0 {
-		flags := ListItemBeginningOfList
-		for i := 0; i < len(p.notes); i++ {
-			ref := p.notes[i]
-			if ref.hasBlock {
-				flags |= ListItemContainsBlock
-				p.block(ref.title)
-			} else {
-				p.inline(nil, ref.title)
-			}
-			flags &^= ListItemBeginningOfList | ListItemContainsBlock
-		}
-	}
-
-	if p.nesting != 0 {
-		panic("Nesting level did not end at zero")
-	}
 }
 
 //
