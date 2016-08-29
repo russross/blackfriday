@@ -453,7 +453,6 @@ func (p *parser) parseRefsToAST() {
 
 // first pass:
 // - normalize newlines
-// - extract references (outside of fenced code blocks)
 // - expand tabs (outside of fenced code blocks)
 // - copy everything else
 func firstPass(p *parser, input []byte) []byte {
@@ -485,9 +484,6 @@ func firstPass(p *parser, input []byte) []byte {
 		if end > beg {
 			if end < lastFencedCodeBlockEnd { // Do not expand tabs while inside fenced code blocks.
 				out.Write(input[beg:end])
-			} else if refEnd := isReference(p, input[beg:], tabSize); refEnd > 0 {
-				beg += refEnd
-				continue
 			} else {
 				expandTabs(&out, input[beg:end], tabSize)
 			}
@@ -593,7 +589,11 @@ func isReference(p *parser, data []byte, tabSize int) int {
 		return 0
 	}
 	idEnd := i
-
+	// footnotes can have empty ID, like this: [^], but a reference can not be
+	// empty like this: []. Break early if it's not a footnote and there's no ID
+	if noteID == 0 && idOffset == idEnd {
+		return 0
+	}
 	// spacer: colon (space | tab)* newline? (space | tab)*
 	i++
 	if i >= len(data) || data[i] != ':' {
