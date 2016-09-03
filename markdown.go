@@ -394,7 +394,7 @@ func Parse(input []byte, opts Options) *Node {
 		p.notes = make([]*reference, 0)
 	}
 
-	p.block(firstPass(p, input))
+	p.block(preprocess(p, input))
 	// Walk the tree and finish up some of unfinished blocks
 	for p.tip != nil {
 		p.finalize(p.tip)
@@ -449,11 +449,11 @@ func (p *parser) parseRefsToAST() {
 	})
 }
 
-// first pass:
+// preprocess does a preparatory first pass over the input:
 // - normalize newlines
 // - expand tabs (outside of fenced code blocks)
 // - copy everything else
-func firstPass(p *parser, input []byte) []byte {
+func preprocess(p *parser, input []byte) []byte {
 	var out bytes.Buffer
 	tabSize := TabSizeDefault
 	if p.flags&TabSizeEight != 0 {
