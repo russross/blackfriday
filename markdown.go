@@ -535,13 +535,50 @@ func firstPass(p *parser, input []byte) []byte {
 //
 // are not yet supported.
 
-// References are parsed and stored in this struct.
+// reference holds all information necessary for a reference-style links or
+// footnotes.
+//
+// Consider this markdown with reference-style links:
+//
+//     [link][ref]
+//
+//     [ref]: /url/ "tooltip title"
+//
+// It will be ultimately converted to this HTML:
+//
+//     <p><a href=\"/url/\" title=\"title\">link</a></p>
+//
+// And a reference structure will be populated as follows:
+//
+//     p.refs["ref"] = &reference{
+//         link: "/url/",
+//         title: "tooltip title",
+//     }
+//
+// Alternatively, reference can contain an information about a footnote.
+// Consider this markdown:
+//
+//     Text needing a footnote.[^a]
+//
+//     [^a]: This is the note
+//
+// A reference structure will be populated as follows:
+//
+//     p.refs["a"] = &reference{
+//         link: "a",
+//         title: "This is the note",
+//         noteID: <some positive int>,
+//     }
+//
+// TODO: As you can see, it begs for splitting into two dedicated structures
+// for refs and for footnotes.
 type reference struct {
 	link     []byte
 	title    []byte
 	noteID   int // 0 if not a footnote ref
 	hasBlock bool
-	text     []byte
+
+	text []byte // only gets populated by refOverride feature with Reference.Text
 }
 
 func (r *reference) String() string {
