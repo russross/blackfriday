@@ -555,8 +555,8 @@ func firstPass(p *parser, input []byte) []byte {
 //         title: "tooltip title",
 //     }
 //
-// Alternatively, reference can contain an information about a footnote.
-// Consider this markdown:
+// Alternatively, reference can contain information about a footnote. Consider
+// this markdown:
 //
 //     Text needing a footnote.[^a]
 //
