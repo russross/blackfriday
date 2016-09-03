@@ -922,6 +922,12 @@ what happens here
 
 </div>
 `,
+
+	`This text does not reference a footnote.
+
+[^footnote]: But it has a footnote! And it gets omitted.
+`,
+	"<p>This text does not reference a footnote.</p>\n",
 }
 
 func TestFootnotes(t *testing.T) {

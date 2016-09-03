@@ -416,9 +416,8 @@ func (p *parser) parseRefsToAST() {
 		return
 	}
 	p.tip = p.doc
-	finalizeHTMLBlock(p.addBlock(HTMLBlock, []byte(`<div class="footnotes">`)))
-	p.addBlock(HorizontalRule, nil)
 	block := p.addBlock(List, nil)
+	block.IsFootnotesList = true
 	block.ListFlags = ListTypeOrdered
 	flags := ListItemBeginningOfList
 	// Note: this loop is intentionally explicit, not range-form. This is
@@ -441,7 +440,6 @@ func (p *parser) parseRefsToAST() {
 	above := block.Parent
 	finalizeList(block)
 	p.tip = above
-	finalizeHTMLBlock(p.addBlock(HTMLBlock, []byte("</div>")))
 	block.Walk(func(node *Node, entering bool) WalkStatus {
 		if node.Type == Paragraph || node.Type == Header {
 			p.inline(node, node.content)
