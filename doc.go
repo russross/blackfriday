@@ -1,6 +1,6 @@
 // Package blackfriday is a markdown processor.
 //
-// Translates plain text with simple formatting rules into an AST, which can
+// It translates plain text with simple formatting rules into an AST, which can
 // then be further processed to HTML (provided by Blackfriday itself) or other
 // formats (provided by the community).
 //
