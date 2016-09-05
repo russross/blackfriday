@@ -16,3 +16,4 @@ install:
 
 script:
     - go test -v ./...
+    - go test -run=^$ -bench=BenchmarkReference -benchmem
