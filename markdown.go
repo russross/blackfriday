@@ -1,21 +1,10 @@
-//
 // Blackfriday Markdown Processor
 // Available at http://github.com/russross/blackfriday
 //
 // Copyright © 2011 Russ Ross <russ@russross.com>.
 // Distributed under the Simplified BSD License.
 // See README.md for details.
-//
 
-//
-//
-// Markdown parsing and processing
-//
-//
-
-// Package blackfriday is a markdown processor.
-//
-// Translates plain text with simple formatting rules into HTML or LaTeX.
 package blackfriday
 
 import (
@@ -25,6 +14,10 @@ import (
 	"strings"
 	"unicode/utf8"
 )
+
+//
+// Markdown parsing and processing
+//
 
 // Version string of the package.
 const Version = "2.0"
