@@ -1485,10 +1485,7 @@ func (p *parser) paragraph(data []byte) int {
 		}
 
 		// otherwise, scan to the beginning of the next line
-		for data[i] != '\n' {
-			i++
-		}
-		i++
+		i += bytes.IndexByte(data[i:], '\n') + 1
 	}
 
 	p.renderParagraph(data[:i])
