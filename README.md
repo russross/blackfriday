@@ -8,7 +8,7 @@ punctuation substitutions, etc.), and it is safe for all utf-8
 (unicode) input.
 
 HTML output is currently supported, along with Smartypants
-extensions. An experimental LaTeX output engine is also included.
+extensions.
 
 It started as a translation from C of [Sundown][3].
 
@@ -69,7 +69,7 @@ html := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
 ### Custom options
 
 If you want to customize the set of options, first get a renderer
-(currently either the HTML or LaTeX output engines), then use it to
+(currently only the HTML output engine), then use it to
 call the more general `Markdown` function. For examples, see the
 implementations of `MarkdownBasic` and `MarkdownCommon` in
 `markdown.go`.
@@ -233,15 +233,8 @@ are a few of note:
 *   [markdownfmt](https://github.com/shurcooL/markdownfmt): like gofmt,
     but for markdown.
 
-*   LaTeX output: renders output as LaTeX. This is currently part of the
-    main Blackfriday repository, but may be split into its own project
-    in the future. If you are interested in owning and maintaining the
-    LaTeX output component, please be in touch.
-
-    It renders some basic documents, but is only experimental at this
-    point. In particular, it does not do any inline escaping, so input
-    that happens to look like LaTeX code will be passed through without
-    modification.
+*   [LaTeX output](https://bitbucket.org/ambrevar/blackfriday-latex):
+    renders output as LaTeX.
 
 
 Todo
