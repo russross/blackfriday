@@ -29,7 +29,6 @@ const (
 var (
 	reBackslashOrAmp      = regexp.MustCompile("[\\&]")
 	reEntityOrEscapedChar = regexp.MustCompile("(?i)\\\\" + escapable + "|" + charEntity)
-	reTrailingWhitespace  = regexp.MustCompile("(\n *)+$")
 )
 
 // Parse block-level data.
@@ -419,8 +418,8 @@ func (p *parser) html(data []byte, doRender bool) int {
 }
 
 func finalizeHTMLBlock(block *Node) {
-	block.Literal = reTrailingWhitespace.ReplaceAll(block.content, []byte{})
-	block.content = []byte{}
+	block.Literal = block.content
+	block.content = nil
 }
 
 // HTML comment, lax form
@@ -739,7 +738,7 @@ func finalizeCodeBlock(block *Node) {
 		block.Info = unescapeString(bytes.Trim(firstLine, "\n"))
 		block.Literal = rest
 	} else {
-		block.Literal = reTrailingWhitespace.ReplaceAll(block.content, []byte{'\n'})
+		block.Literal = block.content
 	}
 	block.content = nil
 }
