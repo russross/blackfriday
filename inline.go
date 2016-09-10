@@ -728,25 +728,38 @@ func linkEndsWithEntity(data []byte, linkEnd int) bool {
 	return entityRanges != nil && entityRanges[len(entityRanges)-1][1] == linkEnd
 }
 
+var prefixes = [][]byte{
+	[]byte("http://"),
+	[]byte("https://"),
+	[]byte("ftp://"),
+	[]byte("file://"),
+	[]byte("mailto:"),
+}
+
+func hasPrefixCaseInsensitive(s, prefix []byte) bool {
+	if len(s) < len(prefix) {
+		return false
+	}
+	delta := byte('a' - 'A')
+	for i, b := range prefix {
+		if b != s[i] && b != s[i]+delta {
+			return false
+		}
+	}
+	return true
+}
+
 func maybeAutoLink(p *parser, data []byte, offset int) (int, *Node) {
 	// quick check to rule out most false hits
-	if p.insideLink || len(data) < offset+6 { // 6 is the len() of the shortest prefix below
+	if p.insideLink || len(data) < offset+6 { // 6 is the len() of the shortest of the prefixes
 		return 0, nil
-	}
-	prefixes := []string{
-		"http://",
-		"https://",
-		"ftp://",
-		"file://",
-		"mailto:",
 	}
 	for _, prefix := range prefixes {
 		endOfHead := offset + 8 // 8 is the len() of the longest prefix
 		if endOfHead > len(data) {
 			endOfHead = len(data)
 		}
-		head := bytes.ToLower(data[offset:endOfHead])
-		if bytes.HasPrefix(head, []byte(prefix)) {
+		if hasPrefixCaseInsensitive(data[offset:endOfHead], prefix) {
 			return autoLink(p, data, offset)
 		}
 	}
