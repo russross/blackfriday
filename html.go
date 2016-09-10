@@ -18,7 +18,6 @@ package blackfriday
 import (
 	"bytes"
 	"fmt"
-	"html"
 	"io"
 	"regexp"
 	"strings"
@@ -375,17 +374,6 @@ func cellAlignment(align CellAlignFlags) string {
 	}
 }
 
-func esc(text []byte) []byte {
-	unesc := []byte(html.UnescapeString(string(text)))
-	return escCode(unesc)
-}
-
-func escCode(text []byte) []byte {
-	e1 := []byte(html.EscapeString(string(text)))
-	e2 := bytes.Replace(e1, []byte("&#34;"), []byte("&quot;"), -1)
-	return bytes.Replace(e2, []byte("&#39;"), []byte{'\''}, -1)
-}
-
 func (r *HTMLRenderer) out(w io.Writer, text []byte) {
 	if r.disableTags > 0 {
 		w.Write(htmlTagRe.ReplaceAll(text, []byte{}))
@@ -504,11 +492,17 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 	attrs := []string{}
 	switch node.Type {
 	case Text:
-		node.Literal = esc(node.Literal)
 		if r.Flags&Smartypants != 0 {
-			node.Literal = r.sr.Process(node.Literal)
+			var tmp bytes.Buffer
+			escapeHTML(&tmp, node.Literal)
+			r.sr.Process(w, tmp.Bytes())
+		} else {
+			if node.Parent.Type == Link {
+				escLink(w, node.Literal)
+			} else {
+				escapeHTML(w, node.Literal)
+			}
 		}
-		r.out(w, node.Literal)
 	case Softbreak:
 		r.out(w, []byte{'\n'})
 		// TODO: make it configurable via out(renderer.softbreak)
@@ -561,16 +555,22 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 		} else {
 			if entering {
 				dest = r.addAbsPrefix(dest)
-				//if (!(options.safe && potentiallyUnsafe(node.destination))) {
-				attrs = append(attrs, fmt.Sprintf("href=%q", esc(dest)))
-				//}
+				var hrefBuff bytes.Buffer
+				hrefBuff.WriteString("href=\"")
+				escLink(&hrefBuff, dest)
+				hrefBuff.WriteByte('"')
+				attrs = append(attrs, hrefBuff.String())
 				if node.NoteID != 0 {
 					r.out(w, footnoteRef(r.FootnoteAnchorPrefix, node))
 					break
 				}
 				attrs = appendLinkAttrs(attrs, r.Flags, dest)
 				if len(node.LinkData.Title) > 0 {
-					attrs = append(attrs, fmt.Sprintf("title=%q", esc(node.LinkData.Title)))
+					var titleBuff bytes.Buffer
+					titleBuff.WriteString("title=\"")
+					escapeHTML(&titleBuff, node.LinkData.Title)
+					titleBuff.WriteByte('"')
+					attrs = append(attrs, titleBuff.String())
 				}
 				r.tag(w, aTag, attrs)
 			} else {
@@ -591,7 +591,9 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 				//if options.safe && potentiallyUnsafe(dest) {
 				//out(w, `<img src="" alt="`)
 				//} else {
-				r.out(w, []byte(fmt.Sprintf(`<img src="%s" alt="`, esc(dest))))
+				r.out(w, []byte(`<img src="`))
+				escLink(w, dest)
+				r.out(w, []byte(`" alt="`))
 				//}
 			}
 			r.disableTags++
@@ -600,14 +602,14 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 			if r.disableTags == 0 {
 				if node.LinkData.Title != nil {
 					r.out(w, []byte(`" title="`))
-					r.out(w, esc(node.LinkData.Title))
+					escapeHTML(w, node.LinkData.Title)
 				}
 				r.out(w, []byte(`" />`))
 			}
 		}
 	case Code:
 		r.out(w, codeTag)
-		r.out(w, escCode(node.Literal))
+		escapeHTML(w, node.Literal)
 		r.out(w, codeCloseTag)
 	case Document:
 		break
@@ -752,7 +754,7 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 		r.cr(w)
 		r.out(w, preTag)
 		r.tag(w, codeTag[:len(codeTag)-1], attrs)
-		r.out(w, escCode(node.Literal))
+		escapeHTML(w, node.Literal)
 		r.out(w, codeCloseTag)
 		r.out(w, preCloseTag)
 		if node.Parent.Type != Item {
@@ -837,9 +839,9 @@ func (r *HTMLRenderer) writeDocumentHeader(w *bytes.Buffer) {
 	w.WriteString("<head>\n")
 	w.WriteString("  <title>")
 	if r.Flags&Smartypants != 0 {
-		w.Write(r.sr.Process([]byte(r.Title)))
+		r.sr.Process(w, []byte(r.Title))
 	} else {
-		w.Write(esc([]byte(r.Title)))
+		escapeHTML(w, []byte(r.Title))
 	}
 	w.WriteString("</title>\n")
 	w.WriteString("  <meta name=\"GENERATOR\" content=\"Blackfriday Markdown Processor v")
@@ -852,14 +854,14 @@ func (r *HTMLRenderer) writeDocumentHeader(w *bytes.Buffer) {
 	w.WriteString(">\n")
 	if r.CSS != "" {
 		w.WriteString("  <link rel=\"stylesheet\" type=\"text/css\" href=\"")
-		w.Write(esc([]byte(r.CSS)))
+		escapeHTML(w, []byte(r.CSS))
 		w.WriteString("\"")
 		w.WriteString(ending)
 		w.WriteString(">\n")
 	}
 	if r.Icon != "" {
 		w.WriteString("  <link rel=\"icon\" type=\"image/x-icon\" href=\"")
-		w.Write(esc([]byte(r.Icon)))
+		escapeHTML(w, []byte(r.Icon))
 		w.WriteString("\"")
 		w.WriteString(ending)
 		w.WriteString(">\n")
@@ -919,6 +921,7 @@ func (r *HTMLRenderer) writeTOC(w *bytes.Buffer, ast *Node) {
 		w.Write(buf.Bytes())
 		w.WriteString("\n\n</nav>\n")
 	}
+	r.lastOutputLen = buf.Len()
 }
 
 func (r *HTMLRenderer) writeDocumentFooter(w *bytes.Buffer) {
