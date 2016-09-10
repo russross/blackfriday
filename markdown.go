@@ -75,7 +75,7 @@ const (
 	ListTypeTerm
 
 	ListItemContainsBlock
-	ListItemBeginningOfList
+	ListItemBeginningOfList // TODO: figure out if this is of any use now
 	ListItemEndOfList
 )
 
@@ -387,8 +387,7 @@ func Parse(input []byte, opts Options) *Node {
 		p.notes = make([]*reference, 0)
 	}
 
-	first := firstPass(p, input)
-	secondPass(p, first)
+	p.block(preprocess(p, input))
 	// Walk the tree and finish up some of unfinished blocks
 	for p.tip != nil {
 		p.finalize(p.tip)
@@ -410,9 +409,8 @@ func (p *parser) parseRefsToAST() {
 		return
 	}
 	p.tip = p.doc
-	finalizeHTMLBlock(p.addBlock(HTMLBlock, []byte(`<div class="footnotes">`)))
-	p.addBlock(HorizontalRule, nil)
 	block := p.addBlock(List, nil)
+	block.IsFootnotesList = true
 	block.ListFlags = ListTypeOrdered
 	flags := ListItemBeginningOfList
 	// Note: this loop is intentionally explicit, not range-form. This is
@@ -422,7 +420,7 @@ func (p *parser) parseRefsToAST() {
 	for i := 0; i < len(p.notes); i++ {
 		ref := p.notes[i]
 		block := p.addBlock(Item, nil)
-		block.ListFlags = ListTypeOrdered
+		block.ListFlags = flags | ListTypeOrdered
 		block.RefLink = ref.link
 		if ref.hasBlock {
 			flags |= ListItemContainsBlock
@@ -435,7 +433,6 @@ func (p *parser) parseRefsToAST() {
 	above := block.Parent
 	finalizeList(block)
 	p.tip = above
-	finalizeHTMLBlock(p.addBlock(HTMLBlock, []byte("</div>")))
 	block.Walk(func(node *Node, entering bool) WalkStatus {
 		if node.Type == Paragraph || node.Type == Header {
 			p.inline(node, node.content)
@@ -445,12 +442,11 @@ func (p *parser) parseRefsToAST() {
 	})
 }
 
-// first pass:
+// preprocess does a preparatory first pass over the input:
 // - normalize newlines
-// - extract references (outside of fenced code blocks)
 // - expand tabs (outside of fenced code blocks)
 // - copy everything else
-func firstPass(p *parser, input []byte) []byte {
+func preprocess(p *parser, input []byte) []byte {
 	var out bytes.Buffer
 	tabSize := TabSizeDefault
 	if p.flags&TabSizeEight != 0 {
@@ -479,9 +475,6 @@ func firstPass(p *parser, input []byte) []byte {
 		if end > beg {
 			if end < lastFencedCodeBlockEnd { // Do not expand tabs while inside fenced code blocks.
 				out.Write(input[beg:end])
-			} else if refEnd := isReference(p, input[beg:], tabSize); refEnd > 0 {
-				beg += refEnd
-				continue
 			} else {
 				expandTabs(&out, input[beg:end], tabSize)
 			}
@@ -504,29 +497,6 @@ func firstPass(p *parser, input []byte) []byte {
 	}
 
 	return out.Bytes()
-}
-
-// second pass: actual rendering
-func secondPass(p *parser, input []byte) {
-	p.block(input)
-
-	if p.flags&Footnotes != 0 && len(p.notes) > 0 {
-		flags := ListItemBeginningOfList
-		for i := 0; i < len(p.notes); i++ {
-			ref := p.notes[i]
-			if ref.hasBlock {
-				flags |= ListItemContainsBlock
-				p.block(ref.title)
-			} else {
-				p.inline(nil, ref.title)
-			}
-			flags &^= ListItemBeginningOfList | ListItemContainsBlock
-		}
-	}
-
-	if p.nesting != 0 {
-		panic("Nesting level did not end at zero")
-	}
 }
 
 //
@@ -558,13 +528,50 @@ func secondPass(p *parser, input []byte) {
 //
 // are not yet supported.
 
-// References are parsed and stored in this struct.
+// reference holds all information necessary for a reference-style links or
+// footnotes.
+//
+// Consider this markdown with reference-style links:
+//
+//     [link][ref]
+//
+//     [ref]: /url/ "tooltip title"
+//
+// It will be ultimately converted to this HTML:
+//
+//     <p><a href=\"/url/\" title=\"title\">link</a></p>
+//
+// And a reference structure will be populated as follows:
+//
+//     p.refs["ref"] = &reference{
+//         link: "/url/",
+//         title: "tooltip title",
+//     }
+//
+// Alternatively, reference can contain information about a footnote. Consider
+// this markdown:
+//
+//     Text needing a footnote.[^a]
+//
+//     [^a]: This is the note
+//
+// A reference structure will be populated as follows:
+//
+//     p.refs["a"] = &reference{
+//         link: "a",
+//         title: "This is the note",
+//         noteID: <some positive int>,
+//     }
+//
+// TODO: As you can see, it begs for splitting into two dedicated structures
+// for refs and for footnotes.
 type reference struct {
 	link     []byte
 	title    []byte
 	noteID   int // 0 if not a footnote ref
 	hasBlock bool
-	text     []byte
+
+	text []byte // only gets populated by refOverride feature with Reference.Text
 }
 
 func (r *reference) String() string {
@@ -610,7 +617,11 @@ func isReference(p *parser, data []byte, tabSize int) int {
 		return 0
 	}
 	idEnd := i
-
+	// footnotes can have empty ID, like this: [^], but a reference can not be
+	// empty like this: []. Break early if it's not a footnote and there's no ID
+	if noteID == 0 && idOffset == idEnd {
+		return 0
+	}
 	// spacer: colon (space | tab)* newline? (space | tab)*
 	i++
 	if i >= len(data) || data[i] != ':' {

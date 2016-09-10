@@ -589,10 +589,11 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 			tagName = "dl"
 		}
 		if entering {
-			// var start = node.listStart;
-			// if (start !== null && start !== 1) {
-			//     attrs.push(['start', start.toString()]);
-			// }
+			if node.IsFootnotesList {
+				r.out(w, []byte("\n<div class=\"footnotes\">\n\n"))
+				r.out(w, tag("hr", attrs, r.Flags&UseXHTML != 0))
+				r.cr(w)
+			}
 			r.cr(w)
 			if node.Parent.Type == Item && node.Parent.Parent.Tight {
 				r.cr(w)
@@ -610,6 +611,9 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 			}
 			if node.Parent.Type == Document || node.Parent.Type == BlockQuote {
 				r.cr(w)
+			}
+			if node.IsFootnotesList {
+				r.out(w, []byte("\n</div>\n"))
 			}
 		}
 	case Item:
