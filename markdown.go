@@ -213,14 +213,16 @@ func (p *parser) finalize(block *Node) {
 }
 
 func (p *parser) addChild(node NodeType, offset uint32) *Node {
-	for !p.tip.canContain(node) {
+	return p.addExistingChild(NewNode(node), offset)
+}
+
+func (p *parser) addExistingChild(node *Node, offset uint32) *Node {
+	for !p.tip.canContain(node.Type) {
 		p.finalize(p.tip)
 	}
-	newNode := NewNode(node)
-	newNode.content = []byte{}
-	p.tip.AppendChild(newNode)
-	p.tip = newNode
-	return newNode
+	p.tip.AppendChild(node)
+	p.tip = node
+	return node
 }
 
 func (p *parser) closeUnmatchedBlocks() {
@@ -419,7 +421,8 @@ func (p *parser) parseRefsToAST() {
 	// the fixed initial set.
 	for i := 0; i < len(p.notes); i++ {
 		ref := p.notes[i]
-		block := p.addBlock(Item, nil)
+		p.addExistingChild(ref.footnote, 0)
+		block := ref.footnote
 		block.ListFlags = flags | ListTypeOrdered
 		block.RefLink = ref.link
 		if ref.hasBlock {
@@ -570,6 +573,7 @@ type reference struct {
 	title    []byte
 	noteID   int // 0 if not a footnote ref
 	hasBlock bool
+	footnote *Node // a link to the Item node within a list of footnotes
 
 	text []byte // only gets populated by refOverride feature with Reference.Text
 }
