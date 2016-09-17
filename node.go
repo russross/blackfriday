@@ -278,8 +278,8 @@ type NodeVisitor func(node *Node, entering bool) WalkStatus
 
 // Walk is a convenience method that instantiates a walker and starts a
 // traversal of subtree rooted at n.
-func (root *Node) Walk(visitor NodeVisitor) {
-	w := newNodeWalker(root)
+func (n *Node) Walk(visitor NodeVisitor) {
+	w := newNodeWalker(n)
 	for w.current != nil {
 		status := visitor(w.current, w.entering)
 		switch status {
