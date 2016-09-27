@@ -1,4 +1,8 @@
 all: mmark/mmark
 
 mmark/mmark:
-	cd mmark; go build
+	( cd mmark; make)
+
+.PHONY: clean
+clean:
+	( cd ./mmark; make clean )
