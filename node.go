@@ -84,6 +84,7 @@ type LinkData struct {
 	Destination []byte // Destination is what goes into a href
 	Title       []byte // Title is the tooltip thing that goes in a title attribute
 	NoteID      int    // NoteID contains a serial number of a footnote, zero if it's not a footnote
+	Footnote    *Node  // If it's a footnote, this is a direct link to the footnote Node. Otherwise nil.
 }
 
 // CodeBlockData contains fields relevant to a CodeBlock node type.
@@ -277,8 +278,8 @@ type NodeVisitor func(node *Node, entering bool) WalkStatus
 
 // Walk is a convenience method that instantiates a walker and starts a
 // traversal of subtree rooted at n.
-func (root *Node) Walk(visitor NodeVisitor) {
-	w := newNodeWalker(root)
+func (n *Node) Walk(visitor NodeVisitor) {
+	w := newNodeWalker(n)
 	for w.current != nil {
 		status := visitor(w.current, w.entering)
 		switch status {
