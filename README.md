@@ -172,9 +172,11 @@ implements the following extensions:
     To preserve classes of fenced code blocks while using the bluemonday
     HTML sanitizer, use the following policy:
 
-        p := bluemonday.UGCPolicy()
-        p.AllowAttrs("class").Matching(regexp.MustCompile("^language-[a-zA-Z0-9]+$")).OnElements("code")
-        html := p.SanitizeBytes(unsafe)
+    ``` go
+    p := bluemonday.UGCPolicy()
+    p.AllowAttrs("class").Matching(regexp.MustCompile("^language-[a-zA-Z0-9]+$")).OnElements("code")
+    html := p.SanitizeBytes(unsafe)
+    ```
 
 *   **Definition lists**. A simple definition list is made of a single-line
     term followed by a colon and the definition for that term.
