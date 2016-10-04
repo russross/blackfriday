@@ -407,8 +407,31 @@ func TestCodeSpan(t *testing.T) {
 
 		"```multiple ticks `with` ticks inside```\n",
 		"<p><code>multiple ticks `with` ticks inside</code></p>\n",
+
+		"`source code followed by lang`(go)\n",
+		"<p><code>source code followed by lang</code>(go)</p>\n",
+
+		"`source code followed by lang with spaces between` (go)\n",
+		"<p><code>source code followed by lang with spaces between</code> (go)</p>\n",
+
+		"`source code followed by lang`_(go)\n",
+		"<p><code>source code followed by lang</code>_(go)</p>\n",
 	}
 	doTestsInline(t, tests)
+
+	tests = []string{
+		"`source code followed by lang`(go)\n",
+		"<p><code class=\"language-go\">source code followed by lang</code></p>\n",
+
+		"`source code followed by lang with spaces between` (go)\n",
+		"<p><code class=\"language-go\">source code followed by lang with spaces between</code></p>\n",
+
+		"`source code followed by lang`_(go)\n",
+		"<p><code>source code followed by lang</code>_(go)</p>\n",
+	}
+	doTestsInlineParam(t, tests, Options{
+		Extensions: EXTENSION_INLINE_CODE_LANG},
+		0, HtmlRendererParameters{})
 }
 
 func TestLineBreak(t *testing.T) {

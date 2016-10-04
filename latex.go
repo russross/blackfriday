@@ -193,7 +193,7 @@ func (options *Latex) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	out.WriteString("}")
 }
 
-func (options *Latex) CodeSpan(out *bytes.Buffer, text []byte) {
+func (options *Latex) CodeSpan(out *bytes.Buffer, text []byte, lang string) {
 	out.WriteString("\\texttt{")
 	escapeSpecialChars(out, text)
 	out.WriteString("}")
