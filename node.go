@@ -309,7 +309,7 @@ func newNodeWalker(root *Node) *nodeWalker {
 }
 
 func (nw *nodeWalker) next() {
-	if !nw.entering && nw.current == nw.root {
+	if (!nw.current.isContainer() || !nw.entering) && nw.current == nw.root {
 		nw.current = nil
 		return
 	}
