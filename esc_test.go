@@ -23,7 +23,6 @@ func TestEsc(t *testing.T) {
 	}
 }
 
-/*
 func BenchmarkEscapeHTML(b *testing.B) {
 	tests := [][]byte{
 		[]byte(""),
@@ -33,7 +32,7 @@ func BenchmarkEscapeHTML(b *testing.B) {
 		[]byte("4 < 5."),
 		[]byte("6 > 5."),
 		[]byte("Here's a [link] [1] with an ampersand in the URL."),
-		[]byte("Here's a link with an amersand in the link text: [AT&T] [2]."),
+		[]byte("Here's a link with an ampersand in the link text: [AT&T] [2]."),
 		[]byte("Here's an inline [link](/script?foo=1&bar=2)."),
 		[]byte("Here's an inline [link](</script?foo=1&bar=2>)."),
 		[]byte("[1]: http://example.com/?foo=1&bar=2"),
@@ -47,4 +46,3 @@ func BenchmarkEscapeHTML(b *testing.B) {
 		}
 	}
 }
-*/
