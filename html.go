@@ -314,11 +314,6 @@ func appendLanguageAttr(attrs []string, info []byte) []string {
 	return attrs
 }
 
-var (
-	gtBytes    = []byte{'>'}
-	spaceBytes = []byte{' '}
-)
-
 func (r *HTMLRenderer) tag(w io.Writer, name []byte, attrs []string) {
 	w.Write(name)
 	if len(attrs) > 0 {
@@ -385,9 +380,15 @@ func (r *HTMLRenderer) out(w io.Writer, text []byte) {
 
 func (r *HTMLRenderer) cr(w io.Writer) {
 	if r.lastOutputLen > 0 {
-		r.out(w, []byte{'\n'})
+		r.out(w, nlBytes)
 	}
 }
+
+var (
+	nlBytes    = []byte{'\n'}
+	gtBytes    = []byte{'>'}
+	spaceBytes = []byte{' '}
+)
 
 var (
 	brTag              = []byte("<br>")
@@ -504,7 +505,7 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 			}
 		}
 	case Softbreak:
-		r.out(w, []byte{'\n'})
+		r.cr(w)
 		// TODO: make it configurable via out(renderer.softbreak)
 	case Hardbreak:
 		if r.Flags&UseXHTML == 0 {
