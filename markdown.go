@@ -86,7 +86,7 @@ type CellAlignFlags int
 // Only a single one of these values will be used; they are not ORed together.
 // These are mostly of interest if you are writing a new output format.
 const (
-	TableAlignmentLeft = 1 << iota
+	TableAlignmentLeft CellAlignFlags = 1 << iota
 	TableAlignmentRight
 	TableAlignmentCenter = (TableAlignmentLeft | TableAlignmentRight)
 )
