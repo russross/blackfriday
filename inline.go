@@ -33,49 +33,38 @@ var (
 // offset is the number of valid chars before the current cursor
 
 func (p *parser) inline(currBlock *Node, data []byte) {
-	// this is called recursively: enforce a maximum depth
+	// handlers might call us recursively: enforce a maximum depth
 	if p.nesting >= p.maxNesting || len(data) == 0 {
 		return
 	}
 	p.nesting++
-
-	i, end := 0, 0
-	var handler inlineParser
-	for {
-		for ; end < len(data); end++ {
-			handler = p.inlineCallback[data[end]]
-			if handler != nil {
-				break
+	beg, end := 0, 0
+	for end < len(data) {
+		handler := p.inlineCallback[data[end]]
+		if handler != nil {
+			if consumed, node := handler(p, data, end); consumed == 0 {
+				// No action from the callback.
+				end++
+			} else {
+				// Copy inactive chars into the output.
+				currBlock.AppendChild(text(data[beg:end]))
+				if node != nil {
+					currBlock.AppendChild(node)
+				}
+				// Skip past whatever the callback used.
+				beg = end + consumed
+				end = beg
 			}
-		}
-
-		if end >= len(data) {
-			if data[end-1] == '\n' {
-				end--
-			}
-			currBlock.AppendChild(text(data[i:end]))
-			break
-		}
-
-		// call the trigger
-		if consumed, node := handler(p, data, end); consumed == 0 {
-			// No action from the callback.
-			end++
 		} else {
-			// Copy inactive chars into the output.
-			currBlock.AppendChild(text(data[i:end]))
-			if node != nil {
-				currBlock.AppendChild(node)
-			}
-			// Skip past whatever the callback used.
-			i = end + consumed
-			if i >= len(data) {
-				break
-			}
-			end = i
+			end++
 		}
 	}
-
+	if beg < len(data) {
+		if data[end-1] == '\n' {
+			end--
+		}
+		currBlock.AppendChild(text(data[beg:end]))
+	}
 	p.nesting--
 }
 
