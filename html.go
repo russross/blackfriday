@@ -307,11 +307,14 @@ func isSmartypantable(node *Node) bool {
 }
 
 func appendLanguageAttr(attrs []string, info []byte) []string {
-	infoWords := bytes.Split(info, []byte("\t "))
-	if len(infoWords) > 0 && len(infoWords[0]) > 0 {
-		attrs = append(attrs, fmt.Sprintf("class=\"language-%s\"", infoWords[0]))
+	if len(info) == 0 {
+		return attrs
 	}
-	return attrs
+	endOfLang := bytes.IndexAny(info, "\t ")
+	if endOfLang < 0 {
+		endOfLang = len(info)
+	}
+	return append(attrs, fmt.Sprintf("class=\"language-%s\"", info[:endOfLang]))
 }
 
 func (r *HTMLRenderer) tag(w io.Writer, name []byte, attrs []string) {
