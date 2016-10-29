@@ -34,35 +34,30 @@ var (
 
 func (p *parser) inline(currBlock *Node, data []byte) {
 	// this is called recursively: enforce a maximum depth
-	if p.nesting >= p.maxNesting {
+	if p.nesting >= p.maxNesting || len(data) == 0 {
 		return
 	}
 	p.nesting++
 
 	i, end := 0, 0
-	for i < len(data) {
-		// Stop at EOL
-		if data[i] == '\n' && i+1 == len(data) {
-			break
-		}
-
+	var handler inlineParser
+	for {
 		for ; end < len(data); end++ {
-			if p.inlineCallback[data[end]] != nil {
+			handler = p.inlineCallback[data[end]]
+			if handler != nil {
 				break
 			}
 		}
 
 		if end >= len(data) {
 			if data[end-1] == '\n' {
-				currBlock.AppendChild(text(data[i : end-1]))
-			} else {
-				currBlock.AppendChild(text(data[i:end]))
+				end--
 			}
+			currBlock.AppendChild(text(data[i:end]))
 			break
 		}
 
 		// call the trigger
-		handler := p.inlineCallback[data[end]]
 		if consumed, node := handler(p, data, end); consumed == 0 {
 			// No action from the callback.
 			end++
@@ -74,6 +69,9 @@ func (p *parser) inline(currBlock *Node, data []byte) {
 			}
 			// Skip past whatever the callback used.
 			i = end + consumed
+			if i >= len(data) {
+				break
+			}
 			end = i
 		}
 	}
