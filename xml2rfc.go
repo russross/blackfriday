@@ -13,18 +13,19 @@ import (
 
 var (
 	// These have been known to change, these are the current ones (2015-08-27).
+        CitationsBase = "https://xml2rfc.tools.ietf.org/public/rfc/"
 
 	// CitationsRFC is the URL where the citations for RFCs are.
-	CitationsRFC = "http://xml2rfc.ietf.org/public/rfc/bibxml/"
+	CitationsRFC = CitationsBase + "bibxml/"
 
 	// CitationsANSI is the URL where the citations for ANSI documents are.
-	CitationsANSI = "http://xml2rfc.ietf.org/public/rfc/bibxml2/"
+	CitationsANSI = CitationsBase + "bibxml2/"
 
 	// CitationsID is the URL where the citations for I-Ds are.
-	CitationsID = "http://xml2rfc.ietf.org/public/rfc/bibxml3/"
+	CitationsID = CitationsBase + "bibxml3/"
 
 	// CitationsW3C is the URL where the citations for W3C documents are.
-	CitationsW3C = "http://xml2rfc.ietf.org/public/rfc/bibxml4/"
+	CitationsW3C = CitationsBase + "bibxml4/"
 )
 
 const (
