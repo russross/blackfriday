@@ -387,7 +387,7 @@ func Parse(input []byte, opts Options) *Node {
 		p.notes = make([]*reference, 0)
 	}
 
-	p.block(preprocess(p, input))
+	p.block(input)
 	// Walk the tree and finish up some of unfinished blocks
 	for p.tip != nil {
 		p.finalize(p.tip)
@@ -440,63 +440,6 @@ func (p *parser) parseRefsToAST() {
 		}
 		return GoToNext
 	})
-}
-
-// preprocess does a preparatory first pass over the input:
-// - normalize newlines
-// - expand tabs (outside of fenced code blocks)
-// - copy everything else
-func preprocess(p *parser, input []byte) []byte {
-	var out bytes.Buffer
-	tabSize := TabSizeDefault
-	if p.flags&TabSizeEight != 0 {
-		tabSize = TabSizeDouble
-	}
-	beg := 0
-	lastFencedCodeBlockEnd := 0
-	for beg < len(input) {
-		// Find end of this line, then process the line.
-		end := beg
-		for end < len(input) && input[end] != '\n' && input[end] != '\r' {
-			end++
-		}
-
-		if p.flags&FencedCode != 0 {
-			// track fenced code block boundaries to suppress tab expansion
-			// and reference extraction inside them:
-			if beg >= lastFencedCodeBlockEnd {
-				if i := p.fencedCodeBlock(input[beg:], false); i > 0 {
-					lastFencedCodeBlockEnd = beg + i
-				}
-			}
-		}
-
-		// add the line body if present
-		if end > beg {
-			if end < lastFencedCodeBlockEnd { // Do not expand tabs while inside fenced code blocks.
-				out.Write(input[beg:end])
-			} else {
-				expandTabs(&out, input[beg:end], tabSize)
-			}
-		}
-
-		if end < len(input) && input[end] == '\r' {
-			end++
-		}
-		if end < len(input) && input[end] == '\n' {
-			end++
-		}
-		out.WriteByte('\n')
-
-		beg = end
-	}
-
-	// empty input?
-	if out.Len() == 0 {
-		out.WriteByte('\n')
-	}
-
-	return out.Bytes()
 }
 
 //
