@@ -31,7 +31,6 @@ type HTMLFlags int
 const (
 	HTMLFlagsNone           HTMLFlags = 0
 	SkipHTML                HTMLFlags = 1 << iota // Skip preformatted HTML blocks
-	SkipStyle                                     // Skip embedded <style> elements
 	SkipImages                                    // Skip embedded images
 	SkipLinks                                     // Skip all links
 	Safelink                                      // Only link to trusted protocols
@@ -444,14 +443,7 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 		if r.Flags&SkipHTML != 0 {
 			break
 		}
-		if r.Flags&SkipStyle != 0 && isHTMLTag(node.Literal, "style") {
-			break
-		}
-		//if options.safe {
-		//	out(w, "<!-- raw HTML omitted -->")
-		//} else {
 		r.out(w, node.Literal)
-		//}
 	case Link:
 		// mark it but don't link it if it is not a safe link: no smartypants
 		dest := node.LinkData.Destination
