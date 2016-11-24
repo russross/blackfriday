@@ -46,8 +46,6 @@ const (
 	AutoHeaderIDs                                 // Create the header ID from the text
 	BackslashLineBreak                            // Translate trailing backslashes into line breaks
 	DefinitionLists                               // Render definition lists
-	TOC                                           // Generate a table of contents
-	OmitContents                                  // Skip the main contents (for a standalone table of contents)
 
 	CommonHTMLFlags HTMLFlags = UseXHTML | Smartypants |
 		SmartypantsFractions | SmartypantsDashes | SmartypantsLatexDashes
@@ -290,8 +288,7 @@ type Options struct {
 func MarkdownBasic(input []byte) []byte {
 	// set up the HTML renderer
 	renderer := NewHTMLRenderer(HTMLRendererParameters{
-		Flags:      UseXHTML,
-		Extensions: CommonExtensions,
+		Flags: UseXHTML,
 	})
 
 	// set up the parser
@@ -319,8 +316,7 @@ func MarkdownBasic(input []byte) []byte {
 func MarkdownCommon(input []byte) []byte {
 	// set up the HTML renderer
 	renderer := NewHTMLRenderer(HTMLRendererParameters{
-		Flags:      CommonHTMLFlags,
-		Extensions: CommonExtensions,
+		Flags: CommonHTMLFlags,
 	})
 	return Markdown(input, renderer, DefaultOptions)
 }
