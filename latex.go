@@ -330,3 +330,19 @@ func (options *Latex) DocumentHeader(out *bytes.Buffer) {
 func (options *Latex) DocumentFooter(out *bytes.Buffer) {
 	out.WriteString("\n\\end{document}\n")
 }
+
+func (options *Latex) Math(out *bytes.Buffer, equation []byte, inline bool) {
+	if inline {
+		out.WriteString("\\(")
+	} else {
+		out.WriteString("\\[")
+	}
+
+	out.Write(equation)
+
+	if inline {
+		out.WriteString("\\)")
+	} else {
+		out.WriteString("\\]")
+	}
+}

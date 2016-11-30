@@ -1146,3 +1146,49 @@ func helperTripleEmphasis(p *parser, out *bytes.Buffer, data []byte, offset int,
 	}
 	return 0
 }
+
+// LaTeX math surrounded by '$' or '$$'
+func math(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+	data = data[offset:]
+
+	// inline math
+	if len(data) > 2 && data[1] != '$' {
+		// find the next '$'
+		end := 1
+		for end < len(data) && data[end] != '$' {
+			end++
+		}
+
+		// no matching delimiter?
+		if end == len(data) {
+			return 0
+		}
+
+		// render the inline math
+		if end != 0 {
+			p.r.Math(out, data[1:end], true)
+		}
+		return end + 1
+	}
+
+	// display math
+	if len(data) > 4 && data[1] == '$' && data[2] != '$' {
+		// find the next '$$'
+		end := 2
+		for end+1 < len(data) && (data[end] != '$' || data[end+1] != '$') {
+			end++
+		}
+
+		// no matching delimiter?
+		if end+1 == len(data) {
+			return 0
+		}
+
+		// render the display math
+		if end != 0 {
+			p.r.Math(out, data[2:end], false)
+		}
+		return end + 2
+	}
+	return 0
+}
