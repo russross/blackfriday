@@ -46,6 +46,7 @@ const (
 	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text
 	EXTENSION_BACKSLASH_LINE_BREAK                   // translate trailing backslashes into line breaks
 	EXTENSION_DEFINITION_LISTS                       // render definition lists
+	EXTENSION_INLINE_CODE				             // render inline code with language
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML |
@@ -179,7 +180,7 @@ type Renderer interface {
 
 	// Span-level callbacks
 	AutoLink(out *bytes.Buffer, link []byte, kind int)
-	CodeSpan(out *bytes.Buffer, text []byte)
+	CodeSpan(out *bytes.Buffer, text []byte, lang string)
 	DoubleEmphasis(out *bytes.Buffer, text []byte)
 	Emphasis(out *bytes.Buffer, text []byte)
 	Image(out *bytes.Buffer, link []byte, title []byte, alt []byte)

@@ -6,3 +6,5 @@ _obj
 _test*
 markdown
 tags
+/.idea
+/blackfriday.iml

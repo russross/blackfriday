@@ -147,7 +147,27 @@ func codeSpan(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 	// render the code span
 	if fBegin != fEnd {
-		p.r.CodeSpan(out, data[fBegin:fEnd])
+		langStart := 0
+		langEnd := 0
+
+		if p.flags&EXTENSION_INLINE_CODE != 0 {
+			// look for ~languagename~ at the beginning of the code string
+			if data[fBegin] == '~' {
+				idx := fBegin + 1
+				langStart = idx
+
+				for idx < fEnd && data[idx] != '~' {
+					idx++
+				}
+
+				if idx < fEnd {
+					langEnd = idx
+					fBegin = idx + 1
+				}
+			}
+		}
+
+		p.r.CodeSpan(out, data[fBegin:fEnd], string(data[langStart:langEnd]))
 	}
 
 	return end
