@@ -1601,7 +1601,9 @@ func TestTOC(t *testing.T) {
 		"#",
 		"",
 	}
-	doTestsBlock(t, tests, TOC)
+	doTestsParam(t, tests, TestParams{
+		HTMLFlags: UseXHTML | TOC,
+	})
 }
 
 func TestOmitContents(t *testing.T) {
@@ -1625,9 +1627,13 @@ func TestOmitContents(t *testing.T) {
 		"#\n\nfoo",
 		"",
 	}
-	doTestsBlock(t, tests, TOC|OmitContents)
+	doTestsParam(t, tests, TestParams{
+		HTMLFlags: UseXHTML | TOC | OmitContents,
+	})
 	// Now run again: make sure OmitContents implies TOC
-	doTestsBlock(t, tests, OmitContents)
+	doTestsParam(t, tests, TestParams{
+		HTMLFlags: UseXHTML | OmitContents,
+	})
 }
 
 func TestCompletePage(t *testing.T) {

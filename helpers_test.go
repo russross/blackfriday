@@ -44,7 +44,6 @@ func execRecoverableTestSuite(t *testing.T, tests []string, params TestParams, s
 
 func runMarkdown(input string, params TestParams) string {
 	params.HTMLRendererParameters.Flags = params.HTMLFlags
-	params.HTMLRendererParameters.Extensions = params.Options.Extensions
 	renderer := NewHTMLRenderer(params.HTMLRendererParameters)
 	return string(Markdown([]byte(input), renderer, params.Options))
 }
@@ -54,8 +53,7 @@ func doTests(t *testing.T, tests []string) {
 	doTestsParam(t, tests, TestParams{
 		Options: DefaultOptions,
 		HTMLRendererParameters: HTMLRendererParameters{
-			Flags:      CommonHTMLFlags,
-			Extensions: CommonExtensions,
+			Flags: CommonHTMLFlags,
 		},
 	})
 }

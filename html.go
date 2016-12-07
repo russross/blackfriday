@@ -45,6 +45,8 @@ const (
 	SmartypantsDashes                             // Enable smart dashes (with Smartypants)
 	SmartypantsLatexDashes                        // Enable LaTeX-style dashes (with Smartypants)
 	SmartypantsAngledQuotes                       // Enable angled double quotes (with Smartypants) for double quotes rendering
+	TOC                                           // Generate a table of contents
+	OmitContents                                  // Skip the main contents (for a standalone table of contents)
 
 	TagName               = "[A-Za-z][A-Za-z0-9-]*"
 	AttributeName         = "[a-zA-Z_:][a-zA-Z0-9:._-]*"
@@ -89,8 +91,7 @@ type HTMLRendererParameters struct {
 	CSS   string // Optional CSS file URL (used if CompletePage is set)
 	Icon  string // Optional icon file URL (used if CompletePage is set)
 
-	Flags      HTMLFlags  // Flags allow customizing this renderer's behavior
-	Extensions Extensions // Extensions give Smartypants and HTML renderer access to Blackfriday's global extensions
+	Flags HTMLFlags // Flags allow customizing this renderer's behavior
 }
 
 // HTMLRenderer is a type that implements the Renderer interface for HTML output.
@@ -821,9 +822,9 @@ func (r *HTMLRenderer) Render(ast *Node) []byte {
 	//dump(ast)
 	var buff bytes.Buffer
 	r.writeDocumentHeader(&buff)
-	if r.Extensions&TOC != 0 || r.Extensions&OmitContents != 0 {
+	if r.Flags&TOC != 0 || r.Flags&OmitContents != 0 {
 		r.writeTOC(&buff, ast)
-		if r.Extensions&OmitContents != 0 {
+		if r.Flags&OmitContents != 0 {
 			return buff.Bytes()
 		}
 	}
