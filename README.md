@@ -16,22 +16,43 @@ It started as a translation from C of [Sundown][3].
 Installation
 ------------
 
-Blackfriday is compatible with Go 1. If you are using an older
-release of Go, consider using v1.1 of blackfriday, which was based
-on the last stable release of Go prior to Go 1. You can find it as a
-tagged commit on github.
+Blackfriday is compatible with any modern Go release. With Go 1.7 and git
+installed:
 
-With Go 1 and git installed:
-
-    go get github.com/russross/blackfriday
+    go get gopkg.in/russross/blackfriday.v2
 
 will download, compile, and install the package into your `$GOPATH`
 directory hierarchy. Alternatively, you can achieve the same if you
 import it into a project:
 
-    import "github.com/russross/blackfriday"
+    import "gopkg.in/russross/blackfriday.v2"
 
 and `go get` without parameters.
+
+
+Versions
+--------
+
+Currently maintained and recommended version of Blackfriday is `v2`. It's being
+developed on its own branch: https://github.com/russross/blackfriday/v2. You
+should install and import it via [gopkg.in][6] at
+`gopkg.in/russross/blackfriday.v2`.
+
+Version 2 offers a number of improvements over v1:
+
+* Cleaned up API
+* A separate call to [`Parse`][4], which produces an abstract syntax tree for
+  the document
+* Latest bug fixes
+* Flexibility to easily add your own rendering extensions
+
+Potential drawbacks:
+
+* Our benchmarks show v2 to be slightly slower than v1. Currently in the
+  ballpark of around 15%.
+* API breakage. If you can't afford modifying your code to adhere to the new API
+  and don't care too much about the new features, v2 is probably not for you.
+
 
 Usage
 -----
@@ -49,11 +70,10 @@ feature set, use this instead:
 ### Sanitize untrusted content
 
 Blackfriday itself does nothing to protect against malicious content. If you are
-dealing with user-supplied markdown, we recommend running blackfriday's output
-through HTML sanitizer such as
-[Bluemonday](https://github.com/microcosm-cc/bluemonday).
+dealing with user-supplied markdown, we recommend running Blackfriday's output
+through HTML sanitizer such as [Bluemonday][5].
 
-Here's an example of simple usage of blackfriday together with bluemonday:
+Here's an example of simple usage of Blackfriday together with Bluemonday:
 
 ``` go
 import (
@@ -256,3 +276,6 @@ License
    [1]: http://daringfireball.net/projects/markdown/ "Markdown"
    [2]: http://golang.org/ "Go Language"
    [3]: https://github.com/vmg/sundown "Sundown"
+   [4]: https://godoc.org/gopkg.in/russross/blackfriday.v2#Parse "Parse func"
+   [5]: https://github.com/microcosm-cc/bluemonday "Bluemonday"
+   [6]: http://labix.org/gopkg.in "gopkg.in"
