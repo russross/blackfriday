@@ -273,9 +273,9 @@ License
 [Blackfriday is distributed under the Simplified BSD License](LICENSE.txt)
 
 
-   [1]: http://daringfireball.net/projects/markdown/ "Markdown"
-   [2]: http://golang.org/ "Go Language"
+   [1]: https://daringfireball.net/projects/markdown/ "Markdown"
+   [2]: https://golang.org/ "Go Language"
    [3]: https://github.com/vmg/sundown "Sundown"
    [4]: https://godoc.org/gopkg.in/russross/blackfriday.v2#Parse "Parse func"
    [5]: https://github.com/microcosm-cc/bluemonday "Bluemonday"
-   [6]: http://labix.org/gopkg.in "gopkg.in"
+   [6]: https://labix.org/gopkg.in "gopkg.in"
