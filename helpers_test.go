@@ -21,7 +21,8 @@ import (
 )
 
 type TestParams struct {
-	Options
+	extensions        Extensions
+	referenceOverride ReferenceOverrideFunc
 	HTMLFlags
 	HTMLRendererParameters
 }
@@ -45,13 +46,15 @@ func execRecoverableTestSuite(t *testing.T, tests []string, params TestParams, s
 func runMarkdown(input string, params TestParams) string {
 	params.HTMLRendererParameters.Flags = params.HTMLFlags
 	renderer := NewHTMLRenderer(params.HTMLRendererParameters)
-	return string(Markdown([]byte(input), renderer, params.Options))
+	return string(Markdown([]byte(input), WithRenderer(renderer),
+		WithExtensions(params.extensions),
+		WithRefOverride(params.referenceOverride)))
 }
 
 // doTests runs full document tests using MarkdownCommon configuration.
 func doTests(t *testing.T, tests []string) {
 	doTestsParam(t, tests, TestParams{
-		Options: DefaultOptions,
+		extensions: CommonExtensions,
 		HTMLRendererParameters: HTMLRendererParameters{
 			Flags: CommonHTMLFlags,
 		},
@@ -60,8 +63,8 @@ func doTests(t *testing.T, tests []string) {
 
 func doTestsBlock(t *testing.T, tests []string, extensions Extensions) {
 	doTestsParam(t, tests, TestParams{
-		Options:   Options{Extensions: extensions},
-		HTMLFlags: UseXHTML,
+		extensions: extensions,
+		HTMLFlags:  UseXHTML,
 	})
 }
 
@@ -124,8 +127,7 @@ func doSafeTestsInline(t *testing.T, tests []string) {
 }
 
 func doTestsInlineParam(t *testing.T, tests []string, params TestParams) {
-	params.Options.Extensions |= Autolink
-	params.Options.Extensions |= Strikethrough
+	params.extensions |= Autolink | Strikethrough
 	params.HTMLFlags |= UseXHTML
 	doTestsParam(t, tests, params)
 }
@@ -145,7 +147,7 @@ func transformLinks(tests []string, prefix string) []string {
 }
 
 func doTestsReference(t *testing.T, files []string, flag Extensions) {
-	params := TestParams{Options: Options{Extensions: flag}}
+	params := TestParams{extensions: flag}
 	execRecoverableTestSuite(t, files, params, func(candidate *string) {
 		for _, basename := range files {
 			filename := filepath.Join("testdata", basename+".text")

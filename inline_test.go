@@ -100,38 +100,36 @@ func TestReferenceOverride(t *testing.T) {
 		"<p>test <a href=\"http://www.ref5.com/\" title=\"Reference 5\">Moo</a></p>\n",
 	}
 	doTestsInlineParam(t, tests, TestParams{
-		Options: Options{
-			ReferenceOverride: func(reference string) (rv *Reference, overridden bool) {
-				switch reference {
-				case "ref1":
-					// just an overridden reference exists without definition
-					return &Reference{
-						Link:  "http://www.ref1.com/",
-						Title: "Reference 1"}, true
-				case "ref2":
-					// overridden exists and reference defined
-					return &Reference{
-						Link:  "http://www.overridden.com/",
-						Title: "Reference Overridden"}, true
-				case "ref3":
-					// not overridden and reference defined
-					return nil, false
-				case "ref4":
-					// overridden missing and defined
-					return nil, true
-				case "!(*http.ServeMux).ServeHTTP":
-					return &Reference{
-						Link:  "http://localhost:6060/pkg/net/http/#ServeMux.ServeHTTP",
-						Title: "ServeHTTP docs"}, true
-				case "ref5":
-					return &Reference{
-						Link:  "http://www.ref5.com/",
-						Title: "Reference 5",
-						Text:  "Moo",
-					}, true
-				}
+		referenceOverride: func(reference string) (rv *Reference, overridden bool) {
+			switch reference {
+			case "ref1":
+				// just an overridden reference exists without definition
+				return &Reference{
+					Link:  "http://www.ref1.com/",
+					Title: "Reference 1"}, true
+			case "ref2":
+				// overridden exists and reference defined
+				return &Reference{
+					Link:  "http://www.overridden.com/",
+					Title: "Reference Overridden"}, true
+			case "ref3":
+				// not overridden and reference defined
 				return nil, false
-			},
+			case "ref4":
+				// overridden missing and defined
+				return nil, true
+			case "!(*http.ServeMux).ServeHTTP":
+				return &Reference{
+					Link:  "http://localhost:6060/pkg/net/http/#ServeMux.ServeHTTP",
+					Title: "ServeHTTP docs"}, true
+			case "ref5":
+				return &Reference{
+					Link:  "http://www.ref5.com/",
+					Title: "Reference 5",
+					Text:  "Moo",
+				}, true
+			}
+			return nil, false
 		},
 	})
 }
@@ -343,8 +341,8 @@ func TestLineBreak(t *testing.T) {
 		"this has an   \nextra space\n",
 		"<p>this has an<br />\nextra space</p>\n",
 	}
-	doTestsInlineParam(t, tests, TestParams{Options: Options{
-		Extensions: BackslashLineBreak}})
+	doTestsInlineParam(t, tests, TestParams{
+		extensions: BackslashLineBreak})
 }
 
 func TestInlineLink(t *testing.T) {
@@ -932,7 +930,7 @@ what happens here
 
 func TestFootnotes(t *testing.T) {
 	doTestsInlineParam(t, footnoteTests, TestParams{
-		Options: Options{Extensions: Footnotes},
+		extensions: Footnotes,
 	})
 }
 
@@ -959,7 +957,7 @@ func TestFootnotesWithParameters(t *testing.T) {
 	}
 
 	doTestsInlineParam(t, tests, TestParams{
-		Options:                Options{Extensions: Footnotes},
+		extensions:             Footnotes,
 		HTMLFlags:              FootnoteReturnLinks,
 		HTMLRendererParameters: params,
 	})
@@ -989,7 +987,7 @@ func TestNestedFootnotes(t *testing.T) {
 </div>
 `,
 	}
-	doTestsInlineParam(t, tests, TestParams{Options: Options{Extensions: Footnotes}})
+	doTestsInlineParam(t, tests, TestParams{extensions: Footnotes})
 }
 
 func TestInlineComments(t *testing.T) {
