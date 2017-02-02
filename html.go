@@ -30,7 +30,6 @@ type HTMLFlags int
 const (
 	HTMLFlagsNone           HTMLFlags = 0
 	SkipHTML                HTMLFlags = 1 << iota // Skip preformatted HTML blocks
-	SkipStyle                                     // Skip embedded <style> elements
 	SkipImages                                    // Skip embedded images
 	SkipLinks                                     // Skip all links
 	Safelink                                      // Only link to trusted protocols
@@ -45,6 +44,8 @@ const (
 	SmartypantsDashes                             // Enable smart dashes (with Smartypants)
 	SmartypantsLatexDashes                        // Enable LaTeX-style dashes (with Smartypants)
 	SmartypantsAngledQuotes                       // Enable angled double quotes (with Smartypants) for double quotes rendering
+	TOC                                           // Generate a table of contents
+	OmitContents                                  // Skip the main contents (for a standalone table of contents)
 
 	TagName               = "[A-Za-z][A-Za-z0-9-]*"
 	AttributeName         = "[a-zA-Z_:][a-zA-Z0-9:._-]*"
@@ -89,8 +90,7 @@ type HTMLRendererParameters struct {
 	CSS   string // Optional CSS file URL (used if CompletePage is set)
 	Icon  string // Optional icon file URL (used if CompletePage is set)
 
-	Flags      HTMLFlags  // Flags allow customizing this renderer's behavior
-	Extensions Extensions // Extensions give Smartypants and HTML renderer access to Blackfriday's global extensions
+	Flags HTMLFlags // Flags allow customizing this renderer's behavior
 }
 
 // HTMLRenderer is a type that implements the Renderer interface for HTML output.
@@ -539,14 +539,7 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 		if r.Flags&SkipHTML != 0 {
 			break
 		}
-		if r.Flags&SkipStyle != 0 && isHTMLTag(node.Literal, "style") {
-			break
-		}
-		//if options.safe {
-		//	out(w, "<!-- raw HTML omitted -->")
-		//} else {
 		r.out(w, node.Literal)
-		//}
 	case Link:
 		// mark it but don't link it if it is not a safe link: no smartypants
 		dest := node.LinkData.Destination
@@ -941,9 +934,9 @@ func (r *HTMLRenderer) Render(ast *Node) []byte {
 	//dump(ast)
 	var buf bytes.Buffer
 	r.writeDocumentHeader(&buf)
-	if r.Extensions&TOC != 0 || r.Extensions&OmitContents != 0 {
+	if r.Flags&TOC != 0 || r.Flags&OmitContents != 0 {
 		r.writeTOC(&buf, ast)
-		if r.Extensions&OmitContents != 0 {
+		if r.Flags&OmitContents != 0 {
 			return buf.Bytes()
 		}
 	}

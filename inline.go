@@ -284,6 +284,7 @@ func link(p *parser, data []byte, offset int) (int, *Node) {
 
 	txtE := i
 	i++
+	var footnoteNode *Node
 
 	// skip any amount of whitespace or newline
 	// (this is much more lax than original markdown syntax)
@@ -463,6 +464,7 @@ func link(p *parser, data []byte, offset int) (int, *Node) {
 			}
 		}
 
+		footnoteNode = NewNode(Item)
 		if t == linkInlineFootnote {
 			// create a new reference
 			noteID = len(p.notes) + 1
@@ -484,6 +486,7 @@ func link(p *parser, data []byte, offset int) (int, *Node) {
 				hasBlock: false,
 				link:     fragment,
 				title:    id,
+				footnote: footnoteNode,
 			}
 
 			p.notes = append(p.notes, ref)
@@ -499,6 +502,7 @@ func link(p *parser, data []byte, offset int) (int, *Node) {
 
 			if t == linkDeferredFootnote {
 				lr.noteID = len(p.notes) + 1
+				lr.footnote = footnoteNode
 				p.notes = append(p.notes, lr)
 			}
 
@@ -557,6 +561,7 @@ func link(p *parser, data []byte, offset int) (int, *Node) {
 		linkNode.Destination = link
 		linkNode.Title = title
 		linkNode.NoteID = noteID
+		linkNode.Footnote = footnoteNode
 		if t == linkInlineFootnote {
 			i++
 		}

@@ -1119,15 +1119,6 @@ func TestSkipImages(t *testing.T) {
 	})
 }
 
-func TestSkipStyle(t *testing.T) {
-	doTestsInlineParam(t, []string{
-		"foo\n\n<style>color: #f00</style> bar",
-		"<p>foo</p>\n\n<p>color: #f00 bar</p>\n",
-	}, TestParams{
-		HTMLFlags: SkipStyle,
-	})
-}
-
 func TestUseXHTML(t *testing.T) {
 	doTestsParam(t, []string{
 		"---",
