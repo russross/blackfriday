@@ -33,51 +33,38 @@ var (
 // offset is the number of valid chars before the current cursor
 
 func (p *parser) inline(currBlock *Node, data []byte) {
-	// this is called recursively: enforce a maximum depth
-	if p.nesting >= p.maxNesting {
+	// handlers might call us recursively: enforce a maximum depth
+	if p.nesting >= p.maxNesting || len(data) == 0 {
 		return
 	}
 	p.nesting++
-
-	i, end := 0, 0
-	for i < len(data) {
-		// Stop at EOL
-		if data[i] == '\n' && i+1 == len(data) {
-			break
-		}
-
-		for ; end < len(data); end++ {
-			if p.inlineCallback[data[end]] != nil {
-				break
-			}
-		}
-
-		if end >= len(data) {
-			if data[end-1] == '\n' {
-				currBlock.AppendChild(text(data[i : end-1]))
-			} else {
-				currBlock.AppendChild(text(data[i:end]))
-			}
-			break
-		}
-
-		// call the trigger
+	beg, end := 0, 0
+	for end < len(data) {
 		handler := p.inlineCallback[data[end]]
-		if consumed, node := handler(p, data, end); consumed == 0 {
-			// No action from the callback.
-			end++
-		} else {
-			// Copy inactive chars into the output.
-			currBlock.AppendChild(text(data[i:end]))
-			if node != nil {
-				currBlock.AppendChild(node)
+		if handler != nil {
+			if consumed, node := handler(p, data, end); consumed == 0 {
+				// No action from the callback.
+				end++
+			} else {
+				// Copy inactive chars into the output.
+				currBlock.AppendChild(text(data[beg:end]))
+				if node != nil {
+					currBlock.AppendChild(node)
+				}
+				// Skip past whatever the callback used.
+				beg = end + consumed
+				end = beg
 			}
-			// Skip past whatever the callback used.
-			i = end + consumed
-			end = i
+		} else {
+			end++
 		}
 	}
-
+	if beg < len(data) {
+		if data[end-1] == '\n' {
+			end--
+		}
+		currBlock.AppendChild(text(data[beg:end]))
+	}
 	p.nesting--
 }
 
@@ -733,25 +720,45 @@ func linkEndsWithEntity(data []byte, linkEnd int) bool {
 	return entityRanges != nil && entityRanges[len(entityRanges)-1][1] == linkEnd
 }
 
+// hasPrefixCaseInsensitive is a custom implementation of
+//     strings.HasPrefix(strings.ToLower(s), prefix)
+// we rolled our own because ToLower pulls in a huge machinery of lowercasing
+// anything from Unicode and that's very slow. Since this func will only be
+// used on ASCII protocol prefixes, we can take shortcuts.
+func hasPrefixCaseInsensitive(s, prefix []byte) bool {
+	if len(s) < len(prefix) {
+		return false
+	}
+	delta := byte('a' - 'A')
+	for i, b := range prefix {
+		if b != s[i] && b != s[i]+delta {
+			return false
+		}
+	}
+	return true
+}
+
+var protocolPrefixes = [][]byte{
+	[]byte("http://"),
+	[]byte("https://"),
+	[]byte("ftp://"),
+	[]byte("file://"),
+	[]byte("mailto:"),
+}
+
+const shortestPrefix = 6 // len("ftp://"), the shortest of the above
+
 func maybeAutoLink(p *parser, data []byte, offset int) (int, *Node) {
 	// quick check to rule out most false hits
-	if p.insideLink || len(data) < offset+6 { // 6 is the len() of the shortest prefix below
+	if p.insideLink || len(data) < offset+shortestPrefix {
 		return 0, nil
 	}
-	prefixes := []string{
-		"http://",
-		"https://",
-		"ftp://",
-		"file://",
-		"mailto:",
-	}
-	for _, prefix := range prefixes {
+	for _, prefix := range protocolPrefixes {
 		endOfHead := offset + 8 // 8 is the len() of the longest prefix
 		if endOfHead > len(data) {
 			endOfHead = len(data)
 		}
-		head := bytes.ToLower(data[offset:endOfHead])
-		if bytes.HasPrefix(head, []byte(prefix)) {
+		if hasPrefixCaseInsensitive(data[offset:endOfHead], prefix) {
 			return autoLink(p, data, offset)
 		}
 	}

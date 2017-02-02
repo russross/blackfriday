@@ -18,7 +18,6 @@ package blackfriday
 import (
 	"bytes"
 	"fmt"
-	"html"
 	"io"
 	"regexp"
 	"strings"
@@ -308,22 +307,24 @@ func isSmartypantable(node *Node) bool {
 }
 
 func appendLanguageAttr(attrs []string, info []byte) []string {
-	infoWords := bytes.Split(info, []byte("\t "))
-	if len(infoWords) > 0 && len(infoWords[0]) > 0 {
-		attrs = append(attrs, fmt.Sprintf("class=\"language-%s\"", infoWords[0]))
+	if len(info) == 0 {
+		return attrs
 	}
-	return attrs
+	endOfLang := bytes.IndexAny(info, "\t ")
+	if endOfLang < 0 {
+		endOfLang = len(info)
+	}
+	return append(attrs, fmt.Sprintf("class=\"language-%s\"", info[:endOfLang]))
 }
 
-func tag(name string, attrs []string, selfClosing bool) []byte {
-	result := "<" + name
-	if attrs != nil && len(attrs) > 0 {
-		result += " " + strings.Join(attrs, " ")
+func (r *HTMLRenderer) tag(w io.Writer, name []byte, attrs []string) {
+	w.Write(name)
+	if len(attrs) > 0 {
+		w.Write(spaceBytes)
+		w.Write([]byte(strings.Join(attrs, " ")))
 	}
-	if selfClosing {
-		result += " /"
-	}
-	return []byte(result + ">")
+	w.Write(gtBytes)
+	r.lastOutputLen = 1
 }
 
 func footnoteRef(prefix string, node *Node) []byte {
@@ -371,17 +372,6 @@ func cellAlignment(align CellAlignFlags) string {
 	}
 }
 
-func esc(text []byte) []byte {
-	unesc := []byte(html.UnescapeString(string(text)))
-	return escCode(unesc)
-}
-
-func escCode(text []byte) []byte {
-	e1 := []byte(html.EscapeString(string(text)))
-	e2 := bytes.Replace(e1, []byte("&#34;"), []byte("&quot;"), -1)
-	return bytes.Replace(e2, []byte("&#39;"), []byte{'\''}, -1)
-}
-
 func (r *HTMLRenderer) out(w io.Writer, text []byte) {
 	if r.disableTags > 0 {
 		w.Write(htmlTagRe.ReplaceAll(text, []byte{}))
@@ -393,7 +383,102 @@ func (r *HTMLRenderer) out(w io.Writer, text []byte) {
 
 func (r *HTMLRenderer) cr(w io.Writer) {
 	if r.lastOutputLen > 0 {
-		r.out(w, []byte{'\n'})
+		r.out(w, nlBytes)
+	}
+}
+
+var (
+	nlBytes    = []byte{'\n'}
+	gtBytes    = []byte{'>'}
+	spaceBytes = []byte{' '}
+)
+
+var (
+	brTag              = []byte("<br>")
+	brXHTMLTag         = []byte("<br />")
+	emTag              = []byte("<em>")
+	emCloseTag         = []byte("</em>")
+	strongTag          = []byte("<strong>")
+	strongCloseTag     = []byte("</strong>")
+	delTag             = []byte("<del>")
+	delCloseTag        = []byte("</del>")
+	ttTag              = []byte("<tt>")
+	ttCloseTag         = []byte("</tt>")
+	aTag               = []byte("<a")
+	aCloseTag          = []byte("</a>")
+	preTag             = []byte("<pre>")
+	preCloseTag        = []byte("</pre>")
+	codeTag            = []byte("<code>")
+	codeCloseTag       = []byte("</code>")
+	pTag               = []byte("<p>")
+	pCloseTag          = []byte("</p>")
+	blockquoteTag      = []byte("<blockquote>")
+	blockquoteCloseTag = []byte("</blockquote>")
+	hrTag              = []byte("<hr>")
+	hrXHTMLTag         = []byte("<hr />")
+	ulTag              = []byte("<ul>")
+	ulCloseTag         = []byte("</ul>")
+	olTag              = []byte("<ol>")
+	olCloseTag         = []byte("</ol>")
+	dlTag              = []byte("<dl>")
+	dlCloseTag         = []byte("</dl>")
+	liTag              = []byte("<li>")
+	liCloseTag         = []byte("</li>")
+	ddTag              = []byte("<dd>")
+	ddCloseTag         = []byte("</dd>")
+	dtTag              = []byte("<dt>")
+	dtCloseTag         = []byte("</dt>")
+	tableTag           = []byte("<table>")
+	tableCloseTag      = []byte("</table>")
+	tdTag              = []byte("<td")
+	tdCloseTag         = []byte("</td>")
+	thTag              = []byte("<th")
+	thCloseTag         = []byte("</th>")
+	theadTag           = []byte("<thead>")
+	theadCloseTag      = []byte("</thead>")
+	tbodyTag           = []byte("<tbody>")
+	tbodyCloseTag      = []byte("</tbody>")
+	trTag              = []byte("<tr>")
+	trCloseTag         = []byte("</tr>")
+	h1Tag              = []byte("<h1")
+	h1CloseTag         = []byte("</h1>")
+	h2Tag              = []byte("<h2")
+	h2CloseTag         = []byte("</h2>")
+	h3Tag              = []byte("<h3")
+	h3CloseTag         = []byte("</h3>")
+	h4Tag              = []byte("<h4")
+	h4CloseTag         = []byte("</h4>")
+	h5Tag              = []byte("<h5")
+	h5CloseTag         = []byte("</h5>")
+	h6Tag              = []byte("<h6")
+	h6CloseTag         = []byte("</h6>")
+
+	footnotesDivBytes      = []byte("\n<div class=\"footnotes\">\n\n")
+	footnotesCloseDivBytes = []byte("\n</div>\n")
+)
+
+func headerTagsFromLevel(level int) ([]byte, []byte) {
+	switch level {
+	case 1:
+		return h1Tag, h1CloseTag
+	case 2:
+		return h2Tag, h2CloseTag
+	case 3:
+		return h3Tag, h3CloseTag
+	case 4:
+		return h4Tag, h4CloseTag
+	case 5:
+		return h5Tag, h5CloseTag
+	default:
+		return h6Tag, h6CloseTag
+	}
+}
+
+func (r *HTMLRenderer) outHRTag(w io.Writer) {
+	if r.Flags&UseXHTML == 0 {
+		r.out(w, hrTag)
+	} else {
+		r.out(w, hrXHTMLTag)
 	}
 }
 
@@ -411,34 +496,44 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 	attrs := []string{}
 	switch node.Type {
 	case Text:
-		node.Literal = esc(node.Literal)
 		if r.Flags&Smartypants != 0 {
-			node.Literal = r.sr.Process(node.Literal)
+			var tmp bytes.Buffer
+			escapeHTML(&tmp, node.Literal)
+			r.sr.Process(w, tmp.Bytes())
+		} else {
+			if node.Parent.Type == Link {
+				escLink(w, node.Literal)
+			} else {
+				escapeHTML(w, node.Literal)
+			}
 		}
-		r.out(w, node.Literal)
 	case Softbreak:
-		r.out(w, []byte{'\n'})
+		r.cr(w)
 		// TODO: make it configurable via out(renderer.softbreak)
 	case Hardbreak:
-		r.out(w, tag("br", nil, true))
+		if r.Flags&UseXHTML == 0 {
+			r.out(w, brTag)
+		} else {
+			r.out(w, brXHTMLTag)
+		}
 		r.cr(w)
 	case Emph:
 		if entering {
-			r.out(w, tag("em", nil, false))
+			r.out(w, emTag)
 		} else {
-			r.out(w, tag("/em", nil, false))
+			r.out(w, emCloseTag)
 		}
 	case Strong:
 		if entering {
-			r.out(w, tag("strong", nil, false))
+			r.out(w, strongTag)
 		} else {
-			r.out(w, tag("/strong", nil, false))
+			r.out(w, strongCloseTag)
 		}
 	case Del:
 		if entering {
-			r.out(w, tag("del", nil, false))
+			r.out(w, delTag)
 		} else {
-			r.out(w, tag("/del", nil, false))
+			r.out(w, delCloseTag)
 		}
 	case HTMLSpan:
 		if r.Flags&SkipHTML != 0 {
@@ -450,30 +545,36 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 		dest := node.LinkData.Destination
 		if needSkipLink(r.Flags, dest) {
 			if entering {
-				r.out(w, tag("tt", nil, false))
+				r.out(w, ttTag)
 			} else {
-				r.out(w, tag("/tt", nil, false))
+				r.out(w, ttCloseTag)
 			}
 		} else {
 			if entering {
 				dest = r.addAbsPrefix(dest)
-				//if (!(options.safe && potentiallyUnsafe(node.destination))) {
-				attrs = append(attrs, fmt.Sprintf("href=%q", esc(dest)))
-				//}
+				var hrefBuf bytes.Buffer
+				hrefBuf.WriteString("href=\"")
+				escLink(&hrefBuf, dest)
+				hrefBuf.WriteByte('"')
+				attrs = append(attrs, hrefBuf.String())
 				if node.NoteID != 0 {
 					r.out(w, footnoteRef(r.FootnoteAnchorPrefix, node))
 					break
 				}
 				attrs = appendLinkAttrs(attrs, r.Flags, dest)
 				if len(node.LinkData.Title) > 0 {
-					attrs = append(attrs, fmt.Sprintf("title=%q", esc(node.LinkData.Title)))
+					var titleBuff bytes.Buffer
+					titleBuff.WriteString("title=\"")
+					escapeHTML(&titleBuff, node.LinkData.Title)
+					titleBuff.WriteByte('"')
+					attrs = append(attrs, titleBuff.String())
 				}
-				r.out(w, tag("a", attrs, false))
+				r.tag(w, aTag, attrs)
 			} else {
 				if node.NoteID != 0 {
 					break
 				}
-				r.out(w, tag("/a", nil, false))
+				r.out(w, aCloseTag)
 			}
 		}
 	case Image:
@@ -487,7 +588,9 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 				//if options.safe && potentiallyUnsafe(dest) {
 				//out(w, `<img src="" alt="`)
 				//} else {
-				r.out(w, []byte(fmt.Sprintf(`<img src="%s" alt="`, esc(dest))))
+				r.out(w, []byte(`<img src="`))
+				escLink(w, dest)
+				r.out(w, []byte(`" alt="`))
 				//}
 			}
 			r.disableTags++
@@ -496,15 +599,15 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 			if r.disableTags == 0 {
 				if node.LinkData.Title != nil {
 					r.out(w, []byte(`" title="`))
-					r.out(w, esc(node.LinkData.Title))
+					escapeHTML(w, node.LinkData.Title)
 				}
 				r.out(w, []byte(`" />`))
 			}
 		}
 	case Code:
-		r.out(w, tag("code", nil, false))
-		r.out(w, escCode(node.Literal))
-		r.out(w, tag("/code", nil, false))
+		r.out(w, codeTag)
+		escapeHTML(w, node.Literal)
+		r.out(w, codeCloseTag)
 	case Document:
 		break
 	case Paragraph:
@@ -523,9 +626,9 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 			if node.Parent.Type == BlockQuote && node.Prev == nil {
 				r.cr(w)
 			}
-			r.out(w, tag("p", attrs, false))
+			r.out(w, pTag)
 		} else {
-			r.out(w, tag("/p", attrs, false))
+			r.out(w, pCloseTag)
 			if !(node.Parent.Type == Item && node.Next == nil) {
 				r.cr(w)
 			}
@@ -533,9 +636,9 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 	case BlockQuote:
 		if entering {
 			r.cr(w)
-			r.out(w, tag("blockquote", attrs, false))
+			r.out(w, blockquoteTag)
 		} else {
-			r.out(w, tag("/blockquote", nil, false))
+			r.out(w, blockquoteCloseTag)
 			r.cr(w)
 		}
 	case HTMLBlock:
@@ -546,7 +649,7 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 		r.out(w, node.Literal)
 		r.cr(w)
 	case Header:
-		tagname := fmt.Sprintf("h%d", node.Level)
+		openTag, closeTag := headerTagsFromLevel(node.Level)
 		if entering {
 			if node.IsTitleblock {
 				attrs = append(attrs, `class="title"`)
@@ -562,39 +665,42 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 				attrs = append(attrs, fmt.Sprintf(`id="%s"`, id))
 			}
 			r.cr(w)
-			r.out(w, tag(tagname, attrs, false))
+			r.tag(w, openTag, attrs)
 		} else {
-			r.out(w, tag("/"+tagname, nil, false))
+			r.out(w, closeTag)
 			if !(node.Parent.Type == Item && node.Next == nil) {
 				r.cr(w)
 			}
 		}
 	case HorizontalRule:
 		r.cr(w)
-		r.out(w, tag("hr", attrs, r.Flags&UseXHTML != 0))
+		r.outHRTag(w)
 		r.cr(w)
 	case List:
-		tagName := "ul"
+		openTag := ulTag
+		closeTag := ulCloseTag
 		if node.ListFlags&ListTypeOrdered != 0 {
-			tagName = "ol"
+			openTag = olTag
+			closeTag = olCloseTag
 		}
 		if node.ListFlags&ListTypeDefinition != 0 {
-			tagName = "dl"
+			openTag = dlTag
+			closeTag = dlCloseTag
 		}
 		if entering {
 			if node.IsFootnotesList {
-				r.out(w, []byte("\n<div class=\"footnotes\">\n\n"))
-				r.out(w, tag("hr", attrs, r.Flags&UseXHTML != 0))
+				r.out(w, footnotesDivBytes)
+				r.outHRTag(w)
 				r.cr(w)
 			}
 			r.cr(w)
 			if node.Parent.Type == Item && node.Parent.Parent.Tight {
 				r.cr(w)
 			}
-			r.out(w, tag(tagName, attrs, false))
+			r.tag(w, openTag[:len(openTag)-1], attrs)
 			r.cr(w)
 		} else {
-			r.out(w, tag("/"+tagName, nil, false))
+			r.out(w, closeTag)
 			//cr(w)
 			//if node.parent.Type != Item {
 			//	cr(w)
@@ -606,16 +712,19 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 				r.cr(w)
 			}
 			if node.IsFootnotesList {
-				r.out(w, []byte("\n</div>\n"))
+				r.out(w, footnotesCloseDivBytes)
 			}
 		}
 	case Item:
-		tagName := "li"
+		openTag := liTag
+		closeTag := liCloseTag
 		if node.ListFlags&ListTypeDefinition != 0 {
-			tagName = "dd"
+			openTag = ddTag
+			closeTag = ddCloseTag
 		}
 		if node.ListFlags&ListTypeTerm != 0 {
-			tagName = "dt"
+			openTag = dtTag
+			closeTag = dtCloseTag
 		}
 		if entering {
 			if itemOpenCR(node) {
@@ -626,7 +735,7 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 				r.out(w, footnoteItem(r.FootnoteAnchorPrefix, slug))
 				break
 			}
-			r.out(w, tag(tagName, nil, false))
+			r.out(w, openTag)
 		} else {
 			if node.ListData.RefLink != nil {
 				slug := slugify(node.ListData.RefLink)
@@ -634,32 +743,34 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 					r.out(w, footnoteReturnLink(r.FootnoteAnchorPrefix, r.FootnoteReturnLinkContents, slug))
 				}
 			}
-			r.out(w, tag("/"+tagName, nil, false))
+			r.out(w, closeTag)
 			r.cr(w)
 		}
 	case CodeBlock:
 		attrs = appendLanguageAttr(attrs, node.Info)
 		r.cr(w)
-		r.out(w, tag("pre", nil, false))
-		r.out(w, tag("code", attrs, false))
-		r.out(w, escCode(node.Literal))
-		r.out(w, tag("/code", nil, false))
-		r.out(w, tag("/pre", nil, false))
+		r.out(w, preTag)
+		r.tag(w, codeTag[:len(codeTag)-1], attrs)
+		escapeHTML(w, node.Literal)
+		r.out(w, codeCloseTag)
+		r.out(w, preCloseTag)
 		if node.Parent.Type != Item {
 			r.cr(w)
 		}
 	case Table:
 		if entering {
 			r.cr(w)
-			r.out(w, tag("table", nil, false))
+			r.out(w, tableTag)
 		} else {
-			r.out(w, tag("/table", nil, false))
+			r.out(w, tableCloseTag)
 			r.cr(w)
 		}
 	case TableCell:
-		tagName := "td"
+		openTag := tdTag
+		closeTag := tdCloseTag
 		if node.IsHeader {
-			tagName = "th"
+			openTag = thTag
+			closeTag = thCloseTag
 		}
 		if entering {
 			align := cellAlignment(node.Align)
@@ -669,37 +780,37 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 			if node.Prev == nil {
 				r.cr(w)
 			}
-			r.out(w, tag(tagName, attrs, false))
+			r.tag(w, openTag, attrs)
 		} else {
-			r.out(w, tag("/"+tagName, nil, false))
+			r.out(w, closeTag)
 			r.cr(w)
 		}
 	case TableHead:
 		if entering {
 			r.cr(w)
-			r.out(w, tag("thead", nil, false))
+			r.out(w, theadTag)
 		} else {
-			r.out(w, tag("/thead", nil, false))
+			r.out(w, theadCloseTag)
 			r.cr(w)
 		}
 	case TableBody:
 		if entering {
 			r.cr(w)
-			r.out(w, tag("tbody", nil, false))
+			r.out(w, tbodyTag)
 			// XXX: this is to adhere to a rather silly test. Should fix test.
 			if node.FirstChild == nil {
 				r.cr(w)
 			}
 		} else {
-			r.out(w, tag("/tbody", nil, false))
+			r.out(w, tbodyCloseTag)
 			r.cr(w)
 		}
 	case TableRow:
 		if entering {
 			r.cr(w)
-			r.out(w, tag("tr", nil, false))
+			r.out(w, trTag)
 		} else {
-			r.out(w, tag("/tr", nil, false))
+			r.out(w, trCloseTag)
 			r.cr(w)
 		}
 	default:
@@ -725,9 +836,9 @@ func (r *HTMLRenderer) writeDocumentHeader(w *bytes.Buffer) {
 	w.WriteString("<head>\n")
 	w.WriteString("  <title>")
 	if r.Flags&Smartypants != 0 {
-		w.Write(r.sr.Process([]byte(r.Title)))
+		r.sr.Process(w, []byte(r.Title))
 	} else {
-		w.Write(esc([]byte(r.Title)))
+		escapeHTML(w, []byte(r.Title))
 	}
 	w.WriteString("</title>\n")
 	w.WriteString("  <meta name=\"GENERATOR\" content=\"Blackfriday Markdown Processor v")
@@ -740,14 +851,14 @@ func (r *HTMLRenderer) writeDocumentHeader(w *bytes.Buffer) {
 	w.WriteString(">\n")
 	if r.CSS != "" {
 		w.WriteString("  <link rel=\"stylesheet\" type=\"text/css\" href=\"")
-		w.Write(esc([]byte(r.CSS)))
+		escapeHTML(w, []byte(r.CSS))
 		w.WriteString("\"")
 		w.WriteString(ending)
 		w.WriteString(">\n")
 	}
 	if r.Icon != "" {
 		w.WriteString("  <link rel=\"icon\" type=\"image/x-icon\" href=\"")
-		w.Write(esc([]byte(r.Icon)))
+		escapeHTML(w, []byte(r.Icon))
 		w.WriteString("\"")
 		w.WriteString(ending)
 		w.WriteString(">\n")
@@ -807,6 +918,7 @@ func (r *HTMLRenderer) writeTOC(w *bytes.Buffer, ast *Node) {
 		w.Write(buf.Bytes())
 		w.WriteString("\n\n</nav>\n")
 	}
+	r.lastOutputLen = buf.Len()
 }
 
 func (r *HTMLRenderer) writeDocumentFooter(w *bytes.Buffer) {
@@ -820,17 +932,17 @@ func (r *HTMLRenderer) writeDocumentFooter(w *bytes.Buffer) {
 func (r *HTMLRenderer) Render(ast *Node) []byte {
 	//println("render_Blackfriday")
 	//dump(ast)
-	var buff bytes.Buffer
-	r.writeDocumentHeader(&buff)
+	var buf bytes.Buffer
+	r.writeDocumentHeader(&buf)
 	if r.Flags&TOC != 0 || r.Flags&OmitContents != 0 {
-		r.writeTOC(&buff, ast)
+		r.writeTOC(&buf, ast)
 		if r.Flags&OmitContents != 0 {
-			return buff.Bytes()
+			return buf.Bytes()
 		}
 	}
 	ast.Walk(func(node *Node, entering bool) WalkStatus {
-		return r.RenderNode(&buff, node, entering)
+		return r.RenderNode(&buf, node, entering)
 	})
-	r.writeDocumentFooter(&buff)
-	return buff.Bytes()
+	r.writeDocumentFooter(&buf)
+	return buf.Bytes()
 }

@@ -1661,14 +1661,14 @@ func TestIsFenceLine(t *testing.T) {
 	tests := []struct {
 		data            []byte
 		syntaxRequested bool
-		newlineOptional bool
 		wantEnd         int
 		wantMarker      string
 		wantSyntax      string
 	}{
 		{
-			data:    []byte("```"),
-			wantEnd: 0,
+			data:       []byte("```"),
+			wantEnd:    3,
+			wantMarker: "```",
 		},
 		{
 			data:       []byte("```\nstuff here\n"),
@@ -1687,21 +1687,13 @@ func TestIsFenceLine(t *testing.T) {
 		},
 		{
 			data:            []byte("```"),
-			newlineOptional: true,
-			wantEnd:         3,
-			wantMarker:      "```",
-		},
-		{
-			data:            []byte("```"),
 			syntaxRequested: true,
-			newlineOptional: true,
 			wantEnd:         3,
 			wantMarker:      "```",
 		},
 		{
 			data:            []byte("``` go"),
 			syntaxRequested: true,
-			newlineOptional: true,
 			wantEnd:         6,
 			wantMarker:      "```",
 			wantSyntax:      "go",
@@ -1713,7 +1705,7 @@ func TestIsFenceLine(t *testing.T) {
 		if test.syntaxRequested {
 			syntax = new(string)
 		}
-		end, marker := isFenceLine(test.data, syntax, "```", test.newlineOptional)
+		end, marker := isFenceLine(test.data, syntax, "```")
 		if got, want := end, test.wantEnd; got != want {
 			t.Errorf("got end %v, want %v", got, want)
 		}

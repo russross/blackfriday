@@ -29,17 +29,12 @@ const (
 var (
 	reBackslashOrAmp      = regexp.MustCompile("[\\&]")
 	reEntityOrEscapedChar = regexp.MustCompile("(?i)\\\\" + escapable + "|" + charEntity)
-	reTrailingWhitespace  = regexp.MustCompile("(\n *)+$")
 )
 
 // Parse block-level data.
 // Note: this function and many that it calls assume that
 // the input buffer ends with a newline.
 func (p *parser) block(data []byte) {
-	if len(data) == 0 || data[len(data)-1] != '\n' {
-		panic("block input is missing terminating newline")
-	}
-
 	// this is called recursively: enforce a maximum depth
 	if p.nesting >= p.maxNesting {
 		return
@@ -131,7 +126,7 @@ func (p *parser) block(data []byte) {
 		if p.isHRule(data) {
 			p.addBlock(HorizontalRule, nil)
 			var i int
-			for i = 0; data[i] != '\n'; i++ {
+			for i = 0; i < len(data) && data[i] != '\n'; i++ {
 			}
 			data = data[i:]
 			continue
@@ -216,10 +211,10 @@ func (p *parser) isPrefixHeader(data []byte) bool {
 
 	if p.flags&SpaceHeaders != 0 {
 		level := 0
-		for level < 6 && data[level] == '#' {
+		for level < 6 && level < len(data) && data[level] == '#' {
 			level++
 		}
-		if data[level] != ' ' {
+		if level == len(data) || data[level] != ' ' {
 			return false
 		}
 	}
@@ -228,7 +223,7 @@ func (p *parser) isPrefixHeader(data []byte) bool {
 
 func (p *parser) prefixHeader(data []byte) int {
 	level := 0
-	for level < 6 && data[level] == '#' {
+	for level < 6 && level < len(data) && data[level] == '#' {
 		level++
 	}
 	i := skipChar(data, level, ' ')
@@ -277,7 +272,7 @@ func (p *parser) isUnderlinedHeader(data []byte) int {
 	if data[0] == '=' {
 		i := skipChar(data, 1, '=')
 		i = skipChar(data, i, ' ')
-		if data[i] == '\n' {
+		if i < len(data) && data[i] == '\n' {
 			return 1
 		}
 		return 0
@@ -287,7 +282,7 @@ func (p *parser) isUnderlinedHeader(data []byte) int {
 	if data[0] == '-' {
 		i := skipChar(data, 1, '-')
 		i = skipChar(data, i, ' ')
-		if data[i] == '\n' {
+		if i < len(data) && data[i] == '\n' {
 			return 2
 		}
 		return 0
@@ -419,8 +414,8 @@ func (p *parser) html(data []byte, doRender bool) int {
 }
 
 func finalizeHTMLBlock(block *Node) {
-	block.Literal = reTrailingWhitespace.ReplaceAll(block.content, []byte{})
-	block.content = []byte{}
+	block.Literal = block.content
+	block.content = nil
 }
 
 // HTML comment, lax form
@@ -445,6 +440,9 @@ func (p *parser) htmlComment(data []byte, doRender bool) int {
 
 // HR, which is the only self-closing block tag considered
 func (p *parser) htmlHr(data []byte, doRender bool) int {
+	if len(data) < 4 {
+		return 0
+	}
 	if data[0] != '<' || (data[1] != 'h' && data[1] != 'H') || (data[2] != 'r' && data[2] != 'R') {
 		return 0
 	}
@@ -452,13 +450,11 @@ func (p *parser) htmlHr(data []byte, doRender bool) int {
 		// not an <hr> tag after all; at least not a valid one
 		return 0
 	}
-
 	i := 3
-	for data[i] != '>' && data[i] != '\n' {
+	for i < len(data) && data[i] != '>' && data[i] != '\n' {
 		i++
 	}
-
-	if data[i] == '>' {
+	if i < len(data) && data[i] == '>' {
 		i++
 		if j := p.isEmpty(data[i:]); j > 0 {
 			size := i + j
@@ -473,13 +469,12 @@ func (p *parser) htmlHr(data []byte, doRender bool) int {
 			return size
 		}
 	}
-
 	return 0
 }
 
 func (p *parser) htmlFindTag(data []byte) (string, bool) {
 	i := 0
-	for isalnum(data[i]) {
+	for i < len(data) && isalnum(data[i]) {
 		i++
 	}
 	key := string(data[:i])
@@ -536,7 +531,10 @@ func (*parser) isEmpty(data []byte) int {
 			return 0
 		}
 	}
-	return i + 1
+	if i < len(data) && data[i] == '\n' {
+		i++
+	}
+	return i
 }
 
 func (*parser) isHRule(data []byte) bool {
@@ -555,7 +553,7 @@ func (*parser) isHRule(data []byte) bool {
 
 	// the whole line must be the char or whitespace
 	n := 0
-	for data[i] != '\n' {
+	for i < len(data) && data[i] != '\n' {
 		switch {
 		case data[i] == c:
 			n++
@@ -571,8 +569,7 @@ func (*parser) isHRule(data []byte) bool {
 // isFenceLine checks if there's a fence line (e.g., ``` or ``` go) at the beginning of data,
 // and returns the end index if so, or 0 otherwise. It also returns the marker found.
 // If syntax is not nil, it gets set to the syntax specified in the fence line.
-// A final newline is mandatory to recognize the fence line, unless newlineOptional is true.
-func isFenceLine(data []byte, syntax *string, oldmarker string, newlineOptional bool) (end int, marker string) {
+func isFenceLine(data []byte, syntax *string, oldmarker string) (end int, marker string) {
 	i, size := 0, 0
 
 	// skip up to three spaces
@@ -614,7 +611,7 @@ func isFenceLine(data []byte, syntax *string, oldmarker string, newlineOptional 
 		i = skipChar(data, i, ' ')
 
 		if i >= len(data) {
-			if newlineOptional && i == len(data) {
+			if i == len(data) {
 				return i, marker
 			}
 			return 0, ""
@@ -659,12 +656,11 @@ func isFenceLine(data []byte, syntax *string, oldmarker string, newlineOptional 
 
 	i = skipChar(data, i, ' ')
 	if i >= len(data) || data[i] != '\n' {
-		if newlineOptional && i == len(data) {
+		if i == len(data) {
 			return i, marker
 		}
 		return 0, ""
 	}
-
 	return i + 1, marker // Take newline into account.
 }
 
@@ -673,7 +669,7 @@ func isFenceLine(data []byte, syntax *string, oldmarker string, newlineOptional 
 // If doRender is true, a final newline is mandatory to recognize the fenced code block.
 func (p *parser) fencedCodeBlock(data []byte, doRender bool) int {
 	var syntax string
-	beg, marker := isFenceLine(data, &syntax, "", false)
+	beg, marker := isFenceLine(data, &syntax, "")
 	if beg == 0 || beg >= len(data) {
 		return 0
 	}
@@ -686,8 +682,7 @@ func (p *parser) fencedCodeBlock(data []byte, doRender bool) int {
 		// safe to assume beg < len(data)
 
 		// check for the end of the code block
-		newlineOptional := !doRender
-		fenceEnd, _ := isFenceLine(data[beg:], nil, marker, newlineOptional)
+		fenceEnd, _ := isFenceLine(data[beg:], nil, marker)
 		if fenceEnd != 0 {
 			beg += fenceEnd
 			break
@@ -739,7 +734,7 @@ func finalizeCodeBlock(block *Node) {
 		block.Info = unescapeString(bytes.Trim(firstLine, "\n"))
 		block.Literal = rest
 	} else {
-		block.Literal = reTrailingWhitespace.ReplaceAll(block.content, []byte{'\n'})
+		block.Literal = block.content
 	}
 	block.content = nil
 }
@@ -757,7 +752,7 @@ func (p *parser) table(data []byte) int {
 
 	for i < len(data) {
 		pipes, rowStart := 0, i
-		for ; data[i] != '\n'; i++ {
+		for ; i < len(data) && data[i] != '\n'; i++ {
 			if data[i] == '|' {
 				pipes++
 			}
@@ -769,7 +764,9 @@ func (p *parser) table(data []byte) int {
 		}
 
 		// include the newline in data sent to tableRow
-		i++
+		if i < len(data) && data[i] == '\n' {
+			i++
+		}
 		p.tableRow(data[rowStart:i], columns, false)
 	}
 
@@ -788,7 +785,7 @@ func isBackslashEscaped(data []byte, i int) bool {
 func (p *parser) tableHeader(data []byte) (size int, columns []CellAlignFlags) {
 	i := 0
 	colCount := 1
-	for i = 0; data[i] != '\n'; i++ {
+	for i = 0; i < len(data) && data[i] != '\n'; i++ {
 		if data[i] == '|' && !isBackslashEscaped(data, i) {
 			colCount++
 		}
@@ -800,7 +797,11 @@ func (p *parser) tableHeader(data []byte) (size int, columns []CellAlignFlags) {
 	}
 
 	// include the newline in the data sent to tableRow
-	header := data[:i+1]
+	j := i
+	if j < len(data) && data[j] == '\n' {
+		j++
+	}
+	header := data[:j]
 
 	// column count ignores pipes at beginning or end of line
 	if data[0] == '|' {
@@ -826,7 +827,7 @@ func (p *parser) tableHeader(data []byte) (size int, columns []CellAlignFlags) {
 	// each column header is of form: / *:?-+:? *|/ with # dashes + # colons >= 3
 	// and trailing | optional on last column
 	col := 0
-	for data[i] != '\n' {
+	for i < len(data) && data[i] != '\n' {
 		dashes := 0
 
 		if data[i] == ':' {
@@ -834,19 +835,21 @@ func (p *parser) tableHeader(data []byte) (size int, columns []CellAlignFlags) {
 			columns[col] |= TableAlignmentLeft
 			dashes++
 		}
-		for data[i] == '-' {
+		for i < len(data) && data[i] == '-' {
 			i++
 			dashes++
 		}
-		if data[i] == ':' {
+		if i < len(data) && data[i] == ':' {
 			i++
 			columns[col] |= TableAlignmentRight
 			dashes++
 		}
-		for data[i] == ' ' {
+		for i < len(data) && data[i] == ' ' {
 			i++
 		}
-
+		if i == len(data) {
+			return
+		}
 		// end of column test is messy
 		switch {
 		case dashes < 3:
@@ -857,12 +860,12 @@ func (p *parser) tableHeader(data []byte) (size int, columns []CellAlignFlags) {
 			// marker found, now skip past trailing whitespace
 			col++
 			i++
-			for data[i] == ' ' {
+			for i < len(data) && data[i] == ' ' {
 				i++
 			}
 
 			// trailing junk found after last column
-			if col >= colCount && data[i] != '\n' {
+			if col >= colCount && i < len(data) && data[i] != '\n' {
 				return
 			}
 
@@ -885,7 +888,10 @@ func (p *parser) tableHeader(data []byte) (size int, columns []CellAlignFlags) {
 
 	p.addBlock(TableHead, nil)
 	p.tableRow(header, columns, true)
-	size = i + 1
+	size = i
+	if size < len(data) && data[size] == '\n' {
+		size++
+	}
 	return
 }
 
@@ -898,13 +904,13 @@ func (p *parser) tableRow(data []byte, columns []CellAlignFlags, header bool) {
 	}
 
 	for col = 0; col < len(columns) && i < len(data); col++ {
-		for data[i] == ' ' {
+		for i < len(data) && data[i] == ' ' {
 			i++
 		}
 
 		cellStart := i
 
-		for (data[i] != '|' || isBackslashEscaped(data, i)) && data[i] != '\n' {
+		for i < len(data) && (data[i] != '|' || isBackslashEscaped(data, i)) && data[i] != '\n' {
 			i++
 		}
 
@@ -913,7 +919,7 @@ func (p *parser) tableRow(data []byte, columns []CellAlignFlags, header bool) {
 		// skip the end-of-cell marker, possibly taking us past end of buffer
 		i++
 
-		for cellEnd > cellStart && data[cellEnd-1] == ' ' {
+		for cellEnd > cellStart && cellEnd-1 < len(data) && data[cellEnd-1] == ' ' {
 			cellEnd--
 		}
 
@@ -935,11 +941,11 @@ func (p *parser) tableRow(data []byte, columns []CellAlignFlags, header bool) {
 // returns blockquote prefix length
 func (p *parser) quotePrefix(data []byte) int {
 	i := 0
-	for i < 3 && data[i] == ' ' {
+	for i < 3 && i < len(data) && data[i] == ' ' {
 		i++
 	}
-	if data[i] == '>' {
-		if data[i+1] == ' ' {
+	if i < len(data) && data[i] == '>' {
+		if i+1 < len(data) && data[i+1] == ' ' {
 			return i + 2
 		}
 		return i + 1
@@ -969,7 +975,7 @@ func (p *parser) quote(data []byte) int {
 		// Step over whole lines, collecting them. While doing that, check for
 		// fenced code and if one's found, incorporate it altogether,
 		// irregardless of any contents inside it
-		for data[end] != '\n' {
+		for end < len(data) && data[end] != '\n' {
 			if p.flags&FencedCode != 0 {
 				if i := p.fencedCodeBlock(data[end:], false); i > 0 {
 					// -1 to compensate for the extra end++ after the loop:
@@ -979,7 +985,9 @@ func (p *parser) quote(data []byte) int {
 			}
 			end++
 		}
-		end++
+		if end < len(data) && data[end] == '\n' {
+			end++
+		}
 		if pre := p.quotePrefix(data[beg:]); pre > 0 {
 			// skip the prefix
 			beg += pre
@@ -997,7 +1005,10 @@ func (p *parser) quote(data []byte) int {
 
 // returns prefix length for block code
 func (p *parser) codePrefix(data []byte) int {
-	if data[0] == ' ' && data[1] == ' ' && data[2] == ' ' && data[3] == ' ' {
+	if len(data) >= 1 && data[0] == '\t' {
+		return 1
+	}
+	if len(data) >= 4 && data[0] == ' ' && data[1] == ' ' && data[2] == ' ' && data[3] == ' ' {
 		return 4
 	}
 	return 0
@@ -1009,10 +1020,12 @@ func (p *parser) code(data []byte) int {
 	i := 0
 	for i < len(data) {
 		beg := i
-		for data[i] != '\n' {
+		for i < len(data) && data[i] != '\n' {
 			i++
 		}
-		i++
+		if i < len(data) && data[i] == '\n' {
+			i++
+		}
 
 		blankline := p.isEmpty(data[beg:i]) > 0
 		if pre := p.codePrefix(data[beg:i]); pre > 0 {
@@ -1023,7 +1036,7 @@ func (p *parser) code(data []byte) int {
 			break
 		}
 
-		// verbatim copy to the working buffeu
+		// verbatim copy to the working buffer
 		if blankline {
 			work.WriteByte('\n')
 		} else {
@@ -1053,15 +1066,16 @@ func (p *parser) code(data []byte) int {
 // returns unordered list item prefix
 func (p *parser) uliPrefix(data []byte) int {
 	i := 0
-
 	// start with up to 3 spaces
-	for i < 3 && data[i] == ' ' {
+	for i < len(data) && i < 3 && data[i] == ' ' {
 		i++
 	}
-
-	// need a *, +, or - followed by a space
+	if i >= len(data)-1 {
+		return 0
+	}
+	// need one of {'*', '+', '-'} followed by a space or a tab
 	if (data[i] != '*' && data[i] != '+' && data[i] != '-') ||
-		data[i+1] != ' ' {
+		(data[i+1] != ' ' && data[i+1] != '\t') {
 		return 0
 	}
 	return i + 2
@@ -1072,18 +1086,21 @@ func (p *parser) oliPrefix(data []byte) int {
 	i := 0
 
 	// start with up to 3 spaces
-	for i < 3 && data[i] == ' ' {
+	for i < 3 && i < len(data) && data[i] == ' ' {
 		i++
 	}
 
 	// count the digits
 	start := i
-	for data[i] >= '0' && data[i] <= '9' {
+	for i < len(data) && data[i] >= '0' && data[i] <= '9' {
 		i++
 	}
+	if start == i || i >= len(data)-1 {
+		return 0
+	}
 
-	// we need >= 1 digits followed by a dot and a space
-	if start == i || data[i] != '.' || data[i+1] != ' ' {
+	// we need >= 1 digits followed by a dot and a space or a tab
+	if data[i] != '.' || !(data[i+1] == ' ' || data[i+1] == '\t') {
 		return 0
 	}
 	return i + 2
@@ -1091,13 +1108,15 @@ func (p *parser) oliPrefix(data []byte) int {
 
 // returns definition list item prefix
 func (p *parser) dliPrefix(data []byte) int {
-	i := 0
-
-	// need a : followed by a spaces
-	if data[i] != ':' || data[i+1] != ' ' {
+	if len(data) < 2 {
 		return 0
 	}
-	for data[i] == ' ' {
+	i := 0
+	// need a ':' followed by a space or a tab
+	if data[i] != ':' || !(data[i+1] == ' ' || data[i+1] == '\t') {
+		return 0
+	}
+	for i < len(data) && data[i] == ' ' {
 		i++
 	}
 	return i + 2
@@ -1175,8 +1194,12 @@ func finalizeList(block *Node) {
 func (p *parser) listItem(data []byte, flags *ListType) int {
 	// keep track of the indentation of the first line
 	itemIndent := 0
-	for itemIndent < 3 && data[itemIndent] == ' ' {
-		itemIndent++
+	if data[0] == '\t' {
+		itemIndent += 4
+	} else {
+		for itemIndent < 3 && data[itemIndent] == ' ' {
+			itemIndent++
+		}
 	}
 
 	var bulletChar byte = '*'
@@ -1203,13 +1226,13 @@ func (p *parser) listItem(data []byte, flags *ListType) int {
 	}
 
 	// skip leading whitespace on first line
-	for data[i] == ' ' {
+	for i < len(data) && data[i] == ' ' {
 		i++
 	}
 
 	// find the end of the line
 	line := i
-	for i > 0 && data[i-1] != '\n' {
+	for i > 0 && i < len(data) && data[i-1] != '\n' {
 		i++
 	}
 
@@ -1229,7 +1252,7 @@ gatherlines:
 		i++
 
 		// find the end of this line
-		for data[i-1] != '\n' {
+		for i < len(data) && data[i-1] != '\n' {
 			i++
 		}
 
@@ -1243,11 +1266,18 @@ gatherlines:
 
 		// calculate the indentation
 		indent := 0
-		for indent < 4 && line+indent < i && data[line+indent] == ' ' {
-			indent++
+		indentIndex := 0
+		if data[line] == '\t' {
+			indentIndex++
+			indent += 4
+		} else {
+			for indent < 4 && line+indent < i && data[line+indent] == ' ' {
+				indent++
+				indentIndex++
+			}
 		}
 
-		chunk := data[line+indent : i]
+		chunk := data[line+indentIndex : i]
 
 		// evaluate how this line fits in
 		switch {
@@ -1288,7 +1318,7 @@ gatherlines:
 			if *flags&ListTypeDefinition != 0 && i < len(data)-1 {
 				// is the next item still a part of this list?
 				next := i
-				for data[next] != '\n' {
+				for next < len(data) && data[next] != '\n' {
 					next++
 				}
 				for next < len(data)-1 && data[next] == '\n' {
@@ -1316,7 +1346,7 @@ gatherlines:
 		}
 
 		// add the line into the working buffer without prefix
-		raw.Write(data[line+indent : i])
+		raw.Write(data[line+indentIndex : i])
 
 		line = i
 	}
@@ -1364,8 +1394,11 @@ func (p *parser) renderParagraph(data []byte) {
 		beg++
 	}
 
+	end := len(data)
 	// trim trailing newline
-	end := len(data) - 1
+	if data[len(data)-1] == '\n' {
+		end--
+	}
 
 	// trim trailing spaces
 	for end > beg && data[end-1] == ' ' {
@@ -1437,7 +1470,7 @@ func (p *parser) paragraph(data []byte) int {
 				block.HeaderID = id
 
 				// find the end of the underline
-				for data[i] != '\n' {
+				for i < len(data) && data[i] != '\n' {
 					i++
 				}
 				return i
@@ -1470,7 +1503,8 @@ func (p *parser) paragraph(data []byte) int {
 		// if there's a definition list item, prev line is a definition term
 		if p.flags&DefinitionLists != 0 {
 			if p.dliPrefix(current) != 0 {
-				return p.list(data[prev:], ListTypeDefinition)
+				ret := p.list(data[prev:], ListTypeDefinition)
+				return ret
 			}
 		}
 
@@ -1486,10 +1520,12 @@ func (p *parser) paragraph(data []byte) int {
 		}
 
 		// otherwise, scan to the beginning of the next line
-		for data[i] != '\n' {
-			i++
+		nl := bytes.IndexByte(data[i:], '\n')
+		if nl >= 0 {
+			i += nl + 1
+		} else {
+			i += len(data[i:])
 		}
-		i++
 	}
 
 	p.renderParagraph(data[:i])

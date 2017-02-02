@@ -17,6 +17,7 @@ package blackfriday
 
 import (
 	"bytes"
+	"io"
 )
 
 // SPRenderer is a struct containing state of a Smartypants renderer.
@@ -401,13 +402,12 @@ func NewSmartypantsRenderer(flags HTMLFlags) *SPRenderer {
 }
 
 // Process is the entry point of the Smartypants renderer.
-func (r *SPRenderer) Process(text []byte) []byte {
-	var buff bytes.Buffer
+func (r *SPRenderer) Process(w io.Writer, text []byte) {
 	mark := 0
 	for i := 0; i < len(text); i++ {
 		if action := r.callbacks[text[i]]; action != nil {
 			if i > mark {
-				buff.Write(text[mark:i])
+				w.Write(text[mark:i])
 			}
 			previousChar := byte(0)
 			if i > 0 {
@@ -415,12 +415,11 @@ func (r *SPRenderer) Process(text []byte) []byte {
 			}
 			var tmp bytes.Buffer
 			i += action(&tmp, previousChar, text[i:])
-			buff.Write(tmp.Bytes())
+			w.Write(tmp.Bytes())
 			mark = i + 1
 		}
 	}
 	if mark < len(text) {
-		buff.Write(text[mark:])
+		w.Write(text[mark:])
 	}
-	return buff.Bytes()
 }
