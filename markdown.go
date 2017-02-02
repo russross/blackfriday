@@ -55,12 +55,6 @@ const (
 		BackslashLineBreak | DefinitionLists
 )
 
-// DefaultOptions is a convenience variable with all the options that are
-// enabled by default.
-// var DefaultOptions = Options{
-// 	Extensions: CommonExtensions,
-// }
-
 // ListType contains bitwise or'ed flags for list and list item objects.
 type ListType int
 
