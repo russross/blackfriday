@@ -559,11 +559,11 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 		} else {
 			if entering {
 				dest = r.addAbsPrefix(dest)
-				var hrefBuff bytes.Buffer
-				hrefBuff.WriteString("href=\"")
-				escLink(&hrefBuff, dest)
-				hrefBuff.WriteByte('"')
-				attrs = append(attrs, hrefBuff.String())
+				var hrefBuf bytes.Buffer
+				hrefBuf.WriteString("href=\"")
+				escLink(&hrefBuf, dest)
+				hrefBuf.WriteByte('"')
+				attrs = append(attrs, hrefBuf.String())
 				if node.NoteID != 0 {
 					r.out(w, footnoteRef(r.FootnoteAnchorPrefix, node))
 					break
@@ -939,17 +939,17 @@ func (r *HTMLRenderer) writeDocumentFooter(w *bytes.Buffer) {
 func (r *HTMLRenderer) Render(ast *Node) []byte {
 	//println("render_Blackfriday")
 	//dump(ast)
-	var buff bytes.Buffer
-	r.writeDocumentHeader(&buff)
+	var buf bytes.Buffer
+	r.writeDocumentHeader(&buf)
 	if r.Extensions&TOC != 0 || r.Extensions&OmitContents != 0 {
-		r.writeTOC(&buff, ast)
+		r.writeTOC(&buf, ast)
 		if r.Extensions&OmitContents != 0 {
-			return buff.Bytes()
+			return buf.Bytes()
 		}
 	}
 	ast.Walk(func(node *Node, entering bool) WalkStatus {
-		return r.RenderNode(&buff, node, entering)
+		return r.RenderNode(&buf, node, entering)
 	})
-	r.writeDocumentFooter(&buff)
-	return buff.Bytes()
+	r.writeDocumentFooter(&buf)
+	return buf.Bytes()
 }

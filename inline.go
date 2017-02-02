@@ -715,14 +715,11 @@ func linkEndsWithEntity(data []byte, linkEnd int) bool {
 	return entityRanges != nil && entityRanges[len(entityRanges)-1][1] == linkEnd
 }
 
-var prefixes = [][]byte{
-	[]byte("http://"),
-	[]byte("https://"),
-	[]byte("ftp://"),
-	[]byte("file://"),
-	[]byte("mailto:"),
-}
-
+// hasPrefixCaseInsensitive is a custom implementation of
+//     strings.HasPrefix(strings.ToLower(s), prefix)
+// we rolled our own because ToLower pulls in a huge machinery of lowercasing
+// anything from Unicode and that's very slow. Since this func will only be
+// used on ASCII protocol prefixes, we can take shortcuts.
 func hasPrefixCaseInsensitive(s, prefix []byte) bool {
 	if len(s) < len(prefix) {
 		return false
@@ -736,12 +733,22 @@ func hasPrefixCaseInsensitive(s, prefix []byte) bool {
 	return true
 }
 
+var protocolPrefixes = [][]byte{
+	[]byte("http://"),
+	[]byte("https://"),
+	[]byte("ftp://"),
+	[]byte("file://"),
+	[]byte("mailto:"),
+}
+
+const shortestPrefix = 6 // len("ftp://"), the shortest of the above
+
 func maybeAutoLink(p *parser, data []byte, offset int) (int, *Node) {
 	// quick check to rule out most false hits
-	if p.insideLink || len(data) < offset+6 { // 6 is the len() of the shortest of the prefixes
+	if p.insideLink || len(data) < offset+shortestPrefix {
 		return 0, nil
 	}
-	for _, prefix := range prefixes {
+	for _, prefix := range protocolPrefixes {
 		endOfHead := offset + 8 // 8 is the len() of the longest prefix
 		if endOfHead > len(data) {
 			endOfHead = len(data)

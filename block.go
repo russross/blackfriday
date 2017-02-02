@@ -764,7 +764,7 @@ func (p *parser) table(data []byte) int {
 		}
 
 		// include the newline in data sent to tableRow
-		if i < len(data)-1 && data[i] == '\n' {
+		if i < len(data) && data[i] == '\n' {
 			i++
 		}
 		p.tableRow(data[rowStart:i], columns, false)
@@ -945,7 +945,7 @@ func (p *parser) quotePrefix(data []byte) int {
 		i++
 	}
 	if i < len(data) && data[i] == '>' {
-		if i < len(data)-1 && data[i+1] == ' ' {
+		if i+1 < len(data) && data[i+1] == ' ' {
 			return i + 2
 		}
 		return i + 1
@@ -1005,7 +1005,7 @@ func (p *parser) quote(data []byte) int {
 
 // returns prefix length for block code
 func (p *parser) codePrefix(data []byte) int {
-	if data[0] == '\t' {
+	if len(data) >= 1 && data[0] == '\t' {
 		return 1
 	}
 	if len(data) >= 4 && data[0] == ' ' && data[1] == ' ' && data[2] == ' ' && data[3] == ' ' {
@@ -1073,7 +1073,7 @@ func (p *parser) uliPrefix(data []byte) int {
 	if i >= len(data)-1 {
 		return 0
 	}
-	// need a *, +, or - followed by a space
+	// need one of {'*', '+', '-'} followed by a space or a tab
 	if (data[i] != '*' && data[i] != '+' && data[i] != '-') ||
 		(data[i+1] != ' ' && data[i+1] != '\t') {
 		return 0
@@ -1099,7 +1099,7 @@ func (p *parser) oliPrefix(data []byte) int {
 		return 0
 	}
 
-	// we need >= 1 digits followed by a dot and a space
+	// we need >= 1 digits followed by a dot and a space or a tab
 	if data[i] != '.' || !(data[i+1] == ' ' || data[i+1] == '\t') {
 		return 0
 	}
@@ -1112,7 +1112,7 @@ func (p *parser) dliPrefix(data []byte) int {
 		return 0
 	}
 	i := 0
-	// need a : followed by a spaces
+	// need a ':' followed by a space or a tab
 	if data[i] != ':' || !(data[i+1] == ' ' || data[i+1] == '\t') {
 		return 0
 	}
@@ -1194,11 +1194,12 @@ func finalizeList(block *Node) {
 func (p *parser) listItem(data []byte, flags *ListType) int {
 	// keep track of the indentation of the first line
 	itemIndent := 0
-	if data[itemIndent] == '\t' {
+	if data[0] == '\t' {
 		itemIndent += 4
-	}
-	for itemIndent < 3 && data[itemIndent] == ' ' {
-		itemIndent++
+	} else {
+		for itemIndent < 3 && data[itemIndent] == ' ' {
+			itemIndent++
+		}
 	}
 
 	var bulletChar byte = '*'
@@ -1436,8 +1437,7 @@ func (p *parser) paragraph(data []byte) int {
 			// did this blank line followed by a definition list item?
 			if p.flags&DefinitionLists != 0 {
 				if i < len(data)-1 && data[i+1] == ':' {
-					ret := p.list(data[prev:], ListTypeDefinition)
-					return ret
+					return p.list(data[prev:], ListTypeDefinition)
 				}
 			}
 

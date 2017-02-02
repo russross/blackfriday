@@ -38,11 +38,11 @@ func BenchmarkEscapeHTML(b *testing.B) {
 		[]byte("[1]: http://example.com/?foo=1&bar=2"),
 		[]byte("[2]: http://att.com/  \"AT&T\""),
 	}
-	var buff bytes.Buffer
+	var buf bytes.Buffer
 	for n := 0; n < b.N; n++ {
 		for _, t := range tests {
-			escapeHTML(&buff, t)
-			buff.Reset()
+			escapeHTML(&buf, t)
+			buf.Reset()
 		}
 	}
 }
