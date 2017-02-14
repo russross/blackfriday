@@ -204,7 +204,7 @@ func (p *Parser) addBlock(typ NodeType, content []byte) *Node {
 	return container
 }
 
-func (p *parser) isPrefixHeading(data []byte) bool {
+func (p *Parser) isPrefixHeading(data []byte) bool {
 	if data[0] != '#' {
 		return false
 	}
@@ -221,7 +221,7 @@ func (p *parser) isPrefixHeading(data []byte) bool {
 	return true
 }
 
-func (p *parser) prefixHeading(data []byte) int {
+func (p *Parser) prefixHeading(data []byte) int {
 	level := 0
 	for level < 6 && level < len(data) && data[level] == '#' {
 		level++
@@ -267,7 +267,7 @@ func (p *parser) prefixHeading(data []byte) int {
 	return skip
 }
 
-func (p *parser) isUnderlinedHeading(data []byte) int {
+func (p *Parser) isUnderlinedHeading(data []byte) int {
 	// test of level 1 heading
 	if data[0] == '=' {
 		i := skipChar(data, 1, '=')
