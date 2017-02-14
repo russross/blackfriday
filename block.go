@@ -43,14 +43,14 @@ func (p *parser) block(data []byte) {
 
 	// parse out one block-level construct at a time
 	for len(data) > 0 {
-		// prefixed header:
+		// prefixed heading:
 		//
-		// # Header 1
-		// ## Header 2
+		// # Heading 1
+		// ## Heading 2
 		// ...
-		// ###### Header 6
-		if p.isPrefixHeader(data) {
-			data = data[p.prefixHeader(data):]
+		// ###### Heading 6
+		if p.isPrefixHeading(data) {
+			data = data[p.prefixHeading(data):]
 			continue
 		}
 
@@ -190,7 +190,7 @@ func (p *parser) block(data []byte) {
 		}
 
 		// anything else must look like a normal paragraph
-		// note: this finds underlined headers, too
+		// note: this finds underlined headings, too
 		data = data[p.paragraph(data):]
 	}
 
@@ -204,12 +204,12 @@ func (p *parser) addBlock(typ NodeType, content []byte) *Node {
 	return container
 }
 
-func (p *parser) isPrefixHeader(data []byte) bool {
+func (p *parser) isPrefixHeading(data []byte) bool {
 	if data[0] != '#' {
 		return false
 	}
 
-	if p.flags&SpaceHeaders != 0 {
+	if p.flags&SpaceHeadings != 0 {
 		level := 0
 		for level < 6 && level < len(data) && data[level] == '#' {
 			level++
@@ -221,7 +221,7 @@ func (p *parser) isPrefixHeader(data []byte) bool {
 	return true
 }
 
-func (p *parser) prefixHeader(data []byte) int {
+func (p *parser) prefixHeading(data []byte) int {
 	level := 0
 	for level < 6 && level < len(data) && data[level] == '#' {
 		level++
@@ -230,14 +230,14 @@ func (p *parser) prefixHeader(data []byte) int {
 	end := skipUntilChar(data, i, '\n')
 	skip := end
 	id := ""
-	if p.flags&HeaderIDs != 0 {
+	if p.flags&HeadingIDs != 0 {
 		j, k := 0, 0
-		// find start/end of header id
+		// find start/end of heading id
 		for j = i; j < end-1 && (data[j] != '{' || data[j+1] != '#'); j++ {
 		}
 		for k = j + 1; k < end && data[k] != '}'; k++ {
 		}
-		// extract header id iff found
+		// extract heading id iff found
 		if j < end && k < end {
 			id = string(data[j+2 : k])
 			end = j
@@ -257,18 +257,18 @@ func (p *parser) prefixHeader(data []byte) int {
 		end--
 	}
 	if end > i {
-		if id == "" && p.flags&AutoHeaderIDs != 0 {
+		if id == "" && p.flags&AutoHeadingIDs != 0 {
 			id = sanitized_anchor_name.Create(string(data[i:end]))
 		}
-		block := p.addBlock(Header, data[i:end])
-		block.HeaderID = id
+		block := p.addBlock(Heading, data[i:end])
+		block.HeadingID = id
 		block.Level = level
 	}
 	return skip
 }
 
-func (p *parser) isUnderlinedHeader(data []byte) int {
-	// test of level 1 header
+func (p *parser) isUnderlinedHeading(data []byte) int {
+	// test of level 1 heading
 	if data[0] == '=' {
 		i := skipChar(data, 1, '=')
 		i = skipChar(data, i, ' ')
@@ -278,7 +278,7 @@ func (p *parser) isUnderlinedHeader(data []byte) int {
 		return 0
 	}
 
-	// test of level 2 header
+	// test of level 2 heading
 	if data[0] == '-' {
 		i := skipChar(data, 1, '-')
 		i = skipChar(data, i, ' ')
@@ -308,7 +308,7 @@ func (p *parser) titleBlock(data []byte, doRender bool) int {
 	consumed := len(data)
 	data = bytes.TrimPrefix(data, []byte("% "))
 	data = bytes.Replace(data, []byte("\n% "), []byte("\n"), -1)
-	block := p.addBlock(Header, data)
+	block := p.addBlock(Heading, data)
 	block.Level = 1
 	block.IsTitleblock = true
 
@@ -1301,9 +1301,9 @@ gatherlines:
 				sublist = raw.Len()
 			}
 
-		// is this a nested prefix header?
-		case p.isPrefixHeader(chunk):
-			// if the header is not indented, it is not nested in the list
+		// is this a nested prefix heading?
+		case p.isPrefixHeading(chunk):
+			// if the heading is not indented, it is not nested in the list
 			// and thus ends the list
 			if containsBlankLine && indent < 4 {
 				*flags |= ListItemEndOfList
@@ -1445,9 +1445,9 @@ func (p *parser) paragraph(data []byte) int {
 			return i + n
 		}
 
-		// an underline under some text marks a header, so our paragraph ended on prev line
+		// an underline under some text marks a heading, so our paragraph ended on prev line
 		if i > 0 {
-			if level := p.isUnderlinedHeader(current); level > 0 {
+			if level := p.isUnderlinedHeading(current); level > 0 {
 				// render the paragraph
 				p.renderParagraph(data[:prev])
 
@@ -1461,13 +1461,13 @@ func (p *parser) paragraph(data []byte) int {
 				}
 
 				id := ""
-				if p.flags&AutoHeaderIDs != 0 {
+				if p.flags&AutoHeadingIDs != 0 {
 					id = sanitized_anchor_name.Create(string(data[prev:eol]))
 				}
 
-				block := p.addBlock(Header, data[prev:eol])
+				block := p.addBlock(Heading, data[prev:eol])
 				block.Level = level
-				block.HeaderID = id
+				block.HeadingID = id
 
 				// find the end of the underline
 				for i < len(data) && data[i] != '\n' {
@@ -1486,8 +1486,8 @@ func (p *parser) paragraph(data []byte) int {
 			}
 		}
 
-		// if there's a prefixed header or a horizontal rule after this, paragraph is over
-		if p.isPrefixHeader(current) || p.isHRule(current) {
+		// if there's a prefixed heading or a horizontal rule after this, paragraph is over
+		if p.isPrefixHeading(current) || p.isHRule(current) {
 			p.renderParagraph(data[:i])
 			return i
 		}

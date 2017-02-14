@@ -36,14 +36,14 @@ const (
 	Autolink                                      // Detect embedded URLs that are not explicitly marked
 	Strikethrough                                 // Strikethrough text using ~~test~~
 	LaxHTMLBlocks                                 // Loosen up HTML block parsing rules
-	SpaceHeaders                                  // Be strict about prefix header rules
+	SpaceHeadings                                 // Be strict about prefix heading rules
 	HardLineBreak                                 // Translate newlines into line breaks
 	TabSizeEight                                  // Expand tabs to eight spaces instead of four
 	Footnotes                                     // Pandoc-style footnotes
 	NoEmptyLineBeforeBlock                        // No need to insert an empty line to start a (code, quote, ordered list, unordered list) block
-	HeaderIDs                                     // specify header IDs  with {#id}
+	HeadingIDs                                    // specify heading IDs  with {#id}
 	Titleblock                                    // Titleblock ala pandoc
-	AutoHeaderIDs                                 // Create the header ID from the text
+	AutoHeadingIDs                                // Create the heading ID from the text
 	BackslashLineBreak                            // Translate trailing backslashes into line breaks
 	DefinitionLists                               // Render definition lists
 
@@ -51,7 +51,7 @@ const (
 		SmartypantsFractions | SmartypantsDashes | SmartypantsLatexDashes
 
 	CommonExtensions Extensions = NoIntraEmphasis | Tables | FencedCode |
-		Autolink | Strikethrough | SpaceHeaders | HeaderIDs |
+		Autolink | Strikethrough | SpaceHeadings | HeadingIDs |
 		BackslashLineBreak | DefinitionLists
 )
 
@@ -310,9 +310,9 @@ func MarkdownBasic(input []byte) []byte {
 //
 // * Strikethrough support
 //
-// * Strict header parsing
+// * Strict heading parsing
 //
-// * Custom Header IDs
+// * Custom Heading IDs
 func MarkdownCommon(input []byte) []byte {
 	// set up the HTML renderer
 	renderer := NewHTMLRenderer(HTMLRendererParameters{
@@ -392,7 +392,7 @@ func Parse(input []byte, opts Options) *Node {
 	}
 	// Walk the tree again and process inline markdown in each block
 	p.doc.Walk(func(node *Node, entering bool) WalkStatus {
-		if node.Type == Paragraph || node.Type == Header || node.Type == TableCell {
+		if node.Type == Paragraph || node.Type == Heading || node.Type == TableCell {
 			p.inline(node, node.content)
 			node.content = nil
 		}
@@ -433,7 +433,7 @@ func (p *parser) parseRefsToAST() {
 	finalizeList(block)
 	p.tip = above
 	block.Walk(func(node *Node, entering bool) WalkStatus {
-		if node.Type == Paragraph || node.Type == Header {
+		if node.Type == Paragraph || node.Type == Heading {
 			p.inline(node, node.content)
 			node.content = nil
 		}

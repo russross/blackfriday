@@ -144,7 +144,7 @@ func TestPrefixHeaderSpaceExtension(t *testing.T) {
 		"<ul>\n<li><p>List</p>\n\n<ul>\n<li><p>Nested list</p>\n\n" +
 			"<h1>Nested header</h1></li>\n</ul></li>\n</ul>\n",
 	}
-	doTestsBlock(t, tests, SpaceHeaders)
+	doTestsBlock(t, tests, SpaceHeadings)
 }
 
 func TestPrefixHeaderIdExtension(t *testing.T) {
@@ -204,7 +204,7 @@ func TestPrefixHeaderIdExtension(t *testing.T) {
 		"<ul>\n<li><p>List</p>\n\n<ul>\n<li><p>Nested list</p>\n\n" +
 			"<h1 id=\"someid\">Nested header</h1></li>\n</ul></li>\n</ul>\n",
 	}
-	doTestsBlock(t, tests, HeaderIDs)
+	doTestsBlock(t, tests, HeadingIDs)
 }
 
 func TestPrefixHeaderIdExtensionWithPrefixAndSuffix(t *testing.T) {
@@ -248,12 +248,12 @@ func TestPrefixHeaderIdExtensionWithPrefixAndSuffix(t *testing.T) {
 	}
 
 	parameters := HTMLRendererParameters{
-		HeaderIDPrefix: "PRE:",
-		HeaderIDSuffix: ":POST",
+		HeadingIDPrefix: "PRE:",
+		HeadingIDSuffix: ":POST",
 	}
 
 	doTestsParam(t, tests, TestParams{
-		Options:                Options{Extensions: HeaderIDs},
+		Options:                Options{Extensions: HeadingIDs},
 		HTMLFlags:              UseXHTML,
 		HTMLRendererParameters: parameters,
 	})
@@ -307,7 +307,7 @@ func TestPrefixAutoHeaderIdExtension(t *testing.T) {
 		"# Header\n\n# Header 1\n\n# Header\n\n# Header",
 		"<h1 id=\"header\">Header</h1>\n\n<h1 id=\"header-1\">Header 1</h1>\n\n<h1 id=\"header-1-1\">Header</h1>\n\n<h1 id=\"header-1-2\">Header</h1>\n",
 	}
-	doTestsBlock(t, tests, AutoHeaderIDs)
+	doTestsBlock(t, tests, AutoHeadingIDs)
 }
 
 func TestPrefixAutoHeaderIdExtensionWithPrefixAndSuffix(t *testing.T) {
@@ -360,12 +360,12 @@ func TestPrefixAutoHeaderIdExtensionWithPrefixAndSuffix(t *testing.T) {
 	}
 
 	parameters := HTMLRendererParameters{
-		HeaderIDPrefix: "PRE:",
-		HeaderIDSuffix: ":POST",
+		HeadingIDPrefix: "PRE:",
+		HeadingIDSuffix: ":POST",
 	}
 
 	doTestsParam(t, tests, TestParams{
-		Options:                Options{Extensions: AutoHeaderIDs},
+		Options:                Options{Extensions: AutoHeadingIDs},
 		HTMLFlags:              UseXHTML,
 		HTMLRendererParameters: parameters,
 	})
@@ -376,7 +376,7 @@ func TestPrefixMultipleHeaderExtensions(t *testing.T) {
 		"# Header\n\n# Header {#header}\n\n# Header 1",
 		"<h1 id=\"header\">Header</h1>\n\n<h1 id=\"header-1\">Header</h1>\n\n<h1 id=\"header-1-1\">Header 1</h1>\n",
 	}
-	doTestsBlock(t, tests, AutoHeaderIDs|HeaderIDs)
+	doTestsBlock(t, tests, AutoHeadingIDs|HeadingIDs)
 }
 
 func TestUnderlineHeaders(t *testing.T) {
@@ -476,7 +476,7 @@ func TestUnderlineHeadersAutoIDs(t *testing.T) {
 		"Header 1\n========\n\nHeader 1\n========\n",
 		"<h1 id=\"header-1\">Header 1</h1>\n\n<h1 id=\"header-1-1\">Header 1</h1>\n",
 	}
-	doTestsBlock(t, tests, AutoHeaderIDs)
+	doTestsBlock(t, tests, AutoHeadingIDs)
 }
 
 func TestHorizontalRule(t *testing.T) {
