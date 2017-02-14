@@ -80,11 +80,11 @@ type HTMLRendererParameters struct {
 	// HTML_FOOTNOTE_RETURN_LINKS flag is enabled. If blank, the string
 	// <sup>[return]</sup> is used.
 	FootnoteReturnLinkContents string
-	// If set, add this text to the front of each Header ID, to ensure
+	// If set, add this text to the front of each Heading ID, to ensure
 	// uniqueness.
-	HeaderIDPrefix string
-	// If set, add this text to the back of each Header ID, to ensure uniqueness.
-	HeaderIDSuffix string
+	HeadingIDPrefix string
+	// If set, add this text to the back of each Heading ID, to ensure uniqueness.
+	HeadingIDSuffix string
 
 	Title string // Document title (used if CompletePage is set)
 	CSS   string // Optional CSS file URL (used if CompletePage is set)
@@ -101,8 +101,8 @@ type HTMLRenderer struct {
 
 	closeTag string // how to end singleton tags: either " />" or ">"
 
-	// Track header IDs to prevent ID collision in a single generation.
-	headerIDs map[string]int
+	// Track heading IDs to prevent ID collision in a single generation.
+	headingIDs map[string]int
 
 	lastOutputLen int
 	disableTags   int
@@ -131,8 +131,8 @@ func NewHTMLRenderer(params HTMLRendererParameters) *HTMLRenderer {
 	return &HTMLRenderer{
 		HTMLRendererParameters: params,
 
-		closeTag:  closeTag,
-		headerIDs: make(map[string]int),
+		closeTag:   closeTag,
+		headingIDs: make(map[string]int),
 
 		sr: NewSmartypantsRenderer(params.Flags),
 	}
@@ -238,20 +238,20 @@ func isRelativeLink(link []byte) (yes bool) {
 	return false
 }
 
-func (r *HTMLRenderer) ensureUniqueHeaderID(id string) string {
-	for count, found := r.headerIDs[id]; found; count, found = r.headerIDs[id] {
+func (r *HTMLRenderer) ensureUniqueHeadingID(id string) string {
+	for count, found := r.headingIDs[id]; found; count, found = r.headingIDs[id] {
 		tmp := fmt.Sprintf("%s-%d", id, count+1)
 
-		if _, tmpFound := r.headerIDs[tmp]; !tmpFound {
-			r.headerIDs[id] = count + 1
+		if _, tmpFound := r.headingIDs[tmp]; !tmpFound {
+			r.headingIDs[id] = count + 1
 			id = tmp
 		} else {
 			id = id + "-1"
 		}
 	}
 
-	if _, found := r.headerIDs[id]; !found {
-		r.headerIDs[id] = 0
+	if _, found := r.headingIDs[id]; !found {
+		r.headingIDs[id] = 0
 	}
 
 	return id
@@ -457,7 +457,7 @@ var (
 	footnotesCloseDivBytes = []byte("\n</div>\n")
 )
 
-func headerTagsFromLevel(level int) ([]byte, []byte) {
+func headingTagsFromLevel(level int) ([]byte, []byte) {
 	switch level {
 	case 1:
 		return h1Tag, h1CloseTag
@@ -619,7 +619,7 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 			// to be added and when not.
 			if node.Prev != nil {
 				switch node.Prev.Type {
-				case HTMLBlock, List, Paragraph, Header, CodeBlock, BlockQuote, HorizontalRule:
+				case HTMLBlock, List, Paragraph, Heading, CodeBlock, BlockQuote, HorizontalRule:
 					r.cr(w)
 				}
 			}
@@ -648,19 +648,19 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 		r.cr(w)
 		r.out(w, node.Literal)
 		r.cr(w)
-	case Header:
-		openTag, closeTag := headerTagsFromLevel(node.Level)
+	case Heading:
+		openTag, closeTag := headingTagsFromLevel(node.Level)
 		if entering {
 			if node.IsTitleblock {
 				attrs = append(attrs, `class="title"`)
 			}
-			if node.HeaderID != "" {
-				id := r.ensureUniqueHeaderID(node.HeaderID)
-				if r.HeaderIDPrefix != "" {
-					id = r.HeaderIDPrefix + id
+			if node.HeadingID != "" {
+				id := r.ensureUniqueHeadingID(node.HeadingID)
+				if r.HeadingIDPrefix != "" {
+					id = r.HeadingIDPrefix + id
 				}
-				if r.HeaderIDSuffix != "" {
-					id = id + r.HeaderIDSuffix
+				if r.HeadingIDSuffix != "" {
+					id = id + r.HeadingIDSuffix
 				}
 				attrs = append(attrs, fmt.Sprintf(`id="%s"`, id))
 			}
@@ -870,15 +870,15 @@ func (r *HTMLRenderer) writeDocumentHeader(w *bytes.Buffer) {
 func (r *HTMLRenderer) writeTOC(w *bytes.Buffer, ast *Node) {
 	buf := bytes.Buffer{}
 
-	inHeader := false
+	inHeading := false
 	tocLevel := 0
-	headerCount := 0
+	headingCount := 0
 
 	ast.Walk(func(node *Node, entering bool) WalkStatus {
-		if node.Type == Header && !node.HeaderData.IsTitleblock {
-			inHeader = entering
+		if node.Type == Heading && !node.HeadingData.IsTitleblock {
+			inHeading = entering
 			if entering {
-				node.HeaderID = fmt.Sprintf("toc_%d", headerCount)
+				node.HeadingID = fmt.Sprintf("toc_%d", headingCount)
 				if node.Level == tocLevel {
 					buf.WriteString("</li>\n\n<li>")
 				} else if node.Level < tocLevel {
@@ -894,15 +894,15 @@ func (r *HTMLRenderer) writeTOC(w *bytes.Buffer, ast *Node) {
 					}
 				}
 
-				fmt.Fprintf(&buf, `<a href="#toc_%d">`, headerCount)
-				headerCount++
+				fmt.Fprintf(&buf, `<a href="#toc_%d">`, headingCount)
+				headingCount++
 			} else {
 				buf.WriteString("</a>")
 			}
 			return GoToNext
 		}
 
-		if inHeader {
+		if inHeading {
 			return r.RenderNode(&buf, node, entering)
 		}
 

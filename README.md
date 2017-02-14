@@ -224,7 +224,7 @@ are a few of note:
 
 *   [github_flavored_markdown](https://godoc.org/github.com/shurcooL/github_flavored_markdown):
     provides a GitHub Flavored Markdown renderer with fenced code block
-    highlighting, clickable header anchor links.
+    highlighting, clickable heading anchor links.
 
     It's not customizable, and its goal is to produce HTML output
     equivalent to the [GitHub Markdown API endpoint](https://developer.github.com/v3/markdown/#render-a-markdown-document-in-raw-mode),
