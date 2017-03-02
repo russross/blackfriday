@@ -59,6 +59,9 @@ const (
 // enabled by default.
 var DefaultOptions = Options{
 	Extensions: CommonExtensions,
+	Renderer: NewHTMLRenderer(HTMLRendererParameters{
+		Flags: CommonHTMLFlags,
+	}),
 }
 
 // ListType contains bitwise or'ed flags for list and list item objects.
@@ -281,18 +284,20 @@ type Options struct {
 	// the override function indicates an override did not occur, the refids at
 	// the bottom will be used to fill in the link details.
 	ReferenceOverride ReferenceOverrideFunc
+
+	// Renderer holds a renderer used to convert the parsed syntax tree to the
+	// desired output form. Blackfriday itself provides one renderer: HTML.
+	Renderer Renderer
 }
 
 // MarkdownBasic is a convenience function for simple rendering.
 // It processes markdown input with no extensions enabled.
 func MarkdownBasic(input []byte) []byte {
-	// set up the HTML renderer
-	renderer := NewHTMLRenderer(HTMLRendererParameters{
-		Flags: UseXHTML,
+	return Markdown(input, Options{
+		Renderer: NewHTMLRenderer(HTMLRendererParameters{
+			Flags: UseXHTML,
+		}),
 	})
-
-	// set up the parser
-	return Markdown(input, renderer, Options{})
 }
 
 // MarkdownCommon is a convenience function for simple rendering. It calls
@@ -314,24 +319,20 @@ func MarkdownBasic(input []byte) []byte {
 //
 // * Custom Heading IDs
 func MarkdownCommon(input []byte) []byte {
-	// set up the HTML renderer
-	renderer := NewHTMLRenderer(HTMLRendererParameters{
-		Flags: CommonHTMLFlags,
-	})
-	return Markdown(input, renderer, DefaultOptions)
+	return Markdown(input, DefaultOptions)
 }
 
 // Markdown is the main rendering function.
 // It parses and renders a block of markdown-encoded text.
-// The supplied Renderer is used to format the output, and extensions dictates
-// which non-standard extensions are enabled.
+// The supplied options contain a Renderer used to format the output, and
+// extensions that dictate which non-standard extensions are enabled.
 //
-// To use the supplied HTML renderer, see NewHTMLRenderer.
-func Markdown(input []byte, renderer Renderer, options Options) []byte {
-	if renderer == nil {
-		return nil
+// If options.Renderer is nil, the supplied HTML renderer is used.
+func Markdown(input []byte, options Options) []byte {
+	if options.Renderer == nil {
+		options.Renderer = DefaultOptions.Renderer
 	}
-	return renderer.Render(Parse(input, options))
+	return options.Renderer.Render(Parse(input, options))
 }
 
 // Parse is an entry point to the parsing part of Blackfriday. It takes an
