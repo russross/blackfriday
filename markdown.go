@@ -56,7 +56,12 @@ const (
 )
 
 // DefaultOptions is a convenience variable with all the options that are
-// enabled by default.
+// enabled by default. Namely, a set of CommonExtensions plus the default
+// HTML renderer configured with a set of CommonHTMLFlags.
+//
+// Do not modify DefaultOptions variable since that might have side effects on
+// later invocations of Markdown* functions. If you need to customize behavior,
+// pass your own copy of Options to the Markdown function.
 var DefaultOptions = Options{
 	Extensions: CommonExtensions,
 	Renderer: NewHTMLRenderer(HTMLRendererParameters{
@@ -301,7 +306,8 @@ func MarkdownBasic(input []byte) []byte {
 }
 
 // MarkdownCommon is a convenience function for simple rendering. It calls
-// Markdown with most useful extensions enabled, including:
+// Markdown with DefaultOptions, which contain the most useful extensions
+// enabled, including:
 //
 // * Smartypants processing with smart fractions and LaTeX dashes
 //
@@ -322,12 +328,12 @@ func MarkdownCommon(input []byte) []byte {
 	return Markdown(input, DefaultOptions)
 }
 
-// Markdown is the main rendering function.
-// It parses and renders a block of markdown-encoded text.
-// The supplied options contain a Renderer used to format the output, and
-// extensions that dictate which non-standard extensions are enabled.
+// Markdown is the main entry point. It parses and renders a block of
+// markdown-formatted text. The supplied options contain a Renderer used to
+// format the output, and extensions that dictate which non-standard extensions
+// are enabled.
 //
-// If options.Renderer is nil, the supplied HTML renderer is used.
+// If options.Renderer is nil, then DefaultOptions.Renderer is used.
 func Markdown(input []byte, options Options) []byte {
 	if options.Renderer == nil {
 		options.Renderer = DefaultOptions.Renderer
