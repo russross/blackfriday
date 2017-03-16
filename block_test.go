@@ -84,7 +84,7 @@ func TestPrefixHeaderNoExtensions(t *testing.T) {
 		"#Header 1 #\\##\n",
 		"<h1>Header 1 ##</h1>\n",
 	}
-	doTestsBlock(t, tests, 0)
+	doTestsBlock(t, tests, NoExtensions)
 }
 
 func TestPrefixHeaderSpaceExtension(t *testing.T) {
@@ -426,7 +426,7 @@ func TestUnderlineHeaders(t *testing.T) {
 		"Double underline\n=====\n=====\n",
 		"<h1>Double underline</h1>\n\n<p>=====</p>\n",
 	}
-	doTestsBlock(t, tests, 0)
+	doTestsBlock(t, tests, NoExtensions)
 }
 
 func TestUnderlineHeadersAutoIDs(t *testing.T) {
@@ -541,7 +541,7 @@ func TestHorizontalRule(t *testing.T) {
 		"---\n***\n___\n",
 		"<hr />\n\n<hr />\n\n<hr />\n",
 	}
-	doTestsBlock(t, tests, 0)
+	doTestsBlock(t, tests, NoExtensions)
 }
 
 func TestUnorderedList(t *testing.T) {
@@ -652,7 +652,7 @@ func TestUnorderedList(t *testing.T) {
 		"* List\n\n    * sublist\n\n    normal text\n\n    * another sublist\n",
 		"<ul>\n<li><p>List</p>\n\n<ul>\n<li>sublist</li>\n</ul>\n\n<p>normal text</p>\n\n<ul>\n<li>another sublist</li>\n</ul></li>\n</ul>\n",
 	}
-	doTestsBlock(t, tests, 0)
+	doTestsBlock(t, tests, NoExtensions)
 }
 
 func TestOrderedList(t *testing.T) {
@@ -748,7 +748,7 @@ func TestOrderedList(t *testing.T) {
 		"1. numbers\n1. are ignored\n",
 		"<ol>\n<li>numbers</li>\n<li>are ignored</li>\n</ol>\n",
 	}
-	doTestsBlock(t, tests, 0)
+	doTestsBlock(t, tests, NoExtensions)
 }
 
 func TestDefinitionList(t *testing.T) {
@@ -903,7 +903,7 @@ func TestPreformattedHtml(t *testing.T) {
 		"Paragraph\n\n<div>\nHow about here? >&<\n</div>\n\nAnd here?\n",
 		"<p>Paragraph</p>\n\n<div>\nHow about here? >&<\n</div>\n\n<p>And here?</p>\n",
 	}
-	doTestsBlock(t, tests, 0)
+	doTestsBlock(t, tests, NoExtensions)
 }
 
 func TestPreformattedHtmlLax(t *testing.T) {
@@ -1483,7 +1483,7 @@ func TestBlockComments(t *testing.T) {
 		"Some text\n\n<!--\n\n<div><p>Commented</p>\n<span>html</span></div>\n-->\n",
 		"<p>Some text</p>\n\n<!--\n\n<div><p>Commented</p>\n<span>html</span></div>\n-->\n",
 	}
-	doTestsBlock(t, tests, 0)
+	doTestsBlock(t, tests, NoExtensions)
 }
 
 func TestTOC(t *testing.T) {
@@ -1602,6 +1602,7 @@ func TestTOC(t *testing.T) {
 		"",
 	}
 	doTestsParam(t, tests, TestParams{
+		Options:   Options{Extensions: NoExtensions},
 		HTMLFlags: UseXHTML | TOC,
 	})
 }
@@ -1628,10 +1629,12 @@ func TestOmitContents(t *testing.T) {
 		"",
 	}
 	doTestsParam(t, tests, TestParams{
+		Options:   Options{Extensions: NoExtensions},
 		HTMLFlags: UseXHTML | TOC | OmitContents,
 	})
 	// Now run again: make sure OmitContents implies TOC
 	doTestsParam(t, tests, TestParams{
+		Options:   Options{Extensions: NoExtensions},
 		HTMLFlags: UseXHTML | OmitContents,
 	})
 }

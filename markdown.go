@@ -24,45 +24,67 @@ const Version = "2.0"
 
 // Extensions is a bitwise or'ed collection of enabled Blackfriday's
 // extensions.
-type Extensions int
+type Extensions int64
 
 // These are the supported markdown parsing extensions.
 // OR these values together to select multiple extensions.
 const (
-	NoExtensions           Extensions = 0
-	NoIntraEmphasis        Extensions = 1 << iota // Ignore emphasis markers inside words
-	Tables                                        // Render tables
-	FencedCode                                    // Render fenced code blocks
-	Autolink                                      // Detect embedded URLs that are not explicitly marked
-	Strikethrough                                 // Strikethrough text using ~~test~~
-	LaxHTMLBlocks                                 // Loosen up HTML block parsing rules
-	SpaceHeadings                                 // Be strict about prefix heading rules
-	HardLineBreak                                 // Translate newlines into line breaks
-	TabSizeEight                                  // Expand tabs to eight spaces instead of four
-	Footnotes                                     // Pandoc-style footnotes
-	NoEmptyLineBeforeBlock                        // No need to insert an empty line to start a (code, quote, ordered list, unordered list) block
-	HeadingIDs                                    // specify heading IDs  with {#id}
-	Titleblock                                    // Titleblock ala pandoc
-	AutoHeadingIDs                                // Create the heading ID from the text
-	BackslashLineBreak                            // Translate trailing backslashes into line breaks
-	DefinitionLists                               // Render definition lists
-
-	CommonHTMLFlags HTMLFlags = UseXHTML | Smartypants |
-		SmartypantsFractions | SmartypantsDashes | SmartypantsLatexDashes
-
-	CommonExtensions Extensions = NoIntraEmphasis | Tables | FencedCode |
-		Autolink | Strikethrough | SpaceHeadings | HeadingIDs |
-		BackslashLineBreak | DefinitionLists
+	NoExtensions           Extensions = 1 << iota
+	NoIntraEmphasis                   // Ignore emphasis markers inside words
+	Tables                            // Render tables
+	FencedCode                        // Render fenced code blocks
+	Autolink                          // Detect embedded URLs that are not explicitly marked
+	Strikethrough                     // Strikethrough text using ~~test~~
+	LaxHTMLBlocks                     // Loosen up HTML block parsing rules
+	SpaceHeadings                     // Be strict about prefix heading rules
+	HardLineBreak                     // Translate newlines into line breaks
+	TabSizeEight                      // Expand tabs to eight spaces instead of four
+	Footnotes                         // Pandoc-style footnotes
+	NoEmptyLineBeforeBlock            // No need to insert an empty line to start a (code, quote, ordered list, unordered list) block
+	HeadingIDs                        // specify heading IDs  with {#id}
+	Titleblock                        // Titleblock ala pandoc
+	AutoHeadingIDs                    // Create the heading ID from the text
+	BackslashLineBreak                // Translate trailing backslashes into line breaks
+	DefinitionLists                   // Render definition lists
 )
 
-// DefaultOptions is a convenience variable with all the options that are
-// enabled by default. Namely, a set of CommonExtensions plus the default
-// HTML renderer configured with a set of CommonHTMLFlags.
+// CommonHTMLFlags defines the common options for the default HTML renderer.
+const CommonHTMLFlags HTMLFlags = UseXHTML | Smartypants |
+	SmartypantsFractions | SmartypantsDashes | SmartypantsLatexDashes
+
+// CommonExtensions is a combination of flags that enable the most
+// widespread/useful markdown parsing extensions:
 //
-// Do not modify DefaultOptions variable since that might have side effects on
-// later invocations of Markdown* functions. If you need to customize behavior,
-// pass your own copy of Options to the Markdown function.
-var DefaultOptions = Options{
+// * Intra-word emphasis suppression
+//
+// * Tables
+//
+// * Fenced code blocks
+//
+// * Autolinking
+//
+// * Strikethrough support
+//
+// * Strict heading parsing
+//
+// * Custom Heading IDs
+//
+// * Backslash line breaks
+//
+// * Definition lists
+const CommonExtensions Extensions = NoIntraEmphasis | Tables | FencedCode |
+	Autolink | Strikethrough | SpaceHeadings | HeadingIDs |
+	BackslashLineBreak | DefinitionLists
+
+// ZeroOptions is a convenience variable to call Parse or Markdown with all
+// extensions suppressed.
+var ZeroOptions = Options{
+	Extensions: NoExtensions,
+}
+
+// defaultOptions is a single point of truth for default options, to make sure
+// the tests and code use the same.
+var defaultOptions = Options{
 	Extensions: CommonExtensions,
 	Renderer: NewHTMLRenderer(HTMLRendererParameters{
 		Flags: CommonHTMLFlags,
@@ -295,63 +317,36 @@ type Options struct {
 	Renderer Renderer
 }
 
-// MarkdownBasic is a convenience function for simple rendering.
-// It processes markdown input with no extensions enabled.
-func MarkdownBasic(input []byte) []byte {
-	return Markdown(input, Options{
-		Renderer: NewHTMLRenderer(HTMLRendererParameters{
-			Flags: UseXHTML,
-		}),
-	})
-}
-
-// MarkdownCommon is a convenience function for simple rendering. It calls
-// Markdown with DefaultOptions, which contain the most useful extensions
-// enabled, including:
-//
-// * Smartypants processing with smart fractions and LaTeX dashes
-//
-// * Intra-word emphasis suppression
-//
-// * Tables
-//
-// * Fenced code blocks
-//
-// * Autolinking
-//
-// * Strikethrough support
-//
-// * Strict heading parsing
-//
-// * Custom Heading IDs
-func MarkdownCommon(input []byte) []byte {
-	return Markdown(input, DefaultOptions)
-}
-
 // Markdown is the main entry point. It parses and renders a block of
 // markdown-formatted text. The supplied options contain a Renderer used to
 // format the output, and extensions that dictate which non-standard extensions
 // are enabled.
 //
-// If options.Renderer is nil, then DefaultOptions.Renderer is used.
+// If the zero object Options{} is passed for options, CommonExtensions and the
+// default HTML renderer are used.
+//
+// If you want to suppress extensions, pass ZeroOptions.
 func Markdown(input []byte, options Options) []byte {
-	if options.Renderer == nil {
-		options.Renderer = DefaultOptions.Renderer
+	r := options.Renderer
+	if r == nil {
+		r = defaultOptions.Renderer
 	}
-	return options.Renderer.Render(Parse(input, options))
+	return r.Render(Parse(input, options))
 }
 
 // Parse is an entry point to the parsing part of Blackfriday. It takes an
 // input markdown document and produces a syntax tree for its contents. This
 // tree can then be rendered with a default or custom renderer, or
 // analyzed/transformed by the caller to whatever non-standard needs they have.
-func Parse(input []byte, opts Options) *Node {
-	extensions := opts.Extensions
-
-	// fill in the render structure
+func Parse(input []byte, options Options) *Node {
+	extensions := options.Extensions
+	if extensions == 0 {
+		extensions = defaultOptions.Extensions
+	}
+	// fill in the parser structure
 	p := new(parser)
 	p.flags = extensions
-	p.refOverride = opts.ReferenceOverride
+	p.refOverride = options.ReferenceOverride
 	p.refs = make(map[string]*reference)
 	p.maxNesting = 16
 	p.insideLink = false
