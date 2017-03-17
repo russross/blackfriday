@@ -1713,3 +1713,28 @@ func TestIsFenceLine(t *testing.T) {
 		}
 	}
 }
+
+func TestJoinLines(t *testing.T) {
+	input := `# 标题
+
+第一
+行文字。
+
+第
+二
+行文字。
+`
+	result := `<h1>标题</h1>
+
+<p>第一行文字。</p>
+
+<p>第二行文字。</p>
+`
+	opt := Options{Extensions: commonExtensions | EXTENSION_JOIN_LINES}
+	renderer := HtmlRenderer(commonHtmlFlags, "", "")
+	output := MarkdownOptions([]byte(input), renderer, opt)
+
+	if string(output) != result {
+		t.Error("output dose not match.")
+	}
+}

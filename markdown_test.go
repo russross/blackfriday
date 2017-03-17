@@ -14,8 +14,6 @@
 package blackfriday
 
 import (
-	"io/ioutil"
-	"os"
 	"testing"
 )
 
@@ -74,32 +72,4 @@ func TestDocument(t *testing.T) {
 		"<p>[</p>\n",
 	}
 	doTests(t, tests)
-}
-
-func TestJoinLines(t *testing.T) {
-	result := `<h1>标题</h1>
-
-<p>第一行文字。</p>
-
-<p>第二行文字。</p>
-`
-
-	file, err := os.Open("testdata/zhJoinLines.text")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer file.Close()
-
-	input, err := ioutil.ReadAll(file)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	opt := Options{Extensions: commonExtensions | EXTENSION_JOIN_LINES}
-	renderer := HtmlRenderer(commonHtmlFlags, "", "")
-	output := MarkdownOptions(input, renderer, opt)
-
-	if string(output) != result {
-		t.Error("output dose not match.")
-	}
 }
