@@ -4,6 +4,7 @@ package mmark
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -159,6 +160,9 @@ func (options *xml2) TitleBlockTOML(out *bytes.Buffer, block *title) {
 			obsoletes[i] = strconv.Itoa(options.titleBlock.Obsoletes[i])
 		}
 		out.WriteString(" obsoletes=\"" + strings.Join(obsoletes, ", ") + "\"")
+	}
+	if options.titleBlock.Number > 0 {
+		out.WriteString(fmt.Sprintf(" number=\"%d\"", options.titleBlock.Number))
 	}
 	out.WriteString(">\n")
 

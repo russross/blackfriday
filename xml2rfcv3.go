@@ -153,6 +153,9 @@ func (options *xml) TitleBlockTOML(out *bytes.Buffer, block *title) {
 	out.WriteString("<rfc xmlns:xi=\"http://www.w3.org/2001/XInclude\"")
 	out.WriteString(" ipr=\"" + options.titleBlock.Ipr + "\"")
 	out.WriteString(" category=\"" + options.titleBlock.Category + "\"")
+	if options.titleBlock.Number > 0 {
+		out.WriteString(fmt.Sprintf(" number=\"%d\"", options.titleBlock.Number))
+	}
 	out.WriteString(" docName=\"" + options.titleBlock.DocName + "\">")
 	if len(options.titleBlock.Updates) > 0 {
 		updates := make([]string, len(options.titleBlock.Updates))

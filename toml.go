@@ -72,6 +72,7 @@ type title struct {
 	DocName        string
 	Ipr            string
 	Category       string
+	Number         int // RFC number
 	Obsoletes      []int
 	Updates        []int
 	PI             pi // Processing Instructions
