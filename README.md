@@ -1,6 +1,6 @@
 # Mmark
 
-Mmark is a powerful markdown processor Go geared towards writing IETF document.s It is, however,
+Mmark is a powerful markdown processor Go geared towards writing IETF documents. It is, however,
 also suited for writing books and other technical documentation.
 
 Further documentation can be [found at my site](https://miek.nl/tags/mmark/). A complete syntax
