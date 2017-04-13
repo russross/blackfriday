@@ -18,6 +18,7 @@ package blackfriday
 import (
 	"bytes"
 	"fmt"
+	"html"
 	"regexp"
 	"strconv"
 	"strings"
@@ -34,6 +35,7 @@ const (
 	HTML_NOREFERRER_LINKS                      // only link with rel="noreferrer"
 	HTML_HREF_TARGET_BLANK                     // add a blank target
 	HTML_TOC                                   // generate a table of contents
+	HTML_TOC_MD                                // If HTML_TOC, generate Markdown code (default is HTML).
 	HTML_OMIT_CONTENTS                         // skip the main contents (for a standalone table of contents)
 	HTML_COMPLETE_PAGE                         // generate a complete HTML page
 	HTML_USE_XHTML                             // generate XHTML output instead of HTML
@@ -70,6 +72,9 @@ type HtmlRendererParameters struct {
 	HeaderIDPrefix string
 	// If set, add this text to the back of each Header ID, to ensure uniqueness.
 	HeaderIDSuffix string
+	// SanitizedAnchorNameOverride is an optional func to override
+	// the behavior for creating sanitized anchor names.
+	SanitizedAnchorNameOverride SanitizedAnchorNameFunc
 }
 
 // Html is a type that implements the Renderer interface for HTML output.
@@ -483,9 +488,15 @@ func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 }
 
 func (options *Html) CodeSpan(out *bytes.Buffer, text []byte) {
-	out.WriteString("<code>")
-	attrEscape(out, text)
-	out.WriteString("</code>")
+	if options.flags&HTML_TOC_MD == 0 {
+		out.WriteString("<code>")
+		attrEscape(out, text)
+		out.WriteString("</code>")
+	} else {
+		out.WriteString("`")
+		out.Write(text)
+		out.WriteString("`")
+	}
 }
 
 func (options *Html) DoubleEmphasis(out *bytes.Buffer, text []byte) {
@@ -729,9 +740,13 @@ func (options *Html) DocumentFooter(out *bytes.Buffer) {
 		}
 
 		// insert the table of contents
-		out.WriteString("<nav>\n")
-		out.Write(options.toc.Bytes())
-		out.WriteString("</nav>\n")
+		if options.flags&HTML_TOC_MD == 0 {
+			out.WriteString("<nav>\n")
+			out.Write(options.toc.Bytes())
+			out.WriteString("</nav>\n")
+		} else {
+			out.Write(options.toc.Bytes())
+		}
 
 		// corner case spacing issue
 		if options.flags&HTML_COMPLETE_PAGE == 0 && options.flags&HTML_OMIT_CONTENTS == 0 {
@@ -751,7 +766,21 @@ func (options *Html) DocumentFooter(out *bytes.Buffer) {
 
 }
 
+func (options *Html) mdTocHeaderWithAnchor(text []byte, level int) {
+	options.toc.WriteString(strings.Repeat(" ", level-1))
+
+	options.toc.WriteString("-\t[")
+	options.toc.Write(text)
+	options.toc.WriteString("](#")
+	options.toc.WriteString(options.parameters.SanitizedAnchorNameOverride(html.UnescapeString(string(text))))
+	options.toc.WriteString(")\n")
+}
+
 func (options *Html) TocHeaderWithAnchor(text []byte, level int, anchor string) {
+	if options.flags&HTML_TOC_MD != 0 {
+		options.mdTocHeaderWithAnchor(text, level)
+		return
+	}
 	for level > options.currentLevel {
 		switch {
 		case bytes.HasSuffix(options.toc.Bytes(), []byte("</li>\n")):
@@ -802,7 +831,7 @@ func (options *Html) TocFinalize() {
 		options.currentLevel--
 	}
 
-	if options.currentLevel > 0 {
+	if options.currentLevel > 0 && options.flags&HTML_TOC_MD == 0 {
 		options.toc.WriteString("</ul>\n")
 	}
 }
