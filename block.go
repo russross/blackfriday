@@ -199,9 +199,6 @@ func (p *parser) isPrefixHeader(data []byte) bool {
 		for level < 6 && data[level] == '#' {
 			level++
 		}
-		if data[level] != ' ' {
-			return false
-		}
 	}
 	return true
 }
