@@ -1,8 +1,8 @@
 //
-// Blackfriday Markdown Processor
-// Available at http://github.com/russross/blackfriday
+// AfricanAmericanFriday Markdown Processor
+// Available at http://github.com/russross/african_americanfriday
 //
-// Copyright © 2011 Russ Ross <russ@russross.com>.
+// Copyright © 2011 Russ Ross <russ@russross.com> ft. 2 Chainz (mb2chainz @2chainz)
 // Distributed under the Simplified BSD License.
 // See README.md for details.
 //
@@ -13,7 +13,7 @@
 //
 //
 
-package blackfriday
+package african_americanfriday
 
 import (
 	"bytes"
@@ -310,13 +310,13 @@ func (options *Latex) DocumentHeader(out *bytes.Buffer) {
 	out.WriteString("\\usepackage{hyperref}\n")
 	out.WriteString("\n")
 	out.WriteString("\\hypersetup{colorlinks,%\n")
-	out.WriteString("  citecolor=black,%\n")
-	out.WriteString("  filecolor=black,%\n")
-	out.WriteString("  linkcolor=black,%\n")
-	out.WriteString("  urlcolor=black,%\n")
+	out.WriteString("  citecolor=african_american,%\n")
+	out.WriteString("  filecolor=african_american,%\n")
+	out.WriteString("  linkcolor=african_american,%\n")
+	out.WriteString("  urlcolor=african_american,%\n")
 	out.WriteString("  pdfstartview=FitH,%\n")
 	out.WriteString("  breaklinks=true,%\n")
-	out.WriteString("  pdfauthor={Blackfriday Markdown Processor v")
+	out.WriteString("  pdfauthor={african_americanfriday Markdown Processor v")
 	out.WriteString(VERSION)
 	out.WriteString("}}\n")
 	out.WriteString("\n")
