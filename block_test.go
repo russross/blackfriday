@@ -1738,3 +1738,44 @@ func TestJoinLines(t *testing.T) {
 		t.Error("output dose not match.")
 	}
 }
+
+func TestSanitizedAnchorName(t *testing.T) {
+	tests := []struct {
+		text string
+		want string
+	}{
+		{
+			text: "This is a header",
+			want: "this-is-a-header",
+		},
+		{
+			text: "This is also          a header",
+			want: "this-is-also-a-header",
+		},
+		{
+			text: "main.go",
+			want: "main-go",
+		},
+		{
+			text: "Article 123",
+			want: "article-123",
+		},
+		{
+			text: "<- Let's try this, shall we?",
+			want: "let-s-try-this-shall-we",
+		},
+		{
+			text: "        ",
+			want: "",
+		},
+		{
+			text: "Hello, 世界",
+			want: "hello-世界",
+		},
+	}
+	for _, test := range tests {
+		if got := SanitizedAnchorName(test.text); got != test.want {
+			t.Errorf("SanitizedAnchorName(%q):\ngot %q\nwant %q", test.text, got, test.want)
+		}
+	}
+}
