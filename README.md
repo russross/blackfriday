@@ -1,6 +1,8 @@
-Blackfriday [![Build Status][BuildSVG]][BuildURL]
+[![Build Status][BuildSVG]][BuildURL]
 [![Godoc][GodocV1SVG]][GodocV1URL] (V1)
 [![Godoc][GodocV2SVG]][GodocV2URL] (V2)
+
+Blackfriday
 ===========
 
 Blackfriday is a [Markdown][1] processor implemented in [Go][2]. It
