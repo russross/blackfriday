@@ -253,7 +253,7 @@ func TestPrefixHeaderIdExtensionWithPrefixAndSuffix(t *testing.T) {
 	}
 
 	doTestsParam(t, tests, TestParams{
-		Options:                Options{Extensions: HeadingIDs},
+		extensions:             HeadingIDs,
 		HTMLFlags:              UseXHTML,
 		HTMLRendererParameters: parameters,
 	})
@@ -365,7 +365,7 @@ func TestPrefixAutoHeaderIdExtensionWithPrefixAndSuffix(t *testing.T) {
 	}
 
 	doTestsParam(t, tests, TestParams{
-		Options:                Options{Extensions: AutoHeadingIDs},
+		extensions:             AutoHeadingIDs,
 		HTMLFlags:              UseXHTML,
 		HTMLRendererParameters: parameters,
 	})

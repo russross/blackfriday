@@ -55,12 +55,6 @@ const (
 		BackslashLineBreak | DefinitionLists
 )
 
-// DefaultOptions is a convenience variable with all the options that are
-// enabled by default.
-var DefaultOptions = Options{
-	Extensions: CommonExtensions,
-}
-
 // ListType contains bitwise or'ed flags for list and list item objects.
 type ListType int
 
@@ -160,11 +154,11 @@ type Renderer interface {
 
 // Callback functions for inline parsing. One such function is defined
 // for each character that triggers a response when parsing inline data.
-type inlineParser func(p *parser, data []byte, offset int) (int, *Node)
+type inlineParser func(p *Parser, data []byte, offset int) (int, *Node)
 
 // Parser holds runtime state used by the parser.
 // This is constructed by the Markdown function.
-type parser struct {
+type Parser struct {
 	refOverride    ReferenceOverrideFunc
 	refs           map[string]*reference
 	inlineCallback [256]inlineParser
@@ -185,7 +179,7 @@ type parser struct {
 	allClosed            bool
 }
 
-func (p *parser) getRef(refid string) (ref *reference, found bool) {
+func (p *Parser) getRef(refid string) (ref *reference, found bool) {
 	if p.refOverride != nil {
 		r, overridden := p.refOverride(refid)
 		if overridden {
@@ -205,17 +199,17 @@ func (p *parser) getRef(refid string) (ref *reference, found bool) {
 	return ref, found
 }
 
-func (p *parser) finalize(block *Node) {
+func (p *Parser) finalize(block *Node) {
 	above := block.Parent
 	block.open = false
 	p.tip = above
 }
 
-func (p *parser) addChild(node NodeType, offset uint32) *Node {
+func (p *Parser) addChild(node NodeType, offset uint32) *Node {
 	return p.addExistingChild(NewNode(node), offset)
 }
 
-func (p *parser) addExistingChild(node *Node, offset uint32) *Node {
+func (p *Parser) addExistingChild(node *Node, offset uint32) *Node {
 	for !p.tip.canContain(node.Type) {
 		p.finalize(p.tip)
 	}
@@ -224,7 +218,7 @@ func (p *parser) addExistingChild(node *Node, offset uint32) *Node {
 	return node
 }
 
-func (p *parser) closeUnmatchedBlocks() {
+func (p *Parser) closeUnmatchedBlocks() {
 	if !p.allClosed {
 		for p.oldTip != p.lastMatchedContainer {
 			parent := p.oldTip.Parent
@@ -259,108 +253,46 @@ type Reference struct {
 // See the documentation in Options for more details on use-case.
 type ReferenceOverrideFunc func(reference string) (ref *Reference, overridden bool)
 
-// Options represents configurable overrides and callbacks (in addition to the
-// extension flag set) for configuring a Markdown parse.
-type Options struct {
-	// Extensions is a flag set of bit-wise ORed extension bits. See the
-	// Extensions flags defined in this package.
-	Extensions Extensions
-
-	// ReferenceOverride is an optional function callback that is called every
-	// time a reference is resolved.
-	//
-	// In Markdown, the link reference syntax can be made to resolve a link to
-	// a reference instead of an inline URL, in one of the following ways:
-	//
-	//  * [link text][refid]
-	//  * [refid][]
-	//
-	// Usually, the refid is defined at the bottom of the Markdown document. If
-	// this override function is provided, the refid is passed to the override
-	// function first, before consulting the defined refids at the bottom. If
-	// the override function indicates an override did not occur, the refids at
-	// the bottom will be used to fill in the link details.
-	ReferenceOverride ReferenceOverrideFunc
+// Processor contains all the state necessary for Blackfriday to operate.
+type Processor struct {
+	r                 Renderer
+	extensions        Extensions
+	referenceOverride ReferenceOverrideFunc
 }
 
-// MarkdownBasic is a convenience function for simple rendering.
-// It processes markdown input with no extensions enabled.
-func MarkdownBasic(input []byte) []byte {
-	// set up the HTML renderer
-	renderer := NewHTMLRenderer(HTMLRendererParameters{
-		Flags: UseXHTML,
-	})
-
-	// set up the parser
-	return Markdown(input, renderer, Options{})
-}
-
-// MarkdownCommon is a convenience function for simple rendering. It calls
-// Markdown with most useful extensions enabled, including:
-//
-// * Smartypants processing with smart fractions and LaTeX dashes
-//
-// * Intra-word emphasis suppression
-//
-// * Tables
-//
-// * Fenced code blocks
-//
-// * Autolinking
-//
-// * Strikethrough support
-//
-// * Strict heading parsing
-//
-// * Custom Heading IDs
-func MarkdownCommon(input []byte) []byte {
-	// set up the HTML renderer
-	renderer := NewHTMLRenderer(HTMLRendererParameters{
-		Flags: CommonHTMLFlags,
-	})
-	return Markdown(input, renderer, DefaultOptions)
-}
-
-// Markdown is the main rendering function.
-// It parses and renders a block of markdown-encoded text.
-// The supplied Renderer is used to format the output, and extensions dictates
-// which non-standard extensions are enabled.
-//
-// To use the supplied HTML renderer, see NewHTMLRenderer.
-func Markdown(input []byte, renderer Renderer, options Options) []byte {
-	if renderer == nil {
-		return nil
+// DefaultProcessor creates the processor tuned to the most common behavior.
+func DefaultProcessor() *Processor {
+	return &Processor{
+		r: NewHTMLRenderer(HTMLRendererParameters{
+			Flags: CommonHTMLFlags,
+		}),
+		extensions: CommonExtensions,
 	}
-	return renderer.Render(Parse(input, options))
 }
 
-// Parse is an entry point to the parsing part of Blackfriday. It takes an
-// input markdown document and produces a syntax tree for its contents. This
-// tree can then be rendered with a default or custom renderer, or
-// analyzed/transformed by the caller to whatever non-standard needs they have.
-func Parse(input []byte, opts Options) *Node {
-	extensions := opts.Extensions
-
-	// fill in the render structure
-	p := new(parser)
-	p.flags = extensions
-	p.refOverride = opts.ReferenceOverride
+// NewParser constructs a Parser. You can use the same With* functions as for
+// Markdown() to customize parser's behavior.
+func (proc *Processor) NewParser(opts ...Option) *Parser {
+	for _, opt := range opts {
+		opt(proc)
+	}
+	var p Parser
+	p.flags = proc.extensions
+	p.refOverride = proc.referenceOverride
 	p.refs = make(map[string]*reference)
 	p.maxNesting = 16
 	p.insideLink = false
-
 	docNode := NewNode(Document)
 	p.doc = docNode
 	p.tip = docNode
 	p.oldTip = docNode
 	p.lastMatchedContainer = docNode
 	p.allClosed = true
-
 	// register inline parsers
 	p.inlineCallback[' '] = maybeLineBreak
 	p.inlineCallback['*'] = emphasis
 	p.inlineCallback['_'] = emphasis
-	if extensions&Strikethrough != 0 {
+	if proc.extensions&Strikethrough != 0 {
 		p.inlineCallback['~'] = emphasis
 	}
 	p.inlineCallback['`'] = codeSpan
@@ -371,8 +303,7 @@ func Parse(input []byte, opts Options) *Node {
 	p.inlineCallback['&'] = entity
 	p.inlineCallback['!'] = maybeImage
 	p.inlineCallback['^'] = maybeInlineFootnote
-
-	if extensions&Autolink != 0 {
+	if proc.extensions&Autolink != 0 {
 		p.inlineCallback['h'] = maybeAutoLink
 		p.inlineCallback['m'] = maybeAutoLink
 		p.inlineCallback['f'] = maybeAutoLink
@@ -380,11 +311,90 @@ func Parse(input []byte, opts Options) *Node {
 		p.inlineCallback['M'] = maybeAutoLink
 		p.inlineCallback['F'] = maybeAutoLink
 	}
-
-	if extensions&Footnotes != 0 {
+	if proc.extensions&Footnotes != 0 {
 		p.notes = make([]*reference, 0)
 	}
+	return &p
+}
 
+// Option customizes Processor's default behavior.
+type Option func(*Processor)
+
+// WithRenderer allows you to override the default renderer.
+func WithRenderer(r Renderer) Option {
+	return func(p *Processor) {
+		p.r = r
+	}
+}
+
+// WithExtensions allows you to pick some of the many extensions provided by
+// Blackfriday. You can bitwise OR them.
+func WithExtensions(e Extensions) Option {
+	return func(p *Processor) {
+		p.extensions = e
+	}
+}
+
+// WithNoExtensions turns off all extensions and custom behavior.
+func WithNoExtensions() Option {
+	return func(p *Processor) {
+		p.extensions = NoExtensions
+		p.r = NewHTMLRenderer(HTMLRendererParameters{
+			Flags: HTMLFlagsNone,
+		})
+	}
+}
+
+// WithRefOverride sets an optional function callback that is called every
+// time a reference is resolved.
+//
+// In Markdown, the link reference syntax can be made to resolve a link to
+// a reference instead of an inline URL, in one of the following ways:
+//
+//  * [link text][refid]
+//  * [refid][]
+//
+// Usually, the refid is defined at the bottom of the Markdown document. If
+// this override function is provided, the refid is passed to the override
+// function first, before consulting the defined refids at the bottom. If
+// the override function indicates an override did not occur, the refids at
+// the bottom will be used to fill in the link details.
+func WithRefOverride(o ReferenceOverrideFunc) Option {
+	return func(p *Processor) {
+		p.referenceOverride = o
+	}
+}
+
+// Markdown is the main entry point to Blackfriday. It parses and renders a
+// block of markdown-encoded text.
+//
+// The simplest invocation of Markdown takes one argument, input:
+//     output := Markdown(input)
+// This will parse the input with CommonExtensions enabled and render it with
+// the default HTMLRenderer (with CommonHTMLFlags).
+//
+// Variadic arguments opts can customize the default behavior. Since Processor
+// type does not contain exported fields, you can not use it directly. Instead,
+// use the With* functions. For example, this will call the most basic
+// functionality, with no extensions:
+//     output := Markdown(input, WithNoExtensions())
+//
+// You can use any number of With* arguments, even contradicting ones. They
+// will be applied in order of appearance and the latter will override the
+// former:
+//     output := Markdown(input, WithNoExtensions(), WithExtensions(exts),
+//         WithRenderer(yourRenderer))
+func Markdown(input []byte, opts ...Option) []byte {
+	p := DefaultProcessor()
+	parser := p.NewParser(opts...)
+	return p.r.Render(parser.Parse(input))
+}
+
+// Parse is an entry point to the parsing part of Blackfriday. It takes an
+// input markdown document and produces a syntax tree for its contents. This
+// tree can then be rendered with a default or custom renderer, or
+// analyzed/transformed by the caller to whatever non-standard needs they have.
+func (p *Parser) Parse(input []byte) *Node {
 	p.block(input)
 	// Walk the tree and finish up some of unfinished blocks
 	for p.tip != nil {
@@ -402,7 +412,7 @@ func Parse(input []byte, opts Options) *Node {
 	return p.doc
 }
 
-func (p *parser) parseRefsToAST() {
+func (p *Parser) parseRefsToAST() {
 	if p.flags&Footnotes == 0 || len(p.notes) == 0 {
 		return
 	}
@@ -527,7 +537,7 @@ func (r *reference) String() string {
 // (in the render struct).
 // Returns the number of bytes to skip to move past it,
 // or zero if the first line is not a reference.
-func isReference(p *parser, data []byte, tabSize int) int {
+func isReference(p *Parser, data []byte, tabSize int) int {
 	// up to 3 optional leading spaces
 	if len(data) < 4 {
 		return 0
@@ -630,7 +640,7 @@ func isReference(p *parser, data []byte, tabSize int) int {
 	return lineEnd
 }
 
-func scanLinkRef(p *parser, data []byte, i int) (linkOffset, linkEnd, titleOffset, titleEnd, lineEnd int) {
+func scanLinkRef(p *Parser, data []byte, i int) (linkOffset, linkEnd, titleOffset, titleEnd, lineEnd int) {
 	// link: whitespace-free sequence, optionally between angle brackets
 	if data[i] == '<' {
 		i++
@@ -698,13 +708,13 @@ func scanLinkRef(p *parser, data []byte, i int) (linkOffset, linkEnd, titleOffse
 	return
 }
 
-// The first bit of this logic is the same as (*parser).listItem, but the rest
+// The first bit of this logic is the same as Parser.listItem, but the rest
 // is much simpler. This function simply finds the entire block and shifts it
 // over by one tab if it is indeed a block (just returns the line if it's not).
 // blockEnd is the end of the section in the input buffer, and contents is the
 // extracted text that was shifted over one tab. It will need to be rendered at
 // the end of the document.
-func scanFootnote(p *parser, data []byte, i, indentSize int) (blockStart, blockEnd int, contents []byte, hasBlock bool) {
+func scanFootnote(p *Parser, data []byte, i, indentSize int) (blockStart, blockEnd int, contents []byte, hasBlock bool) {
 	if i == 0 || len(data) == 0 {
 		return
 	}

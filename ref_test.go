@@ -80,7 +80,7 @@ func TestReference_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
 var benchResultAnchor string
 
 func BenchmarkReference(b *testing.B) {
-	params := TestParams{Options: Options{Extensions: CommonExtensions}}
+	params := TestParams{extensions: CommonExtensions}
 	files := []string{
 		"Amps and angle encoding",
 		"Auto links",
