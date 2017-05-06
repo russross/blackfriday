@@ -21,15 +21,10 @@ Installation
 Blackfriday is compatible with any modern Go release. With Go 1.7 and git
 installed:
 
-    go get gopkg.in/russross/blackfriday.v2
+    go get -u gopkg.in/russross/blackfriday.v2
 
 will download, compile, and install the package into your `$GOPATH`
-directory hierarchy. Alternatively, you can achieve the same if you
-import it into a project:
-
-    import "gopkg.in/russross/blackfriday.v2"
-
-and `go get` without parameters.
+directory hierarchy.
 
 
 Versions
@@ -55,8 +50,9 @@ Potential drawbacks:
 * API breakage. If you can't afford modifying your code to adhere to the new API
   and don't care too much about the new features, v2 is probably not for you.
 
-Documentation for the legacy v1 can be found here:
-https://godoc.org/github.com/russross/blackfriday
+If you are still interested in the legacy `v1`, you can import it from
+`github.com/russross/blackfriday`. Documentation for the legacy v1 can be found
+here: https://godoc.org/github.com/russross/blackfriday
 
 
 Usage
@@ -83,11 +79,11 @@ Here's an example of simple usage of Blackfriday together with Bluemonday:
 ``` go
 import (
     "github.com/microcosm-cc/bluemonday"
-    "github.com/russross/blackfriday"
+    "gopkg.in/russross/blackfriday.v2"
 )
 
 // ...
-unsafe := blackfriday.MarkdownCommon(input)
+unsafe := blackfriday.Markdown(input)
 html := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
 ```
 
