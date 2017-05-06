@@ -1,8 +1,6 @@
-[![Build Status][BuildSVG]][BuildURL]
-[![Godoc][GodocV1SVG]][GodocV1URL] (V1)
-[![Godoc][GodocV2SVG]][GodocV2URL] (V2)
-
 Blackfriday
+[![Build Status][BuildSVG]][BuildURL]
+[![Godoc][GodocV2SVG]][GodocV2URL]
 ===========
 
 Blackfriday is a [Markdown][1] processor implemented in [Go][2]. It
@@ -56,6 +54,9 @@ Potential drawbacks:
   ballpark of around 15%.
 * API breakage. If you can't afford modifying your code to adhere to the new API
   and don't care too much about the new features, v2 is probably not for you.
+
+Documentation for the legacy v1 can be found here:
+https://godoc.org/github.com/russross/blackfriday
 
 
 Usage
@@ -311,7 +312,5 @@ License
 
    [BuildSVG]: https://travis-ci.org/russross/blackfriday.svg?branch=master
    [BuildURL]: https://travis-ci.org/russross/blackfriday
-   [GodocV1SVG]: https://godoc.org/github.com/russross/blackfriday?status.svg
-   [GodocV1URL]: https://godoc.org/github.com/russross/blackfriday
    [GodocV2SVG]: https://godoc.org/gopkg.in/russross/blackfriday.v2?status.svg
    [GodocV2URL]: https://godoc.org/gopkg.in/russross/blackfriday.v2
