@@ -615,6 +615,16 @@ func TestRelAttrLink(t *testing.T) {
 	doTestsInlineParam(t, noreferrerTests, Options{}, HTML_SAFELINK|HTML_NOREFERRER_LINKS,
 		HtmlRendererParameters{})
 
+	var noopenerTests = []string{
+		"[foo](http://bar.com/foo/)\n",
+		"<p><a href=\"http://bar.com/foo/\" rel=\"noopener\">foo</a></p>\n",
+
+		"[foo](/bar/)\n",
+		"<p><a href=\"/bar/\">foo</a></p>\n",
+	}
+	doTestsInlineParam(t, noopenerTests, Options{}, HTML_SAFELINK|HTML_NOOPENER_LINKS,
+		HtmlRendererParameters{})
+
 	var nofollownoreferrerTests = []string{
 		"[foo](http://bar.com/foo/)\n",
 		"<p><a href=\"http://bar.com/foo/\" rel=\"nofollow noreferrer\">foo</a></p>\n",
@@ -623,6 +633,36 @@ func TestRelAttrLink(t *testing.T) {
 		"<p><a href=\"/bar/\">foo</a></p>\n",
 	}
 	doTestsInlineParam(t, nofollownoreferrerTests, Options{}, HTML_SAFELINK|HTML_NOFOLLOW_LINKS|HTML_NOREFERRER_LINKS,
+		HtmlRendererParameters{})
+
+	var nofollownoopenerTests = []string{
+		"[foo](http://bar.com/foo/)\n",
+		"<p><a href=\"http://bar.com/foo/\" rel=\"nofollow noopener\">foo</a></p>\n",
+
+		"[foo](/bar/)\n",
+		"<p><a href=\"/bar/\">foo</a></p>\n",
+	}
+	doTestsInlineParam(t, nofollownoopenerTests, Options{}, HTML_SAFELINK|HTML_NOFOLLOW_LINKS|HTML_NOOPENER_LINKS,
+		HtmlRendererParameters{})
+
+	var noreferrernoopenerTests = []string{
+		"[foo](http://bar.com/foo/)\n",
+		"<p><a href=\"http://bar.com/foo/\" rel=\"noreferrer noopener\">foo</a></p>\n",
+
+		"[foo](/bar/)\n",
+		"<p><a href=\"/bar/\">foo</a></p>\n",
+	}
+	doTestsInlineParam(t, noreferrernoopenerTests, Options{}, HTML_SAFELINK|HTML_NOREFERRER_LINKS|HTML_NOOPENER_LINKS,
+		HtmlRendererParameters{})
+
+	var nofollownoreferrernoopenerTests = []string{
+		"[foo](http://bar.com/foo/)\n",
+		"<p><a href=\"http://bar.com/foo/\" rel=\"nofollow noreferrer noopener\">foo</a></p>\n",
+
+		"[foo](/bar/)\n",
+		"<p><a href=\"/bar/\">foo</a></p>\n",
+	}
+	doTestsInlineParam(t, nofollownoreferrernoopenerTests, Options{}, HTML_SAFELINK|HTML_NOFOLLOW_LINKS|HTML_NOREFERRER_LINKS|HTML_NOOPENER_LINKS,
 		HtmlRendererParameters{})
 }
 
