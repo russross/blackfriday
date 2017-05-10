@@ -570,13 +570,16 @@ func TestInlineLink(t *testing.T) {
 
 		// no closing ), autolinking detects the url next
 		"[disambiguation](http://en.wikipedia.org/wiki/Disambiguation_(disambiguation) is the",
-		"<p>[disambiguation](<a href=\"http://en.wikipedia.org/wiki/Disambiguation_(disambiguation\">http://en.wikipedia.org/wiki/Disambiguation_(disambiguation</a>) is the</p>\n",
+		"<p>[disambiguation](<a href=\"http://en.wikipedia.org/wiki/Disambiguation_(disambiguation)\">http://en.wikipedia.org/wiki/Disambiguation_(disambiguation)</a> is the</p>\n",
 
 		"[disambiguation](http://en.wikipedia.org/wiki/Disambiguation_(disambiguation)) is the",
 		"<p><a href=\"http://en.wikipedia.org/wiki/Disambiguation_(disambiguation)\">disambiguation</a> is the</p>\n",
 
 		"[disambiguation](http://en.wikipedia.org/wiki/Disambiguation_(disambiguation))",
 		"<p><a href=\"http://en.wikipedia.org/wiki/Disambiguation_(disambiguation)\">disambiguation</a></p>\n",
+
+		"http://en.wikipedia.org/wiki/Disambiguation_(disambiguation)",
+		"<p><a href=\"http://en.wikipedia.org/wiki/Disambiguation_(disambiguation)\">http://en.wikipedia.org/wiki/Disambiguation_(disambiguation)</a></p>\n",
 	}
 	doLinkTestsInline(t, tests)
 
@@ -745,6 +748,9 @@ func TestAutoLink(t *testing.T) {
 	var tests = []string{
 		"http://foo.com/\n",
 		"<p><a href=\"http://foo.com/\">http://foo.com/</a></p>\n",
+
+		"http://foo.com/bar/Baz_(baz)",
+		"<p><a href=\"http://foo.com/bar/Baz_(baz)\">http://foo.com/bar/Baz_(baz)</a></p>\n",
 
 		"1 http://foo.com/\n",
 		"<p>1 <a href=\"http://foo.com/\">http://foo.com/</a></p>\n",

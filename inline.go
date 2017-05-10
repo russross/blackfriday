@@ -244,8 +244,6 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		i++
 	}
 
-	brace := 0
-
 	// look for the matching closing bracket
 	for level := 1; level > 0 && i < len(data); i++ {
 		switch {
@@ -279,6 +277,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		i++
 	}
 
+	parenthesis := 0
 	switch {
 	// inline style link
 	case i < len(data) && data[i] == '(':
@@ -291,7 +290,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 
 		linkB := i
 
-		// look for link end: ' " ), check for new opening braces and take this
+		// look for link end: ' " ), check for new opening parenthesis and take this
 		// into account, this may lead for overshooting and probably will require
 		// some fine-tuning.
 	findlinkend:
@@ -301,14 +300,14 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 				i += 2
 
 			case data[i] == '(':
-				brace++
+				parenthesis++
 				i++
 
 			case data[i] == ')':
-				if brace <= 0 {
+				if parenthesis <= 0 {
 					break findlinkend
 				}
-				brace--
+				parenthesis--
 				i++
 
 			case data[i] == '\'' || data[i] == '"':
@@ -793,10 +792,6 @@ func autoLink(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			}
 
 			bufEnd--
-		}
-
-		if openDelim == 0 {
-			linkEnd--
 		}
 	}
 
