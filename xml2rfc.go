@@ -13,7 +13,7 @@ import (
 
 var (
 	// These have been known to change, these are the current ones (2015-08-27).
-        CitationsBase = "https://xml2rfc.tools.ietf.org/public/rfc/"
+	CitationsBase = "https://xml2rfc.tools.ietf.org/public/rfc/"
 
 	// CitationsRFC is the URL where the citations for RFCs are.
 	CitationsRFC = CitationsBase + "bibxml/"
@@ -157,6 +157,12 @@ func writeSanitizeXML(out *bytes.Buffer, s []byte) {
 // titleBlockTOMLAuthor outputs the author from the TOML title block.
 func titleBlockTOMLAuthor(out *bytes.Buffer, a author) {
 	out.WriteString("<author")
+
+	if a.Role != "" {
+		out.WriteString(" role=\"")
+		writeEntity(out, []byte(a.Role))
+		out.WriteString("\"")
+	}
 
 	out.WriteString(" initials=\"")
 	writeEntity(out, []byte(a.Initials))
