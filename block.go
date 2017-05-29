@@ -34,7 +34,7 @@ var (
 // Parse block-level data.
 // Note: this function and many that it calls assume that
 // the input buffer ends with a newline.
-func (p *Parser) block(data []byte) {
+func (p *Processor) block(data []byte) {
 	// this is called recursively: enforce a maximum depth
 	if p.nesting >= p.maxNesting {
 		return
@@ -71,7 +71,7 @@ func (p *Parser) block(data []byte) {
 		// % stuff
 		// % more stuff
 		// % even more stuff
-		if p.flags&Titleblock != 0 {
+		if p.extensions&Titleblock != 0 {
 			if data[0] == '%' {
 				if i := p.titleBlock(data, true); i > 0 {
 					data = data[i:]
@@ -109,7 +109,7 @@ func (p *Parser) block(data []byte) {
 		//     return n * fact(n-1)
 		// }
 		// ```
-		if p.flags&FencedCode != 0 {
+		if p.extensions&FencedCode != 0 {
 			if i := p.fencedCodeBlock(data, true); i > 0 {
 				data = data[i:]
 				continue
@@ -147,7 +147,7 @@ func (p *Parser) block(data []byte) {
 		// ------|-----|---------
 		// Bob   | 31  | 555-1234
 		// Alice | 27  | 555-4321
-		if p.flags&Tables != 0 {
+		if p.extensions&Tables != 0 {
 			if i := p.table(data); i > 0 {
 				data = data[i:]
 				continue
@@ -182,7 +182,7 @@ func (p *Parser) block(data []byte) {
 		//
 		// Term 2
 		// :   Definition c
-		if p.flags&DefinitionLists != 0 {
+		if p.extensions&DefinitionLists != 0 {
 			if p.dliPrefix(data) > 0 {
 				data = data[p.list(data, ListTypeDefinition):]
 				continue
@@ -197,19 +197,19 @@ func (p *Parser) block(data []byte) {
 	p.nesting--
 }
 
-func (p *Parser) addBlock(typ NodeType, content []byte) *Node {
+func (p *Processor) addBlock(typ NodeType, content []byte) *Node {
 	p.closeUnmatchedBlocks()
 	container := p.addChild(typ, 0)
 	container.content = content
 	return container
 }
 
-func (p *Parser) isPrefixHeading(data []byte) bool {
+func (p *Processor) isPrefixHeading(data []byte) bool {
 	if data[0] != '#' {
 		return false
 	}
 
-	if p.flags&SpaceHeadings != 0 {
+	if p.extensions&SpaceHeadings != 0 {
 		level := 0
 		for level < 6 && level < len(data) && data[level] == '#' {
 			level++
@@ -221,7 +221,7 @@ func (p *Parser) isPrefixHeading(data []byte) bool {
 	return true
 }
 
-func (p *Parser) prefixHeading(data []byte) int {
+func (p *Processor) prefixHeading(data []byte) int {
 	level := 0
 	for level < 6 && level < len(data) && data[level] == '#' {
 		level++
@@ -230,7 +230,7 @@ func (p *Parser) prefixHeading(data []byte) int {
 	end := skipUntilChar(data, i, '\n')
 	skip := end
 	id := ""
-	if p.flags&HeadingIDs != 0 {
+	if p.extensions&HeadingIDs != 0 {
 		j, k := 0, 0
 		// find start/end of heading id
 		for j = i; j < end-1 && (data[j] != '{' || data[j+1] != '#'); j++ {
@@ -257,7 +257,7 @@ func (p *Parser) prefixHeading(data []byte) int {
 		end--
 	}
 	if end > i {
-		if id == "" && p.flags&AutoHeadingIDs != 0 {
+		if id == "" && p.extensions&AutoHeadingIDs != 0 {
 			id = sanitized_anchor_name.Create(string(data[i:end]))
 		}
 		block := p.addBlock(Heading, data[i:end])
@@ -267,7 +267,7 @@ func (p *Parser) prefixHeading(data []byte) int {
 	return skip
 }
 
-func (p *Parser) isUnderlinedHeading(data []byte) int {
+func (p *Processor) isUnderlinedHeading(data []byte) int {
 	// test of level 1 heading
 	if data[0] == '=' {
 		i := skipChar(data, 1, '=')
@@ -291,7 +291,7 @@ func (p *Parser) isUnderlinedHeading(data []byte) int {
 	return 0
 }
 
-func (p *Parser) titleBlock(data []byte, doRender bool) int {
+func (p *Processor) titleBlock(data []byte, doRender bool) int {
 	if data[0] != '%' {
 		return 0
 	}
@@ -315,7 +315,7 @@ func (p *Parser) titleBlock(data []byte, doRender bool) int {
 	return consumed
 }
 
-func (p *Parser) html(data []byte, doRender bool) int {
+func (p *Processor) html(data []byte, doRender bool) int {
 	var i, j int
 
 	// identify the opening tag
@@ -419,7 +419,7 @@ func finalizeHTMLBlock(block *Node) {
 }
 
 // HTML comment, lax form
-func (p *Parser) htmlComment(data []byte, doRender bool) int {
+func (p *Processor) htmlComment(data []byte, doRender bool) int {
 	i := p.inlineHTMLComment(data)
 	// needs to end with a blank line
 	if j := p.isEmpty(data[i:]); j > 0 {
@@ -439,7 +439,7 @@ func (p *Parser) htmlComment(data []byte, doRender bool) int {
 }
 
 // HR, which is the only self-closing block tag considered
-func (p *Parser) htmlHr(data []byte, doRender bool) int {
+func (p *Processor) htmlHr(data []byte, doRender bool) int {
 	if len(data) < 4 {
 		return 0
 	}
@@ -472,7 +472,7 @@ func (p *Parser) htmlHr(data []byte, doRender bool) int {
 	return 0
 }
 
-func (p *Parser) htmlFindTag(data []byte) (string, bool) {
+func (p *Processor) htmlFindTag(data []byte) (string, bool) {
 	i := 0
 	for i < len(data) && isalnum(data[i]) {
 		i++
@@ -484,7 +484,7 @@ func (p *Parser) htmlFindTag(data []byte) (string, bool) {
 	return "", false
 }
 
-func (p *Parser) htmlFindEnd(tag string, data []byte) int {
+func (p *Processor) htmlFindEnd(tag string, data []byte) int {
 	// assume data[0] == '<' && data[1] == '/' already tested
 	if tag == "hr" {
 		return 2
@@ -508,7 +508,7 @@ func (p *Parser) htmlFindEnd(tag string, data []byte) int {
 		return i
 	}
 
-	if p.flags&LaxHTMLBlocks != 0 {
+	if p.extensions&LaxHTMLBlocks != 0 {
 		return i
 	}
 	if skip = p.isEmpty(data[i:]); skip == 0 {
@@ -519,7 +519,7 @@ func (p *Parser) htmlFindEnd(tag string, data []byte) int {
 	return i + skip
 }
 
-func (*Parser) isEmpty(data []byte) int {
+func (*Processor) isEmpty(data []byte) int {
 	// it is okay to call isEmpty on an empty buffer
 	if len(data) == 0 {
 		return 0
@@ -537,7 +537,7 @@ func (*Parser) isEmpty(data []byte) int {
 	return i
 }
 
-func (*Parser) isHRule(data []byte) bool {
+func (*Processor) isHRule(data []byte) bool {
 	i := 0
 
 	// skip up to three spaces
@@ -667,7 +667,7 @@ func isFenceLine(data []byte, syntax *string, oldmarker string) (end int, marker
 // fencedCodeBlock returns the end index if data contains a fenced code block at the beginning,
 // or 0 otherwise. It writes to out if doRender is true, otherwise it has no side effects.
 // If doRender is true, a final newline is mandatory to recognize the fenced code block.
-func (p *Parser) fencedCodeBlock(data []byte, doRender bool) int {
+func (p *Processor) fencedCodeBlock(data []byte, doRender bool) int {
 	var syntax string
 	beg, marker := isFenceLine(data, &syntax, "")
 	if beg == 0 || beg >= len(data) {
@@ -739,7 +739,7 @@ func finalizeCodeBlock(block *Node) {
 	block.content = nil
 }
 
-func (p *Parser) table(data []byte) int {
+func (p *Processor) table(data []byte) int {
 	table := p.addBlock(Table, nil)
 	i, columns := p.tableHeader(data)
 	if i == 0 {
@@ -782,7 +782,7 @@ func isBackslashEscaped(data []byte, i int) bool {
 	return backslashes&1 == 1
 }
 
-func (p *Parser) tableHeader(data []byte) (size int, columns []CellAlignFlags) {
+func (p *Processor) tableHeader(data []byte) (size int, columns []CellAlignFlags) {
 	i := 0
 	colCount := 1
 	for i = 0; i < len(data) && data[i] != '\n'; i++ {
@@ -895,7 +895,7 @@ func (p *Parser) tableHeader(data []byte) (size int, columns []CellAlignFlags) {
 	return
 }
 
-func (p *Parser) tableRow(data []byte, columns []CellAlignFlags, header bool) {
+func (p *Processor) tableRow(data []byte, columns []CellAlignFlags, header bool) {
 	p.addBlock(TableRow, nil)
 	i, col := 0, 0
 
@@ -939,7 +939,7 @@ func (p *Parser) tableRow(data []byte, columns []CellAlignFlags, header bool) {
 }
 
 // returns blockquote prefix length
-func (p *Parser) quotePrefix(data []byte) int {
+func (p *Processor) quotePrefix(data []byte) int {
 	i := 0
 	for i < 3 && i < len(data) && data[i] == ' ' {
 		i++
@@ -955,7 +955,7 @@ func (p *Parser) quotePrefix(data []byte) int {
 
 // blockquote ends with at least one blank line
 // followed by something without a blockquote prefix
-func (p *Parser) terminateBlockquote(data []byte, beg, end int) bool {
+func (p *Processor) terminateBlockquote(data []byte, beg, end int) bool {
 	if p.isEmpty(data[beg:]) <= 0 {
 		return false
 	}
@@ -966,7 +966,7 @@ func (p *Parser) terminateBlockquote(data []byte, beg, end int) bool {
 }
 
 // parse a blockquote fragment
-func (p *Parser) quote(data []byte) int {
+func (p *Processor) quote(data []byte) int {
 	block := p.addBlock(BlockQuote, nil)
 	var raw bytes.Buffer
 	beg, end := 0, 0
@@ -976,7 +976,7 @@ func (p *Parser) quote(data []byte) int {
 		// fenced code and if one's found, incorporate it altogether,
 		// irregardless of any contents inside it
 		for end < len(data) && data[end] != '\n' {
-			if p.flags&FencedCode != 0 {
+			if p.extensions&FencedCode != 0 {
 				if i := p.fencedCodeBlock(data[end:], false); i > 0 {
 					// -1 to compensate for the extra end++ after the loop:
 					end += i - 1
@@ -1004,7 +1004,7 @@ func (p *Parser) quote(data []byte) int {
 }
 
 // returns prefix length for block code
-func (p *Parser) codePrefix(data []byte) int {
+func (p *Processor) codePrefix(data []byte) int {
 	if len(data) >= 1 && data[0] == '\t' {
 		return 1
 	}
@@ -1014,7 +1014,7 @@ func (p *Parser) codePrefix(data []byte) int {
 	return 0
 }
 
-func (p *Parser) code(data []byte) int {
+func (p *Processor) code(data []byte) int {
 	var work bytes.Buffer
 
 	i := 0
@@ -1064,7 +1064,7 @@ func (p *Parser) code(data []byte) int {
 }
 
 // returns unordered list item prefix
-func (p *Parser) uliPrefix(data []byte) int {
+func (p *Processor) uliPrefix(data []byte) int {
 	i := 0
 	// start with up to 3 spaces
 	for i < len(data) && i < 3 && data[i] == ' ' {
@@ -1082,7 +1082,7 @@ func (p *Parser) uliPrefix(data []byte) int {
 }
 
 // returns ordered list item prefix
-func (p *Parser) oliPrefix(data []byte) int {
+func (p *Processor) oliPrefix(data []byte) int {
 	i := 0
 
 	// start with up to 3 spaces
@@ -1107,7 +1107,7 @@ func (p *Parser) oliPrefix(data []byte) int {
 }
 
 // returns definition list item prefix
-func (p *Parser) dliPrefix(data []byte) int {
+func (p *Processor) dliPrefix(data []byte) int {
 	if len(data) < 2 {
 		return 0
 	}
@@ -1123,7 +1123,7 @@ func (p *Parser) dliPrefix(data []byte) int {
 }
 
 // parse ordered or unordered list block
-func (p *Parser) list(data []byte, flags ListType) int {
+func (p *Processor) list(data []byte, flags ListType) int {
 	i := 0
 	flags |= ListItemBeginningOfList
 	block := p.addBlock(List, nil)
@@ -1191,7 +1191,7 @@ func finalizeList(block *Node) {
 
 // Parse a single list item.
 // Assumes initial prefix is already removed if this is a sublist.
-func (p *Parser) listItem(data []byte, flags *ListType) int {
+func (p *Processor) listItem(data []byte, flags *ListType) int {
 	// keep track of the indentation of the first line
 	itemIndent := 0
 	if data[0] == '\t' {
@@ -1383,7 +1383,7 @@ gatherlines:
 }
 
 // render a single paragraph that has already been parsed out
-func (p *Parser) renderParagraph(data []byte) {
+func (p *Processor) renderParagraph(data []byte) {
 	if len(data) == 0 {
 		return
 	}
@@ -1408,13 +1408,13 @@ func (p *Parser) renderParagraph(data []byte) {
 	p.addBlock(Paragraph, data[beg:end])
 }
 
-func (p *Parser) paragraph(data []byte) int {
+func (p *Processor) paragraph(data []byte) int {
 	// prev: index of 1st char of previous line
 	// line: index of 1st char of current line
 	// i: index of cursor/end of current line
 	var prev, line, i int
 	tabSize := TabSizeDefault
-	if p.flags&TabSizeEight != 0 {
+	if p.extensions&TabSizeEight != 0 {
 		tabSize = TabSizeDouble
 	}
 	// keep going until we find something to mark the end of the paragraph
@@ -1435,7 +1435,7 @@ func (p *Parser) paragraph(data []byte) int {
 		// did we find a blank line marking the end of the paragraph?
 		if n := p.isEmpty(current); n > 0 {
 			// did this blank line followed by a definition list item?
-			if p.flags&DefinitionLists != 0 {
+			if p.extensions&DefinitionLists != 0 {
 				if i < len(data)-1 && data[i+1] == ':' {
 					return p.list(data[prev:], ListTypeDefinition)
 				}
@@ -1461,7 +1461,7 @@ func (p *Parser) paragraph(data []byte) int {
 				}
 
 				id := ""
-				if p.flags&AutoHeadingIDs != 0 {
+				if p.extensions&AutoHeadingIDs != 0 {
 					id = sanitized_anchor_name.Create(string(data[prev:eol]))
 				}
 
@@ -1478,7 +1478,7 @@ func (p *Parser) paragraph(data []byte) int {
 		}
 
 		// if the next line starts a block of HTML, then the paragraph ends here
-		if p.flags&LaxHTMLBlocks != 0 {
+		if p.extensions&LaxHTMLBlocks != 0 {
 			if data[i] == '<' && p.html(current, false) > 0 {
 				// rewind to before the HTML block
 				p.renderParagraph(data[:i])
@@ -1493,7 +1493,7 @@ func (p *Parser) paragraph(data []byte) int {
 		}
 
 		// if there's a fenced code block, paragraph is over
-		if p.flags&FencedCode != 0 {
+		if p.extensions&FencedCode != 0 {
 			if p.fencedCodeBlock(current, false) > 0 {
 				p.renderParagraph(data[:i])
 				return i
@@ -1501,7 +1501,7 @@ func (p *Parser) paragraph(data []byte) int {
 		}
 
 		// if there's a definition list item, prev line is a definition term
-		if p.flags&DefinitionLists != 0 {
+		if p.extensions&DefinitionLists != 0 {
 			if p.dliPrefix(current) != 0 {
 				ret := p.list(data[prev:], ListTypeDefinition)
 				return ret
@@ -1509,7 +1509,7 @@ func (p *Parser) paragraph(data []byte) int {
 		}
 
 		// if there's a list after this, paragraph is over
-		if p.flags&NoEmptyLineBeforeBlock != 0 {
+		if p.extensions&NoEmptyLineBeforeBlock != 0 {
 			if p.uliPrefix(current) != 0 ||
 				p.oliPrefix(current) != 0 ||
 				p.quotePrefix(current) != 0 ||

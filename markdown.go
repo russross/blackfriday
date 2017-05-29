@@ -154,18 +154,19 @@ type Renderer interface {
 
 // Callback functions for inline parsing. One such function is defined
 // for each character that triggers a response when parsing inline data.
-type inlineParser func(p *Parser, data []byte, offset int) (int, *Node)
+type inlineParser func(p *Processor, data []byte, offset int) (int, *Node)
 
-// Parser holds runtime state used by the parser.
+// Processor holds runtime state used by the parser.
 // This is constructed by the Markdown function.
-type Parser struct {
-	refOverride    ReferenceOverrideFunc
-	refs           map[string]*reference
-	inlineCallback [256]inlineParser
-	flags          Extensions
-	nesting        int
-	maxNesting     int
-	insideLink     bool
+type Processor struct {
+	renderer          Renderer
+	referenceOverride ReferenceOverrideFunc
+	refs              map[string]*reference
+	inlineCallback    [256]inlineParser
+	extensions        Extensions
+	nesting           int
+	maxNesting        int
+	insideLink        bool
 
 	// Footnotes need to be ordered as well as available to quickly check for
 	// presence. If a ref is also a footnote, it's stored both in refs and here
@@ -179,9 +180,9 @@ type Parser struct {
 	allClosed            bool
 }
 
-func (p *Parser) getRef(refid string) (ref *reference, found bool) {
-	if p.refOverride != nil {
-		r, overridden := p.refOverride(refid)
+func (p *Processor) getRef(refid string) (ref *reference, found bool) {
+	if p.referenceOverride != nil {
+		r, overridden := p.referenceOverride(refid)
 		if overridden {
 			if r == nil {
 				return nil, false
@@ -199,17 +200,17 @@ func (p *Parser) getRef(refid string) (ref *reference, found bool) {
 	return ref, found
 }
 
-func (p *Parser) finalize(block *Node) {
+func (p *Processor) finalize(block *Node) {
 	above := block.Parent
 	block.open = false
 	p.tip = above
 }
 
-func (p *Parser) addChild(node NodeType, offset uint32) *Node {
+func (p *Processor) addChild(node NodeType, offset uint32) *Node {
 	return p.addExistingChild(NewNode(node), offset)
 }
 
-func (p *Parser) addExistingChild(node *Node, offset uint32) *Node {
+func (p *Processor) addExistingChild(node *Node, offset uint32) *Node {
 	for !p.tip.canContain(node.Type) {
 		p.finalize(p.tip)
 	}
@@ -218,7 +219,7 @@ func (p *Parser) addExistingChild(node *Node, offset uint32) *Node {
 	return node
 }
 
-func (p *Parser) closeUnmatchedBlocks() {
+func (p *Processor) closeUnmatchedBlocks() {
 	if !p.allClosed {
 		for p.oldTip != p.lastMatchedContainer {
 			parent := p.oldTip.Parent
@@ -253,32 +254,13 @@ type Reference struct {
 // See the documentation in Options for more details on use-case.
 type ReferenceOverrideFunc func(reference string) (ref *Reference, overridden bool)
 
-// Processor contains all the state necessary for Blackfriday to operate.
-type Processor struct {
-	r                 Renderer
-	extensions        Extensions
-	referenceOverride ReferenceOverrideFunc
-}
-
-// DefaultProcessor creates the processor tuned to the most common behavior.
-func DefaultProcessor() *Processor {
-	return &Processor{
-		r: NewHTMLRenderer(HTMLRendererParameters{
-			Flags: CommonHTMLFlags,
-		}),
-		extensions: CommonExtensions,
-	}
-}
-
-// NewParser constructs a Parser. You can use the same With* functions as for
+// NewProcessor constructs a Parser. You can use the same With* functions as for
 // Markdown() to customize parser's behavior.
-func (proc *Processor) NewParser(opts ...Option) *Parser {
+func NewProcessor(opts ...Option) *Processor {
+	var p Processor
 	for _, opt := range opts {
-		opt(proc)
+		opt(&p)
 	}
-	var p Parser
-	p.flags = proc.extensions
-	p.refOverride = proc.referenceOverride
 	p.refs = make(map[string]*reference)
 	p.maxNesting = 16
 	p.insideLink = false
@@ -292,7 +274,7 @@ func (proc *Processor) NewParser(opts ...Option) *Parser {
 	p.inlineCallback[' '] = maybeLineBreak
 	p.inlineCallback['*'] = emphasis
 	p.inlineCallback['_'] = emphasis
-	if proc.extensions&Strikethrough != 0 {
+	if p.extensions&Strikethrough != 0 {
 		p.inlineCallback['~'] = emphasis
 	}
 	p.inlineCallback['`'] = codeSpan
@@ -303,7 +285,7 @@ func (proc *Processor) NewParser(opts ...Option) *Parser {
 	p.inlineCallback['&'] = entity
 	p.inlineCallback['!'] = maybeImage
 	p.inlineCallback['^'] = maybeInlineFootnote
-	if proc.extensions&Autolink != 0 {
+	if p.extensions&Autolink != 0 {
 		p.inlineCallback['h'] = maybeAutoLink
 		p.inlineCallback['m'] = maybeAutoLink
 		p.inlineCallback['f'] = maybeAutoLink
@@ -311,7 +293,7 @@ func (proc *Processor) NewParser(opts ...Option) *Parser {
 		p.inlineCallback['M'] = maybeAutoLink
 		p.inlineCallback['F'] = maybeAutoLink
 	}
-	if proc.extensions&Footnotes != 0 {
+	if p.extensions&Footnotes != 0 {
 		p.notes = make([]*reference, 0)
 	}
 	return &p
@@ -323,7 +305,7 @@ type Option func(*Processor)
 // WithRenderer allows you to override the default renderer.
 func WithRenderer(r Renderer) Option {
 	return func(p *Processor) {
-		p.r = r
+		p.renderer = r
 	}
 }
 
@@ -339,7 +321,7 @@ func WithExtensions(e Extensions) Option {
 func WithNoExtensions() Option {
 	return func(p *Processor) {
 		p.extensions = NoExtensions
-		p.r = NewHTMLRenderer(HTMLRendererParameters{
+		p.renderer = NewHTMLRenderer(HTMLRendererParameters{
 			Flags: HTMLFlagsNone,
 		})
 	}
@@ -385,16 +367,20 @@ func WithRefOverride(o ReferenceOverrideFunc) Option {
 //     output := Markdown(input, WithNoExtensions(), WithExtensions(exts),
 //         WithRenderer(yourRenderer))
 func Markdown(input []byte, opts ...Option) []byte {
-	p := DefaultProcessor()
-	parser := p.NewParser(opts...)
-	return p.r.Render(parser.Parse(input))
+	r := NewHTMLRenderer(HTMLRendererParameters{
+		Flags: CommonHTMLFlags,
+	})
+	optList := []Option{WithRenderer(r), WithExtensions(CommonExtensions)}
+	optList = append(optList, opts...)
+	parser := NewProcessor(optList...)
+	return parser.renderer.Render(parser.Parse(input))
 }
 
 // Parse is an entry point to the parsing part of Blackfriday. It takes an
 // input markdown document and produces a syntax tree for its contents. This
 // tree can then be rendered with a default or custom renderer, or
 // analyzed/transformed by the caller to whatever non-standard needs they have.
-func (p *Parser) Parse(input []byte) *Node {
+func (p *Processor) Parse(input []byte) *Node {
 	p.block(input)
 	// Walk the tree and finish up some of unfinished blocks
 	for p.tip != nil {
@@ -412,8 +398,8 @@ func (p *Parser) Parse(input []byte) *Node {
 	return p.doc
 }
 
-func (p *Parser) parseRefsToAST() {
-	if p.flags&Footnotes == 0 || len(p.notes) == 0 {
+func (p *Processor) parseRefsToAST() {
+	if p.extensions&Footnotes == 0 || len(p.notes) == 0 {
 		return
 	}
 	p.tip = p.doc
@@ -537,7 +523,7 @@ func (r *reference) String() string {
 // (in the render struct).
 // Returns the number of bytes to skip to move past it,
 // or zero if the first line is not a reference.
-func isReference(p *Parser, data []byte, tabSize int) int {
+func isReference(p *Processor, data []byte, tabSize int) int {
 	// up to 3 optional leading spaces
 	if len(data) < 4 {
 		return 0
@@ -554,7 +540,7 @@ func isReference(p *Parser, data []byte, tabSize int) int {
 		return 0
 	}
 	i++
-	if p.flags&Footnotes != 0 {
+	if p.extensions&Footnotes != 0 {
 		if i < len(data) && data[i] == '^' {
 			// we can set it to anything here because the proper noteIds will
 			// be assigned later during the second pass. It just has to be != 0
@@ -605,7 +591,7 @@ func isReference(p *Parser, data []byte, tabSize int) int {
 		hasBlock              bool
 	)
 
-	if p.flags&Footnotes != 0 && noteID != 0 {
+	if p.extensions&Footnotes != 0 && noteID != 0 {
 		linkOffset, linkEnd, raw, hasBlock = scanFootnote(p, data, i, tabSize)
 		lineEnd = linkEnd
 	} else {
@@ -640,7 +626,7 @@ func isReference(p *Parser, data []byte, tabSize int) int {
 	return lineEnd
 }
 
-func scanLinkRef(p *Parser, data []byte, i int) (linkOffset, linkEnd, titleOffset, titleEnd, lineEnd int) {
+func scanLinkRef(p *Processor, data []byte, i int) (linkOffset, linkEnd, titleOffset, titleEnd, lineEnd int) {
 	// link: whitespace-free sequence, optionally between angle brackets
 	if data[i] == '<' {
 		i++
@@ -714,7 +700,7 @@ func scanLinkRef(p *Parser, data []byte, i int) (linkOffset, linkEnd, titleOffse
 // blockEnd is the end of the section in the input buffer, and contents is the
 // extracted text that was shifted over one tab. It will need to be rendered at
 // the end of the document.
-func scanFootnote(p *Parser, data []byte, i, indentSize int) (blockStart, blockEnd int, contents []byte, hasBlock bool) {
+func scanFootnote(p *Processor, data []byte, i, indentSize int) (blockStart, blockEnd int, contents []byte, hasBlock bool) {
 	if i == 0 || len(data) == 0 {
 		return
 	}
