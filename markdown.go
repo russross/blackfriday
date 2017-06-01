@@ -156,8 +156,9 @@ type Renderer interface {
 // for each character that triggers a response when parsing inline data.
 type inlineParser func(p *Processor, data []byte, offset int) (int, *Node)
 
-// Processor holds runtime state used by the parser.
-// This is constructed by the Markdown function.
+// Processor holds:
+// - extensions and the runtime state used by Parse,
+// - the renderer.
 type Processor struct {
 	renderer          Renderer
 	referenceOverride ReferenceOverrideFunc
@@ -254,8 +255,8 @@ type Reference struct {
 // See the documentation in Options for more details on use-case.
 type ReferenceOverrideFunc func(reference string) (ref *Reference, overridden bool)
 
-// NewProcessor constructs a Parser. You can use the same With* functions as for
-// Markdown() to customize parser's behavior.
+// NewProcessor constructs a Processor. You can use the same With* functions as
+// for Markdown() to customize parser's behavior.
 func NewProcessor(opts ...Option) *Processor {
 	var p Processor
 	for _, opt := range opts {
