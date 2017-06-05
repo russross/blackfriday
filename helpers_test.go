@@ -46,7 +46,7 @@ func execRecoverableTestSuite(t *testing.T, tests []string, params TestParams, s
 func runMarkdown(input string, params TestParams) string {
 	params.HTMLRendererParameters.Flags = params.HTMLFlags
 	renderer := NewHTMLRenderer(params.HTMLRendererParameters)
-	return string(Markdown([]byte(input), WithRenderer(renderer),
+	return string(Run([]byte(input), WithRenderer(renderer),
 		WithExtensions(params.extensions),
 		WithRefOverride(params.referenceOverride)))
 }

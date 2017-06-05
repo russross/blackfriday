@@ -32,7 +32,7 @@ var (
 // data is the complete block being rendered
 // offset is the number of valid chars before the current cursor
 
-func (p *Processor) inline(currBlock *Node, data []byte) {
+func (p *Markdown) inline(currBlock *Node, data []byte) {
 	// handlers might call us recursively: enforce a maximum depth
 	if p.nesting >= p.maxNesting || len(data) == 0 {
 		return
@@ -69,7 +69,7 @@ func (p *Processor) inline(currBlock *Node, data []byte) {
 }
 
 // single and double emphasis parsing
-func emphasis(p *Processor, data []byte, offset int) (int, *Node) {
+func emphasis(p *Markdown, data []byte, offset int) (int, *Node) {
 	data = data[offset:]
 	c := data[0]
 
@@ -114,7 +114,7 @@ func emphasis(p *Processor, data []byte, offset int) (int, *Node) {
 	return 0, nil
 }
 
-func codeSpan(p *Processor, data []byte, offset int) (int, *Node) {
+func codeSpan(p *Markdown, data []byte, offset int) (int, *Node) {
 	data = data[offset:]
 
 	nb := 0
@@ -161,7 +161,7 @@ func codeSpan(p *Processor, data []byte, offset int) (int, *Node) {
 }
 
 // newline preceded by two spaces becomes <br>
-func maybeLineBreak(p *Processor, data []byte, offset int) (int, *Node) {
+func maybeLineBreak(p *Markdown, data []byte, offset int) (int, *Node) {
 	origOffset := offset
 	for offset < len(data) && data[offset] == ' ' {
 		offset++
@@ -177,7 +177,7 @@ func maybeLineBreak(p *Processor, data []byte, offset int) (int, *Node) {
 }
 
 // newline without two spaces works when HardLineBreak is enabled
-func lineBreak(p *Processor, data []byte, offset int) (int, *Node) {
+func lineBreak(p *Markdown, data []byte, offset int) (int, *Node) {
 	if p.extensions&HardLineBreak != 0 {
 		return 1, NewNode(Hardbreak)
 	}
@@ -200,14 +200,14 @@ func isReferenceStyleLink(data []byte, pos int, t linkType) bool {
 	return pos < len(data)-1 && data[pos] == '[' && data[pos+1] != '^'
 }
 
-func maybeImage(p *Processor, data []byte, offset int) (int, *Node) {
+func maybeImage(p *Markdown, data []byte, offset int) (int, *Node) {
 	if offset < len(data)-1 && data[offset+1] == '[' {
 		return link(p, data, offset)
 	}
 	return 0, nil
 }
 
-func maybeInlineFootnote(p *Processor, data []byte, offset int) (int, *Node) {
+func maybeInlineFootnote(p *Markdown, data []byte, offset int) (int, *Node) {
 	if offset < len(data)-1 && data[offset+1] == '[' {
 		return link(p, data, offset)
 	}
@@ -215,7 +215,7 @@ func maybeInlineFootnote(p *Processor, data []byte, offset int) (int, *Node) {
 }
 
 // '[': parse a link or an image or a footnote
-func link(p *Processor, data []byte, offset int) (int, *Node) {
+func link(p *Markdown, data []byte, offset int) (int, *Node) {
 	// no links allowed inside regular links, footnote, and deferred footnotes
 	if p.insideLink && (offset > 0 && data[offset-1] == '[' || len(data)-1 > offset && data[offset+1] == '^') {
 		return 0, nil
@@ -573,7 +573,7 @@ func link(p *Processor, data []byte, offset int) (int, *Node) {
 	return i, linkNode
 }
 
-func (p *Processor) inlineHTMLComment(data []byte) int {
+func (p *Markdown) inlineHTMLComment(data []byte) int {
 	if len(data) < 5 {
 		return 0
 	}
@@ -613,7 +613,7 @@ const (
 )
 
 // '<' when tags or autolinks are allowed
-func leftAngle(p *Processor, data []byte, offset int) (int, *Node) {
+func leftAngle(p *Markdown, data []byte, offset int) (int, *Node) {
 	data = data[offset:]
 	altype, end := tagLength(data)
 	if size := p.inlineHTMLComment(data); size > 0 {
@@ -646,7 +646,7 @@ func leftAngle(p *Processor, data []byte, offset int) (int, *Node) {
 // '\\' backslash escape
 var escapeChars = []byte("\\`*_{}[]()#+-.!:|&<>~")
 
-func escape(p *Processor, data []byte, offset int) (int, *Node) {
+func escape(p *Markdown, data []byte, offset int) (int, *Node) {
 	data = data[offset:]
 
 	if len(data) > 1 {
@@ -686,7 +686,7 @@ func unescapeText(ob *bytes.Buffer, src []byte) {
 
 // '&' escaped when it doesn't belong to an entity
 // valid entities are assumed to be anything matching &#?[A-Za-z0-9]+;
-func entity(p *Processor, data []byte, offset int) (int, *Node) {
+func entity(p *Markdown, data []byte, offset int) (int, *Node) {
 	data = data[offset:]
 
 	end := 1
@@ -748,7 +748,7 @@ var protocolPrefixes = [][]byte{
 
 const shortestPrefix = 6 // len("ftp://"), the shortest of the above
 
-func maybeAutoLink(p *Processor, data []byte, offset int) (int, *Node) {
+func maybeAutoLink(p *Markdown, data []byte, offset int) (int, *Node) {
 	// quick check to rule out most false hits
 	if p.insideLink || len(data) < offset+shortestPrefix {
 		return 0, nil
@@ -765,7 +765,7 @@ func maybeAutoLink(p *Processor, data []byte, offset int) (int, *Node) {
 	return 0, nil
 }
 
-func autoLink(p *Processor, data []byte, offset int) (int, *Node) {
+func autoLink(p *Markdown, data []byte, offset int) (int, *Node) {
 	// Now a more expensive check to see if we're not inside an anchor element
 	anchorStart := offset
 	offsetFromAnchor := 0
@@ -1095,7 +1095,7 @@ func helperFindEmphChar(data []byte, c byte) int {
 	return 0
 }
 
-func helperEmphasis(p *Processor, data []byte, c byte) (int, *Node) {
+func helperEmphasis(p *Markdown, data []byte, c byte) (int, *Node) {
 	i := 0
 
 	// skip one symbol if coming from emph3
@@ -1135,7 +1135,7 @@ func helperEmphasis(p *Processor, data []byte, c byte) (int, *Node) {
 	return 0, nil
 }
 
-func helperDoubleEmphasis(p *Processor, data []byte, c byte) (int, *Node) {
+func helperDoubleEmphasis(p *Markdown, data []byte, c byte) (int, *Node) {
 	i := 0
 
 	for i < len(data) {
@@ -1159,7 +1159,7 @@ func helperDoubleEmphasis(p *Processor, data []byte, c byte) (int, *Node) {
 	return 0, nil
 }
 
-func helperTripleEmphasis(p *Processor, data []byte, offset int, c byte) (int, *Node) {
+func helperTripleEmphasis(p *Markdown, data []byte, offset int, c byte) (int, *Node) {
 	i := 0
 	origData := data
 	data = data[offset:]
