@@ -1024,6 +1024,28 @@ what happens here
 </ol>
 </div>
 `,
+	`testing footnotes.[^a]
+
+test footnotes the second.[^b]
+
+[^a]: This is the first note[^a].
+[^b]: this is the second note.[^a]
+`,
+	`<p>testing footnotes.<sup class="footnote-ref" id="fnref:a"><a rel="footnote" href="#fn:a">1</a></sup></p>
+
+<p>test footnotes the second.<sup class="footnote-ref" id="fnref:b"><a rel="footnote" href="#fn:b">2</a></sup></p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:a">This is the first note<sup class="footnote-ref" id="fnref:a"><a rel="footnote" href="#fn:a">1</a></sup>.
+</li>
+<li id="fn:b">this is the second note.<sup class="footnote-ref" id="fnref:a"><a rel="footnote" href="#fn:a">1</a></sup>
+</li>
+</ol>
+</div>
+`,
 }
 
 func TestFootnotes(t *testing.T) {
@@ -1073,6 +1095,34 @@ func TestNestedFootnotes(t *testing.T) {
 <li id="fn:fn1">Asterisk<sup class="footnote-ref" id="fnref:fn2"><a rel="footnote" href="#fn:fn2">2</a></sup>
 </li>
 <li id="fn:fn2">Obelisk
+</li>
+</ol>
+</div>
+`,
+		`This uses footnote A.[^A]
+
+This uses footnote C.[^C]
+
+[^A]:
+  A note. use itself.[^A]
+[^B]:
+  B note, uses A to test duplicate.[^A]
+[^C]:
+  C note, uses B.[^B]
+`,
+		`<p>This uses footnote A.<sup class="footnote-ref" id="fnref:A"><a rel="footnote" href="#fn:A">1</a></sup></p>
+
+<p>This uses footnote C.<sup class="footnote-ref" id="fnref:C"><a rel="footnote" href="#fn:C">2</a></sup></p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:A">A note. use itself.<sup class="footnote-ref" id="fnref:A"><a rel="footnote" href="#fn:A">1</a></sup>
+</li>
+<li id="fn:C">C note, uses B.<sup class="footnote-ref" id="fnref:B"><a rel="footnote" href="#fn:B">3</a></sup>
+</li>
+<li id="fn:B">B note, uses A to test duplicate.<sup class="footnote-ref" id="fnref:A"><a rel="footnote" href="#fn:A">1</a></sup>
 </li>
 </ol>
 </div>

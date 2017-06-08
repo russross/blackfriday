@@ -241,6 +241,16 @@ func (p *parser) getRef(refid string) (ref *reference, found bool) {
 	return ref, found
 }
 
+func (p *parser) isFootnote(ref *reference) bool {
+	for _, v := range p.notes {
+		if string(ref.link) == string(v.link) {
+			return true
+		}
+	}
+
+	return false
+}
+
 //
 //
 // Public interface
