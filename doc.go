@@ -4,14 +4,14 @@
 // then be further processed to HTML (provided by Blackfriday itself) or other
 // formats (provided by the community).
 //
-// The simplest way to invoke Blackfriday is to call one of Markdown*
-// functions. It will take a text input and produce a text output in HTML (or
-// other format).
+// The simplest way to invoke Blackfriday is to call the Markdown function. It
+// will take a text input and produce a text output in HTML (or other format).
 //
-// A slightly more sophisticated way to use Blackfriday is to call Parse, which
-// returns a syntax tree for the input document. You can use that to write your
-// own renderer or, for example, to leverage Blackfriday's parsing for content
-// extraction from markdown documents.
+// A slightly more sophisticated way to use Blackfriday is to create a Markdown
+// processor and to call Parse, which returns a syntax tree for the input
+// document. You can leverage Blackfriday's parsing for content extraction from
+// markdown documents. You can assign a custom renderer and set various options
+// to the Markdown processor.
 //
 // If you're interested in calling Blackfriday from command line, see
 // https://github.com/russross/blackfriday-tool.
