@@ -488,7 +488,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			}
 
 			p.notes = append(p.notes, ref)
-			p.notesRecord[string(ref.link)] = true
+			p.notesRecord[string(ref.link)] = struct{}{}
 
 			link = ref.link
 			title = ref.title
@@ -502,7 +502,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 			if t == linkDeferredFootnote && !p.isFootnote(lr) {
 				lr.noteId = len(p.notes) + 1
 				p.notes = append(p.notes, lr)
-				p.notesRecord[string(lr.link)] = true
+				p.notesRecord[string(lr.link)] = struct{}{}
 			}
 
 			// keep link and title from reference

@@ -219,7 +219,7 @@ type parser struct {
 	// presence. If a ref is also a footnote, it's stored both in refs and here
 	// in notes. Slice is nil if footnotes not enabled.
 	notes       []*reference
-	notesRecord map[string]bool
+	notesRecord map[string]struct{}
 }
 
 func (p *parser) getRef(refid string) (ref *reference, found bool) {
@@ -382,7 +382,7 @@ func MarkdownOptions(input []byte, renderer Renderer, opts Options) []byte {
 
 	if extensions&EXTENSION_FOOTNOTES != 0 {
 		p.notes = make([]*reference, 0)
-		p.notesRecord = make(map[string]bool)
+		p.notesRecord = make(map[string]struct{})
 	}
 
 	first := firstPass(p, input)
