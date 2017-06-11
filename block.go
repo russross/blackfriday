@@ -1293,7 +1293,7 @@ gatherlines:
 			}
 		}
 		// we are in a codeblock, write line, and continue
-		if codeBlockMarker != "" {
+		if codeBlockMarker != "" || marker != "" {
 			raw.Write(data[line+indentIndex : i])
 			line = i
 			continue gatherlines
