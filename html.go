@@ -45,7 +45,6 @@ const (
 	SmartypantsLatexDashes                        // Enable LaTeX-style dashes (with Smartypants)
 	SmartypantsAngledQuotes                       // Enable angled double quotes (with Smartypants) for double quotes rendering
 	TOC                                           // Generate a table of contents
-	OmitContents                                  // Skip the main contents (for a standalone table of contents)
 
 	TagName               = "[A-Za-z][A-Za-z0-9-]*"
 	AttributeName         = "[a-zA-Z_:][a-zA-Z0-9:._-]*"
@@ -819,55 +818,71 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 	return GoToNext
 }
 
-func (r *HTMLRenderer) writeDocumentHeader(w *bytes.Buffer) {
+// RenderHeader writes HTML document preamble and TOC if requested.
+func (r *HTMLRenderer) RenderHeader(w io.Writer, ast *Node) {
+	r.writeDocumentHeader(w)
+	if r.Flags&TOC != 0 {
+		r.writeTOC(w, ast)
+	}
+}
+
+// RenderFooter writes HTML document footer.
+func (r *HTMLRenderer) RenderFooter(w io.Writer, ast *Node) {
+	if r.Flags&CompletePage == 0 {
+		return
+	}
+	w.Write([]byte("\n</body>\n</html>\n"))
+}
+
+func (r *HTMLRenderer) writeDocumentHeader(w io.Writer) {
 	if r.Flags&CompletePage == 0 {
 		return
 	}
 	ending := ""
 	if r.Flags&UseXHTML != 0 {
-		w.WriteString("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" ")
-		w.WriteString("\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n")
-		w.WriteString("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n")
+		w.Write([]byte("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" "))
+		w.Write([]byte("\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n"))
+		w.Write([]byte("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"))
 		ending = " /"
 	} else {
-		w.WriteString("<!DOCTYPE html>\n")
-		w.WriteString("<html>\n")
+		w.Write([]byte("<!DOCTYPE html>\n"))
+		w.Write([]byte("<html>\n"))
 	}
-	w.WriteString("<head>\n")
-	w.WriteString("  <title>")
+	w.Write([]byte("<head>\n"))
+	w.Write([]byte("  <title>"))
 	if r.Flags&Smartypants != 0 {
 		r.sr.Process(w, []byte(r.Title))
 	} else {
 		escapeHTML(w, []byte(r.Title))
 	}
-	w.WriteString("</title>\n")
-	w.WriteString("  <meta name=\"GENERATOR\" content=\"Blackfriday Markdown Processor v")
-	w.WriteString(Version)
-	w.WriteString("\"")
-	w.WriteString(ending)
-	w.WriteString(">\n")
-	w.WriteString("  <meta charset=\"utf-8\"")
-	w.WriteString(ending)
-	w.WriteString(">\n")
+	w.Write([]byte("</title>\n"))
+	w.Write([]byte("  <meta name=\"GENERATOR\" content=\"Blackfriday Markdown Processor v"))
+	w.Write([]byte(Version))
+	w.Write([]byte("\""))
+	w.Write([]byte(ending))
+	w.Write([]byte(">\n"))
+	w.Write([]byte("  <meta charset=\"utf-8\""))
+	w.Write([]byte(ending))
+	w.Write([]byte(">\n"))
 	if r.CSS != "" {
-		w.WriteString("  <link rel=\"stylesheet\" type=\"text/css\" href=\"")
+		w.Write([]byte("  <link rel=\"stylesheet\" type=\"text/css\" href=\""))
 		escapeHTML(w, []byte(r.CSS))
-		w.WriteString("\"")
-		w.WriteString(ending)
-		w.WriteString(">\n")
+		w.Write([]byte("\""))
+		w.Write([]byte(ending))
+		w.Write([]byte(">\n"))
 	}
 	if r.Icon != "" {
-		w.WriteString("  <link rel=\"icon\" type=\"image/x-icon\" href=\"")
+		w.Write([]byte("  <link rel=\"icon\" type=\"image/x-icon\" href=\""))
 		escapeHTML(w, []byte(r.Icon))
-		w.WriteString("\"")
-		w.WriteString(ending)
-		w.WriteString(">\n")
+		w.Write([]byte("\""))
+		w.Write([]byte(ending))
+		w.Write([]byte(">\n"))
 	}
-	w.WriteString("</head>\n")
-	w.WriteString("<body>\n\n")
+	w.Write([]byte("</head>\n"))
+	w.Write([]byte("<body>\n\n"))
 }
 
-func (r *HTMLRenderer) writeTOC(w *bytes.Buffer, ast *Node) {
+func (r *HTMLRenderer) writeTOC(w io.Writer, ast *Node) {
 	buf := bytes.Buffer{}
 
 	inHeading := false
@@ -880,24 +895,24 @@ func (r *HTMLRenderer) writeTOC(w *bytes.Buffer, ast *Node) {
 			if entering {
 				node.HeadingID = fmt.Sprintf("toc_%d", headingCount)
 				if node.Level == tocLevel {
-					buf.WriteString("</li>\n\n<li>")
+					buf.Write([]byte("</li>\n\n<li>"))
 				} else if node.Level < tocLevel {
 					for node.Level < tocLevel {
 						tocLevel--
-						buf.WriteString("</li>\n</ul>")
+						buf.Write([]byte("</li>\n</ul>"))
 					}
-					buf.WriteString("</li>\n\n<li>")
+					buf.Write([]byte("</li>\n\n<li>"))
 				} else {
 					for node.Level > tocLevel {
 						tocLevel++
-						buf.WriteString("\n<ul>\n<li>")
+						buf.Write([]byte("\n<ul>\n<li>"))
 					}
 				}
 
 				fmt.Fprintf(&buf, `<a href="#toc_%d">`, headingCount)
 				headingCount++
 			} else {
-				buf.WriteString("</a>")
+				buf.Write([]byte("</a>"))
 			}
 			return GoToNext
 		}
@@ -910,39 +925,13 @@ func (r *HTMLRenderer) writeTOC(w *bytes.Buffer, ast *Node) {
 	})
 
 	for ; tocLevel > 0; tocLevel-- {
-		buf.WriteString("</li>\n</ul>")
+		buf.Write([]byte("</li>\n</ul>"))
 	}
 
 	if buf.Len() > 0 {
-		w.WriteString("<nav>\n")
+		w.Write([]byte("<nav>\n"))
 		w.Write(buf.Bytes())
-		w.WriteString("\n\n</nav>\n")
+		w.Write([]byte("\n\n</nav>\n"))
 	}
 	r.lastOutputLen = buf.Len()
-}
-
-func (r *HTMLRenderer) writeDocumentFooter(w *bytes.Buffer) {
-	if r.Flags&CompletePage == 0 {
-		return
-	}
-	w.WriteString("\n</body>\n</html>\n")
-}
-
-// Render walks the specified syntax (sub)tree and returns a HTML document.
-func (r *HTMLRenderer) Render(ast *Node) []byte {
-	//println("render_Blackfriday")
-	//dump(ast)
-	var buf bytes.Buffer
-	r.writeDocumentHeader(&buf)
-	if r.Flags&TOC != 0 || r.Flags&OmitContents != 0 {
-		r.writeTOC(&buf, ast)
-		if r.Flags&OmitContents != 0 {
-			return buf.Bytes()
-		}
-	}
-	ast.Walk(func(node *Node, entering bool) WalkStatus {
-		return r.RenderNode(&buf, node, entering)
-	})
-	r.writeDocumentFooter(&buf)
-	return buf.Bytes()
 }

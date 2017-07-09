@@ -134,22 +134,33 @@ var blockTags = map[string]struct{}{
 	"video":      struct{}{},
 }
 
-// Renderer is the rendering interface.
-// This is mostly of interest if you are implementing a new rendering format.
+// Renderer is the rendering interface. This is mostly of interest if you are
+// implementing a new rendering format.
 //
-// When a byte slice is provided, it contains the (rendered) contents of the
-// element.
-//
-// When a callback is provided instead, it will write the contents of the
-// respective element directly to the output buffer and return true on success.
-// If the callback returns false, the rendering function should reset the
-// output buffer as though it had never been called.
-//
-// Only an HTML implementation is provided in this repository,
-// see the README for external implementations.
+// Only an HTML implementation is provided in this repository, see the README
+// for external implementations.
 type Renderer interface {
-	Render(ast *Node) []byte
+	// RenderNode is the main rendering method. It will be called once for
+	// every leaf node and twice for every non-leaf node (first with
+	// entering=true, then with entering=false). The method should write its
+	// rendition of the node to the supplied writer w.
 	RenderNode(w io.Writer, node *Node, entering bool) WalkStatus
+
+	// RenderHeader is a method that allows the renderer to produce some
+	// content preceding the main body of the output document. The header is
+	// understood in the broad sense here. For example, the default HTML
+	// renderer will write not only the HTML document preamble, but also the
+	// table of contents if it was requested.
+	//
+	// The method will be passed an entire document tree, in case a particular
+	// implementation needs to inspect it to produce output.
+	//
+	// The output should be written to the supplied writer w. If your
+	// implementation has no header to write, supply an empty implementation.
+	RenderHeader(w io.Writer, ast *Node)
+
+	// RenderFooter is a symmetric counterpart of RenderHeader.
+	RenderFooter(w io.Writer, ast *Node)
 }
 
 // Callback functions for inline parsing. One such function is defined
@@ -374,7 +385,14 @@ func Run(input []byte, opts ...Option) []byte {
 	optList := []Option{WithRenderer(r), WithExtensions(CommonExtensions)}
 	optList = append(optList, opts...)
 	parser := New(optList...)
-	return parser.renderer.Render(parser.Parse(input))
+	ast := parser.Parse(input)
+	var buf bytes.Buffer
+	parser.renderer.RenderHeader(&buf, ast)
+	ast.Walk(func(node *Node, entering bool) WalkStatus {
+		return parser.renderer.RenderNode(&buf, node, entering)
+	})
+	parser.renderer.RenderFooter(&buf, ast)
+	return buf.Bytes()
 }
 
 // Parse is an entry point to the parsing part of Blackfriday. It takes an
