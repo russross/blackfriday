@@ -831,7 +831,7 @@ func (r *HTMLRenderer) RenderFooter(w io.Writer, ast *Node) {
 	if r.Flags&CompletePage == 0 {
 		return
 	}
-	w.Write([]byte("\n</body>\n</html>\n"))
+	io.WriteString(w, "\n</body>\n</html>\n")
 }
 
 func (r *HTMLRenderer) writeDocumentHeader(w io.Writer) {
@@ -840,46 +840,46 @@ func (r *HTMLRenderer) writeDocumentHeader(w io.Writer) {
 	}
 	ending := ""
 	if r.Flags&UseXHTML != 0 {
-		w.Write([]byte("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" "))
-		w.Write([]byte("\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n"))
-		w.Write([]byte("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"))
+		io.WriteString(w, "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" ")
+		io.WriteString(w, "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n")
+		io.WriteString(w, "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n")
 		ending = " /"
 	} else {
-		w.Write([]byte("<!DOCTYPE html>\n"))
-		w.Write([]byte("<html>\n"))
+		io.WriteString(w, "<!DOCTYPE html>\n")
+		io.WriteString(w, "<html>\n")
 	}
-	w.Write([]byte("<head>\n"))
-	w.Write([]byte("  <title>"))
+	io.WriteString(w, "<head>\n")
+	io.WriteString(w, "  <title>")
 	if r.Flags&Smartypants != 0 {
 		r.sr.Process(w, []byte(r.Title))
 	} else {
 		escapeHTML(w, []byte(r.Title))
 	}
-	w.Write([]byte("</title>\n"))
-	w.Write([]byte("  <meta name=\"GENERATOR\" content=\"Blackfriday Markdown Processor v"))
-	w.Write([]byte(Version))
-	w.Write([]byte("\""))
-	w.Write([]byte(ending))
-	w.Write([]byte(">\n"))
-	w.Write([]byte("  <meta charset=\"utf-8\""))
-	w.Write([]byte(ending))
-	w.Write([]byte(">\n"))
+	io.WriteString(w, "</title>\n")
+	io.WriteString(w, "  <meta name=\"GENERATOR\" content=\"Blackfriday Markdown Processor v")
+	io.WriteString(w, Version)
+	io.WriteString(w, "\"")
+	io.WriteString(w, ending)
+	io.WriteString(w, ">\n")
+	io.WriteString(w, "  <meta charset=\"utf-8\"")
+	io.WriteString(w, ending)
+	io.WriteString(w, ">\n")
 	if r.CSS != "" {
-		w.Write([]byte("  <link rel=\"stylesheet\" type=\"text/css\" href=\""))
+		io.WriteString(w, "  <link rel=\"stylesheet\" type=\"text/css\" href=\"")
 		escapeHTML(w, []byte(r.CSS))
-		w.Write([]byte("\""))
-		w.Write([]byte(ending))
-		w.Write([]byte(">\n"))
+		io.WriteString(w, "\"")
+		io.WriteString(w, ending)
+		io.WriteString(w, ">\n")
 	}
 	if r.Icon != "" {
-		w.Write([]byte("  <link rel=\"icon\" type=\"image/x-icon\" href=\""))
+		io.WriteString(w, "  <link rel=\"icon\" type=\"image/x-icon\" href=\"")
 		escapeHTML(w, []byte(r.Icon))
-		w.Write([]byte("\""))
-		w.Write([]byte(ending))
-		w.Write([]byte(">\n"))
+		io.WriteString(w, "\"")
+		io.WriteString(w, ending)
+		io.WriteString(w, ">\n")
 	}
-	w.Write([]byte("</head>\n"))
-	w.Write([]byte("<body>\n\n"))
+	io.WriteString(w, "</head>\n")
+	io.WriteString(w, "<body>\n\n")
 }
 
 func (r *HTMLRenderer) writeTOC(w io.Writer, ast *Node) {
@@ -895,24 +895,24 @@ func (r *HTMLRenderer) writeTOC(w io.Writer, ast *Node) {
 			if entering {
 				node.HeadingID = fmt.Sprintf("toc_%d", headingCount)
 				if node.Level == tocLevel {
-					buf.Write([]byte("</li>\n\n<li>"))
+					buf.WriteString("</li>\n\n<li>")
 				} else if node.Level < tocLevel {
 					for node.Level < tocLevel {
 						tocLevel--
-						buf.Write([]byte("</li>\n</ul>"))
+						buf.WriteString("</li>\n</ul>")
 					}
-					buf.Write([]byte("</li>\n\n<li>"))
+					buf.WriteString("</li>\n\n<li>")
 				} else {
 					for node.Level > tocLevel {
 						tocLevel++
-						buf.Write([]byte("\n<ul>\n<li>"))
+						buf.WriteString("\n<ul>\n<li>")
 					}
 				}
 
 				fmt.Fprintf(&buf, `<a href="#toc_%d">`, headingCount)
 				headingCount++
 			} else {
-				buf.Write([]byte("</a>"))
+				buf.WriteString("</a>")
 			}
 			return GoToNext
 		}
@@ -925,13 +925,13 @@ func (r *HTMLRenderer) writeTOC(w io.Writer, ast *Node) {
 	})
 
 	for ; tocLevel > 0; tocLevel-- {
-		buf.Write([]byte("</li>\n</ul>"))
+		buf.WriteString("</li>\n</ul>")
 	}
 
 	if buf.Len() > 0 {
-		w.Write([]byte("<nav>\n"))
+		io.WriteString(w, "<nav>\n")
 		w.Write(buf.Bytes())
-		w.Write([]byte("\n\n</nav>\n"))
+		io.WriteString(w, "\n\n</nav>\n")
 	}
 	r.lastOutputLen = buf.Len()
 }
