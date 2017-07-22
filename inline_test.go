@@ -1173,6 +1173,18 @@ func TestSmartDoubleQuotes(t *testing.T) {
 	doTestsInlineParam(t, tests, Options{}, HTML_USE_SMARTYPANTS, HtmlRendererParameters{})
 }
 
+func TestSmartDoubleQuotesNbsp(t *testing.T) {
+	var tests = []string{
+		"this should be normal \"quoted\" text.\n",
+		"<p>this should be normal &ldquo;&nbsp;quoted&nbsp;&rdquo; text.</p>\n",
+		"this \" single double\n",
+		"<p>this &ldquo;&nbsp; single double</p>\n",
+		"two pair of \"some\" quoted \"text\".\n",
+		"<p>two pair of &ldquo;&nbsp;some&nbsp;&rdquo; quoted &ldquo;&nbsp;text&nbsp;&rdquo;.</p>\n"}
+
+	doTestsInlineParam(t, tests, Options{}, HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_QUOTES_NBSP, HtmlRendererParameters{})
+}
+
 func TestSmartAngledDoubleQuotes(t *testing.T) {
 	var tests = []string{
 		"this should be angled \"quoted\" text.\n",
@@ -1183,6 +1195,18 @@ func TestSmartAngledDoubleQuotes(t *testing.T) {
 		"<p>two pair of &laquo;some&raquo; quoted &laquo;text&raquo;.</p>\n"}
 
 	doTestsInlineParam(t, tests, Options{}, HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_ANGLED_QUOTES, HtmlRendererParameters{})
+}
+
+func TestSmartAngledDoubleQuotesNbsp(t *testing.T) {
+	var tests = []string{
+		"this should be angled \"quoted\" text.\n",
+		"<p>this should be angled &laquo;&nbsp;quoted&nbsp;&raquo; text.</p>\n",
+		"this \" single double\n",
+		"<p>this &laquo;&nbsp; single double</p>\n",
+		"two pair of \"some\" quoted \"text\".\n",
+		"<p>two pair of &laquo;&nbsp;some&nbsp;&raquo; quoted &laquo;&nbsp;text&nbsp;&raquo;.</p>\n"}
+
+	doTestsInlineParam(t, tests, Options{}, HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_ANGLED_QUOTES|HTML_SMARTYPANTS_QUOTES_NBSP, HtmlRendererParameters{})
 }
 
 func TestSmartFractions(t *testing.T) {
@@ -1239,4 +1263,10 @@ func TestDisableSmartDashes(t *testing.T) {
 	}, Options{},
 		HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_LATEX_DASHES,
 		HtmlRendererParameters{})
+}
+
+func BenchmarkSmartDoubleQuotes(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		runMarkdownInline("this should be normal \"quoted\" text.\n", Options{}, HTML_USE_SMARTYPANTS, HtmlRendererParameters{})
+	}
 }
