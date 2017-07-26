@@ -52,20 +52,22 @@ Potential drawbacks:
   ballpark of around 15%.
 * API breakage. If you can't afford modifying your code to adhere to the new API
   and don't care too much about the new features, v2 is probably not for you.
-
+* Some bug fixes are trailing behind and still need to be forward-ported to v2.
+  See issue #348 for tracking.
 
 Usage
 -----
 
-For basic usage, it is as simple as getting your input into a byte
-slice and calling:
+For the most sensible markdown processing, it is as simple as getting your input
+into a byte slice and calling:
 
-    output := blackfriday.MarkdownBasic(input)
+    output := blackfriday.Run(input)
 
-This renders it with no extensions enabled. To get a more useful
-feature set, use this instead:
+Your input will be parsed and the output rendered with a set of most popular
+extensions enabled. If you want the most basic feature set, corresponding with
+the bare Markdown specification, use:
 
-    output := blackfriday.MarkdownCommon(input)
+    output := blackfriday.Run(input, blackfriday.WithNoExtensions())
 
 ### Sanitize untrusted content
 
@@ -82,17 +84,14 @@ import (
 )
 
 // ...
-unsafe := blackfriday.MarkdownCommon(input)
+unsafe := blackfriday.Run(input)
 html := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
 ```
 
 ### Custom options
 
-If you want to customize the set of options, first get a renderer
-(currently only the HTML output engine), then use it to
-call the more general `Markdown` function. For examples, see the
-implementations of `MarkdownBasic` and `MarkdownCommon` in
-`markdown.go`.
+If you want to customize the set of options, use `blackfriday.WithExtensions`,
+`blackfriday.WithRenderer` and `blackfriday.WithRefOverride`.
 
 You can also check out `blackfriday-tool` for a more complete example
 of how to use it. Download and install it using:
@@ -214,10 +213,8 @@ implements the following extensions:
 *   **Strikethrough**. Use two tildes (`~~`) to mark text that
     should be crossed out.
 
-*   **Hard line breaks**. With this extension enabled (it is off by
-    default in the `MarkdownBasic` and `MarkdownCommon` convenience
-    functions), newlines in the input translate into line breaks in
-    the output.
+*   **Hard line breaks**. With this extension enabled newlines in the input
+    translate into line breaks in the output. This extension is off by default.
 
 *   **Smart quotes**. Smartypants-style punctuation substitution is
     supported, turning normal double- and single-quote marks into
