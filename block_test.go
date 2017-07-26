@@ -1606,36 +1606,6 @@ func TestTOC(t *testing.T) {
 	})
 }
 
-func TestOmitContents(t *testing.T) {
-	var tests = []string{
-		"# Title\n\n##Subtitle\n\n#Title2",
-		`<nav>
-
-<ul>
-<li><a href="#toc_0">Title</a>
-<ul>
-<li><a href="#toc_1">Subtitle</a></li>
-</ul></li>
-
-<li><a href="#toc_2">Title2</a></li>
-</ul>
-
-</nav>
-`,
-
-		// Make sure OmitContents omits even with no TOC
-		"#\n\nfoo",
-		"",
-	}
-	doTestsParam(t, tests, TestParams{
-		HTMLFlags: UseXHTML | TOC | OmitContents,
-	})
-	// Now run again: make sure OmitContents implies TOC
-	doTestsParam(t, tests, TestParams{
-		HTMLFlags: UseXHTML | OmitContents,
-	})
-}
-
 func TestCompletePage(t *testing.T) {
 	var tests = []string{
 		"*foo*",
