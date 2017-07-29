@@ -272,8 +272,8 @@ const (
 )
 
 // NodeVisitor is a callback to be called when traversing the syntax tree.
-// Called twice for every node: once with entering=true when the branch is
-// first visited, then with entering=false after all the children are done.
+// Called twice for every node: once with entering=True when the branch is
+// first visited, then with entering=False after all the children are done.
 type NodeVisitor func(node *Node, entering bool) WalkStatus
 
 // Walk is a convenience method that instantiates a walker and starts a
