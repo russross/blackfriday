@@ -143,7 +143,7 @@ var blockTags = map[string]struct{}{
 type Renderer interface {
 	// RenderNode is the main rendering method. It will be called once for
 	// every leaf node and twice for every non-leaf node (first with
-	// entering=True, then with entering=False). The method should write its
+	// entering=true, then with entering=false). The method should write its
 	// rendition of the node to the supplied writer w.
 	RenderNode(w io.Writer, node *Node, entering bool) WalkStatus
 

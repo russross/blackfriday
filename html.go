@@ -482,8 +482,8 @@ func (r *HTMLRenderer) outHRTag(w io.Writer) {
 }
 
 // RenderNode is a default renderer of a single node of a syntax tree. For
-// block nodes it will be called twice: first time with entering=True, second
-// time with entering=False, so that it could know when it's working on an open
+// block nodes it will be called twice: first time with entering=true, second
+// time with entering=false, so that it could know when it's working on an open
 // tag and when on close. It writes the result to w.
 //
 // The return value is a way to tell the calling walker to adjust its walk

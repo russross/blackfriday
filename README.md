@@ -62,16 +62,16 @@ Usage
 For the most sensible markdown processing, it is as simple as getting your input
 into a byte slice and calling:
 
-``` go
-    output := blackfriday.Run(input)
+```go
+output := blackfriday.Run(input)
 ```
 
 Your input will be parsed and the output rendered with a set of most popular
 extensions enabled. If you want the most basic feature set, corresponding with
 the bare Markdown specification, use:
 
-``` go
-    output := blackfriday.Run(input, blackfriday.WithNoExtensions())
+```go
+output := blackfriday.Run(input, blackfriday.WithNoExtensions())
 ```
 
 ### Sanitize untrusted content
@@ -82,7 +82,7 @@ through HTML sanitizer such as [Bluemonday][5].
 
 Here's an example of simple usage of Blackfriday together with Bluemonday:
 
-``` go
+```go
 import (
     "github.com/microcosm-cc/bluemonday"
     "github.com/russross/blackfriday"
@@ -184,7 +184,7 @@ implements the following extensions:
     and supply a language (to make syntax highlighting simple). Just
     mark it like this:
 
-        ``` go
+        ```go
         func getTrue() bool {
             return true
         }
