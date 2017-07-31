@@ -1034,6 +1034,18 @@ func TestSmartDoubleQuotes(t *testing.T) {
 	doTestsInlineParam(t, tests, TestParams{HTMLFlags: Smartypants})
 }
 
+func TestSmartDoubleQuotesNBSP(t *testing.T) {
+	var tests = []string{
+		"this should be normal \"quoted\" text.\n",
+		"<p>this should be normal &ldquo;&nbsp;quoted&nbsp;&rdquo; text.</p>\n",
+		"this \" single double\n",
+		"<p>this &ldquo;&nbsp; single double</p>\n",
+		"two pair of \"some\" quoted \"text\".\n",
+		"<p>two pair of &ldquo;&nbsp;some&nbsp;&rdquo; quoted &ldquo;&nbsp;text&nbsp;&rdquo;.</p>\n"}
+
+	doTestsInlineParam(t, tests, TestParams{HTMLFlags: Smartypants | SmartypantsQuotesNBSP})
+}
+
 func TestSmartAngledDoubleQuotes(t *testing.T) {
 	var tests = []string{
 		"this should be angled \"quoted\" text.\n",
@@ -1044,6 +1056,18 @@ func TestSmartAngledDoubleQuotes(t *testing.T) {
 		"<p>two pair of &laquo;some&raquo; quoted &laquo;text&raquo;.</p>\n"}
 
 	doTestsInlineParam(t, tests, TestParams{HTMLFlags: Smartypants | SmartypantsAngledQuotes})
+}
+
+func TestSmartAngledDoubleQuotesNBSP(t *testing.T) {
+	var tests = []string{
+		"this should be angled \"quoted\" text.\n",
+		"<p>this should be angled &laquo;&nbsp;quoted&nbsp;&raquo; text.</p>\n",
+		"this \" single double\n",
+		"<p>this &laquo;&nbsp; single double</p>\n",
+		"two pair of \"some\" quoted \"text\".\n",
+		"<p>two pair of &laquo;&nbsp;some&nbsp;&raquo; quoted &laquo;&nbsp;text&nbsp;&raquo;.</p>\n"}
+
+	doTestsInlineParam(t, tests, TestParams{HTMLFlags: Smartypants | SmartypantsAngledQuotes | SmartypantsQuotesNBSP})
 }
 
 func TestSmartFractions(t *testing.T) {
@@ -1139,4 +1163,14 @@ func TestSkipHTML(t *testing.T) {
 		"text <em>inline html</em> more text",
 		"<p>text inline html more text</p>\n",
 	}, TestParams{HTMLFlags: SkipHTML})
+}
+
+func BenchmarkSmartDoubleQuotes(b *testing.B) {
+	params := TestParams{HTMLFlags: Smartypants}
+	params.extensions |= Autolink | Strikethrough
+	params.HTMLFlags |= UseXHTML
+
+	for i := 0; i < b.N; i++ {
+		runMarkdown("this should be normal \"quoted\" text.\n", params)
+	}
 }
