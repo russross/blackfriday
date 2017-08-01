@@ -47,27 +47,27 @@ const (
 	TOC                                           // Generate a table of contents
 )
 
-const (
-	tagName               = "[A-Za-z][A-Za-z0-9-]*"
-	attributeName         = "[a-zA-Z_:][a-zA-Z0-9:._-]*"
-	unquotedValue         = "[^\"'=<>`\\x00-\\x20]+"
-	singleQuotedValue     = "'[^']*'"
-	doubleQuotedValue     = "\"[^\"]*\""
-	attributeValue        = "(?:" + unquotedValue + "|" + singleQuotedValue + "|" + doubleQuotedValue + ")"
-	attributeValueSpec    = "(?:" + "\\s*=" + "\\s*" + attributeValue + ")"
-	attribute             = "(?:" + "\\s+" + attributeName + attributeValueSpec + "?)"
-	openTag               = "<" + tagName + attribute + "*" + "\\s*/?>"
-	closeTag              = "</" + tagName + "\\s*[>]"
-	htmlComment           = "<!---->|<!--(?:-?[^>-])(?:-?[^-])*-->"
-	processingInstruction = "[<][?].*?[?][>]"
-	declaration           = "<![A-Z]+" + "\\s+[^>]*>"
-	cdata                 = "<!\\[CDATA\\[[\\s\\S]*?\\]\\]>"
-	htmlTag               = "(?:" + openTag + "|" + closeTag + "|" + htmlComment + "|" +
-		processingInstruction + "|" + declaration + "|" + cdata + ")"
-)
-
 var (
 	htmlTagRe = regexp.MustCompile("(?i)^" + htmlTag)
+)
+
+const (
+	htmlTag = "(?:" + openTag + "|" + closeTag + "|" + htmlComment + "|" +
+		processingInstruction + "|" + declaration + "|" + cdata + ")"
+	closeTag              = "</" + tagName + "\\s*[>]"
+	openTag               = "<" + tagName + attribute + "*" + "\\s*/?>"
+	attribute             = "(?:" + "\\s+" + attributeName + attributeValueSpec + "?)"
+	attributeValue        = "(?:" + unquotedValue + "|" + singleQuotedValue + "|" + doubleQuotedValue + ")"
+	attributeValueSpec    = "(?:" + "\\s*=" + "\\s*" + attributeValue + ")"
+	attributeName         = "[a-zA-Z_:][a-zA-Z0-9:._-]*"
+	cdata                 = "<!\\[CDATA\\[[\\s\\S]*?\\]\\]>"
+	declaration           = "<![A-Z]+" + "\\s+[^>]*>"
+	doubleQuotedValue     = "\"[^\"]*\""
+	htmlComment           = "<!---->|<!--(?:-?[^>-])(?:-?[^-])*-->"
+	processingInstruction = "[<][?].*?[?][>]"
+	singleQuotedValue     = "'[^']*'"
+	tagName               = "[A-Za-z][A-Za-z0-9-]*"
+	unquotedValue         = "[^\"'=<>`\\x00-\\x20]+"
 )
 
 // HTMLRendererParameters is a collection of supplementary parameters tweaking
