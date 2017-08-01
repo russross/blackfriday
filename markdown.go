@@ -19,7 +19,8 @@ import (
 // Markdown parsing and processing
 //
 
-// Version string of the package.
+// Version string of the package. Appears in the rendered document when
+// CompletePage flag is on.
 const Version = "2.0"
 
 // Extensions is a bitwise or'ed collection of enabled Blackfriday's
@@ -167,9 +168,8 @@ type Renderer interface {
 // for each character that triggers a response when parsing inline data.
 type inlineParser func(p *Markdown, data []byte, offset int) (int, *Node)
 
-// Markdown is a type that holds:
-// - extensions and the runtime state used by Parse,
-// - the renderer.
+// Markdown is a type that holds extensions and the runtime state used by
+// Parse, and the renderer. You can not use it directly, construct it with New.
 type Markdown struct {
 	renderer          Renderer
 	referenceOverride ReferenceOverrideFunc
@@ -399,6 +399,7 @@ func Run(input []byte, opts ...Option) []byte {
 // input markdown document and produces a syntax tree for its contents. This
 // tree can then be rendered with a default or custom renderer, or
 // analyzed/transformed by the caller to whatever non-standard needs they have.
+// The return value is the root node of the syntax tree.
 func (p *Markdown) Parse(input []byte) *Node {
 	p.block(input)
 	// Walk the tree and finish up some of unfinished blocks

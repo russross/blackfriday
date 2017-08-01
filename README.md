@@ -52,8 +52,9 @@ Potential drawbacks:
   ballpark of around 15%.
 * API breakage. If you can't afford modifying your code to adhere to the new API
   and don't care too much about the new features, v2 is probably not for you.
-* Some bug fixes are trailing behind and still need to be forward-ported to v2.
-  See issue #348 for tracking.
+* Several bug fixes are trailing behind and still need to be forward-ported to
+  v2. See issue [#348](https://github.com/russross/blackfriday/issues/348) for
+  tracking.
 
 Usage
 -----
@@ -61,13 +62,17 @@ Usage
 For the most sensible markdown processing, it is as simple as getting your input
 into a byte slice and calling:
 
-    output := blackfriday.Run(input)
+```go
+output := blackfriday.Run(input)
+```
 
 Your input will be parsed and the output rendered with a set of most popular
 extensions enabled. If you want the most basic feature set, corresponding with
 the bare Markdown specification, use:
 
-    output := blackfriday.Run(input, blackfriday.WithNoExtensions())
+```go
+output := blackfriday.Run(input, blackfriday.WithNoExtensions())
+```
 
 ### Sanitize untrusted content
 
@@ -77,7 +82,7 @@ through HTML sanitizer such as [Bluemonday][5].
 
 Here's an example of simple usage of Blackfriday together with Bluemonday:
 
-``` go
+```go
 import (
     "github.com/microcosm-cc/bluemonday"
     "github.com/russross/blackfriday"
@@ -179,7 +184,7 @@ implements the following extensions:
     and supply a language (to make syntax highlighting simple). Just
     mark it like this:
 
-        ``` go
+        ```go
         func getTrue() bool {
             return true
         }

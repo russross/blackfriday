@@ -4,8 +4,8 @@
 // then be further processed to HTML (provided by Blackfriday itself) or other
 // formats (provided by the community).
 //
-// The simplest way to invoke Blackfriday is to call the Markdown function. It
-// will take a text input and produce a text output in HTML (or other format).
+// The simplest way to invoke Blackfriday is to call the Run function. It will
+// take a text input and produce a text output in HTML (or other format).
 //
 // A slightly more sophisticated way to use Blackfriday is to create a Markdown
 // processor and to call Parse, which returns a syntax tree for the input
