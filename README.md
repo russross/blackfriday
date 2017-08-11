@@ -49,6 +49,9 @@ Potential drawbacks:
   ballpark of around 15%.
 * API breakage. If you can't afford modifying your code to adhere to the new API
   and don't care too much about the new features, v2 is probably not for you.
+* Several bug fixes are trailing behind and still need to be forward-ported to
+  v2. See issue [#348](https://github.com/russross/blackfriday/issues/348) for
+  tracking.
 
 If you are still interested in the legacy `v1`, you can import it from
 `github.com/russross/blackfriday`. Documentation for the legacy v1 can be found
@@ -57,6 +60,8 @@ here: https://godoc.org/github.com/russross/blackfriday
 
 Usage
 -----
+
+### v1
 
 For basic usage, it is as simple as getting your input into a byte
 slice and calling:
@@ -68,6 +73,23 @@ feature set, use this instead:
 
     output := blackfriday.MarkdownCommon(input)
 
+### v2
+
+For the most sensible markdown processing, it is as simple as getting your input
+into a byte slice and calling:
+
+```go
+output := blackfriday.Run(input)
+```
+
+Your input will be parsed and the output rendered with a set of most popular
+extensions enabled. If you want the most basic feature set, corresponding with
+the bare Markdown specification, use:
+
+```go
+output := blackfriday.Run(input, blackfriday.WithNoExtensions())
+```
+
 ### Sanitize untrusted content
 
 Blackfriday itself does nothing to protect against malicious content. If you are
@@ -76,24 +98,31 @@ through HTML sanitizer such as [Bluemonday][5].
 
 Here's an example of simple usage of Blackfriday together with Bluemonday:
 
-``` go
+```go
 import (
     "github.com/microcosm-cc/bluemonday"
     "gopkg.in/russross/blackfriday.v2"
 )
 
 // ...
-unsafe := blackfriday.Markdown(input)
+unsafe := blackfriday.Run(input)
 html := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
 ```
 
-### Custom options
+### Custom options, v1
 
 If you want to customize the set of options, first get a renderer
 (currently only the HTML output engine), then use it to
 call the more general `Markdown` function. For examples, see the
 implementations of `MarkdownBasic` and `MarkdownCommon` in
 `markdown.go`.
+
+### Custom options, v2
+
+If you want to customize the set of options, use `blackfriday.WithExtensions`,
+`blackfriday.WithRenderer` and `blackfriday.WithRefOverride`.
+
+### `blackfriday-tool`
 
 You can also check out `blackfriday-tool` for a more complete example
 of how to use it. Download and install it using:
