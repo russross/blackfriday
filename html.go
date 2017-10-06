@@ -44,6 +44,8 @@ const (
 	HTML_SMARTYPANTS_ANGLED_QUOTES             // enable angled double quotes (with HTML_USE_SMARTYPANTS) for double quotes rendering
 	HTML_SMARTYPANTS_QUOTES_NBSP               // enable "French guillemets" (with HTML_USE_SMARTYPANTS)
 	HTML_FOOTNOTE_RETURN_LINKS                 // generate a link at the end of a footnote to return to the source
+	HTML_HEADER_LINKS                          // generate headers followed by direct links to the header
+	HTML_CHECKLISTS                            // generate checkboxes for "[x]" and "[ ]" in list items
 )
 
 var (
@@ -235,6 +237,10 @@ func (options *Html) Header(out *bytes.Buffer, text func() bool, level int, id s
 		options.TocHeaderWithAnchor(out.Bytes()[tocMarker:], level, id)
 	}
 
+	if id != "" && options.flags&HTML_HEADER_LINKS != 0 {
+		out.WriteString(fmt.Sprintf(" <a class=\"heading\" href=\"#%s\">&para;</a>", id))
+	}
+
 	out.WriteString(fmt.Sprintf("</h%d>\n", level))
 }
 
@@ -407,7 +413,16 @@ func (options *Html) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	} else if flags&LIST_TYPE_DEFINITION != 0 {
 		out.WriteString("<dd>")
 	} else {
-		out.WriteString("<li>")
+		if options.flags&HTML_CHECKLISTS != 0 && len(text) >= 3 && text[0] == '[' && text[2] == ']' {
+			out.WriteString("<li style=\"list-style-type:none;\"><input type=\"checkbox\"")
+			if text[1] != ' ' {
+				out.WriteString(" checked")
+			}
+			out.WriteString(options.closeTag)
+			text = text[3:]
+		} else {
+			out.WriteString("<li>")
+		}
 	}
 	out.Write(text)
 	if flags&LIST_TYPE_TERM != 0 {
@@ -464,6 +479,16 @@ func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	// blank target only add to external link
 	if options.flags&HTML_HREF_TARGET_BLANK != 0 && !isRelativeLink(link) {
 		out.WriteString("\" target=\"_blank")
+	}
+
+	// add "autolink" class
+	out.WriteString("\" class=\"autolink")
+
+	// add "anchor" class to anchor autolink,
+	// remove leading '#' from anchor autolink text
+	if link[0] == '#' {
+		out.WriteString(" anchor")
+		link = link[1:]
 	}
 
 	out.WriteString("\">")
@@ -578,6 +603,11 @@ func (options *Html) Link(out *bytes.Buffer, link []byte, title []byte, content 
 	// blank target only add to external link
 	if options.flags&HTML_HREF_TARGET_BLANK != 0 && !isRelativeLink(link) {
 		out.WriteString("\" target=\"_blank")
+	}
+
+	// add "anchor" class to anchor links
+	if link[0] == '#' {
+		out.WriteString("\" class=\"anchor")
 	}
 
 	out.WriteString("\">")
