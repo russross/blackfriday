@@ -466,6 +466,16 @@ func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 		out.WriteString("\" target=\"_blank")
 	}
 
+	// add "autolink" class
+	out.WriteString("\" class=\"autolink")
+
+	// add "anchor" class to anchor autolink,
+	// remove leading '#' from anchor autolink text
+	if link[0] == '#' {
+		out.WriteString(" anchor")
+		link = link[1:]
+	}
+
 	out.WriteString("\">")
 
 	// Pretty print: if we get an email address as
@@ -578,6 +588,11 @@ func (options *Html) Link(out *bytes.Buffer, link []byte, title []byte, content 
 	// blank target only add to external link
 	if options.flags&HTML_HREF_TARGET_BLANK != 0 && !isRelativeLink(link) {
 		out.WriteString("\" target=\"_blank")
+	}
+
+	// add "anchor" class to anchor links
+	if link[0] == '#' {
+		out.WriteString("\" class=\"anchor")
 	}
 
 	out.WriteString("\">")
