@@ -44,6 +44,7 @@ const (
 	HTML_SMARTYPANTS_ANGLED_QUOTES             // enable angled double quotes (with HTML_USE_SMARTYPANTS) for double quotes rendering
 	HTML_SMARTYPANTS_QUOTES_NBSP               // enable "French guillemets" (with HTML_USE_SMARTYPANTS)
 	HTML_FOOTNOTE_RETURN_LINKS                 // generate a link at the end of a footnote to return to the source
+	HTML_HEADER_LINKS                          // generate headers followed by direct links to the header
 )
 
 var (
@@ -233,6 +234,10 @@ func (options *Html) Header(out *bytes.Buffer, text func() bool, level int, id s
 	// are we building a table of contents?
 	if options.flags&HTML_TOC != 0 {
 		options.TocHeaderWithAnchor(out.Bytes()[tocMarker:], level, id)
+	}
+
+	if id != "" && options.flags&HTML_HEADER_LINKS != 0 {
+		out.WriteString(fmt.Sprintf(" <a class=\"heading\" href=\"#%s\">&para;</a>", id))
 	}
 
 	out.WriteString(fmt.Sprintf("</h%d>\n", level))
