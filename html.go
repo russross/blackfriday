@@ -45,6 +45,7 @@ const (
 	HTML_SMARTYPANTS_QUOTES_NBSP               // enable "French guillemets" (with HTML_USE_SMARTYPANTS)
 	HTML_FOOTNOTE_RETURN_LINKS                 // generate a link at the end of a footnote to return to the source
 	HTML_HEADER_LINKS                          // generate headings followed by direct link to the header #id
+	HTML_CHECKLISTS                            // generate checkboxes for "[x]" and "[ ]" in list items
 )
 
 var (
@@ -412,7 +413,16 @@ func (options *Html) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	} else if flags&LIST_TYPE_DEFINITION != 0 {
 		out.WriteString("<dd>")
 	} else {
-		out.WriteString("<li>")
+		if options.flags&HTML_CHECKLISTS != 0 && len(text) >= 3 && text[0] == '[' && text[2] == ']' {
+			out.WriteString("<li style=\"list-style-type:none;\"><input type=\"checkbox\"")
+			if text[1] != ' ' {
+				out.WriteString(" checked")
+			}
+			out.WriteString(options.closeTag)
+			text = text[3:]
+		} else {
+			out.WriteString("<li>")
+		}
 	}
 	out.Write(text)
 	if flags&LIST_TYPE_TERM != 0 {
