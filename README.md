@@ -18,22 +18,27 @@ It started as a translation from C of [Sundown][3].
 Installation
 ------------
 
-Blackfriday is compatible with any modern Go release. With Go 1.7 and git
-installed:
+Blackfriday is compatible with any modern Go release. With Go and git installed:
 
     go get -u gopkg.in/russross/blackfriday.v2
 
-will download, compile, and install the package into your `$GOPATH`
-directory hierarchy.
+will download, compile, and install the package into your `$GOPATH` directory
+hierarchy.
 
 
 Versions
 --------
 
 Currently maintained and recommended version of Blackfriday is `v2`. It's being
-developed on its own branch: https://github.com/russross/blackfriday/v2. You
-should install and import it via [gopkg.in][6] at
-`gopkg.in/russross/blackfriday.v2`.
+developed on its own branch: https://github.com/russross/blackfriday/v2 and the
+documentation is available at
+https://godoc.org/gopkg.in/russross/blackfriday.v2.
+
+It is `go get`-able via via [gopkg.in][6] at `gopkg.in/russross/blackfriday.v2`,
+but we highly recommend using package management tool like [dep][7] or
+[Glide][8] and make use of semantic versioning. With package management you
+should import `github.com/russross/blackfriday` and specify that you're using
+version 2.0.0.
 
 Version 2 offers a number of improvements over v1:
 
@@ -56,6 +61,21 @@ Potential drawbacks:
 If you are still interested in the legacy `v1`, you can import it from
 `github.com/russross/blackfriday`. Documentation for the legacy v1 can be found
 here: https://godoc.org/github.com/russross/blackfriday
+
+### Known issue with `dep`
+
+There is a known problem with using Blackfriday v1 _transitively_ and `dep`.
+Currently `dep` prioritizes semver versions over anything else, and picks the
+latest one, plus it does not apply a `[[constraint]]` specifier to transitively
+pulled in packages. So if you're using something that uses Blackfriday v1, but
+that something does not use `dep` yet, you will get Blackfriday v2 pulled in and
+your first dependency will fail to build.
+
+There are couple of fixes for it, documented here:
+https://github.com/golang/dep/blob/master/docs/FAQ.md#how-do-i-constrain-a-transitive-dependencys-version
+
+Meanwhile, `dep` team is working on a more general solution to the constraints
+on transitive dependencies problem: https://github.com/golang/dep/issues/1124.
 
 
 Usage
@@ -312,14 +332,14 @@ are a few of note:
     renders output as LaTeX.
 
 
-Todo
+TODO
 ----
 
 *   More unit testing
-*   Improve unicode support. It does not understand all unicode
+*   Improve Unicode support. It does not understand all Unicode
     rules (about what constitutes a letter, a punctuation symbol,
     etc.), so it may fail to detect word boundaries correctly in
-    some instances. It is safe on all utf-8 input.
+    some instances. It is safe on all UTF-8 input.
 
 
 License
@@ -334,6 +354,8 @@ License
    [4]: https://godoc.org/gopkg.in/russross/blackfriday.v2#Parse "Parse func"
    [5]: https://github.com/microcosm-cc/bluemonday "Bluemonday"
    [6]: https://labix.org/gopkg.in "gopkg.in"
+   [7]: https://github.com/golang/dep/ "dep"
+   [8]: https://github.com/Masterminds/glide "Glide"
 
    [BuildSVG]: https://travis-ci.org/russross/blackfriday.svg?branch=master
    [BuildURL]: https://travis-ci.org/russross/blackfriday
