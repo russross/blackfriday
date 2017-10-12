@@ -1353,10 +1353,10 @@ func (p *parser) paragraph(out *bytes.Buffer, data []byte) int {
 				}
 
 				id := ""
-				if p.flags&EXTENSION_HEADER_IDS != 0 && eol > prev + 2 && data[eol-1] == '}' {
+				if p.flags&EXTENSION_HEADER_IDS != 0 && eol > prev+2 && data[eol-1] == '}' {
 					for j := eol - 2; j > prev; j-- {
 						if data[j] == '#' && data[j-1] == '{' {
-							id = string(data[j+1:eol-1])
+							id = string(data[j+1 : eol-1])
 							eol = j - 1
 							for eol > prev && (data[eol-1] == ' ' || data[eol-1] == '\t') {
 								eol--
