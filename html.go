@@ -46,6 +46,7 @@ const (
 	HTML_FOOTNOTE_RETURN_LINKS                 // generate a link at the end of a footnote to return to the source
 	HTML_HEADER_LINKS                          // generate headings followed by direct link to the header #id
 	HTML_CHECKLISTS                            // generate checkboxes for "[x]" and "[ ]" in list items
+	HTML_LINK_CLASSES                          // add "autolink" class to auto-detected links, add "anchor" class to anchor links
 )
 
 var (
@@ -481,6 +482,20 @@ func (options *Html) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 		out.WriteString("\" target=\"_blank")
 	}
 
+	// add "autolink" class
+	if options.flags&HTML_LINK_CLASSES != 0 {
+		out.WriteString("\" class=\"autolink")
+	}
+
+	// add "anchor" class to anchor autolink,
+	// remove leading '#' from anchor autolink text
+	if link[0] == '#' {
+		if options.flags&HTML_LINK_CLASSES != 0 {
+			out.WriteString(" anchor")
+		}
+		link = link[1:]
+	}
+
 	out.WriteString("\">")
 
 	// Pretty print: if we get an email address as
@@ -593,6 +608,11 @@ func (options *Html) Link(out *bytes.Buffer, link []byte, title []byte, content 
 	// blank target only add to external link
 	if options.flags&HTML_HREF_TARGET_BLANK != 0 && !isRelativeLink(link) {
 		out.WriteString("\" target=\"_blank")
+	}
+
+	// add "anchor" class to anchor links
+	if link[0] == '#' && options.flags&HTML_LINK_CLASSES != 0 {
+		out.WriteString("\" class=\"anchor")
 	}
 
 	out.WriteString("\">")
