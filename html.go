@@ -47,6 +47,7 @@ const (
 	HTML_HEADER_LINKS                          // generate headings followed by direct link to the header #id
 	HTML_CHECKLISTS                            // generate checkboxes for "[x]" and "[ ]" in list items
 	HTML_LINK_CLASSES                          // add "autolink" class to auto-detected links, add "anchor" class to anchor links
+	HTML_LOCAL_MD_LINKS_TO_HTML                // links to local MD files will be converted to HTML: file.md -> file.html
 )
 
 var (
@@ -589,6 +590,12 @@ func (options *Html) Link(out *bytes.Buffer, link []byte, title []byte, content 
 
 	out.WriteString("<a href=\"")
 	options.maybeWriteAbsolutePrefix(out, link)
+	// replace file extension in href attribute to .html for local .md files
+	if options.flags&HTML_LOCAL_MD_LINKS_TO_HTML != 0 {
+		if buf := []byte("//.md.html"); bytes.HasSuffix(link, buf[2:5]) && bytes.Index(link, buf[:2]) < 0 {
+			link = append(link[:len(link)-3], buf[5:]...)
+		}
+	}
 	attrEscape(out, link)
 	if len(title) > 0 {
 		out.WriteString("\" title=\"")
