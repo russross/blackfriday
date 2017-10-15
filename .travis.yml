@@ -10,6 +10,12 @@ go:
     - 1.7
 
 install:
+    - mkdir -p $GOPATH/src/github.com/russross/
+    - pushd $GOPATH/src/github.com/russross/
+    - git clone https://github.com/russross/blackfriday blackfriday.v2
+    - cd blackfriday.v2
+    - git checkout v2
+    - popd
     - go get -d -t -v ./...
     - go build -v ./...
 
