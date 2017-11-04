@@ -41,19 +41,20 @@ const (
 	HardLineBreak                                 // Translate newlines into line breaks
 	TabSizeEight                                  // Expand tabs to eight spaces instead of four
 	Footnotes                                     // Pandoc-style footnotes
-	NoEmptyLineBeforeBlock                        // No need to insert an empty line to start a (code, quote, ordered list, unordered list) block
+	NoEmptyLineBeforeBlock                        // No need to insert an empty line to start a (code, quote, math, ordered list, unordered list) block
 	HeadingIDs                                    // specify heading IDs  with {#id}
 	Titleblock                                    // Titleblock ala pandoc
 	AutoHeadingIDs                                // Create the heading ID from the text
 	BackslashLineBreak                            // Translate trailing backslashes into line breaks
 	DefinitionLists                               // Render definition lists
+	MathJaxSupport                                // Render with MathJax compatible
 
 	CommonHTMLFlags HTMLFlags = UseXHTML | Smartypants |
 		SmartypantsFractions | SmartypantsDashes | SmartypantsLatexDashes
 
 	CommonExtensions Extensions = NoIntraEmphasis | Tables | FencedCode |
 		Autolink | Strikethrough | SpaceHeadings | HeadingIDs |
-		BackslashLineBreak | DefinitionLists
+		BackslashLineBreak | DefinitionLists | NoEmptyLineBeforeBlock | MathJaxSupport
 )
 
 // ListType contains bitwise or'ed flags for list and list item objects.
@@ -63,12 +64,12 @@ type ListType int
 // Multiple flag values may be ORed together.
 // These are mostly of interest if you are writing a new output format.
 const (
-	ListTypeOrdered ListType = 1 << iota
+	ListTypeOrdered    ListType = 1 << iota
 	ListTypeDefinition
 	ListTypeTerm
 
 	ListItemContainsBlock
-	ListItemBeginningOfList // TODO: figure out if this is of any use now
+	ListItemBeginningOfList  // TODO: figure out if this is of any use now
 	ListItemEndOfList
 )
 
@@ -79,7 +80,7 @@ type CellAlignFlags int
 // Only a single one of these values will be used; they are not ORed together.
 // These are mostly of interest if you are writing a new output format.
 const (
-	TableAlignmentLeft CellAlignFlags = 1 << iota
+	TableAlignmentLeft   CellAlignFlags = 1 << iota
 	TableAlignmentRight
 	TableAlignmentCenter = (TableAlignmentLeft | TableAlignmentRight)
 )
@@ -304,6 +305,9 @@ func New(opts ...Option) *Markdown {
 		p.inlineCallback['H'] = maybeAutoLink
 		p.inlineCallback['M'] = maybeAutoLink
 		p.inlineCallback['F'] = maybeAutoLink
+	}
+	if p.extensions&MathJaxSupport != 0 {
+		p.inlineCallback['$'] = math
 	}
 	if p.extensions&Footnotes != 0 {
 		p.notes = make([]*reference, 0)
@@ -779,7 +783,7 @@ gatherLines:
 		}
 
 		// get rid of that first tab, write to buffer
-		raw.Write(data[blockEnd+n : i])
+		raw.Write(data[blockEnd+n: i])
 		hasBlock = true
 
 		blockEnd = i
@@ -936,5 +940,5 @@ func slugify(in []byte) []byte {
 			break
 		}
 	}
-	return out[a : b+1]
+	return out[a: b+1]
 }

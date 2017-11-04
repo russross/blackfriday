@@ -1165,6 +1165,14 @@ func TestSkipHTML(t *testing.T) {
 	}, TestParams{HTMLFlags: SkipHTML})
 }
 
+func TestInlineMath(t *testing.T) {
+	doTestsParam(t, []string{
+		"$a_b$",
+		`<p><span class="math inline">\(a_b\)</span></p>
+`,
+	}, TestParams{HTMLFlags: SkipHTML, extensions: CommonExtensions})
+}
+
 func BenchmarkSmartDoubleQuotes(b *testing.B) {
 	params := TestParams{HTMLFlags: Smartypants}
 	params.extensions |= Autolink | Strikethrough
