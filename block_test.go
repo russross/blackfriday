@@ -371,6 +371,92 @@ func TestPrefixAutoHeaderIdExtensionWithPrefixAndSuffix(t *testing.T) {
 	})
 }
 
+func TestPrefixHeaderLevelOffset(t *testing.T) {
+	var offsetTests = []struct {
+		offset int
+		tests  []string
+	}{{
+		offset: 0,
+		tests: []string{
+			"# Header 1\n",
+			"<h1>Header 1</h1>\n",
+
+			"## Header 2\n",
+			"<h2>Header 2</h2>\n",
+
+			"### Header 3\n",
+			"<h3>Header 3</h3>\n",
+
+			"#### Header 4\n",
+			"<h4>Header 4</h4>\n",
+
+			"##### Header 5\n",
+			"<h5>Header 5</h5>\n",
+
+			"###### Header 6\n",
+			"<h6>Header 6</h6>\n",
+
+			"####### Header 7\n",
+			"<h6># Header 7</h6>\n",
+		},
+	}, {
+		offset: 1,
+		tests: []string{
+			"# Header 1\n",
+			"<h2>Header 1</h2>\n",
+
+			"## Header 2\n",
+			"<h3>Header 2</h3>\n",
+
+			"### Header 3\n",
+			"<h4>Header 3</h4>\n",
+
+			"#### Header 4\n",
+			"<h5>Header 4</h5>\n",
+
+			"##### Header 5\n",
+			"<h6>Header 5</h6>\n",
+
+			"###### Header 6\n",
+			"<h6>Header 6</h6>\n",
+
+			"####### Header 7\n",
+			"<h6># Header 7</h6>\n",
+		},
+	}, {
+		offset: -1,
+		tests: []string{
+			"# Header 1\n",
+			"<h1>Header 1</h1>\n",
+
+			"## Header 2\n",
+			"<h1>Header 2</h1>\n",
+
+			"### Header 3\n",
+			"<h2>Header 3</h2>\n",
+
+			"#### Header 4\n",
+			"<h3>Header 4</h3>\n",
+
+			"##### Header 5\n",
+			"<h4>Header 5</h4>\n",
+
+			"###### Header 6\n",
+			"<h5>Header 6</h5>\n",
+
+			"####### Header 7\n",
+			"<h5># Header 7</h5>\n",
+		},
+	}}
+	for _, offsetTest := range offsetTests {
+		offset := offsetTest.offset
+		tests := offsetTest.tests
+		doTestsParam(t, tests, TestParams{
+			HTMLRendererParameters: HTMLRendererParameters{HeadingLevelOffset: offset},
+		})
+	}
+}
+
 func TestPrefixMultipleHeaderExtensions(t *testing.T) {
 	var tests = []string{
 		"# Header\n\n# Header {#header}\n\n# Header 1",
