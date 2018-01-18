@@ -569,7 +569,7 @@ func isReference(p *Markdown, data []byte, tabSize int) int {
 		}
 	}
 	idOffset := i
-	for i < len(data) && data[i] != '\n' && data[i] != '\r' && data[i] != ']' {
+	for i < len(data) && !iseol(data[i]) && data[i] != ']' {
 		i++
 	}
 	if i >= len(data) || data[i] != ']' {
@@ -590,7 +590,7 @@ func isReference(p *Markdown, data []byte, tabSize int) int {
 	for i < len(data) && (data[i] == ' ' || data[i] == '\t') {
 		i++
 	}
-	if i < len(data) && (data[i] == '\n' || data[i] == '\r') {
+	if i < len(data) && iseol(data[i]) {
 		i++
 		if i < len(data) && data[i] == '\n' && data[i-1] == '\r' {
 			i++
@@ -652,7 +652,7 @@ func scanLinkRef(p *Markdown, data []byte, i int) (linkOffset, linkEnd, titleOff
 		i++
 	}
 	linkOffset = i
-	for i < len(data) && data[i] != ' ' && data[i] != '\t' && data[i] != '\n' && data[i] != '\r' {
+	for i < len(data) && data[i] != ' ' && data[i] != '\t' && !iseol(data[i]) {
 		i++
 	}
 	linkEnd = i
@@ -670,7 +670,7 @@ func scanLinkRef(p *Markdown, data []byte, i int) (linkOffset, linkEnd, titleOff
 	}
 
 	// compute end-of-line
-	if i >= len(data) || data[i] == '\r' || data[i] == '\n' {
+	if i >= len(data) || iseol(data[i]) {
 		lineEnd = i
 	}
 	if i+1 < len(data) && data[i] == '\r' && data[i+1] == '\n' {
@@ -691,7 +691,7 @@ func scanLinkRef(p *Markdown, data []byte, i int) (linkOffset, linkEnd, titleOff
 		titleOffset = i
 
 		// look for EOL
-		for i < len(data) && data[i] != '\n' && data[i] != '\r' {
+		for i < len(data) && !iseol(data[i]) {
 			i++
 		}
 		if i+1 < len(data) && data[i] == '\n' && data[i+1] == '\r' {
@@ -734,7 +734,7 @@ func scanFootnote(p *Markdown, data []byte, i, indentSize int) (blockStart, bloc
 
 	// find the end of the line
 	blockEnd = i
-	for i < len(data) && data[i-1] != '\n' {
+	for i < len(data) && data[i-1] != '\n' { // XXX: \r?
 		i++
 	}
 
@@ -753,7 +753,7 @@ gatherLines:
 		i++
 
 		// find the end of this line
-		for i < len(data) && data[i-1] != '\n' {
+		for i < len(data) && data[i-1] != '\n' { // XXX: \r?
 			i++
 		}
 
@@ -785,7 +785,7 @@ gatherLines:
 		blockEnd = i
 	}
 
-	if data[blockEnd-1] != '\n' {
+	if data[blockEnd-1] != '\n' { // XXX: \r?
 		raw.WriteByte('\n')
 	}
 
@@ -809,6 +809,10 @@ func ispunct(c byte) bool {
 		}
 	}
 	return false
+}
+
+func iseol(c byte) bool {
+	return c == '\n' || c == '\r'
 }
 
 // Test if a character is a whitespace character.

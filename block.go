@@ -127,7 +127,7 @@ func (p *Markdown) block(data []byte) {
 		if p.isHRule(data) {
 			p.addBlock(HorizontalRule, nil)
 			var i int
-			for i = 0; i < len(data) && data[i] != '\n'; i++ {
+			for i = 0; i < len(data) && !iseol(data[i]); i++ {
 			}
 			data = data[i:]
 			continue
@@ -228,7 +228,7 @@ func (p *Markdown) prefixHeading(data []byte) int {
 		level++
 	}
 	i := skipChar(data, level, ' ')
-	end := skipUntilChar(data, i, '\n')
+	end := skipUntilNewline(data, i)
 	skip := end
 	id := ""
 	if p.extensions&HeadingIDs != 0 {
@@ -273,22 +273,20 @@ func (p *Markdown) isUnderlinedHeading(data []byte) int {
 	if data[0] == '=' {
 		i := skipChar(data, 1, '=')
 		i = skipChar(data, i, ' ')
-		if i < len(data) && data[i] == '\n' {
+		if i < len(data) && iseol(data[i]) {
 			return 1
 		}
 		return 0
 	}
-
 	// test of level 2 heading
 	if data[0] == '-' {
 		i := skipChar(data, 1, '-')
 		i = skipChar(data, i, ' ')
-		if i < len(data) && data[i] == '\n' {
+		if i < len(data) && iseol(data[i]) {
 			return 2
 		}
 		return 0
 	}
-
 	return 0
 }
 
@@ -300,7 +298,7 @@ func (p *Markdown) titleBlock(data []byte, doRender bool) int {
 	var i int
 	for idx, b := range splitData {
 		if !bytes.HasPrefix(b, []byte("%")) {
-			i = idx // - 1
+			i = idx
 			break
 		}
 	}
@@ -404,13 +402,9 @@ func (p *Markdown) html(data []byte, doRender bool) int {
 	// the end of the block has been found
 	if doRender {
 		// trim newlines
-		end := i
-		for end > 0 && data[end-1] == '\n' {
-			end--
-		}
+		end := trimTrailingNewlines(data, i)
 		finalizeHTMLBlock(p.addBlock(HTMLBlock, data[:end]))
 	}
-
 	return i
 }
 
@@ -427,10 +421,7 @@ func (p *Markdown) htmlComment(data []byte, doRender bool) int {
 		size := i + j
 		if doRender {
 			// trim trailing newlines
-			end := size
-			for end > 0 && data[end-1] == '\n' {
-				end--
-			}
+			end := trimTrailingNewlines(data, size)
 			block := p.addBlock(HTMLBlock, data[:end])
 			finalizeHTMLBlock(block)
 		}
@@ -452,7 +443,7 @@ func (p *Markdown) htmlHr(data []byte, doRender bool) int {
 		return 0
 	}
 	i := 3
-	for i < len(data) && data[i] != '>' && data[i] != '\n' {
+	for i < len(data) && data[i] != '>' && data[i] != '\n' && data[i] != '\r' {
 		i++
 	}
 	if i < len(data) && data[i] == '>' {
@@ -461,10 +452,7 @@ func (p *Markdown) htmlHr(data []byte, doRender bool) int {
 			size := i + j
 			if doRender {
 				// trim newlines
-				end := size
-				for end > 0 && data[end-1] == '\n' {
-					end--
-				}
+				end := trimTrailingNewlines(data, size)
 				finalizeHTMLBlock(p.addBlock(HTMLBlock, data[:end]))
 			}
 			return size
@@ -527,12 +515,12 @@ func (*Markdown) isEmpty(data []byte) int {
 	}
 
 	var i int
-	for i = 0; i < len(data) && data[i] != '\n'; i++ {
+	for i = 0; i < len(data) && !iseol(data[i]); i++ {
 		if data[i] != ' ' && data[i] != '\t' {
 			return 0
 		}
 	}
-	if i < len(data) && data[i] == '\n' {
+	if i < len(data) && iseol(data[i]) {
 		i++
 	}
 	return i
@@ -554,7 +542,7 @@ func (*Markdown) isHRule(data []byte) bool {
 
 	// the whole line must be the char or whitespace
 	n := 0
-	for i < len(data) && data[i] != '\n' {
+	for i < len(data) && !iseol(data[i]) {
 		switch {
 		case data[i] == c:
 			n++
@@ -624,7 +612,7 @@ func isFenceLine(data []byte, info *string, oldmarker string) (end int, marker s
 			i++
 			infoStart++
 
-			for i < len(data) && data[i] != '}' && data[i] != '\n' {
+			for i < len(data) && data[i] != '}' && data[i] != '\n' && data[i] != '\r' {
 				infoLength++
 				i++
 			}
@@ -658,7 +646,8 @@ func isFenceLine(data []byte, info *string, oldmarker string) (end int, marker s
 	if i == len(data) {
 		return i, marker
 	}
-	if i > len(data) || data[i] != '\n' {
+	i = skipChar(data, i, ' ')
+	if i >= len(data) || !iseol(data[i]) {
 		return 0, ""
 	}
 	return i + 1, marker // Take newline into account.
@@ -689,7 +678,7 @@ func (p *Markdown) fencedCodeBlock(data []byte, doRender bool) int {
 		}
 
 		// copy the current line
-		end := skipUntilChar(data, beg, '\n') + 1
+		end := skipUntilNewline(data, beg) + 1
 
 		// did we reach the end of the buffer without a closing marker?
 		if end >= len(data) {
@@ -728,10 +717,10 @@ func unescapeString(str []byte) []byte {
 
 func finalizeCodeBlock(block *Node) {
 	if block.IsFenced {
-		newlinePos := bytes.IndexByte(block.content, '\n')
+		newlinePos := bytes.IndexByte(block.content, '\n') // XXX: \r
 		firstLine := block.content[:newlinePos]
 		rest := block.content[newlinePos+1:]
-		block.Info = unescapeString(bytes.Trim(firstLine, "\n"))
+		block.Info = unescapeString(bytes.Trim(firstLine, "\n")) // XXX: \r
 		block.Literal = rest
 	} else {
 		block.Literal = block.content
@@ -752,7 +741,7 @@ func (p *Markdown) table(data []byte) int {
 
 	for i < len(data) {
 		pipes, rowStart := 0, i
-		for ; i < len(data) && data[i] != '\n'; i++ {
+		for ; i < len(data) && !iseol(data[i]); i++ {
 			if data[i] == '|' {
 				pipes++
 			}
@@ -764,7 +753,7 @@ func (p *Markdown) table(data []byte) int {
 		}
 
 		// include the newline in data sent to tableRow
-		if i < len(data) && data[i] == '\n' {
+		if i < len(data) && iseol(data[i]) {
 			i++
 		}
 		p.tableRow(data[rowStart:i], columns, false)
@@ -785,7 +774,7 @@ func isBackslashEscaped(data []byte, i int) bool {
 func (p *Markdown) tableHeader(data []byte) (size int, columns []CellAlignFlags) {
 	i := 0
 	colCount := 1
-	for i = 0; i < len(data) && data[i] != '\n'; i++ {
+	for i = 0; i < len(data) && !iseol(data[i]); i++ {
 		if data[i] == '|' && !isBackslashEscaped(data, i) {
 			colCount++
 		}
@@ -798,7 +787,7 @@ func (p *Markdown) tableHeader(data []byte) (size int, columns []CellAlignFlags)
 
 	// include the newline in the data sent to tableRow
 	j := i
-	if j < len(data) && data[j] == '\n' {
+	if j < len(data) && iseol(data[j]) {
 		j++
 	}
 	header := data[:j]
@@ -827,7 +816,7 @@ func (p *Markdown) tableHeader(data []byte) (size int, columns []CellAlignFlags)
 	// each column header is of form: / *:?-+:? *|/ with # dashes + # colons >= 3
 	// and trailing | optional on last column
 	col := 0
-	for i < len(data) && data[i] != '\n' {
+	for i < len(data) && !iseol(data[i]) {
 		dashes := 0
 
 		if data[i] == ':' {
@@ -865,7 +854,7 @@ func (p *Markdown) tableHeader(data []byte) (size int, columns []CellAlignFlags)
 			}
 
 			// trailing junk found after last column
-			if col >= colCount && i < len(data) && data[i] != '\n' {
+			if col >= colCount && i < len(data) && !iseol(data[i]) {
 				return
 			}
 
@@ -873,7 +862,7 @@ func (p *Markdown) tableHeader(data []byte) (size int, columns []CellAlignFlags)
 			// something else found where marker was required
 			return
 
-		case data[i] == '\n':
+		case iseol(data[i]):
 			// marker is optional for the last column
 			col++
 
@@ -889,7 +878,7 @@ func (p *Markdown) tableHeader(data []byte) (size int, columns []CellAlignFlags)
 	p.addBlock(TableHead, nil)
 	p.tableRow(header, columns, true)
 	size = i
-	if size < len(data) && data[size] == '\n' {
+	if size < len(data) && iseol(data[size]) {
 		size++
 	}
 	return
@@ -910,7 +899,7 @@ func (p *Markdown) tableRow(data []byte, columns []CellAlignFlags, header bool) 
 
 		cellStart := i
 
-		for i < len(data) && (data[i] != '|' || isBackslashEscaped(data, i)) && data[i] != '\n' {
+		for i < len(data) && (data[i] != '|' || isBackslashEscaped(data, i)) && !iseol(data[i]) {
 			i++
 		}
 
@@ -975,7 +964,7 @@ func (p *Markdown) quote(data []byte) int {
 		// Step over whole lines, collecting them. While doing that, check for
 		// fenced code and if one's found, incorporate it altogether,
 		// irregardless of any contents inside it
-		for end < len(data) && data[end] != '\n' {
+		for end < len(data) && !iseol(data[end]) {
 			if p.extensions&FencedCode != 0 {
 				if i := p.fencedCodeBlock(data[end:], false); i > 0 {
 					// -1 to compensate for the extra end++ after the loop:
@@ -985,7 +974,7 @@ func (p *Markdown) quote(data []byte) int {
 			}
 			end++
 		}
-		if end < len(data) && data[end] == '\n' {
+		if end < len(data) && iseol(data[end]) {
 			end++
 		}
 		if pre := p.quotePrefix(data[beg:]); pre > 0 {
@@ -1020,10 +1009,10 @@ func (p *Markdown) code(data []byte) int {
 	i := 0
 	for i < len(data) {
 		beg := i
-		for i < len(data) && data[i] != '\n' {
+		for i < len(data) && !iseol(data[i]) {
 			i++
 		}
-		if i < len(data) && data[i] == '\n' {
+		if i < len(data) && iseol(data[i]) {
 			i++
 		}
 
@@ -1046,10 +1035,7 @@ func (p *Markdown) code(data []byte) int {
 
 	// trim all the \n off the end of work
 	workbytes := work.Bytes()
-	eol := len(workbytes)
-	for eol > 0 && workbytes[eol-1] == '\n' {
-		eol--
-	}
+	eol := trimTrailingNewlines(workbytes, len(workbytes))
 	if eol != len(workbytes) {
 		work.Truncate(eol)
 	}
@@ -1244,7 +1230,7 @@ func (p *Markdown) listItem(data []byte, flags *ListType) int {
 
 	// find the end of the line
 	line := i
-	for i > 0 && i < len(data) && data[i-1] != '\n' {
+	for i > 0 && i < len(data) && !iseol(data[i-1]) {
 		i++
 	}
 
@@ -1265,7 +1251,7 @@ gatherlines:
 		i++
 
 		// find the end of this line
-		for i < len(data) && data[i-1] != '\n' {
+		for i < len(data) && !iseol(data[i-1]) {
 			i++
 		}
 
@@ -1293,8 +1279,8 @@ gatherlines:
 		chunk := data[line+indentIndex : i]
 
 		if p.extensions&FencedCode != 0 {
-		// determine if in or out of codeblock
-		// if in codeblock, ignore normal list processing
+			// determine if in or out of codeblock
+			// if in codeblock, ignore normal list processing
 			_, marker := isFenceLine(chunk, nil, codeBlockMarker)
 			if marker != "" {
 				if codeBlockMarker == "" {
@@ -1359,10 +1345,10 @@ gatherlines:
 			if *flags&ListTypeDefinition != 0 && i < len(data)-1 {
 				// is the next item still a part of this list?
 				next := i
-				for next < len(data) && data[next] != '\n' {
+				for next < len(data) && !iseol(data[next]) {
 					next++
 				}
-				for next < len(data)-1 && data[next] == '\n' {
+				for next < len(data)-1 && iseol(data[next]) {
 					next++
 				}
 				if i < len(data)-1 && data[i] != ':' && data[next] != ':' {
@@ -1434,13 +1420,7 @@ func (p *Markdown) renderParagraph(data []byte) {
 	for data[beg] == ' ' {
 		beg++
 	}
-
-	end := len(data)
-	// trim trailing newline
-	if data[len(data)-1] == '\n' {
-		end--
-	}
-
+	end := trimTrailingNewlines(data, len(data))
 	// trim trailing spaces
 	for end > beg && data[end-1] == ' ' {
 		end--
@@ -1511,7 +1491,7 @@ func (p *Markdown) paragraph(data []byte) int {
 				block.HeadingID = id
 
 				// find the end of the underline
-				for i < len(data) && data[i] != '\n' {
+				for i < len(data) && !iseol(data[i]) {
 					i++
 				}
 				return i
@@ -1559,13 +1539,9 @@ func (p *Markdown) paragraph(data []byte) int {
 				return i
 			}
 		}
-
-		// otherwise, scan to the beginning of the next line
-		nl := bytes.IndexByte(data[i:], '\n')
-		if nl >= 0 {
-			i += nl + 1
-		} else {
-			i += len(data[i:])
+		i = skipUntilNewline(data, i) + 1
+		if i > len(data) {
+			i = len(data)
 		}
 	}
 
@@ -1579,6 +1555,24 @@ func skipChar(data []byte, start int, char byte) int {
 		i++
 	}
 	return i
+}
+
+func skipUntilNewline(text []byte, start int) int {
+	i := start
+	for i < len(text) && !iseol(text[i]) {
+		i++
+	}
+	if i+1 < len(text) && text[i] == '\r' && text[i+1] == '\n' {
+		i++
+	}
+	return i
+}
+
+func trimTrailingNewlines(data []byte, end int) int {
+	for end > 0 && (data[end-1] == '\n' || data[end-1] == '\r') {
+		end--
+	}
+	return end
 }
 
 func skipUntilChar(text []byte, start int, char byte) int {

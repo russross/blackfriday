@@ -1607,8 +1607,17 @@ func TestTitleBlock_EXTENSION_TITLEBLOCK(t *testing.T) {
 		"<h1 class=\"title\">" +
 			"Some title\n" +
 			"Another title line\n" +
-			"Yep, more here too" +
-			"</h1>\n",
+			"Yep, more here too</h1>\n",
+
+		// XXX: titleBlock implementation does not do normalization and leaves
+		// CRs in the output. This is not ideal, but will work for now.
+		"% Some title\r\n" +
+			"% Another title line\r\n" +
+			"% Yep, more here too\r\n",
+		"<h1 class=\"title\">" +
+			"Some title\r\n" +
+			"Another title line\r\n" +
+			"Yep, more here too</h1>\n",
 	}
 	doTestsBlock(t, tests, Titleblock)
 }
