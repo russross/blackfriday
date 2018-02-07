@@ -34,9 +34,15 @@ Versions
 --------
 
 Currently maintained and recommended version of Blackfriday is `v2`. It's being
-developed on its own branch: https://github.com/russross/blackfriday/v2. You
-should install and import it via [gopkg.in][6] at
-`gopkg.in/russross/blackfriday.v2`.
+developed on its own branch: https://github.com/russross/blackfriday/tree/v2 and the
+documentation is available at
+https://godoc.org/gopkg.in/russross/blackfriday.v2.
+
+It is `go get`-able via via [gopkg.in][6] at `gopkg.in/russross/blackfriday.v2`,
+but we highly recommend using package management tool like [dep][7] or
+[Glide][8] and make use of semantic versioning. With package management you
+should import `github.com/russross/blackfriday` and specify that you're using
+version 2.0.0.
 
 Version 2 offers a number of improvements over v1:
 
