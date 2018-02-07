@@ -30,7 +30,7 @@ Versions
 --------
 
 Currently maintained and recommended version of Blackfriday is `v2`. It's being
-developed on its own branch: https://github.com/russross/blackfriday/v2 and the
+developed on its own branch: https://github.com/russross/blackfriday/tree/v2 and the
 documentation is available at
 https://godoc.org/gopkg.in/russross/blackfriday.v2.
 
