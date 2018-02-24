@@ -331,7 +331,7 @@ func (r *HTMLRenderer) tag(w io.Writer, name []byte, attrs []string) {
 
 func footnoteRef(prefix string, node *Node) []byte {
 	urlFrag := prefix + string(slugify(node.Destination))
-	anchor := fmt.Sprintf(`<a rel="footnote" href="#fn:%s">%d</a>`, urlFrag, node.NoteID)
+	anchor := fmt.Sprintf(`<a href="#fn:%s">%d</a>`, urlFrag, node.NoteID)
 	return []byte(fmt.Sprintf(`<sup class="footnote-ref" id="fnref:%s">%s</sup>`, urlFrag, anchor))
 }
 
