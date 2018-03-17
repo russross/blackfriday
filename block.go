@@ -1291,8 +1291,24 @@ gatherlines:
 			}
 
 			// to be a nested list, it must be indented more
-			// if not, it is the next item in the same list
+			// if not, it is either a different kind of list
+			// or the next item in the same list
 			if indent <= itemIndent {
+				// are there different kinds of lists back-to-back?
+				var listTypeChanged bool
+				if p.dliPrefix(chunk) > 0 && *flags&ListTypeDefinition == 0 {
+					listTypeChanged = true
+				} else if p.oliPrefix(chunk) > 0 && *flags&ListTypeOrdered == 0 {
+					listTypeChanged = true
+				} else if p.uliPrefix(chunk) > 0 && (*flags&ListTypeOrdered != 0 || *flags&ListTypeDefinition != 0) {
+					listTypeChanged = true
+				}
+
+				if listTypeChanged {
+					*flags |= ListItemEndOfList
+					*flags &= ^ListItemContainsBlock
+				}
+
 				break gatherlines
 			}
 
