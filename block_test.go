@@ -859,7 +859,7 @@ func TestConsecutiveLists(t *testing.T) {
 		"<ol>\n<li>Hello</li>\n</ol>\n\n<ul>\n<li>Hello</li>\n</ul>\n\n<dl>\n<dt>Term 1</dt>\n<dd>Definition a</dd>\n</dl>\n",
 
 		"1. Not nested\n2. ordered list\n\n\t1. nested\n\t2. ordered list\n\n\t* nested\n\t* unordered list\n* Not nested\n* unordered list",
-		"<ol>\n<li>Not nested</li>\n<li>ordered list\n\n<ol>\n<li>nested</li>\n<li>ordered list</li>\n</ol>\n\n\n<ul>\n<li>nested</li>\n<li>unordered list</li>\n</ul></li>\n</ol>\n\n<ul>\n<li>Not nested</li>\n<li>unordered list</li>\n</ul>\n",
+		"<ol>\n<li><p>Not nested</p></li>\n\n<li><p>ordered list</p>\n\n<ol>\n<li>nested</li>\n<li>ordered list</li>\n</ol>\n\n<ul>\n<li>nested</li>\n<li>unordered list</li>\n</ul></li>\n</ol>\n\n<ul>\n<li>Not nested</li>\n<li>unordered list</li>\n</ul>\n",
 	}
 	doTestsBlock(t, tests, DefinitionLists)
 }
