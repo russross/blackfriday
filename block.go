@@ -1148,6 +1148,18 @@ func (p *Markdown) list(data []byte, flags ListType) int {
 	return i
 }
 
+// Returns true if the list item is not the same type as its parent list
+func (p *Markdown) listTypeChanged(data []byte, flags *ListType) bool {
+	if p.dliPrefix(data) > 0 && *flags&ListTypeDefinition == 0 {
+		return true
+	} else if p.oliPrefix(data) > 0 && *flags&ListTypeOrdered == 0 {
+		return true
+	} else if p.uliPrefix(data) > 0 && (*flags&ListTypeOrdered != 0 || *flags&ListTypeDefinition != 0) {
+		return true
+	}
+	return false
+}
+
 // Returns true if block ends with a blank line, descending if needed
 // into lists and sublists.
 func endsWithBlankLine(block *Node) bool {
@@ -1286,14 +1298,21 @@ gatherlines:
 			p.oliPrefix(chunk) > 0 ||
 			p.dliPrefix(chunk) > 0:
 
-			if containsBlankLine {
-				*flags |= ListItemContainsBlock
+			// to be a nested list, it must be indented more
+			// if not, it is either a different kind of list
+			// or the next item in the same list
+			if indent <= itemIndent {
+				if p.listTypeChanged(chunk, flags) {
+					*flags |= ListItemEndOfList
+				} else if containsBlankLine {
+					*flags |= ListItemContainsBlock
+				}
+
+				break gatherlines
 			}
 
-			// to be a nested list, it must be indented more
-			// if not, it is the next item in the same list
-			if indent <= itemIndent {
-				break gatherlines
+			if containsBlankLine {
+				*flags |= ListItemContainsBlock
 			}
 
 			// is this the first item in the nested list?
