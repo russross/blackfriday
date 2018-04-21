@@ -1053,6 +1053,9 @@ func TestFencedCodeBlock(t *testing.T) {
 		"``` go\nfunc foo() bool {\n\treturn true;\n}\n```\n",
 		"<pre><code class=\"language-go\">func foo() bool {\n\treturn true;\n}\n</code></pre>\n",
 
+		"``` go foo bar\nfunc foo() bool {\n\treturn true;\n}\n```\n",
+		"<pre><code class=\"language-go\">func foo() bool {\n\treturn true;\n}\n</code></pre>\n",
+
 		"``` c\n/* special & char < > \" escaping */\n```\n",
 		"<pre><code class=\"language-c\">/* special &amp; char &lt; &gt; &quot; escaping */\n</code></pre>\n",
 
@@ -1512,7 +1515,7 @@ func TestFencedCodeBlock_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
 		"<pre><code class=\"language-go\">func foo() bool {\n\treturn true;\n}\n</code></pre>\n",
 
 		"``` go foo bar\nfunc foo() bool {\n\treturn true;\n}\n```\n",
-		"<pre><code class=\"language-go foo bar\">func foo() bool {\n\treturn true;\n}\n</code></pre>\n",
+		"<pre><code class=\"language-go\">func foo() bool {\n\treturn true;\n}\n</code></pre>\n",
 
 		"``` c\n/* special & char < > \" escaping */\n```\n",
 		"<pre><code class=\"language-c\">/* special &amp; char &lt; &gt; &quot; escaping */\n</code></pre>\n",
