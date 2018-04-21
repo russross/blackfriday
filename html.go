@@ -255,12 +255,12 @@ func (options *Html) HRule(out *bytes.Buffer) {
 	out.WriteByte('\n')
 }
 
-func (options *Html) BlockCode(out *bytes.Buffer, text []byte, lang string) {
+func (options *Html) BlockCode(out *bytes.Buffer, text []byte, info string) {
 	doubleSpace(out)
 
 	// parse out the language names/classes
 	count := 0
-	for _, elt := range strings.Fields(lang) {
+	for _, elt := range strings.Fields(info) {
 		if elt[0] == '.' {
 			elt = elt[1:]
 		}
