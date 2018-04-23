@@ -1652,11 +1652,11 @@ func TestCDATA(t *testing.T) {
 func TestIsFenceLine(t *testing.T) {
 	tests := []struct {
 		data            []byte
-		infoRequested bool
+		infoRequested   bool
 		newlineOptional bool
 		wantEnd         int
 		wantMarker      string
-		wantInfo      string
+		wantInfo        string
 	}{
 		{
 			data:    []byte("```"),
@@ -1668,10 +1668,10 @@ func TestIsFenceLine(t *testing.T) {
 			wantMarker: "```",
 		},
 		{
-			data:            []byte("```\nstuff here\n"),
+			data:          []byte("```\nstuff here\n"),
 			infoRequested: true,
-			wantEnd:         4,
-			wantMarker:      "```",
+			wantEnd:       4,
+			wantMarker:    "```",
 		},
 		{
 			data:    []byte("stuff here\n```\n"),
@@ -1685,34 +1685,34 @@ func TestIsFenceLine(t *testing.T) {
 		},
 		{
 			data:            []byte("```"),
-			infoRequested: true,
+			infoRequested:   true,
 			newlineOptional: true,
 			wantEnd:         3,
 			wantMarker:      "```",
 		},
 		{
 			data:            []byte("``` go"),
-			infoRequested: true,
+			infoRequested:   true,
 			newlineOptional: true,
 			wantEnd:         6,
 			wantMarker:      "```",
-			wantInfo:      "go",
+			wantInfo:        "go",
 		},
 		{
 			data:            []byte("``` go foo bar"),
-			infoRequested: true,
+			infoRequested:   true,
 			newlineOptional: true,
 			wantEnd:         14,
 			wantMarker:      "```",
-			wantInfo:      "go foo bar",
+			wantInfo:        "go foo bar",
 		},
 		{
 			data:            []byte("``` go foo bar  "),
-			infoRequested: true,
+			infoRequested:   true,
 			newlineOptional: true,
 			wantEnd:         16,
 			wantMarker:      "```",
-			wantInfo:      "go foo bar",
+			wantInfo:        "go foo bar",
 		},
 	}
 
