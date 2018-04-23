@@ -646,7 +646,7 @@ func isFenceLine(data []byte, info *string, oldmarker string) (end int, marker s
 			i++
 			i = skipChar(data, i, ' ')
 		} else {
-			for i < len(data) && !isverticalspace(data[i]){
+			for i < len(data) && !isverticalspace(data[i]) {
 				infoLength++
 				i++
 			}

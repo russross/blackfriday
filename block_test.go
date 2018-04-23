@@ -1635,10 +1635,10 @@ func TestCompletePage(t *testing.T) {
 
 func TestIsFenceLine(t *testing.T) {
 	tests := []struct {
-		data            []byte
+		data          []byte
 		infoRequested bool
-		wantEnd         int
-		wantMarker      string
+		wantEnd       int
+		wantMarker    string
 		wantInfo      string
 	}{
 		{
@@ -1652,40 +1652,40 @@ func TestIsFenceLine(t *testing.T) {
 			wantMarker: "```",
 		},
 		{
-			data:            []byte("```\nstuff here\n"),
+			data:          []byte("```\nstuff here\n"),
 			infoRequested: true,
-			wantEnd:         4,
-			wantMarker:      "```",
+			wantEnd:       4,
+			wantMarker:    "```",
 		},
 		{
 			data:    []byte("stuff here\n```\n"),
 			wantEnd: 0,
 		},
 		{
-			data:            []byte("```"),
+			data:          []byte("```"),
 			infoRequested: true,
-			wantEnd:         3,
-			wantMarker:      "```",
+			wantEnd:       3,
+			wantMarker:    "```",
 		},
 		{
-			data:            []byte("``` go"),
+			data:          []byte("``` go"),
 			infoRequested: true,
-			wantEnd:         6,
-			wantMarker:      "```",
+			wantEnd:       6,
+			wantMarker:    "```",
 			wantInfo:      "go",
 		},
 		{
-			data:            []byte("``` go foo bar"),
+			data:          []byte("``` go foo bar"),
 			infoRequested: true,
-			wantEnd:         14,
-			wantMarker:      "```",
+			wantEnd:       14,
+			wantMarker:    "```",
 			wantInfo:      "go foo bar",
 		},
 		{
-			data:            []byte("``` go foo bar  "),
+			data:          []byte("``` go foo bar  "),
 			infoRequested: true,
-			wantEnd:         16,
-			wantMarker:      "```",
+			wantEnd:       16,
+			wantMarker:    "```",
 			wantInfo:      "go foo bar",
 		},
 	}
