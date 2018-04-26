@@ -204,7 +204,7 @@ implements the following extensions:
 
         Cat
         : Fluffy animal everyone likes
-        
+
         Internet
         : Vector of transmission for pictures of cats
 
@@ -215,7 +215,7 @@ implements the following extensions:
     end of the document. A footnote looks like this:
 
         This is a footnote.[^1]
-        
+
         [^1]: the footnote text.
 
 *   **Autolinking**. Blackfriday can find URLs that have not been
@@ -263,6 +263,8 @@ are a few of note:
 
 *   [LaTeX output](https://github.com/Ambrevar/Blackfriday-LaTeX):
     renders output as LaTeX.
+
+*   [Blackfriday-Confluence](https://github.com/kentaro-m/blackfriday-confluence): provides a [Confluence Wiki Markup](https://confluence.atlassian.com/doc/confluence-wiki-markup-251003035.html) renderer.
 
 
 Todo
