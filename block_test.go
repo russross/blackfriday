@@ -1469,6 +1469,16 @@ func TestFencedCodeBlock_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
 	doTestsBlock(t, tests, FencedCode|NoEmptyLineBeforeBlock)
 }
 
+func TestMathBlock(t *testing.T) {
+	var tests = []string{
+		"$y=a+b$$",
+		"<p><span class=\"math inline\">\\(y=a+b\\)</span>$</p>\n",
+		"$$y_2=a_3+b_4$$",
+		"<p><span class=\"math display\">\\[y_2=a_3+b_4\\]</span></p>",
+	}
+	doTestsBlock(t, tests, CommonExtensions)
+}
+
 func TestTitleBlock_EXTENSION_TITLEBLOCK(t *testing.T) {
 	var tests = []string{
 		"% Some title\n" +

@@ -189,6 +189,14 @@ func (p *Markdown) block(data []byte) {
 			}
 		}
 
+		// handle math block
+		if p.extensions&MathJaxSupport != 0 {
+			if i := p.blockMath(data); i > 0 {
+				data = data[i:]
+				continue
+			}
+		}
+
 		// anything else must look like a normal paragraph
 		// note: this finds underlined headings, too
 		data = data[p.paragraph(data):]
@@ -239,7 +247,7 @@ func (p *Markdown) prefixHeading(data []byte) int {
 		}
 		// extract heading id iff found
 		if j < end && k < end {
-			id = string(data[j+2 : k])
+			id = string(data[j+2: k])
 			end = j
 			skip = k + 1
 			for end > 0 && data[end-1] == ' ' {
@@ -597,7 +605,7 @@ func isFenceLine(data []byte, syntax *string, oldmarker string) (end int, marker
 	if size < 3 {
 		return 0, ""
 	}
-	marker = string(data[i-size : i])
+	marker = string(data[i-size: i])
 
 	// if this is the end marker, it must match the beginning marker
 	if oldmarker != "" && marker != oldmarker {
@@ -651,7 +659,7 @@ func isFenceLine(data []byte, syntax *string, oldmarker string) (end int, marker
 			}
 		}
 
-		*syntax = string(data[syntaxStart : syntaxStart+syn])
+		*syntax = string(data[syntaxStart: syntaxStart+syn])
 	}
 
 	i = skipChar(data, i, ' ')
@@ -1289,7 +1297,7 @@ gatherlines:
 			}
 		}
 
-		chunk := data[line+indentIndex : i]
+		chunk := data[line+indentIndex: i]
 
 		// evaluate how this line fits in
 		switch {
@@ -1320,7 +1328,7 @@ gatherlines:
 				sublist = raw.Len()
 			}
 
-		// is this a nested prefix heading?
+			// is this a nested prefix heading?
 		case p.isPrefixHeading(chunk):
 			// if the heading is not indented, it is not nested in the list
 			// and thus ends the list
@@ -1330,9 +1338,9 @@ gatherlines:
 			}
 			*flags |= ListItemContainsBlock
 
-		// anything following an empty line is only part
-		// of this item if it is indented 4 spaces
-		// (regardless of the indentation of the beginning of the item)
+			// anything following an empty line is only part
+			// of this item if it is indented 4 spaces
+			// (regardless of the indentation of the beginning of the item)
 		case containsBlankLine && indent < 4:
 			if *flags&ListTypeDefinition != 0 && i < len(data)-1 {
 				// is the next item still a part of this list?
@@ -1351,7 +1359,7 @@ gatherlines:
 			}
 			break gatherlines
 
-		// a blank line means this should be parsed as a block
+			// a blank line means this should be parsed as a block
 		case containsBlankLine:
 			raw.WriteByte('\n')
 			*flags |= ListItemContainsBlock
@@ -1365,7 +1373,7 @@ gatherlines:
 		}
 
 		// add the line into the working buffer without prefix
-		raw.Write(data[line+indentIndex : i])
+		raw.Write(data[line+indentIndex: i])
 
 		line = i
 	}
@@ -1425,6 +1433,29 @@ func (p *Markdown) renderParagraph(data []byte) {
 	}
 
 	p.addBlock(Paragraph, data[beg:end])
+}
+
+// blockMath handle block surround with $$
+func (p *Markdown) blockMath(data []byte) int {
+	if len(data) <= 4 || data[0] != '$' || data[1] != '$' || data[2] == '$' {
+		return 0
+	}
+
+	// find next $$
+	var end int
+	for end = 2; end+1 < len(data) && (data[end] != '$' || data[end+1] != '$'); end++ {
+	}
+
+	// $$ not match
+	if end+1 == len(data) {
+		return 0
+	}
+
+	// render the display math
+	container := p.addChild(MathBlock, 0)
+	container.Literal = data[2:end]
+
+	return end + 2
 }
 
 func (p *Markdown) paragraph(data []byte) int {

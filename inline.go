@@ -187,7 +187,7 @@ func lineBreak(p *Markdown, data []byte, offset int) (int, *Node) {
 type linkType int
 
 const (
-	linkNormal linkType = iota
+	linkNormal           linkType = iota
 	linkImg
 	linkDeferredFootnote
 	linkInlineFootnote
@@ -227,12 +227,12 @@ func link(p *Markdown, data []byte, offset int) (int, *Node) {
 	// an exclamation point)
 	case p.extensions&Footnotes != 0 && len(data)-1 > offset && data[offset+1] == '^':
 		t = linkDeferredFootnote
-	// ![alt] == image
+		// ![alt] == image
 	case offset >= 0 && data[offset] == '!':
 		t = linkImg
 		offset++
-	// ^[text] == inline footnote
-	// [^refId] == deferred footnote
+		// ^[text] == inline footnote
+		// [^refId] == deferred footnote
 	case p.extensions&Footnotes != 0:
 		if offset >= 0 && data[offset] == '^' {
 			t = linkInlineFootnote
@@ -240,7 +240,7 @@ func link(p *Markdown, data []byte, offset int) (int, *Node) {
 		} else if len(data)-1 > offset && data[offset+1] == '^' {
 			t = linkDeferredFootnote
 		}
-	// [text] == regular link
+		// [text] == regular link
 	default:
 		t = linkNormal
 	}
@@ -385,7 +385,7 @@ func link(p *Markdown, data []byte, offset int) (int, *Node) {
 
 		i++
 
-	// reference style link
+		// reference style link
 	case isReferenceStyleLink(data, i, t):
 		var id []byte
 		altContentConsidered := false
@@ -438,7 +438,7 @@ func link(p *Markdown, data []byte, offset int) (int, *Node) {
 		}
 		i++
 
-	// shortcut reference style link or reference or inline footnote
+		// shortcut reference style link or reference or inline footnote
 	default:
 		var id []byte
 
@@ -607,7 +607,7 @@ type autolinkType int
 
 // These are the possible flag values for the autolink renderer.
 const (
-	notAutolink autolinkType = iota
+	notAutolink    autolinkType = iota
 	normalAutolink
 	emailAutolink
 )
@@ -1201,6 +1201,31 @@ func helperTripleEmphasis(p *Markdown, data []byte, offset int, c byte) (int, *N
 		}
 	}
 	return 0, nil
+}
+
+// math handle inline math wrapped with '$'
+func math(p *Markdown, data []byte, offset int) (int, *Node) {
+	data = data[offset:]
+
+	// too short, or block math
+	if len(data) <= 2 || data[1] == '$' {
+		return 0, nil
+	}
+
+	// find next '$'
+	var end int
+	for end = 1; end < len(data) && data[end] != '$'; end++ {
+	}
+
+	// $ not match
+	if end == len(data) {
+		return 0, nil
+	}
+
+	// create inline math node
+	math := NewNode(Math)
+	math.Literal = data[1:end]
+	return end + 1, math
 }
 
 func text(s []byte) *Node {

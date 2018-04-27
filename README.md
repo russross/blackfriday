@@ -190,11 +190,11 @@ implements the following extensions:
     and supply a language (to make syntax highlighting simple). Just
     mark it like this:
 
-        ```go
+        ​```go
         func getTrue() bool {
             return true
         }
-        ```
+        ​```
 
     You can use 3 or more backticks to mark the beginning of the
     block, and the same number to mark the end of the block.
@@ -243,6 +243,24 @@ implements the following extensions:
     becomes `<sup>4</sup>&frasl;<sub>5</sub>`, which renders as
     <sup>4</sup>&frasl;<sub>5</sub>.
 
+*   **MathJaX Support** is an additional feature which is supported by
+    many markdown editor. It translate inline math equation quoted by `$`
+    and display math block quoted by `$$` into MathJax compatible format.
+    hyphen `_` won't break LaTeX render within a math element any more.
+    ```
+    $$
+    \left[ \begin{array}{a} a^l_1 \\ ⋮ \\ a^l_{d_l} \end{array}\right]
+    = \sigma(
+     \left[ \begin{matrix} 
+     	w^l_{1,1} & ⋯  & w^l_{1,d_{l-1}} \\  
+     	⋮ & ⋱  & ⋮  \\ 
+     	w^l_{d_l,1} & ⋯  & w^l_{d_l,d_{l-1}} \\  
+     \end{matrix}\right]  ·
+     \left[ \begin{array}{x} a^{l-1}_1 \\ ⋮ \\ ⋮ \\ a^{l-1}_{d_{l-1}} \end{array}\right] + 
+     \left[ \begin{array}{b} b^l_1 \\ ⋮ \\ b^l_{d_l} \end{array}\right])
+     $$
+    ```
+
 
 Other renderers
 ---------------
@@ -283,9 +301,9 @@ License
 [Blackfriday is distributed under the Simplified BSD License](LICENSE.txt)
 
 
-   [1]: https://daringfireball.net/projects/markdown/ "Markdown"
-   [2]: https://golang.org/ "Go Language"
-   [3]: https://github.com/vmg/sundown "Sundown"
-   [4]: https://godoc.org/gopkg.in/russross/blackfriday.v2#Parse "Parse func"
-   [5]: https://github.com/microcosm-cc/bluemonday "Bluemonday"
-   [6]: https://labix.org/gopkg.in "gopkg.in"
+[1]: https://daringfireball.net/projects/markdown/ "Markdown"
+[2]: https://golang.org/ "Go Language"
+[3]: https://github.com/vmg/sundown "Sundown"
+[4]: https://godoc.org/gopkg.in/russross/blackfriday.v2#Parse "Parse func"
+[5]: https://github.com/microcosm-cc/bluemonday "Bluemonday"
+[6]: https://labix.org/gopkg.in "gopkg.in"
