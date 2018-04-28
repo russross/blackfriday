@@ -17,6 +17,7 @@ import (
 	"bytes"
 	"html"
 	"regexp"
+	"strings"
 
 	"github.com/shurcooL/sanitized_anchor_name"
 )
@@ -568,8 +569,8 @@ func (*Markdown) isHRule(data []byte) bool {
 
 // isFenceLine checks if there's a fence line (e.g., ``` or ``` go) at the beginning of data,
 // and returns the end index if so, or 0 otherwise. It also returns the marker found.
-// If syntax is not nil, it gets set to the syntax specified in the fence line.
-func isFenceLine(data []byte, syntax *string, oldmarker string) (end int, marker string) {
+// If info is not nil, it gets set to the syntax specified in the fence line.
+func isFenceLine(data []byte, info *string, oldmarker string) (end int, marker string) {
 	i, size := 0, 0
 
 	// skip up to three spaces
@@ -605,9 +606,9 @@ func isFenceLine(data []byte, syntax *string, oldmarker string) (end int, marker
 	}
 
 	// TODO(shurcooL): It's probably a good idea to simplify the 2 code paths here
-	// into one, always get the syntax, and discard it if the caller doesn't care.
-	if syntax != nil {
-		syn := 0
+	// into one, always get the info string, and discard it if the caller doesn't care.
+	if info != nil {
+		infoLength := 0
 		i = skipChar(data, i, ' ')
 
 		if i >= len(data) {
@@ -617,14 +618,14 @@ func isFenceLine(data []byte, syntax *string, oldmarker string) (end int, marker
 			return 0, ""
 		}
 
-		syntaxStart := i
+		infoStart := i
 
 		if data[i] == '{' {
 			i++
-			syntaxStart++
+			infoStart++
 
 			for i < len(data) && data[i] != '}' && data[i] != '\n' {
-				syn++
+				infoLength++
 				i++
 			}
 
@@ -634,31 +635,30 @@ func isFenceLine(data []byte, syntax *string, oldmarker string) (end int, marker
 
 			// strip all whitespace at the beginning and the end
 			// of the {} block
-			for syn > 0 && isspace(data[syntaxStart]) {
-				syntaxStart++
-				syn--
+			for infoLength > 0 && isspace(data[infoStart]) {
+				infoStart++
+				infoLength--
 			}
 
-			for syn > 0 && isspace(data[syntaxStart+syn-1]) {
-				syn--
+			for infoLength > 0 && isspace(data[infoStart+infoLength-1]) {
+				infoLength--
 			}
-
 			i++
+			i = skipChar(data, i, ' ')
 		} else {
-			for i < len(data) && !isspace(data[i]) {
-				syn++
+			for i < len(data) && !isverticalspace(data[i]) {
+				infoLength++
 				i++
 			}
 		}
 
-		*syntax = string(data[syntaxStart : syntaxStart+syn])
+		*info = strings.TrimSpace(string(data[infoStart : infoStart+infoLength]))
 	}
 
-	i = skipChar(data, i, ' ')
-	if i >= len(data) || data[i] != '\n' {
-		if i == len(data) {
-			return i, marker
-		}
+	if i == len(data) {
+		return i, marker
+	}
+	if i > len(data) || data[i] != '\n' {
 		return 0, ""
 	}
 	return i + 1, marker // Take newline into account.
@@ -668,14 +668,14 @@ func isFenceLine(data []byte, syntax *string, oldmarker string) (end int, marker
 // or 0 otherwise. It writes to out if doRender is true, otherwise it has no side effects.
 // If doRender is true, a final newline is mandatory to recognize the fenced code block.
 func (p *Markdown) fencedCodeBlock(data []byte, doRender bool) int {
-	var syntax string
-	beg, marker := isFenceLine(data, &syntax, "")
+	var info string
+	beg, marker := isFenceLine(data, &info, "")
 	if beg == 0 || beg >= len(data) {
 		return 0
 	}
 
 	var work bytes.Buffer
-	work.Write([]byte(syntax))
+	work.Write([]byte(info))
 	work.WriteByte('\n')
 
 	for {

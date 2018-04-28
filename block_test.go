@@ -945,6 +945,9 @@ func TestFencedCodeBlock(t *testing.T) {
 		"``` go\nfunc foo() bool {\n\treturn true;\n}\n```\n",
 		"<pre><code class=\"language-go\">func foo() bool {\n\treturn true;\n}\n</code></pre>\n",
 
+		"``` go foo bar\nfunc foo() bool {\n\treturn true;\n}\n```\n",
+		"<pre><code class=\"language-go\">func foo() bool {\n\treturn true;\n}\n</code></pre>\n",
+
 		"``` c\n/* special & char < > \" escaping */\n```\n",
 		"<pre><code class=\"language-c\">/* special &amp; char &lt; &gt; &quot; escaping */\n</code></pre>\n",
 
@@ -1403,6 +1406,9 @@ func TestFencedCodeBlock_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
 		"``` go\nfunc foo() bool {\n\treturn true;\n}\n```\n",
 		"<pre><code class=\"language-go\">func foo() bool {\n\treturn true;\n}\n</code></pre>\n",
 
+		"``` go foo bar\nfunc foo() bool {\n\treturn true;\n}\n```\n",
+		"<pre><code class=\"language-go\">func foo() bool {\n\treturn true;\n}\n</code></pre>\n",
+
 		"``` c\n/* special & char < > \" escaping */\n```\n",
 		"<pre><code class=\"language-c\">/* special &amp; char &lt; &gt; &quot; escaping */\n</code></pre>\n",
 
@@ -1640,11 +1646,11 @@ func TestCompletePage(t *testing.T) {
 
 func TestIsFenceLine(t *testing.T) {
 	tests := []struct {
-		data            []byte
-		syntaxRequested bool
-		wantEnd         int
-		wantMarker      string
-		wantSyntax      string
+		data          []byte
+		infoRequested bool
+		wantEnd       int
+		wantMarker    string
+		wantInfo      string
 	}{
 		{
 			data:       []byte("```"),
@@ -1657,45 +1663,59 @@ func TestIsFenceLine(t *testing.T) {
 			wantMarker: "```",
 		},
 		{
-			data:            []byte("```\nstuff here\n"),
-			syntaxRequested: true,
-			wantEnd:         4,
-			wantMarker:      "```",
+			data:          []byte("```\nstuff here\n"),
+			infoRequested: true,
+			wantEnd:       4,
+			wantMarker:    "```",
 		},
 		{
 			data:    []byte("stuff here\n```\n"),
 			wantEnd: 0,
 		},
 		{
-			data:            []byte("```"),
-			syntaxRequested: true,
-			wantEnd:         3,
-			wantMarker:      "```",
+			data:          []byte("```"),
+			infoRequested: true,
+			wantEnd:       3,
+			wantMarker:    "```",
 		},
 		{
-			data:            []byte("``` go"),
-			syntaxRequested: true,
-			wantEnd:         6,
-			wantMarker:      "```",
-			wantSyntax:      "go",
+			data:          []byte("``` go"),
+			infoRequested: true,
+			wantEnd:       6,
+			wantMarker:    "```",
+			wantInfo:      "go",
+		},
+		{
+			data:          []byte("``` go foo bar"),
+			infoRequested: true,
+			wantEnd:       14,
+			wantMarker:    "```",
+			wantInfo:      "go foo bar",
+		},
+		{
+			data:          []byte("``` go foo bar  "),
+			infoRequested: true,
+			wantEnd:       16,
+			wantMarker:    "```",
+			wantInfo:      "go foo bar",
 		},
 	}
 
 	for _, test := range tests {
-		var syntax *string
-		if test.syntaxRequested {
-			syntax = new(string)
+		var info *string
+		if test.infoRequested {
+			info = new(string)
 		}
-		end, marker := isFenceLine(test.data, syntax, "```")
+		end, marker := isFenceLine(test.data, info, "```")
 		if got, want := end, test.wantEnd; got != want {
 			t.Errorf("got end %v, want %v", got, want)
 		}
 		if got, want := marker, test.wantMarker; got != want {
 			t.Errorf("got marker %q, want %q", got, want)
 		}
-		if test.syntaxRequested {
-			if got, want := *syntax, test.wantSyntax; got != want {
-				t.Errorf("got syntax %q, want %q", got, want)
+		if test.infoRequested {
+			if got, want := *info, test.wantInfo; got != want {
+				t.Errorf("got info string %q, want %q", got, want)
 			}
 		}
 	}

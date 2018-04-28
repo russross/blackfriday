@@ -813,7 +813,17 @@ func ispunct(c byte) bool {
 
 // Test if a character is a whitespace character.
 func isspace(c byte) bool {
-	return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v'
+	return ishorizontalspace(c) || isverticalspace(c)
+}
+
+// Test if a character is a horizontal whitespace character.
+func ishorizontalspace(c byte) bool {
+	return c == ' ' || c == '\t'
+}
+
+// Test if a character is a vertical character.
+func isverticalspace(c byte) bool {
+	return c == '\n' || c == '\r' || c == '\f' || c == '\v'
 }
 
 // Test if a character is letter.
