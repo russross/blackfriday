@@ -1,7 +1,7 @@
 Blackfriday [![Build Status](https://travis-ci.org/russross/blackfriday.svg?branch=master)](https://travis-ci.org/russross/blackfriday)
 ===========
 
-Blackfriday is a [Markdown][1] processor implemented in [Go][2]. It
+Blackfriday is a [CommonMark Markdown][1] processor implemented in [Go][2]. It
 is paranoid about its input (so you can safely feed it user-supplied
 data), it is fast, it supports common extensions (tables, smart
 punctuation substitutions, etc.), and it is safe for all utf-8
@@ -283,7 +283,7 @@ License
 [Blackfriday is distributed under the Simplified BSD License](LICENSE.txt)
 
 
-   [1]: https://daringfireball.net/projects/markdown/ "Markdown"
+   [1]: http://commonmark.org/ "CommonMark Markdown"
    [2]: https://golang.org/ "Go Language"
    [3]: https://github.com/vmg/sundown "Sundown"
    [4]: https://godoc.org/gopkg.in/russross/blackfriday.v2#Parse "Parse func"
