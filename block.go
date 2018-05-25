@@ -1174,7 +1174,7 @@ gatherlines:
 		if p.flags&EXTENSION_FENCED_CODE != 0 {
 			// determine if in or out of codeblock
 			// if in codeblock, ignore normal list processing
-			_, marker := isFenceLine(chunk, nil, codeBlockMarker)
+			_, marker := isFenceLine(chunk, nil, codeBlockMarker, false)
 			if marker != "" {
 				if codeBlockMarker == "" {
 					// start of codeblock
@@ -1186,7 +1186,7 @@ gatherlines:
 			}
 			// we are in a codeblock, write line, and continue
 			if codeBlockMarker != "" || marker != "" {
-				raw.Write(data[line+indentIndex : i])
+				raw.Write(data[line+indent : i])
 				line = i
 				continue gatherlines
 			}
