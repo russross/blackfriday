@@ -1591,7 +1591,7 @@ func TestListWithFencedCodeBlock(t *testing.T) {
 		"1. one\n\n    ```\n    - code\n    ```\n\n2. two\n",
 		"<ol>\n<li><p>one</p>\n\n<pre><code>- code\n</code></pre></li>\n\n<li><p>two</p></li>\n</ol>\n",
 	}
-	doTestsBlock(t, tests, FencedCode)
+	doTestsBlock(t, tests, EXTENSION_FENCED_CODE)
 }
 
 func TestListWithMalformedFencedCodeBlock(t *testing.T) {
@@ -1605,7 +1605,7 @@ func TestListWithMalformedFencedCodeBlock(t *testing.T) {
 		"1. one\n\n    ```\n    - code\n\n2. two\n",
 		"<ol>\n<li>one\n```\n- code\n2. two</li>\n</ol>\n",
 	}
-	doTestsBlock(t, tests, FencedCode)
+	doTestsBlock(t, tests, EXTENSION_FENCED_CODE)
 }
 
 func TestListWithFencedCodeBlockNoExtensions(t *testing.T) {
