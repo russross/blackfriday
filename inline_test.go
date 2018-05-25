@@ -497,15 +497,15 @@ func TestRelAttrLink(t *testing.T) {
 		HTMLFlags: Safelink | NoreferrerLinks,
 	})
 
-	var nofollownoreferrerTests = []string{
+	var nofollownoreferrernoopenerTests = []string{
 		"[foo](http://bar.com/foo/)\n",
-		"<p><a href=\"http://bar.com/foo/\" rel=\"nofollow noreferrer\">foo</a></p>\n",
+		"<p><a href=\"http://bar.com/foo/\" rel=\"nofollow noreferrer noopener\">foo</a></p>\n",
 
 		"[foo](/bar/)\n",
 		"<p><a href=\"/bar/\">foo</a></p>\n",
 	}
-	doTestsInlineParam(t, nofollownoreferrerTests, TestParams{
-		HTMLFlags: Safelink | NofollowLinks | NoreferrerLinks,
+	doTestsInlineParam(t, nofollownoreferrernoopenerTests, TestParams{
+		HTMLFlags: Safelink | NofollowLinks | NoreferrerLinks | NoopenerLinks,
 	})
 }
 
