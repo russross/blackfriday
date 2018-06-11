@@ -1181,6 +1181,7 @@ gatherlines:
 					codeBlockMarker = marker
 				} else {
 					// end of codeblock.
+					*flags |= LIST_ITEM_CONTAINS_BLOCK
 					codeBlockMarker = ""
 				}
 			}

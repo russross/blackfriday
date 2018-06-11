@@ -1600,10 +1600,10 @@ func TestListWithMalformedFencedCodeBlock(t *testing.T) {
 	// See russross/blackfriday#372 for context.
 	var tests = []string{
 		"1. one\n\n    ```\n    code\n\n2. two\n",
-		"<ol>\n<li>one\n```\ncode\n2. two</li>\n</ol>\n",
+		"<ol>\n<li>one\n\n```\ncode\n\n2. two</li>\n</ol>\n",
 
 		"1. one\n\n    ```\n    - code\n\n2. two\n",
-		"<ol>\n<li>one\n```\n- code\n2. two</li>\n</ol>\n",
+		"<ol>\n<li>one\n\n```\n- code\n\n2. two</li>\n</ol>\n",
 	}
 	doTestsBlock(t, tests, EXTENSION_FENCED_CODE)
 }
