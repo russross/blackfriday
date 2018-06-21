@@ -328,7 +328,7 @@ are a few of note:
 *   [markdownfmt](https://github.com/shurcooL/markdownfmt): like gofmt,
     but for markdown.
 
-*   [LaTeX output](https://bitbucket.org/ambrevar/blackfriday-latex):
+*   [LaTeX output](https://github.com/Ambrevar/blackfriday-latex):
     renders output as LaTeX.
 
 
