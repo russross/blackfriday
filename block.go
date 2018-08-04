@@ -1293,8 +1293,8 @@ gatherlines:
 		chunk := data[line+indentIndex : i]
 
 		if p.extensions&FencedCode != 0 {
-		// determine if in or out of codeblock
-		// if in codeblock, ignore normal list processing
+			// determine if in or out of codeblock
+			// if in codeblock, ignore normal list processing
 			_, marker := isFenceLine(chunk, nil, codeBlockMarker)
 			if marker != "" {
 				if codeBlockMarker == "" {
