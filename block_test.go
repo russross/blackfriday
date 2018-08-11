@@ -1853,3 +1853,38 @@ func TestIsFenceLine(t *testing.T) {
 		}
 	}
 }
+
+func TestIsEmpty(t *testing.T) {
+	m := Markdown{}
+	tests := []struct {
+		input string
+		want  int
+	}{
+		{
+			input: "\n",
+			want:  1,
+		},
+		{
+			input: " \n",
+			want:  2,
+		},
+		{
+			input: "\r\n",
+			want:  2,
+		},
+		{
+			input: " \r\n",
+			want:  3,
+		},
+		{
+			input: "\r",
+			want:  1,
+		},
+	}
+	for _, test := range tests {
+		if got := m.isEmpty([]byte(test.input)); got != test.want {
+			t.Errorf("Wrong output for %q: want %v, got %v",
+				test.input, test.want, got)
+		}
+	}
+}

@@ -463,7 +463,7 @@ func link(p *Markdown, data []byte, offset int) (int, *Node) {
 				switch {
 				case !iseol(data[j]):
 					b.WriteByte(data[j])
-				case data[j-1] != ' ':
+				case data[j-1] != ' ' && data[j-1] != '\r':
 					b.WriteByte(' ')
 				}
 			}
@@ -586,23 +586,27 @@ func link(p *Markdown, data []byte, offset int) (int, *Node) {
 	return i, linkNode
 }
 
-func (p *Markdown) inlineHTMLComment(data []byte) int {
+func (p *Markdown) inlineHTMLComment(data []byte) (int, bool) {
+	hasCRs := false
 	if len(data) < 5 {
-		return 0
+		return 0, false
 	}
 	if data[0] != '<' || data[1] != '!' || data[2] != '-' || data[3] != '-' {
-		return 0
+		return 0, false
 	}
 	i := 5
 	// scan for an end-of-comment marker, across lines if necessary
 	for i < len(data) && !(data[i-2] == '-' && data[i-1] == '-' && data[i] == '>') {
+		if data[i] == '\r' {
+			hasCRs = true
+		}
 		i++
 	}
 	// no end-of-comment marker
 	if i >= len(data) {
-		return 0
+		return 0, false
 	}
-	return i + 1
+	return i + 1, hasCRs
 }
 
 func stripMailto(link []byte) []byte {
@@ -629,7 +633,7 @@ const (
 func leftAngle(p *Markdown, data []byte, offset int) (int, *Node) {
 	data = data[offset:]
 	altype, end := tagLength(data)
-	if size := p.inlineHTMLComment(data); size > 0 {
+	if size, _ := p.inlineHTMLComment(data); size > 0 {
 		end = size
 	}
 	if end > 2 {
