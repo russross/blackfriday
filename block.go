@@ -818,7 +818,7 @@ func (p *Markdown) tableHeader(data []byte) (size int, columns []CellAlignFlags)
 	if data[0] == '|' {
 		colCount--
 	}
-	lastPipe := backupWindowsNewline(i, data)
+	lastPipe := backtrackAnyNewlines(data, i)
 	if lastPipe < len(data) && data[lastPipe] == '|' && !isBackslashEscaped(data, lastPipe) {
 		colCount--
 	}
@@ -1649,6 +1649,15 @@ func backupWindowsNewline(i int, data []byte) int {
 	}
 	if i > 0 && i < len(data) && data[i] == '\r' {
 		return i
+	}
+	return i
+}
+
+// backtrackAnyNewlines decrements i until it hits any non-newline character or
+// becomes zero.
+func backtrackAnyNewlines(data []byte, i int) int {
+	for i > 0 && i < len(data) && iseol(data[i]) {
+		i--
 	}
 	return i
 }
