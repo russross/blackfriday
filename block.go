@@ -819,7 +819,7 @@ func (p *Markdown) tableHeader(data []byte) (size int, columns []CellAlignFlags)
 		colCount--
 	}
 	lastPipe := backupWindowsNewline(i, data)
-	if data[lastPipe] == '|' && !isBackslashEscaped(data, lastPipe) {
+	if lastPipe < len(data) && data[lastPipe] == '|' && !isBackslashEscaped(data, lastPipe) {
 		colCount--
 	}
 
