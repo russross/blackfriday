@@ -14,6 +14,7 @@
 package blackfriday
 
 import (
+	"bytes"
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
@@ -148,39 +149,48 @@ func transformLinks(tests []string, prefix string) []string {
 
 func doTestsReference(t *testing.T, files []string, flag Extensions) {
 	params := TestParams{extensions: flag}
-	execRecoverableTestSuite(t, files, params, func(candidate *string) {
-		for _, basename := range files {
-			filename := filepath.Join("testdata", basename+".text")
-			inputBytes, err := ioutil.ReadFile(filename)
-			if err != nil {
-				t.Errorf("Couldn't open '%s', error: %v\n", filename, err)
-				continue
-			}
-			input := string(inputBytes)
+	refTestsRunner := func(alterEOLs bool) func(*string) {
+		return func(candidate *string) {
+			for _, basename := range files {
+				filename := filepath.Join("testdata", basename+".text")
+				inputBytes, err := ioutil.ReadFile(filename)
+				if err != nil {
+					t.Errorf("Couldn't open '%s', error: %v\n", filename, err)
+					continue
+				}
+				var input string
+				if alterEOLs {
+					input = string(bytes.Replace(inputBytes, []byte{'\n'},
+						[]byte("\r\n"), -1))
+				} else {
+					input = string(inputBytes)
+				}
+				filename = filepath.Join("testdata", basename+".html")
+				expectedBytes, err := ioutil.ReadFile(filename)
+				if err != nil {
+					t.Errorf("Couldn't open '%s', error: %v\n", filename, err)
+					continue
+				}
+				expected := string(expectedBytes)
 
-			filename = filepath.Join("testdata", basename+".html")
-			expectedBytes, err := ioutil.ReadFile(filename)
-			if err != nil {
-				t.Errorf("Couldn't open '%s', error: %v\n", filename, err)
-				continue
-			}
-			expected := string(expectedBytes)
+				actual := string(runMarkdown(input, params))
+				if actual != expected {
+					t.Errorf("\n    [%#v]\nExpected[%#v]\nActual  [%#v]",
+						basename+".text", expected, actual)
+				}
 
-			actual := string(runMarkdown(input, params))
-			if actual != expected {
-				t.Errorf("\n    [%#v]\nExpected[%#v]\nActual  [%#v]",
-					basename+".text", expected, actual)
-			}
-
-			// now test every prefix of every input to check for
-			// bounds checking
-			if !testing.Short() {
-				start, max := 0, len(input)
-				for end := start + 1; end <= max; end++ {
-					*candidate = input[start:end]
-					runMarkdown(*candidate, params)
+				// now test every prefix of every input to check for
+				// bounds checking
+				if !testing.Short() {
+					start, max := 0, len(input)
+					for end := start + 1; end <= max; end++ {
+						*candidate = input[start:end]
+						runMarkdown(*candidate, params)
+					}
 				}
 			}
 		}
-	})
+	}
+	execRecoverableTestSuite(t, files, params, refTestsRunner(true))
+	execRecoverableTestSuite(t, files, params, refTestsRunner(false))
 }

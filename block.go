@@ -127,7 +127,7 @@ func (p *Markdown) block(data []byte) {
 		if p.isHRule(data) {
 			p.addBlock(HorizontalRule, nil)
 			var i int
-			for i = 0; i < len(data) && data[i] != '\n'; i++ {
+			for i = 0; i < len(data) && !iseol(data[i]); i++ {
 			}
 			data = data[i:]
 			continue
@@ -228,7 +228,8 @@ func (p *Markdown) prefixHeading(data []byte) int {
 		level++
 	}
 	i := skipChar(data, level, ' ')
-	end := skipUntilChar(data, i, '\n')
+	end, _ := skipUntilNewline(data, i)
+	end = backupWindowsNewline(end, data)
 	skip := end
 	id := ""
 	if p.extensions&HeadingIDs != 0 {
@@ -273,22 +274,20 @@ func (p *Markdown) isUnderlinedHeading(data []byte) int {
 	if data[0] == '=' {
 		i := skipChar(data, 1, '=')
 		i = skipChar(data, i, ' ')
-		if i < len(data) && data[i] == '\n' {
+		if i < len(data) && iseol(data[i]) {
 			return 1
 		}
 		return 0
 	}
-
 	// test of level 2 heading
 	if data[0] == '-' {
 		i := skipChar(data, 1, '-')
 		i = skipChar(data, i, ' ')
-		if i < len(data) && data[i] == '\n' {
+		if i < len(data) && iseol(data[i]) {
 			return 2
 		}
 		return 0
 	}
-
 	return 0
 }
 
@@ -300,7 +299,7 @@ func (p *Markdown) titleBlock(data []byte, doRender bool) int {
 	var i int
 	for idx, b := range splitData {
 		if !bytes.HasPrefix(b, []byte("%")) {
-			i = idx // - 1
+			i = idx
 			break
 		}
 	}
@@ -373,6 +372,7 @@ func (p *Markdown) html(data []byte, doRender bool) int {
 		}
 	*/
 
+	hasCRs := false
 	// if not found, try a second pass looking for indented match
 	// but not if tag is "ins" or "del" (following original Markdown.pl)
 	if !found && curtag != "ins" && curtag != "del" {
@@ -380,6 +380,9 @@ func (p *Markdown) html(data []byte, doRender bool) int {
 		for i < len(data) {
 			i++
 			for i < len(data) && !(data[i-1] == '<' && data[i] == '/') {
+				if data[i] == '\r' {
+					hasCRs = true
+				}
 				i++
 			}
 
@@ -404,13 +407,11 @@ func (p *Markdown) html(data []byte, doRender bool) int {
 	// the end of the block has been found
 	if doRender {
 		// trim newlines
-		end := i
-		for end > 0 && data[end-1] == '\n' {
-			end--
-		}
-		finalizeHTMLBlock(p.addBlock(HTMLBlock, data[:end]))
+		end := trimTrailingNewlines(data, i)
+		block := p.addBlock(HTMLBlock, data[:end])
+		block.ContainsWindowsNewlines = hasCRs
+		finalizeHTMLBlock(block)
 	}
-
 	return i
 }
 
@@ -421,17 +422,15 @@ func finalizeHTMLBlock(block *Node) {
 
 // HTML comment, lax form
 func (p *Markdown) htmlComment(data []byte, doRender bool) int {
-	i := p.inlineHTMLComment(data)
+	i, hasCRs := p.inlineHTMLComment(data)
 	// needs to end with a blank line
 	if j := p.isEmpty(data[i:]); j > 0 {
 		size := i + j
 		if doRender {
 			// trim trailing newlines
-			end := size
-			for end > 0 && data[end-1] == '\n' {
-				end--
-			}
+			end := trimTrailingNewlines(data, size)
 			block := p.addBlock(HTMLBlock, data[:end])
+			block.ContainsWindowsNewlines = hasCRs
 			finalizeHTMLBlock(block)
 		}
 		return size
@@ -452,7 +451,7 @@ func (p *Markdown) htmlHr(data []byte, doRender bool) int {
 		return 0
 	}
 	i := 3
-	for i < len(data) && data[i] != '>' && data[i] != '\n' {
+	for i < len(data) && data[i] != '>' && data[i] != '\n' && data[i] != '\r' {
 		i++
 	}
 	if i < len(data) && data[i] == '>' {
@@ -461,10 +460,7 @@ func (p *Markdown) htmlHr(data []byte, doRender bool) int {
 			size := i + j
 			if doRender {
 				// trim newlines
-				end := size
-				for end > 0 && data[end-1] == '\n' {
-					end--
-				}
+				end := trimTrailingNewlines(data, size)
 				finalizeHTMLBlock(p.addBlock(HTMLBlock, data[:end]))
 			}
 			return size
@@ -520,19 +516,29 @@ func (p *Markdown) htmlFindEnd(tag string, data []byte) int {
 	return i + skip
 }
 
+// isEmpty checks if the current position in data contains a sequence of blank
+// characters. I.e. whether we have a run consisting exclusively of whitespaces
+// or tabs, followed by a newline. If so, it returns the number of bytes this
+// blank line consumes. Otherwise returns zero.
 func (*Markdown) isEmpty(data []byte) int {
 	// it is okay to call isEmpty on an empty buffer
 	if len(data) == 0 {
 		return 0
 	}
-
-	var i int
-	for i = 0; i < len(data) && data[i] != '\n'; i++ {
+	i := 0
+	for i < len(data) && !iseol(data[i]) {
 		if data[i] != ' ' && data[i] != '\t' {
 			return 0
 		}
+		i++
 	}
-	if i < len(data) && data[i] == '\n' {
+	if i < len(data) && iseol(data[i]) {
+		i++
+	}
+	// extra check for Windows style newlines: if the newline in the check
+	// above was a '\r', and it's immediately followed by a '\n', we want to
+	// consume the latter as well:
+	if i > 0 && i < len(data) && data[i-1] == '\r' && data[i] == '\n' {
 		i++
 	}
 	return i
@@ -554,7 +560,7 @@ func (*Markdown) isHRule(data []byte) bool {
 
 	// the whole line must be the char or whitespace
 	n := 0
-	for i < len(data) && data[i] != '\n' {
+	for i < len(data) && !iseol(data[i]) {
 		switch {
 		case data[i] == c:
 			n++
@@ -624,7 +630,7 @@ func isFenceLine(data []byte, info *string, oldmarker string) (end int, marker s
 			i++
 			infoStart++
 
-			for i < len(data) && data[i] != '}' && data[i] != '\n' {
+			for i < len(data) && data[i] != '}' && data[i] != '\n' && data[i] != '\r' {
 				infoLength++
 				i++
 			}
@@ -658,7 +664,8 @@ func isFenceLine(data []byte, info *string, oldmarker string) (end int, marker s
 	if i == len(data) {
 		return i, marker
 	}
-	if i > len(data) || data[i] != '\n' {
+	i = skipChar(data, i, ' ')
+	if i >= len(data) || !iseol(data[i]) {
 		return 0, ""
 	}
 	return i + 1, marker // Take newline into account.
@@ -689,7 +696,8 @@ func (p *Markdown) fencedCodeBlock(data []byte, doRender bool) int {
 		}
 
 		// copy the current line
-		end := skipUntilChar(data, beg, '\n') + 1
+		end, _ := skipUntilNewline(data, beg)
+		end++
 
 		// did we reach the end of the buffer without a closing marker?
 		if end >= len(data) {
@@ -728,10 +736,10 @@ func unescapeString(str []byte) []byte {
 
 func finalizeCodeBlock(block *Node) {
 	if block.IsFenced {
-		newlinePos := bytes.IndexByte(block.content, '\n')
+		newlinePos := bytes.IndexByte(block.content, '\n') // XXX: \r
 		firstLine := block.content[:newlinePos]
 		rest := block.content[newlinePos+1:]
-		block.Info = unescapeString(bytes.Trim(firstLine, "\n"))
+		block.Info = unescapeString(bytes.Trim(firstLine, "\n")) // XXX: \r
 		block.Literal = rest
 	} else {
 		block.Literal = block.content
@@ -747,12 +755,13 @@ func (p *Markdown) table(data []byte) int {
 		table.Unlink()
 		return 0
 	}
+	i, _ = skipWindowsNewline(i, data)
 
 	p.addBlock(TableBody, nil)
 
 	for i < len(data) {
 		pipes, rowStart := 0, i
-		for ; i < len(data) && data[i] != '\n'; i++ {
+		for ; i < len(data) && !iseol(data[i]); i++ {
 			if data[i] == '|' {
 				pipes++
 			}
@@ -764,7 +773,8 @@ func (p *Markdown) table(data []byte) int {
 		}
 
 		// include the newline in data sent to tableRow
-		if i < len(data) && data[i] == '\n' {
+		i, _ = skipWindowsNewline(i, data)
+		if i < len(data) && iseol(data[i]) {
 			i++
 		}
 		p.tableRow(data[rowStart:i], columns, false)
@@ -785,7 +795,7 @@ func isBackslashEscaped(data []byte, i int) bool {
 func (p *Markdown) tableHeader(data []byte) (size int, columns []CellAlignFlags) {
 	i := 0
 	colCount := 1
-	for i = 0; i < len(data) && data[i] != '\n'; i++ {
+	for i = 0; i < len(data) && !iseol(data[i]); i++ {
 		if data[i] == '|' && !isBackslashEscaped(data, i) {
 			colCount++
 		}
@@ -797,8 +807,9 @@ func (p *Markdown) tableHeader(data []byte) (size int, columns []CellAlignFlags)
 	}
 
 	// include the newline in the data sent to tableRow
+	i, _ = skipWindowsNewline(i, data)
 	j := i
-	if j < len(data) && data[j] == '\n' {
+	if j < len(data) && iseol(data[j]) {
 		j++
 	}
 	header := data[:j]
@@ -807,14 +818,15 @@ func (p *Markdown) tableHeader(data []byte) (size int, columns []CellAlignFlags)
 	if data[0] == '|' {
 		colCount--
 	}
-	if i > 2 && data[i-1] == '|' && !isBackslashEscaped(data, i-1) {
+	lastPipe := backtrackAnyNewlines(data, i)
+	if lastPipe < len(data) && data[lastPipe] == '|' && !isBackslashEscaped(data, lastPipe) {
 		colCount--
 	}
 
 	columns = make([]CellAlignFlags, colCount)
 
 	// move on to the header underline
-	i++
+	i = j
 	if i >= len(data) {
 		return
 	}
@@ -827,7 +839,7 @@ func (p *Markdown) tableHeader(data []byte) (size int, columns []CellAlignFlags)
 	// each column header is of form: / *:?-+:? *|/ with # dashes + # colons >= 3
 	// and trailing | optional on last column
 	col := 0
-	for i < len(data) && data[i] != '\n' {
+	for i < len(data) && !iseol(data[i]) {
 		dashes := 0
 
 		if data[i] == ':' {
@@ -865,7 +877,7 @@ func (p *Markdown) tableHeader(data []byte) (size int, columns []CellAlignFlags)
 			}
 
 			// trailing junk found after last column
-			if col >= colCount && i < len(data) && data[i] != '\n' {
+			if col >= colCount && i < len(data) && !iseol(data[i]) {
 				return
 			}
 
@@ -873,7 +885,7 @@ func (p *Markdown) tableHeader(data []byte) (size int, columns []CellAlignFlags)
 			// something else found where marker was required
 			return
 
-		case data[i] == '\n':
+		case iseol(data[i]):
 			// marker is optional for the last column
 			col++
 
@@ -889,7 +901,7 @@ func (p *Markdown) tableHeader(data []byte) (size int, columns []CellAlignFlags)
 	p.addBlock(TableHead, nil)
 	p.tableRow(header, columns, true)
 	size = i
-	if size < len(data) && data[size] == '\n' {
+	if size < len(data) && iseol(data[size]) {
 		size++
 	}
 	return
@@ -910,7 +922,7 @@ func (p *Markdown) tableRow(data []byte, columns []CellAlignFlags, header bool) 
 
 		cellStart := i
 
-		for i < len(data) && (data[i] != '|' || isBackslashEscaped(data, i)) && data[i] != '\n' {
+		for i < len(data) && (data[i] != '|' || isBackslashEscaped(data, i)) && !iseol(data[i]) {
 			i++
 		}
 
@@ -975,7 +987,7 @@ func (p *Markdown) quote(data []byte) int {
 		// Step over whole lines, collecting them. While doing that, check for
 		// fenced code and if one's found, incorporate it altogether,
 		// irregardless of any contents inside it
-		for end < len(data) && data[end] != '\n' {
+		for end < len(data) && !iseol(data[end]) {
 			if p.extensions&FencedCode != 0 {
 				if i := p.fencedCodeBlock(data[end:], false); i > 0 {
 					// -1 to compensate for the extra end++ after the loop:
@@ -985,7 +997,7 @@ func (p *Markdown) quote(data []byte) int {
 			}
 			end++
 		}
-		if end < len(data) && data[end] == '\n' {
+		if end < len(data) && iseol(data[end]) {
 			end++
 		}
 		if pre := p.quotePrefix(data[beg:]); pre > 0 {
@@ -1016,15 +1028,19 @@ func (p *Markdown) codePrefix(data []byte) int {
 
 func (p *Markdown) code(data []byte) int {
 	var work bytes.Buffer
-
+	var hasCRs, skipped bool
 	i := 0
 	for i < len(data) {
 		beg := i
-		for i < len(data) && data[i] != '\n' {
+		for i < len(data) && !iseol(data[i]) {
 			i++
 		}
-		if i < len(data) && data[i] == '\n' {
+		if i < len(data) && iseol(data[i]) {
 			i++
+		}
+		i, skipped = skipWindowsNewline(i, data)
+		if skipped {
+			hasCRs = true
 		}
 
 		blankline := p.isEmpty(data[beg:i]) > 0
@@ -1046,18 +1062,15 @@ func (p *Markdown) code(data []byte) int {
 
 	// trim all the \n off the end of work
 	workbytes := work.Bytes()
-	eol := len(workbytes)
-	for eol > 0 && workbytes[eol-1] == '\n' {
-		eol--
-	}
+	eol := trimTrailingNewlines(workbytes, len(workbytes))
 	if eol != len(workbytes) {
 		work.Truncate(eol)
 	}
 
 	work.WriteByte('\n')
-
 	block := p.addBlock(CodeBlock, work.Bytes()) // TODO: get rid of temp buffer
 	block.IsFenced = false
+	block.ContainsWindowsNewlines = hasCRs
 	finalizeCodeBlock(block)
 
 	return i
@@ -1244,8 +1257,11 @@ func (p *Markdown) listItem(data []byte, flags *ListType) int {
 
 	// find the end of the line
 	line := i
-	for i > 0 && i < len(data) && data[i-1] != '\n' {
+	for i > 0 && i < len(data) && !iseol(data[i-1]) {
 		i++
+	}
+	if i > 0 && i-1 < len(data) && data[i-1] == '\r' {
+		i--
 	}
 
 	// get working buffer
@@ -1253,6 +1269,10 @@ func (p *Markdown) listItem(data []byte, flags *ListType) int {
 
 	// put the first line into the working buffer
 	raw.Write(data[line:i])
+	if i > 0 && data[i-1] != '\n' {
+		raw.WriteByte('\n')
+	}
+	i, _ = skipWindowsNewline(i, data)
 	line = i
 
 	// process the following lines
@@ -1265,7 +1285,7 @@ gatherlines:
 		i++
 
 		// find the end of this line
-		for i < len(data) && data[i-1] != '\n' {
+		for i < len(data) && !iseol(data[i-1]) {
 			i++
 		}
 
@@ -1359,10 +1379,10 @@ gatherlines:
 			if *flags&ListTypeDefinition != 0 && i < len(data)-1 {
 				// is the next item still a part of this list?
 				next := i
-				for next < len(data) && data[next] != '\n' {
+				for next < len(data) && !iseol(data[next]) {
 					next++
 				}
-				for next < len(data)-1 && data[next] == '\n' {
+				for next < len(data)-1 && iseol(data[next]) {
 					next++
 				}
 				if i < len(data)-1 && data[i] != ':' && data[next] != ':' {
@@ -1386,8 +1406,14 @@ gatherlines:
 			raw.WriteByte('\n')
 		}
 
+		i = backupWindowsNewline(i, data)
+
 		// add the line into the working buffer without prefix
 		raw.Write(data[line+indentIndex : i])
+		if i > 0 && i < len(data) && data[i-1] != '\n' {
+			raw.WriteByte('\n')
+		}
+		i, _ = skipWindowsNewline(i, data)
 
 		line = i
 	}
@@ -1424,7 +1450,7 @@ gatherlines:
 }
 
 // render a single paragraph that has already been parsed out
-func (p *Markdown) renderParagraph(data []byte) {
+func (p *Markdown) renderParagraph(data []byte, hasCRs bool) {
 	if len(data) == 0 {
 		return
 	}
@@ -1434,19 +1460,14 @@ func (p *Markdown) renderParagraph(data []byte) {
 	for data[beg] == ' ' {
 		beg++
 	}
-
-	end := len(data)
-	// trim trailing newline
-	if data[len(data)-1] == '\n' {
-		end--
-	}
-
+	end := trimTrailingNewlines(data, len(data))
 	// trim trailing spaces
 	for end > beg && data[end-1] == ' ' {
 		end--
 	}
 
-	p.addBlock(Paragraph, data[beg:end])
+	block := p.addBlock(Paragraph, data[beg:end])
+	block.ContainsWindowsNewlines = hasCRs
 }
 
 func (p *Markdown) paragraph(data []byte) int {
@@ -1458,6 +1479,7 @@ func (p *Markdown) paragraph(data []byte) int {
 	if p.extensions&TabSizeEight != 0 {
 		tabSize = TabSizeDouble
 	}
+	var hasCRs bool
 	// keep going until we find something to mark the end of the paragraph
 	for i < len(data) {
 		// mark the beginning of the current line
@@ -1469,7 +1491,7 @@ func (p *Markdown) paragraph(data []byte) int {
 		// preceding it and report that we have consumed up to the end of that
 		// reference:
 		if refEnd := isReference(p, current, tabSize); refEnd > 0 {
-			p.renderParagraph(data[:i])
+			p.renderParagraph(data[:i], hasCRs)
 			return i + refEnd
 		}
 
@@ -1482,7 +1504,7 @@ func (p *Markdown) paragraph(data []byte) int {
 				}
 			}
 
-			p.renderParagraph(data[:i])
+			p.renderParagraph(data[:i], hasCRs)
 			return i + n
 		}
 
@@ -1490,7 +1512,7 @@ func (p *Markdown) paragraph(data []byte) int {
 		if i > 0 {
 			if level := p.isUnderlinedHeading(current); level > 0 {
 				// render the paragraph
-				p.renderParagraph(data[:prev])
+				p.renderParagraph(data[:prev], hasCRs)
 
 				// ignore leading and trailing whitespace
 				eol := i - 1
@@ -1511,7 +1533,7 @@ func (p *Markdown) paragraph(data []byte) int {
 				block.HeadingID = id
 
 				// find the end of the underline
-				for i < len(data) && data[i] != '\n' {
+				for i < len(data) && !iseol(data[i]) {
 					i++
 				}
 				return i
@@ -1522,21 +1544,21 @@ func (p *Markdown) paragraph(data []byte) int {
 		if p.extensions&LaxHTMLBlocks != 0 {
 			if data[i] == '<' && p.html(current, false) > 0 {
 				// rewind to before the HTML block
-				p.renderParagraph(data[:i])
+				p.renderParagraph(data[:i], hasCRs)
 				return i
 			}
 		}
 
 		// if there's a prefixed heading or a horizontal rule after this, paragraph is over
 		if p.isPrefixHeading(current) || p.isHRule(current) {
-			p.renderParagraph(data[:i])
+			p.renderParagraph(data[:i], hasCRs)
 			return i
 		}
 
 		// if there's a fenced code block, paragraph is over
 		if p.extensions&FencedCode != 0 {
 			if p.fencedCodeBlock(current, false) > 0 {
-				p.renderParagraph(data[:i])
+				p.renderParagraph(data[:i], hasCRs)
 				return i
 			}
 		}
@@ -1555,21 +1577,20 @@ func (p *Markdown) paragraph(data []byte) int {
 				p.oliPrefix(current) != 0 ||
 				p.quotePrefix(current) != 0 ||
 				p.codePrefix(current) != 0 {
-				p.renderParagraph(data[:i])
+				p.renderParagraph(data[:i], hasCRs)
 				return i
 			}
 		}
-
-		// otherwise, scan to the beginning of the next line
-		nl := bytes.IndexByte(data[i:], '\n')
-		if nl >= 0 {
-			i += nl + 1
-		} else {
-			i += len(data[i:])
+		var wasCR bool
+		i, wasCR = skipUntilNewline(data, i)
+		i++
+		if i > len(data) {
+			i = len(data)
 		}
+		hasCRs = hasCRs || wasCR
 	}
 
-	p.renderParagraph(data[:i])
+	p.renderParagraph(data[:i], hasCRs)
 	return i
 }
 
@@ -1581,10 +1602,62 @@ func skipChar(data []byte, start int, char byte) int {
 	return i
 }
 
+func skipUntilNewline(text []byte, start int) (int, bool) {
+	i := start
+	for i < len(text) && !iseol(text[i]) {
+		i++
+	}
+	wasCR := false
+	if i+1 < len(text) && text[i] == '\r' && text[i+1] == '\n' {
+		i++
+		wasCR = true
+	}
+	return i, wasCR
+}
+
+func trimTrailingNewlines(data []byte, end int) int {
+	for end > 0 && (data[end-1] == '\n' || data[end-1] == '\r') {
+		end--
+	}
+	return end
+}
+
 func skipUntilChar(text []byte, start int, char byte) int {
 	i := start
 	for i < len(text) && text[i] != char {
 		i++
+	}
+	return i
+}
+
+func skipWindowsNewline(i int, data []byte) (int, bool) {
+	var skipped bool
+	if i+1 < len(data) && data[i] == '\r' && data[i+1] == '\n' {
+		i++
+		skipped = true
+	}
+	if i > 0 && i < len(data) && data[i-1] == '\r' && data[i] == '\n' {
+		i++
+		skipped = true
+	}
+	return i, skipped
+}
+
+func backupWindowsNewline(i int, data []byte) int {
+	if i > 1 && i < len(data) && data[i-1] == '\r' && data[i] == '\n' {
+		return i - 1
+	}
+	if i > 0 && i < len(data) && data[i] == '\r' {
+		return i
+	}
+	return i
+}
+
+// backtrackAnyNewlines decrements i until it hits any non-newline character or
+// becomes zero.
+func backtrackAnyNewlines(data []byte, i int) int {
+	for i > 0 && i < len(data) && iseol(data[i]) {
+		i--
 	}
 	return i
 }

@@ -399,6 +399,7 @@ func (r *HTMLRenderer) cr(w io.Writer) {
 
 var (
 	nlBytes    = []byte{'\n'}
+	crnlBytes  = []byte("\r\n")
 	gtBytes    = []byte{'>'}
 	spaceBytes = []byte{' '}
 )
@@ -492,6 +493,22 @@ func (r *HTMLRenderer) outHRTag(w io.Writer) {
 	}
 }
 
+func getLiteral(node *Node) []byte {
+	hasCR := false
+	iterNode := node
+	for iterNode != nil {
+		if iterNode.ContainsWindowsNewlines {
+			hasCR = true
+			break
+		}
+		iterNode = iterNode.Parent
+	}
+	if hasCR {
+		return bytes.Replace(node.Literal, crnlBytes, nlBytes, -1)
+	}
+	return node.Literal
+}
+
 // RenderNode is a default renderer of a single node of a syntax tree. For
 // block nodes it will be called twice: first time with entering=true, second
 // time with entering=false, so that it could know when it's working on an open
@@ -511,10 +528,11 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 			escapeHTML(&tmp, node.Literal)
 			r.sr.Process(w, tmp.Bytes())
 		} else {
+			literal := getLiteral(node)
 			if node.Parent.Type == Link {
-				escLink(w, node.Literal)
+				escLink(w, literal)
 			} else {
-				escapeHTML(w, node.Literal)
+				escapeHTML(w, literal)
 			}
 		}
 	case Softbreak:
@@ -656,7 +674,7 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 			break
 		}
 		r.cr(w)
-		r.out(w, node.Literal)
+		r.out(w, getLiteral(node))
 		r.cr(w)
 	case Heading:
 		headingLevel := r.HTMLRendererParameters.HeadingLevelOffset + node.Level
@@ -762,7 +780,7 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 		r.cr(w)
 		r.out(w, preTag)
 		r.tag(w, codeTag[:len(codeTag)-1], attrs)
-		escapeHTML(w, node.Literal)
+		escapeHTML(w, getLiteral(node))
 		r.out(w, codeCloseTag)
 		r.out(w, preCloseTag)
 		if node.Parent.Type != Item {

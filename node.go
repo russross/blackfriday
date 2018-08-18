@@ -128,6 +128,8 @@ type Node struct {
 	LinkData      // Populated if Type is Link
 	TableCellData // Populated if Type is TableCell
 
+	ContainsWindowsNewlines bool // Is set to true when Literal (or content field) contains \r
+
 	content []byte // Markdown content of the block nodes
 	open    bool   // Specifies an open block node that has not been finished to process yet
 }

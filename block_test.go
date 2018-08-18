@@ -14,6 +14,7 @@
 package blackfriday
 
 import (
+	"encoding/hex"
 	"strings"
 	"testing"
 )
@@ -1607,8 +1608,17 @@ func TestTitleBlock_EXTENSION_TITLEBLOCK(t *testing.T) {
 		"<h1 class=\"title\">" +
 			"Some title\n" +
 			"Another title line\n" +
-			"Yep, more here too" +
-			"</h1>\n",
+			"Yep, more here too</h1>\n",
+
+		// XXX: titleBlock implementation does not do normalization and leaves
+		// CRs in the output. This is not ideal, but will work for now.
+		"% Some title\r\n" +
+			"% Another title line\r\n" +
+			"% Yep, more here too\r\n",
+		"<h1 class=\"title\">" +
+			"Some title\r\n" +
+			"Another title line\r\n" +
+			"Yep, more here too</h1>\n",
 	}
 	doTestsBlock(t, tests, Titleblock)
 }
@@ -1843,4 +1853,55 @@ func TestIsFenceLine(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestIsEmpty(t *testing.T) {
+	m := Markdown{}
+	tests := []struct {
+		input string
+		want  int
+	}{
+		{
+			input: "\n",
+			want:  1,
+		},
+		{
+			input: " \n",
+			want:  2,
+		},
+		{
+			input: "\r\n",
+			want:  2,
+		},
+		{
+			input: " \r\n",
+			want:  3,
+		},
+		{
+			input: "\r",
+			want:  1,
+		},
+	}
+	for _, test := range tests {
+		if got := m.isEmpty([]byte(test.input)); got != test.want {
+			t.Errorf("Wrong output for %q: want %v, got %v",
+				test.input, test.want, got)
+		}
+	}
+}
+
+func TestRepro(t *testing.T) {
+	// XXX: this is a temporary test to ensure the tables fix works. It will
+	// later be OK to remove it because it will be covered by the usual tests,
+	// which will be dual-run with Unix and Windows EOLs.
+	s, err := hex.DecodeString("4e616d65202020207c204167650d0a2d2d2d2d2d2d2d2d7c2d2d2d2d2d2d0d0a426f6220202020207c2032370d0a416c6963652020207c203233")
+	if err != nil {
+		panic(err)
+	}
+	var tests = []string{
+		string(s),
+		"<table>\n<thead>\n<tr>\n<th>Name</th>\n<th>Age</th>\n</tr>\n</thead>\n\n" +
+			"<tbody>\n<tr>\n<td>Bob</td>\n<td>27</td>\n</tr>\n\n<tr>\n<td>Alice</td>\n<td>23</td>\n</tr>\n</tbody>\n</table>\n",
+	}
+	doTestsBlock(t, tests, Tables)
 }

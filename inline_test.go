@@ -1185,3 +1185,17 @@ func BenchmarkSmartDoubleQuotes(b *testing.B) {
 		runMarkdown("this should be normal \"quoted\" text.\n", params)
 	}
 }
+
+func TestWindowsNewlines(t *testing.T) {
+	var tests = []string{
+		"over *two\r\nlines* test\n",
+		"<p>over <em>two\nlines</em> test</p>\n",
+
+		"\r\nfoo\r\n*bar*\r\n",
+		"<p>foo\n<em>bar</em></p>\n",
+
+		"# Hello World\r\n\r\nThis is my content.\r\n",
+		"<h1>Hello World</h1>\n\n<p>This is my content.</p>\n",
+	}
+	doTestsInline(t, tests)
+}
