@@ -480,11 +480,11 @@ func (p *Markdown) parseRefsToAST() {
 //    [^note]: This is the explanation.
 //
 // Footnotes should be placed at the end of the document in an ordered list.
-// Inline footnotes such as:
+// Finally, there are inline footnotes such as:
 //
-//    Inline footnotes^[Not supported.] also exist.
+//    Inline footnotes^[Also supported.] provide a quick inline explanation,
+//    but are rendered at the bottom of the document.
 //
-// are not yet supported.
 
 // reference holds all information necessary for a reference-style links or
 // footnotes.
