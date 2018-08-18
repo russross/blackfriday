@@ -755,6 +755,7 @@ func (p *Markdown) table(data []byte) int {
 		table.Unlink()
 		return 0
 	}
+	i, _ = skipWindowsNewline(i, data)
 
 	p.addBlock(TableBody, nil)
 
@@ -772,6 +773,7 @@ func (p *Markdown) table(data []byte) int {
 		}
 
 		// include the newline in data sent to tableRow
+		i, _ = skipWindowsNewline(i, data)
 		if i < len(data) && iseol(data[i]) {
 			i++
 		}
@@ -805,6 +807,7 @@ func (p *Markdown) tableHeader(data []byte) (size int, columns []CellAlignFlags)
 	}
 
 	// include the newline in the data sent to tableRow
+	i, _ = skipWindowsNewline(i, data)
 	j := i
 	if j < len(data) && iseol(data[j]) {
 		j++
@@ -815,14 +818,15 @@ func (p *Markdown) tableHeader(data []byte) (size int, columns []CellAlignFlags)
 	if data[0] == '|' {
 		colCount--
 	}
-	if i > 2 && data[i-1] == '|' && !isBackslashEscaped(data, i-1) {
+	lastPipe := backupWindowsNewline(i, data)
+	if data[lastPipe] == '|' && !isBackslashEscaped(data, lastPipe) {
 		colCount--
 	}
 
 	columns = make([]CellAlignFlags, colCount)
 
 	// move on to the header underline
-	i++
+	i = j
 	if i >= len(data) {
 		return
 	}

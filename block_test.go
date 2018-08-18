@@ -14,6 +14,7 @@
 package blackfriday
 
 import (
+	"encoding/hex"
 	"strings"
 	"testing"
 )
@@ -1887,4 +1888,20 @@ func TestIsEmpty(t *testing.T) {
 				test.input, test.want, got)
 		}
 	}
+}
+
+func TestRepro(t *testing.T) {
+	// XXX: this is a temporary test to ensure the tables fix works. It will
+	// later be OK to remove it because it will be covered by the usual tests,
+	// which will be dual-run with Unix and Windows EOLs.
+	s, err := hex.DecodeString("4e616d65202020207c204167650d0a2d2d2d2d2d2d2d2d7c2d2d2d2d2d2d0d0a426f6220202020207c2032370d0a416c6963652020207c203233")
+	if err != nil {
+		panic(err)
+	}
+	var tests = []string{
+		string(s),
+		"<table>\n<thead>\n<tr>\n<th>Name</th>\n<th>Age</th>\n</tr>\n</thead>\n\n" +
+			"<tbody>\n<tr>\n<td>Bob</td>\n<td>27</td>\n</tr>\n\n<tr>\n<td>Alice</td>\n<td>23</td>\n</tr>\n</tbody>\n</table>\n",
+	}
+	doTestsBlock(t, tests, Tables)
 }
