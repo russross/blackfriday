@@ -21,6 +21,7 @@ import (
 )
 
 func TestEmphasis(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"nothing inline\n",
 		"<p>nothing inline</p>\n",
@@ -77,6 +78,7 @@ func TestEmphasis(t *testing.T) {
 }
 
 func TestReferenceOverride(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"test [ref1][]\n",
 		"<p>test <a href=\"http://www.ref1.com/\" title=\"Reference 1\">ref1</a></p>\n",
@@ -135,6 +137,7 @@ func TestReferenceOverride(t *testing.T) {
 }
 
 func TestStrong(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"nothing inline\n",
 		"<p>nothing inline</p>\n",
@@ -194,6 +197,7 @@ func TestStrong(t *testing.T) {
 }
 
 func TestEmphasisMix(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"***triple emphasis***\n",
 		"<p><strong><em>triple emphasis</em></strong></p>\n",
@@ -223,6 +227,7 @@ func TestEmphasisMix(t *testing.T) {
 }
 
 func TestEmphasisLink(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"[first](before) *text[second] (inside)text* [third](after)\n",
 		"<p><a href=\"before\">first</a> <em>text<a href=\"inside\">second</a>text</em> <a href=\"after\">third</a></p>\n",
@@ -240,6 +245,7 @@ func TestEmphasisLink(t *testing.T) {
 }
 
 func TestStrikeThrough(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"nothing inline\n",
 		"<p>nothing inline</p>\n",
@@ -269,6 +275,7 @@ func TestStrikeThrough(t *testing.T) {
 }
 
 func TestCodeSpan(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"`source code`\n",
 		"<p><code>source code</code></p>\n",
@@ -307,6 +314,7 @@ func TestCodeSpan(t *testing.T) {
 }
 
 func TestLineBreak(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"this line  \nhas a break\n",
 		"<p>this line<br />\nhas a break</p>\n",
@@ -346,6 +354,7 @@ func TestLineBreak(t *testing.T) {
 }
 
 func TestInlineLink(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"[foo](/bar/)\n",
 		"<p><a href=\"/bar/\">foo</a></p>\n",
@@ -463,6 +472,7 @@ func TestInlineLink(t *testing.T) {
 }
 
 func TestRelAttrLink(t *testing.T) {
+	t.Parallel()
 	var nofollowTests = []string{
 		"[foo](http://bar.com/foo/)\n",
 		"<p><a href=\"http://bar.com/foo/\" rel=\"nofollow\">foo</a></p>\n",
@@ -521,6 +531,7 @@ func TestRelAttrLink(t *testing.T) {
 }
 
 func TestHrefTargetBlank(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		// internal link
 		"[foo](/bar/)\n",
@@ -550,6 +561,7 @@ func TestHrefTargetBlank(t *testing.T) {
 }
 
 func TestSafeInlineLink(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"[foo](/bar/)\n",
 		"<p><a href=\"/bar/\">foo</a></p>\n",
@@ -583,6 +595,7 @@ func TestSafeInlineLink(t *testing.T) {
 }
 
 func TestReferenceLink(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"[link][ref]\n",
 		"<p>[link][ref]</p>\n",
@@ -621,6 +634,7 @@ func TestReferenceLink(t *testing.T) {
 }
 
 func TestTags(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"a <span>tag</span>\n",
 		"<p>a <span>tag</span></p>\n",
@@ -638,6 +652,7 @@ func TestTags(t *testing.T) {
 }
 
 func TestAutoLink(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"http://foo.com/\n",
 		"<p><a href=\"http://foo.com/\">http://foo.com/</a></p>\n",
@@ -943,12 +958,14 @@ what happens here
 }
 
 func TestFootnotes(t *testing.T) {
+	t.Parallel()
 	doTestsInlineParam(t, footnoteTests, TestParams{
 		extensions: Footnotes,
 	})
 }
 
 func TestFootnotesWithParameters(t *testing.T) {
+	t.Parallel()
 	tests := make([]string, len(footnoteTests))
 
 	prefix := "testPrefix"
@@ -978,6 +995,7 @@ func TestFootnotesWithParameters(t *testing.T) {
 }
 
 func TestNestedFootnotes(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		`Paragraph.[^fn1]
 
@@ -1005,6 +1023,7 @@ func TestNestedFootnotes(t *testing.T) {
 }
 
 func TestInlineComments(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"Hello <!-- there ->\n",
 		"<p>Hello &lt;!&mdash; there &ndash;&gt;</p>\n",
@@ -1034,6 +1053,7 @@ func TestInlineComments(t *testing.T) {
 }
 
 func TestSmartDoubleQuotes(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"this should be normal \"quoted\" text.\n",
 		"<p>this should be normal &ldquo;quoted&rdquo; text.</p>\n",
@@ -1046,6 +1066,7 @@ func TestSmartDoubleQuotes(t *testing.T) {
 }
 
 func TestSmartDoubleQuotesNBSP(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"this should be normal \"quoted\" text.\n",
 		"<p>this should be normal &ldquo;&nbsp;quoted&nbsp;&rdquo; text.</p>\n",
@@ -1058,6 +1079,7 @@ func TestSmartDoubleQuotesNBSP(t *testing.T) {
 }
 
 func TestSmartAngledDoubleQuotes(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"this should be angled \"quoted\" text.\n",
 		"<p>this should be angled &laquo;quoted&raquo; text.</p>\n",
@@ -1070,6 +1092,7 @@ func TestSmartAngledDoubleQuotes(t *testing.T) {
 }
 
 func TestSmartAngledDoubleQuotesNBSP(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"this should be angled \"quoted\" text.\n",
 		"<p>this should be angled &laquo;&nbsp;quoted&nbsp;&raquo; text.</p>\n",
@@ -1082,6 +1105,7 @@ func TestSmartAngledDoubleQuotesNBSP(t *testing.T) {
 }
 
 func TestSmartFractions(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"1/2, 1/4 and 3/4; 1/4th and 3/4ths\n",
 		"<p>&frac12;, &frac14; and &frac34;; &frac14;th and &frac34;ths</p>\n",
@@ -1100,6 +1124,7 @@ func TestSmartFractions(t *testing.T) {
 }
 
 func TestDisableSmartDashes(t *testing.T) {
+	t.Parallel()
 	doTestsInlineParam(t, []string{
 		"foo - bar\n",
 		"<p>foo - bar</p>\n",
@@ -1135,6 +1160,7 @@ func TestDisableSmartDashes(t *testing.T) {
 }
 
 func TestSkipLinks(t *testing.T) {
+	t.Parallel()
 	doTestsInlineParam(t, []string{
 		"[foo](gopher://foo.bar)",
 		"<p><tt>foo</tt></p>\n",
@@ -1147,6 +1173,7 @@ func TestSkipLinks(t *testing.T) {
 }
 
 func TestSkipImages(t *testing.T) {
+	t.Parallel()
 	doTestsInlineParam(t, []string{
 		"![foo](/bar/)\n",
 		"<p></p>\n",
@@ -1156,6 +1183,7 @@ func TestSkipImages(t *testing.T) {
 }
 
 func TestUseXHTML(t *testing.T) {
+	t.Parallel()
 	doTestsParam(t, []string{
 		"---",
 		"<hr>\n",
@@ -1167,6 +1195,7 @@ func TestUseXHTML(t *testing.T) {
 }
 
 func TestSkipHTML(t *testing.T) {
+	t.Parallel()
 	doTestsParam(t, []string{
 		"<div class=\"foo\"></div>\n\ntext\n\n<form>the form</form>",
 		"<p>text</p>\n\n<p>the form</p>\n",
