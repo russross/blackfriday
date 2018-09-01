@@ -1583,6 +1583,44 @@ func TestFencedCodeBlock_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
 	doTestsBlock(t, tests, EXTENSION_FENCED_CODE|EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK)
 }
 
+func TestListWithFencedCodeBlock(t *testing.T) {
+	var tests = []string{
+		"1. one\n\n    ```\n    code\n    ```\n\n2. two\n",
+		"<ol>\n<li><p>one</p>\n\n<pre><code>code\n</code></pre></li>\n\n<li><p>two</p></li>\n</ol>\n",
+		// https://github.com/russross/blackfriday/issues/239
+		"1. one\n\n    ```\n    - code\n    ```\n\n2. two\n",
+		"<ol>\n<li><p>one</p>\n\n<pre><code>- code\n</code></pre></li>\n\n<li><p>two</p></li>\n</ol>\n",
+	}
+	doTestsBlock(t, tests, EXTENSION_FENCED_CODE)
+}
+
+func TestListWithMalformedFencedCodeBlock(t *testing.T) {
+	// Ensure that in the case of an unclosed fenced code block in a list,
+	// no source gets ommitted (even if it is malformed).
+	// See russross/blackfriday#372 for context.
+	var tests = []string{
+		"1. one\n\n    ```\n    code\n\n2. two\n",
+		"<ol>\n<li>one\n\n```\ncode\n\n2. two</li>\n</ol>\n",
+
+		"1. one\n\n    ```\n    - code\n\n2. two\n",
+		"<ol>\n<li>one\n\n```\n- code\n\n2. two</li>\n</ol>\n",
+	}
+	doTestsBlock(t, tests, EXTENSION_FENCED_CODE)
+}
+
+func TestListWithFencedCodeBlockNoExtensions(t *testing.T) {
+	// If there is a fenced code block in a list, and FencedCode is not set,
+	// lists should be processed normally.
+	var tests = []string{
+		"1. one\n\n    ```\n    code\n    ```\n\n2. two\n",
+		"<ol>\n<li><p>one</p>\n\n<p><code>\ncode\n</code></p></li>\n\n<li><p>two</p></li>\n</ol>\n",
+
+		"1. one\n\n    ```\n    - code\n    ```\n\n2. two\n",
+		"<ol>\n<li><p>one</p>\n\n<p>```</p>\n\n<ul>\n<li>code\n```</li>\n</ul></li>\n\n<li><p>two</p></li>\n</ol>\n",
+	}
+	doTestsBlock(t, tests, 0)
+}
+
 func TestTitleBlock_EXTENSION_TITLEBLOCK(t *testing.T) {
 	var tests = []string{
 		"% Some title\n" +
