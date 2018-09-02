@@ -1,6 +1,9 @@
 package blackfriday
 
-import "testing"
+import (
+	"bytes"
+	"testing"
+)
 
 func TestEmtyAttributes(t *testing.T) {
 	a := NewAttributes()
@@ -84,5 +87,36 @@ func TestAddComplexAttributes(t *testing.T) {
 	e := "style=\"background: #fff; font-size: 14px;\" data-test-id=\"block\""
 	if r != e {
 		t.Errorf("Expected: %s\nActual: %s\n", e, r)
+	}
+}
+
+func TestASTModification(t *testing.T) {
+	input := "\nPicture signature\n![alt text](/p.jpg)\n"
+	expected := "<p class=\"img\">Picture signature\n<img src=\"/p.jpg\" alt=\"alt text\" /></p>\n"
+
+	r := NewHTMLRenderer(HTMLRendererParameters{
+		Flags: CommonHTMLFlags,
+	})
+	var buf bytes.Buffer
+	optList := []Option{
+		WithRenderer(r),
+		WithExtensions(CommonExtensions)}
+	parser := New(optList...)
+	ast := parser.Parse([]byte(input))
+	r.RenderHeader(&buf, ast)
+	ast.Walk(func(node *Node, entering bool) WalkStatus {
+		if node.Type == Image && entering && node.Parent.Type == Paragraph {
+			node.Parent.Attributes.Add("class", "img")
+		}
+		return GoToNext
+	})
+	ast.Walk(func(node *Node, entering bool) WalkStatus {
+		return r.RenderNode(&buf, node, entering)
+	})
+	r.RenderFooter(&buf, ast)
+	actual := buf.String()
+
+	if actual != expected {
+		t.Errorf("Expected: %s\nActual: %s\n", expected, actual)
 	}
 }
