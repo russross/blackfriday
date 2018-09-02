@@ -128,6 +128,8 @@ type Node struct {
 	LinkData      // Populated if Type is Link
 	TableCellData // Populated if Type is TableCell
 
+	Attributes *Attributes // Contains HTML-attributes for current node
+
 	content []byte // Markdown content of the block nodes
 	open    bool   // Specifies an open block node that has not been finished to process yet
 }
@@ -135,8 +137,9 @@ type Node struct {
 // NewNode allocates a node of a specified type.
 func NewNode(typ NodeType) *Node {
 	return &Node{
-		Type: typ,
-		open: true,
+		Type:       typ,
+		open:       true,
+		Attributes: NewAttributes(),
 	}
 }
 
