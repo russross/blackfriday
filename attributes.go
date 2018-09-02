@@ -2,16 +2,16 @@ package blackfriday
 
 import "strings"
 
-// Attr - Abstraction for html attribute
-type Attr []string
+// attr - Abstraction for html attribute
+type attr []string
 
 // Add - adds one more attribute value
-func (a Attr) Add(value string) Attr {
+func (a attr) add(value string) attr {
 	return append(a, value)
 }
 
 // Remove - removes given value from attribute
-func (a Attr) Remove(value string) Attr {
+func (a attr) remove(value string) attr {
 	for i := range a {
 		if a[i] == value {
 			return append(a[:i], a[i+1:]...)
@@ -20,31 +20,31 @@ func (a Attr) Remove(value string) Attr {
 	return a
 }
 
-func (a Attr) String() string {
+func (a attr) String() string {
 	return strings.Join(a, " ")
 }
 
 // Attributes - store for many attributes
 type Attributes struct {
-	attrsMap map[string]Attr
+	attrsMap map[string]attr
 	keys     []string
 }
 
 // NewAttributes - creates new Attributes instance
 func NewAttributes() *Attributes {
 	return &Attributes{
-		attrsMap: make(map[string]Attr),
+		attrsMap: make(map[string]attr),
 	}
 }
 
 // Add - adds attribute if not exists and sets value for it
 func (a *Attributes) Add(name, value string) *Attributes {
 	if _, ok := a.attrsMap[name]; !ok {
-		a.attrsMap[name] = make(Attr, 0)
+		a.attrsMap[name] = make(attr, 0)
 		a.keys = append(a.keys, name)
 	}
 
-	a.attrsMap[name] = a.attrsMap[name].Add(value)
+	a.attrsMap[name] = a.attrsMap[name].add(value)
 	return a
 }
 
@@ -64,7 +64,7 @@ func (a *Attributes) Remove(name string) *Attributes {
 // If given attribues become empty it alose removes entire attribute
 func (a *Attributes) RemoveValue(name, value string) *Attributes {
 	if attr, ok := a.attrsMap[name]; ok {
-		a.attrsMap[name] = attr.Remove(value)
+		a.attrsMap[name] = attr.remove(value)
 		if len(a.attrsMap[name]) == 0 {
 			a.Remove(name)
 		}
