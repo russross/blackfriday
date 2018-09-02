@@ -7,6 +7,11 @@ type attr []string
 
 // Add - adds one more attribute value
 func (a attr) add(value string) attr {
+	for _, item := range a {
+		if item == value {
+			return a
+		}
+	}
 	return append(a, value)
 }
 

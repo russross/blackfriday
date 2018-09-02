@@ -34,6 +34,16 @@ func TestAddFewValuesToOneAttribute(t *testing.T) {
 	}
 }
 
+func TestAddSameValueToAttribute(t *testing.T) {
+	a := NewAttributes()
+	a.Add("class", "wrapper").Add("class", "wrapper")
+	r := a.String()
+	e := "class=\"wrapper\""
+	if r != e {
+		t.Errorf("Expected: %s\nActual: %s\n", e, r)
+	}
+}
+
 func TestRemoveValueFromOneAttribute(t *testing.T) {
 	a := NewAttributes()
 	a.Add("class", "wrapper").Add("class", "-with-image")
