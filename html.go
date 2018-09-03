@@ -604,7 +604,9 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 					r.out(w, []byte(`" title="`))
 					escapeHTML(w, node.LinkData.Title)
 				}
-				r.out(w, []byte(`" />`))
+				r.out(w, []byte(`" `))
+				r.out(w, []byte(attrs.String()))
+				r.out(w, []byte(`/>`))
 			}
 		}
 	case Code:
