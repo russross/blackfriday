@@ -114,7 +114,11 @@ func TestCommonMark(t *testing.T) {
 			sect.numTests++
 			stats.numTests++
 
-			html := string(blackfriday.Run([]byte(test.Markdown)))
+			renderer := blackfriday.NewHTMLRenderer(blackfriday.HTMLRendererParameters{
+				Flags: blackfriday.UseXHTML,
+			})
+
+			html := string(blackfriday.Run([]byte(test.Markdown), blackfriday.WithRenderer(renderer)))
 			if html == test.HTML {
 				stats.numPass++
 				sect.numPass++
