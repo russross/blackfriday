@@ -13,12 +13,20 @@ var htmlEscaper = [256][]byte{
 }
 
 func escapeHTML(w io.Writer, s []byte) {
+	escapeEntities(w, s, false)
+}
+
+func escapeAllHTML(w io.Writer, s []byte) {
+	escapeEntities(w, s, true)
+}
+
+func escapeEntities(w io.Writer, s []byte, escapeValidEntities bool) {
 	var start, end int
 	for end < len(s) {
 		escSeq := htmlEscaper[s[end]]
 		if escSeq != nil {
 			isEntity, entityEnd := nodeIsEntity(s, end)
-			if isEntity {
+			if isEntity && !escapeValidEntities {
 				w.Write(s[start : entityEnd+1])
 				start = entityEnd + 1
 			} else {
@@ -41,8 +49,10 @@ func nodeIsEntity(s []byte, end int) (isEntity bool, endEntityPos int) {
 	if s[end] == '&' {
 		for endEntityPos < len(s) {
 			if s[endEntityPos] == ';' {
-				isEntity = true
-				break
+				if entities[string(s[end:endEntityPos+1])] {
+					isEntity = true
+					break
+				}
 			}
 			if !isalnum(s[endEntityPos]) && s[endEntityPos] != '&' && s[endEntityPos] != '#' {
 				break
