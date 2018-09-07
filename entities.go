@@ -1,5 +1,6 @@
 package blackfriday
 
+// Extracted from https://html.spec.whatwg.org/multipage/entities.json
 var entities = map[string]bool{
 	"&AElig":                            true,
 	"&AElig;":                           true,
