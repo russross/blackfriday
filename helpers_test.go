@@ -25,6 +25,7 @@ import (
 type TestParams struct {
 	extensions        Extensions
 	referenceOverride ReferenceOverrideFunc
+	postRefOverride   PostReferenceOverrideFunc
 	HTMLFlags
 	HTMLRendererParameters
 }
@@ -50,7 +51,8 @@ func runMarkdown(input string, params TestParams) string {
 	renderer := NewHTMLRenderer(params.HTMLRendererParameters)
 	return string(Run([]byte(input), WithRenderer(renderer),
 		WithExtensions(params.extensions),
-		WithRefOverride(params.referenceOverride)))
+		WithRefOverride(params.referenceOverride),
+		WithPostRefOverride(params.postRefOverride)))
 }
 
 // doTests runs full document tests using MarkdownCommon configuration.
