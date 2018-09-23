@@ -173,7 +173,6 @@ type inlineParser func(p *Markdown, data []byte, offset int) (int, *Node)
 type Markdown struct {
 	renderer          Renderer
 	referenceOverride ReferenceOverrideFunc
-	postRefOverride   PostReferenceOverrideFunc
 	refs              map[string]*reference
 	inlineCallback    [256]inlineParser
 	extensions        Extensions
@@ -210,29 +209,6 @@ func (p *Markdown) getRef(refid string) (ref *reference, found bool) {
 	}
 	// refs are case insensitive
 	ref, found = p.refs[strings.ToLower(refid)]
-	if p.postRefOverride != nil {
-		var link, title string
-		text := refid
-		if ref != nil {
-			link, title, text = string(ref.link), string(ref.title), string(ref.text)
-		}
-		r, overridden := p.postRefOverride(refid, Reference{
-			Link:  link,
-			Title: title,
-			Text:  text,
-		})
-		if overridden {
-			if r == nil {
-				return nil, false
-			}
-			return &reference{
-				link:     []byte(r.Link),
-				title:    []byte(r.Title),
-				noteID:   0,
-				hasBlock: false,
-				text:     []byte(r.Text)}, true
-		}
-	}
 	return ref, found
 }
 
@@ -289,12 +265,6 @@ type Reference struct {
 // nil. If overridden is false, the default reference logic will be executed.
 // See the documentation in Options for more details on use-case.
 type ReferenceOverrideFunc func(reference string) (ref *Reference, overridden bool)
-
-// PostReferenceOverrideFunc is expected to be called with a reference string
-// and link and return either a valid Reference type that the reference string
-// maps to or nil. If overridden is false, the default reference logic will be
-// executed. See the documentation in Options for more details on use-case.
-type PostReferenceOverrideFunc func(reference string, r Reference) (ref *Reference, overridden bool)
 
 // New constructs a Markdown processor. You can use the same With* functions as
 // for Run() to customize parser's behavior and the renderer.
@@ -386,17 +356,6 @@ func WithNoExtensions() Option {
 func WithRefOverride(o ReferenceOverrideFunc) Option {
 	return func(p *Markdown) {
 		p.referenceOverride = o
-	}
-}
-
-// WithPostRefOverride is like WithRefOverride except that it is applied after
-// all references have already been resolved (giving you the opportunity to
-// check if the user provided a link or not).
-// If the override function indicates that an override did not occur, the
-// original reference is used unaltered.
-func WithPostRefOverride(o PostReferenceOverrideFunc) Option {
-	return func(p *Markdown) {
-		p.postRefOverride = o
 	}
 }
 

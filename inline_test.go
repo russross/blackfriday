@@ -100,27 +100,6 @@ func TestReferenceOverride(t *testing.T) {
 
 		"test [ref5][]\n",
 		"<p>test <a href=\"http://www.ref5.com/\" title=\"Reference 5\">Moo</a></p>\n",
-
-		"test [ref6]\n",
-		"<p>test <a href=\"https://example.net\" title=\"Reference 6\">ref6</a></p>\n",
-
-		"test [ref6][]\n",
-		"<p>test <a href=\"https://example.net\" title=\"Reference 6\">Moo</a></p>\n",
-
-		"test [ref6][r]\n\n[r]: https://example.com\n",
-		"<p>test <a href=\"https://example.com\">ref6</a></p>\n",
-
-		"test [ref7]\n",
-		"<p>test <a href=\"https://example.net\" title=\"Reference 7\">ref7</a></p>\n",
-
-		"test [ref7][]\n",
-		"<p>test <a href=\"https://example.net\" title=\"Reference 7\">Moo</a></p>\n",
-
-		"test [my ref][ref7]\n",
-		"<p>test <a href=\"https://example.net\" title=\"Reference 7\">my ref</a></p>\n",
-
-		"test [ref7][]\n\n[ref7]: https://example.org\n",
-		"<p>test <a href=\"https://example.net\" title=\"Reference 7\">Moo</a></p>\n",
 	}
 	doTestsInlineParam(t, tests, TestParams{
 		referenceOverride: func(reference string) (rv *Reference, overridden bool) {
@@ -149,26 +128,6 @@ func TestReferenceOverride(t *testing.T) {
 				return &Reference{
 					Link:  "http://www.ref5.com/",
 					Title: "Reference 5",
-					Text:  "Moo",
-				}, true
-			}
-			return nil, false
-		},
-		postRefOverride: func(refid string, r Reference) (ref *Reference, overridden bool) {
-			if r.Text == "ref6" || refid == "ref6" {
-				// Override if no link
-				if r.Link == "" {
-					return &Reference{
-						Link:  "https://example.net",
-						Title: "Reference 6",
-						Text:  "Moo",
-					}, true
-				}
-			} else if r.Text == "ref7" || refid == "ref7" {
-				// Override no matter what
-				return &Reference{
-					Link:  "https://example.net",
-					Title: "Reference 7",
 					Text:  "Moo",
 				}, true
 			}
