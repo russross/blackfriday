@@ -192,24 +192,27 @@ type Markdown struct {
 	allClosed            bool
 }
 
-func (p *Markdown) getRef(refid string) (ref *reference, found bool) {
+func (p *Markdown) getRef(refid string) *reference {
 	if p.referenceOverride != nil {
 		r, overridden := p.referenceOverride(refid)
 		if overridden {
 			if r == nil {
-				return nil, false
+				return &reference{}
 			}
 			return &reference{
 				link:     []byte(r.Link),
 				title:    []byte(r.Title),
 				noteID:   0,
 				hasBlock: false,
-				text:     []byte(r.Text)}, true
+				text:     []byte(r.Text)}
 		}
 	}
 	// refs are case insensitive
-	ref, found = p.refs[strings.ToLower(refid)]
-	return ref, found
+	ref, found := p.refs[strings.ToLower(refid)]
+	if !found {
+		ref = &reference{}
+	}
+	return ref
 }
 
 func (p *Markdown) finalize(block *Node) {

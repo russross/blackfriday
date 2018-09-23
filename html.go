@@ -217,6 +217,10 @@ func skipSpace(tag []byte, i int) int {
 }
 
 func isRelativeLink(link []byte) (yes bool) {
+	if len(link) == 0 {
+		return false
+	}
+
 	// a tag begin with '#'
 	if link[0] == '#' {
 		return true
@@ -553,6 +557,11 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 	case Link:
 		// mark it but don't link it if it is not a safe link: no smartypants
 		dest := node.LinkData.Destination
+		if len(dest) == 0 {
+			node.Type = Text
+			return r.RenderNode(w, node, entering)
+		}
+
 		if needSkipLink(r.Flags, dest) {
 			if entering {
 				r.out(w, ttTag)
