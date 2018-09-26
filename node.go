@@ -81,10 +81,14 @@ type ListData struct {
 
 // LinkData contains fields relevant to a Link node type.
 type LinkData struct {
-	Destination []byte // Destination is what goes into a href
-	Title       []byte // Title is the tooltip thing that goes in a title attribute
-	NoteID      int    // NoteID contains a serial number of a footnote, zero if it's not a footnote
-	Footnote    *Node  // If it's a footnote, this is a direct link to the footnote Node. Otherwise nil.
+	Destination []byte                // Destination is what goes into a href
+	Title       []byte                // Title is the tooltip thing that goes in a title attribute
+	NoteID      int                   // NoteID contains a serial number of a footnote, zero if it's not a footnote
+	Footnote    *Node                 // If it's a footnote, this is a direct link to the footnote Node. Otherwise nil.
+	IsRefLink   bool                  // True if this is a reference style link.
+	RefID       []byte                // The ID used for looking up the reference in ref style links.
+	Overridden  bool                  // If you are overriding link data during AST traversal, set his to true to prevent the link from being updated on the second pass.
+	Refs        map[string]*reference // A pointer to the list of references.
 }
 
 // CodeBlockData contains fields relevant to a CodeBlock node type.

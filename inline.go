@@ -63,6 +63,11 @@ func (p *Markdown) inline(currBlock *Node, data []byte) {
 				// Copy inactive chars into the output.
 				currBlock.AppendChild(text(data[beg:end]))
 				if node != nil {
+					if node.Type == Link {
+						// Make a copy for the link literal so that renderers can use it if
+						// the link has no reference.
+						node.Literal = append([]byte(nil), data[end:end+consumed]...)
+					}
 					currBlock.AppendChild(node)
 				}
 				// Skip past whatever the callback used.
@@ -262,10 +267,11 @@ func link(p *Markdown, data []byte, offset int) (int, *Node) {
 	data = data[offset:]
 
 	var (
-		i                       = 1
-		noteID                  int
-		title, link, altContent []byte
-		textHasNl               = false
+		i                              = 1
+		noteID                         int
+		refID, title, link, altContent []byte
+		isRef                          = false
+		textHasNl                      = false
 	)
 
 	if t == linkDeferredFootnote {
@@ -401,7 +407,7 @@ func link(p *Markdown, data []byte, offset int) (int, *Node) {
 
 	// reference style link
 	case isReferenceStyleLink(data, i, t):
-		var id []byte
+		isRef = true
 		altContentConsidered := false
 
 		// look for the id
@@ -429,20 +435,17 @@ func link(p *Markdown, data []byte, offset int) (int, *Node) {
 					}
 				}
 
-				id = b.Bytes()
+				refID = b.Bytes()
 			} else {
-				id = data[1:txtE]
+				refID = data[1:txtE]
 				altContentConsidered = true
 			}
 		} else {
-			id = data[linkB:linkE]
+			refID = data[linkB:linkE]
 		}
 
 		// find the reference with matching id
-		lr, ok := p.getRef(string(id))
-		if !ok {
-			return 0, nil
-		}
+		lr := p.getRef(string(refID))
 
 		// keep link and title from reference
 		link = lr.link
@@ -454,7 +457,7 @@ func link(p *Markdown, data []byte, offset int) (int, *Node) {
 
 	// shortcut reference style link or reference or inline footnote
 	default:
-		var id []byte
+		isRef = true
 
 		// craft the id
 		if textHasNl {
@@ -469,12 +472,12 @@ func link(p *Markdown, data []byte, offset int) (int, *Node) {
 				}
 			}
 
-			id = b.Bytes()
+			refID = b.Bytes()
 		} else {
 			if t == linkDeferredFootnote {
-				id = data[2:txtE] // get rid of the ^
+				refID = data[2:txtE] // get rid of the ^
 			} else {
-				id = data[1:txtE]
+				refID = data[1:txtE]
 			}
 		}
 
@@ -484,13 +487,13 @@ func link(p *Markdown, data []byte, offset int) (int, *Node) {
 			noteID = len(p.notes) + 1
 
 			var fragment []byte
-			if len(id) > 0 {
-				if len(id) < 16 {
-					fragment = make([]byte, len(id))
+			if len(refID) > 0 {
+				if len(refID) < 16 {
+					fragment = make([]byte, len(refID))
 				} else {
 					fragment = make([]byte, 16)
 				}
-				copy(fragment, slugify(id))
+				copy(fragment, slugify(refID))
 			} else {
 				fragment = append([]byte("footnote-"), []byte(strconv.Itoa(noteID))...)
 			}
@@ -499,7 +502,7 @@ func link(p *Markdown, data []byte, offset int) (int, *Node) {
 				noteID:   noteID,
 				hasBlock: false,
 				link:     fragment,
-				title:    id,
+				title:    refID,
 				footnote: footnoteNode,
 			}
 
@@ -509,10 +512,7 @@ func link(p *Markdown, data []byte, offset int) (int, *Node) {
 			title = ref.title
 		} else {
 			// find the reference with matching id
-			lr, ok := p.getRef(string(id))
-			if !ok {
-				return 0, nil
-			}
+			lr := p.getRef(string(refID))
 
 			if t == linkDeferredFootnote {
 				lr.noteID = len(p.notes) + 1
@@ -537,11 +537,6 @@ func link(p *Markdown, data []byte, offset int) (int, *Node) {
 			var uLinkBuf bytes.Buffer
 			unescapeText(&uLinkBuf, link)
 			uLink = uLinkBuf.Bytes()
-		}
-
-		// links need something to click on and somewhere to go
-		if len(uLink) == 0 || (t == linkNormal && txtE <= 1) {
-			return 0, nil
 		}
 	}
 
@@ -583,6 +578,9 @@ func link(p *Markdown, data []byte, offset int) (int, *Node) {
 	default:
 		return 0, nil
 	}
+	linkNode.IsRefLink = isRef
+	linkNode.RefID = refID
+	linkNode.Refs = p.refs
 
 	return i, linkNode
 }
