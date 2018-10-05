@@ -13,6 +13,22 @@ extensions.
 It started as a translation from C of [Sundown][3].
 
 
+About Duzy's fork
+-----------------
+
+The original Blackfirday can not process [empty links][empty-link-issue].
+Empty links could be very useful for holding meta information to be 
+processed by application. For example:
+
+``` markdown
+[](
+anything goes here should be ignored by renderer as the link is empty
+)
+```
+
+In Duzy's fork, the parsing issue of empty links was fixed. Other possible
+modification may happen if needed and differs from the original version.
+
 Installation
 ------------
 
@@ -289,3 +305,5 @@ License
    [4]: https://godoc.org/gopkg.in/russross/blackfriday.v2#Parse "Parse func"
    [5]: https://github.com/microcosm-cc/bluemonday "Bluemonday"
    [6]: https://labix.org/gopkg.in "gopkg.in"
+
+   [empty-link-issue]: https://github.com/russross/blackfriday/pull/402
