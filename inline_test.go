@@ -21,6 +21,7 @@ import (
 )
 
 func TestEmphasis(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"nothing inline\n",
 		"<p>nothing inline</p>\n",
@@ -77,6 +78,7 @@ func TestEmphasis(t *testing.T) {
 }
 
 func TestReferenceOverride(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"test [ref1][]\n",
 		"<p>test <a href=\"http://www.ref1.com/\" title=\"Reference 1\">ref1</a></p>\n",
@@ -135,6 +137,7 @@ func TestReferenceOverride(t *testing.T) {
 }
 
 func TestStrong(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"nothing inline\n",
 		"<p>nothing inline</p>\n",
@@ -194,6 +197,7 @@ func TestStrong(t *testing.T) {
 }
 
 func TestEmphasisMix(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"***triple emphasis***\n",
 		"<p><strong><em>triple emphasis</em></strong></p>\n",
@@ -223,6 +227,7 @@ func TestEmphasisMix(t *testing.T) {
 }
 
 func TestEmphasisLink(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"[first](before) *text[second] (inside)text* [third](after)\n",
 		"<p><a href=\"before\">first</a> <em>text<a href=\"inside\">second</a>text</em> <a href=\"after\">third</a></p>\n",
@@ -240,6 +245,7 @@ func TestEmphasisLink(t *testing.T) {
 }
 
 func TestStrikeThrough(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"nothing inline\n",
 		"<p>nothing inline</p>\n",
@@ -269,6 +275,7 @@ func TestStrikeThrough(t *testing.T) {
 }
 
 func TestCodeSpan(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"`source code`\n",
 		"<p><code>source code</code></p>\n",
@@ -307,6 +314,7 @@ func TestCodeSpan(t *testing.T) {
 }
 
 func TestLineBreak(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"this line  \nhas a break\n",
 		"<p>this line<br />\nhas a break</p>\n",
@@ -346,6 +354,7 @@ func TestLineBreak(t *testing.T) {
 }
 
 func TestInlineLink(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"[foo](/bar/)\n",
 		"<p><a href=\"/bar/\">foo</a></p>\n",
@@ -463,6 +472,7 @@ func TestInlineLink(t *testing.T) {
 }
 
 func TestRelAttrLink(t *testing.T) {
+	t.Parallel()
 	var nofollowTests = []string{
 		"[foo](http://bar.com/foo/)\n",
 		"<p><a href=\"http://bar.com/foo/\" rel=\"nofollow\">foo</a></p>\n",
@@ -497,19 +507,31 @@ func TestRelAttrLink(t *testing.T) {
 		HTMLFlags: Safelink | NoreferrerLinks,
 	})
 
-	var nofollownoreferrerTests = []string{
+	var noopenerTests = []string{
 		"[foo](http://bar.com/foo/)\n",
-		"<p><a href=\"http://bar.com/foo/\" rel=\"nofollow noreferrer\">foo</a></p>\n",
+		"<p><a href=\"http://bar.com/foo/\" rel=\"noopener\">foo</a></p>\n",
 
 		"[foo](/bar/)\n",
 		"<p><a href=\"/bar/\">foo</a></p>\n",
 	}
-	doTestsInlineParam(t, nofollownoreferrerTests, TestParams{
-		HTMLFlags: Safelink | NofollowLinks | NoreferrerLinks,
+	doTestsInlineParam(t, noopenerTests, TestParams{
+		HTMLFlags: Safelink | NoopenerLinks,
+	})
+
+	var nofollownoreferrernoopenerTests = []string{
+		"[foo](http://bar.com/foo/)\n",
+		"<p><a href=\"http://bar.com/foo/\" rel=\"nofollow noreferrer noopener\">foo</a></p>\n",
+
+		"[foo](/bar/)\n",
+		"<p><a href=\"/bar/\">foo</a></p>\n",
+	}
+	doTestsInlineParam(t, nofollownoreferrernoopenerTests, TestParams{
+		HTMLFlags: Safelink | NofollowLinks | NoreferrerLinks | NoopenerLinks,
 	})
 }
 
 func TestHrefTargetBlank(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		// internal link
 		"[foo](/bar/)\n",
@@ -539,6 +561,7 @@ func TestHrefTargetBlank(t *testing.T) {
 }
 
 func TestSafeInlineLink(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"[foo](/bar/)\n",
 		"<p><a href=\"/bar/\">foo</a></p>\n",
@@ -572,6 +595,7 @@ func TestSafeInlineLink(t *testing.T) {
 }
 
 func TestReferenceLink(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"[link][ref]\n",
 		"<p>[link][ref]</p>\n",
@@ -610,6 +634,7 @@ func TestReferenceLink(t *testing.T) {
 }
 
 func TestTags(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"a <span>tag</span>\n",
 		"<p>a <span>tag</span></p>\n",
@@ -627,6 +652,7 @@ func TestTags(t *testing.T) {
 }
 
 func TestAutoLink(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"http://foo.com/\n",
 		"<p><a href=\"http://foo.com/\">http://foo.com/</a></p>\n",
@@ -741,7 +767,7 @@ func TestAutoLink(t *testing.T) {
 
 var footnoteTests = []string{
 	"testing footnotes.[^a]\n\n[^a]: This is the note\n",
-	`<p>testing footnotes.<sup class="footnote-ref" id="fnref:a"><a rel="footnote" href="#fn:a">1</a></sup></p>
+	`<p>testing footnotes.<sup class="footnote-ref" id="fnref:a"><a href="#fn:a">1</a></sup></p>
 
 <div class="footnotes">
 
@@ -766,7 +792,7 @@ var footnoteTests = []string{
 
 No longer in the footnote
 `,
-	`<p>testing long<sup class="footnote-ref" id="fnref:b"><a rel="footnote" href="#fn:b">1</a></sup> notes.</p>
+	`<p>testing long<sup class="footnote-ref" id="fnref:b"><a href="#fn:b">1</a></sup> notes.</p>
 
 <p>No longer in the footnote</p>
 
@@ -803,7 +829,7 @@ what happens here
 [note]: /link/c
 
 `,
-	`<p>testing<sup class="footnote-ref" id="fnref:c"><a rel="footnote" href="#fn:c">1</a></sup> multiple<sup class="footnote-ref" id="fnref:d"><a rel="footnote" href="#fn:d">2</a></sup> notes.</p>
+	`<p>testing<sup class="footnote-ref" id="fnref:c"><a href="#fn:c">1</a></sup> multiple<sup class="footnote-ref" id="fnref:d"><a href="#fn:d">2</a></sup> notes.</p>
 
 <p>omg</p>
 
@@ -823,7 +849,7 @@ what happens here
 `,
 
 	"testing inline^[this is the note] notes.\n",
-	`<p>testing inline<sup class="footnote-ref" id="fnref:this-is-the-note"><a rel="footnote" href="#fn:this-is-the-note">1</a></sup> notes.</p>
+	`<p>testing inline<sup class="footnote-ref" id="fnref:this-is-the-note"><a href="#fn:this-is-the-note">1</a></sup> notes.</p>
 
 <div class="footnotes">
 
@@ -837,7 +863,7 @@ what happens here
 `,
 
 	"testing multiple[^1] types^[inline note] of notes[^2]\n\n[^2]: the second deferred note\n[^1]: the first deferred note\n\n\twhich happens to be a block\n",
-	`<p>testing multiple<sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup> types<sup class="footnote-ref" id="fnref:inline-note"><a rel="footnote" href="#fn:inline-note">2</a></sup> of notes<sup class="footnote-ref" id="fnref:2"><a rel="footnote" href="#fn:2">3</a></sup></p>
+	`<p>testing multiple<sup class="footnote-ref" id="fnref:1"><a href="#fn:1">1</a></sup> types<sup class="footnote-ref" id="fnref:inline-note"><a href="#fn:inline-note">2</a></sup> of notes<sup class="footnote-ref" id="fnref:2"><a href="#fn:2">3</a></sup></p>
 
 <div class="footnotes">
 
@@ -862,7 +888,7 @@ what happens here
 
     may be multiple paragraphs.
 `,
-	`<p>This is a footnote<sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup><sup class="footnote-ref" id="fnref:and-this-is-an-i"><a rel="footnote" href="#fn:and-this-is-an-i">2</a></sup></p>
+	`<p>This is a footnote<sup class="footnote-ref" id="fnref:1"><a href="#fn:1">1</a></sup><sup class="footnote-ref" id="fnref:and-this-is-an-i"><a href="#fn:and-this-is-an-i">2</a></sup></p>
 
 <div class="footnotes">
 
@@ -880,13 +906,13 @@ what happens here
 `,
 
 	"empty footnote[^]\n\n[^]: fn text",
-	"<p>empty footnote<sup class=\"footnote-ref\" id=\"fnref:\"><a rel=\"footnote\" href=\"#fn:\">1</a></sup></p>\n\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:\">fn text</li>\n</ol>\n\n</div>\n",
+	"<p>empty footnote<sup class=\"footnote-ref\" id=\"fnref:\"><a href=\"#fn:\">1</a></sup></p>\n\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:\">fn text</li>\n</ol>\n\n</div>\n",
 
 	"Some text.[^note1]\n\n[^note1]: fn1",
-	"<p>Some text.<sup class=\"footnote-ref\" id=\"fnref:note1\"><a rel=\"footnote\" href=\"#fn:note1\">1</a></sup></p>\n\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:note1\">fn1</li>\n</ol>\n\n</div>\n",
+	"<p>Some text.<sup class=\"footnote-ref\" id=\"fnref:note1\"><a href=\"#fn:note1\">1</a></sup></p>\n\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:note1\">fn1</li>\n</ol>\n\n</div>\n",
 
 	"Some text.[^note1][^note2]\n\n[^note1]: fn1\n[^note2]: fn2\n",
-	"<p>Some text.<sup class=\"footnote-ref\" id=\"fnref:note1\"><a rel=\"footnote\" href=\"#fn:note1\">1</a></sup><sup class=\"footnote-ref\" id=\"fnref:note2\"><a rel=\"footnote\" href=\"#fn:note2\">2</a></sup></p>\n\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:note1\">fn1</li>\n\n<li id=\"fn:note2\">fn2</li>\n</ol>\n\n</div>\n",
+	"<p>Some text.<sup class=\"footnote-ref\" id=\"fnref:note1\"><a href=\"#fn:note1\">1</a></sup><sup class=\"footnote-ref\" id=\"fnref:note2\"><a href=\"#fn:note2\">2</a></sup></p>\n\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:note1\">fn1</li>\n\n<li id=\"fn:note2\">fn2</li>\n</ol>\n\n</div>\n",
 
 	`Bla bla [^1] [WWW][w3]
 
@@ -894,7 +920,7 @@ what happens here
 
 [w3]: http://www.w3.org/
 `,
-	`<p>Bla bla <sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup> <a href="http://www.w3.org/">WWW</a></p>
+	`<p>Bla bla <sup class="footnote-ref" id="fnref:1"><a href="#fn:1">1</a></sup> <a href="http://www.w3.org/">WWW</a></p>
 
 <div class="footnotes">
 
@@ -911,7 +937,7 @@ what happens here
 
 [^fn1]: Fine print
 `,
-	`<p>This is exciting!<sup class="footnote-ref" id="fnref:fn1"><a rel="footnote" href="#fn:fn1">1</a></sup></p>
+	`<p>This is exciting!<sup class="footnote-ref" id="fnref:fn1"><a href="#fn:fn1">1</a></sup></p>
 
 <div class="footnotes">
 
@@ -932,12 +958,14 @@ what happens here
 }
 
 func TestFootnotes(t *testing.T) {
+	t.Parallel()
 	doTestsInlineParam(t, footnoteTests, TestParams{
 		extensions: Footnotes,
 	})
 }
 
 func TestFootnotesWithParameters(t *testing.T) {
+	t.Parallel()
 	tests := make([]string, len(footnoteTests))
 
 	prefix := "testPrefix"
@@ -967,6 +995,7 @@ func TestFootnotesWithParameters(t *testing.T) {
 }
 
 func TestNestedFootnotes(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		`Paragraph.[^fn1]
 
@@ -975,14 +1004,14 @@ func TestNestedFootnotes(t *testing.T) {
 
 [^fn2]:
   Obelisk`,
-		`<p>Paragraph.<sup class="footnote-ref" id="fnref:fn1"><a rel="footnote" href="#fn:fn1">1</a></sup></p>
+		`<p>Paragraph.<sup class="footnote-ref" id="fnref:fn1"><a href="#fn:fn1">1</a></sup></p>
 
 <div class="footnotes">
 
 <hr />
 
 <ol>
-<li id="fn:fn1">Asterisk<sup class="footnote-ref" id="fnref:fn2"><a rel="footnote" href="#fn:fn2">2</a></sup></li>
+<li id="fn:fn1">Asterisk<sup class="footnote-ref" id="fnref:fn2"><a href="#fn:fn2">2</a></sup></li>
 
 <li id="fn:fn2">Obelisk</li>
 </ol>
@@ -994,6 +1023,7 @@ func TestNestedFootnotes(t *testing.T) {
 }
 
 func TestInlineComments(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"Hello <!-- there ->\n",
 		"<p>Hello &lt;!&mdash; there &ndash;&gt;</p>\n",
@@ -1023,6 +1053,7 @@ func TestInlineComments(t *testing.T) {
 }
 
 func TestSmartDoubleQuotes(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"this should be normal \"quoted\" text.\n",
 		"<p>this should be normal &ldquo;quoted&rdquo; text.</p>\n",
@@ -1035,6 +1066,7 @@ func TestSmartDoubleQuotes(t *testing.T) {
 }
 
 func TestSmartDoubleQuotesNBSP(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"this should be normal \"quoted\" text.\n",
 		"<p>this should be normal &ldquo;&nbsp;quoted&nbsp;&rdquo; text.</p>\n",
@@ -1047,6 +1079,7 @@ func TestSmartDoubleQuotesNBSP(t *testing.T) {
 }
 
 func TestSmartAngledDoubleQuotes(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"this should be angled \"quoted\" text.\n",
 		"<p>this should be angled &laquo;quoted&raquo; text.</p>\n",
@@ -1059,6 +1092,7 @@ func TestSmartAngledDoubleQuotes(t *testing.T) {
 }
 
 func TestSmartAngledDoubleQuotesNBSP(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"this should be angled \"quoted\" text.\n",
 		"<p>this should be angled &laquo;&nbsp;quoted&nbsp;&raquo; text.</p>\n",
@@ -1071,6 +1105,7 @@ func TestSmartAngledDoubleQuotesNBSP(t *testing.T) {
 }
 
 func TestSmartFractions(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"1/2, 1/4 and 3/4; 1/4th and 3/4ths\n",
 		"<p>&frac12;, &frac14; and &frac34;; &frac14;th and &frac34;ths</p>\n",
@@ -1089,6 +1124,7 @@ func TestSmartFractions(t *testing.T) {
 }
 
 func TestDisableSmartDashes(t *testing.T) {
+	t.Parallel()
 	doTestsInlineParam(t, []string{
 		"foo - bar\n",
 		"<p>foo - bar</p>\n",
@@ -1124,6 +1160,7 @@ func TestDisableSmartDashes(t *testing.T) {
 }
 
 func TestSkipLinks(t *testing.T) {
+	t.Parallel()
 	doTestsInlineParam(t, []string{
 		"[foo](gopher://foo.bar)",
 		"<p><tt>foo</tt></p>\n",
@@ -1136,6 +1173,7 @@ func TestSkipLinks(t *testing.T) {
 }
 
 func TestSkipImages(t *testing.T) {
+	t.Parallel()
 	doTestsInlineParam(t, []string{
 		"![foo](/bar/)\n",
 		"<p></p>\n",
@@ -1145,6 +1183,7 @@ func TestSkipImages(t *testing.T) {
 }
 
 func TestUseXHTML(t *testing.T) {
+	t.Parallel()
 	doTestsParam(t, []string{
 		"---",
 		"<hr>\n",
@@ -1156,6 +1195,7 @@ func TestUseXHTML(t *testing.T) {
 }
 
 func TestSkipHTML(t *testing.T) {
+	t.Parallel()
 	doTestsParam(t, []string{
 		"<div class=\"foo\"></div>\n\ntext\n\n<form>the form</form>",
 		"<p>text</p>\n\n<p>the form</p>\n",
