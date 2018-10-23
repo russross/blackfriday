@@ -19,6 +19,7 @@ import (
 )
 
 func TestPrefixHeaderNoExtensions(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"# Header 1\n",
 		"<h1>Header 1</h1>\n",
@@ -88,6 +89,7 @@ func TestPrefixHeaderNoExtensions(t *testing.T) {
 }
 
 func TestPrefixHeaderSpaceExtension(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"# Header 1\n",
 		"<h1>Header 1</h1>\n",
@@ -148,6 +150,7 @@ func TestPrefixHeaderSpaceExtension(t *testing.T) {
 }
 
 func TestPrefixHeaderIdExtension(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"# Header 1 {#someid}\n",
 		"<h1 id=\"someid\">Header 1</h1>\n",
@@ -208,6 +211,7 @@ func TestPrefixHeaderIdExtension(t *testing.T) {
 }
 
 func TestPrefixHeaderIdExtensionWithPrefixAndSuffix(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"# header 1 {#someid}\n",
 		"<h1 id=\"PRE:someid:POST\">header 1</h1>\n",
@@ -260,6 +264,7 @@ func TestPrefixHeaderIdExtensionWithPrefixAndSuffix(t *testing.T) {
 }
 
 func TestPrefixAutoHeaderIdExtension(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"# Header 1\n",
 		"<h1 id=\"header-1\">Header 1</h1>\n",
@@ -311,6 +316,7 @@ func TestPrefixAutoHeaderIdExtension(t *testing.T) {
 }
 
 func TestPrefixAutoHeaderIdExtensionWithPrefixAndSuffix(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"# Header 1\n",
 		"<h1 id=\"PRE:header-1:POST\">Header 1</h1>\n",
@@ -371,7 +377,95 @@ func TestPrefixAutoHeaderIdExtensionWithPrefixAndSuffix(t *testing.T) {
 	})
 }
 
+func TestPrefixHeaderLevelOffset(t *testing.T) {
+	t.Parallel()
+	var offsetTests = []struct {
+		offset int
+		tests  []string
+	}{{
+		offset: 0,
+		tests: []string{
+			"# Header 1\n",
+			"<h1>Header 1</h1>\n",
+
+			"## Header 2\n",
+			"<h2>Header 2</h2>\n",
+
+			"### Header 3\n",
+			"<h3>Header 3</h3>\n",
+
+			"#### Header 4\n",
+			"<h4>Header 4</h4>\n",
+
+			"##### Header 5\n",
+			"<h5>Header 5</h5>\n",
+
+			"###### Header 6\n",
+			"<h6>Header 6</h6>\n",
+
+			"####### Header 7\n",
+			"<h6># Header 7</h6>\n",
+		},
+	}, {
+		offset: 1,
+		tests: []string{
+			"# Header 1\n",
+			"<h2>Header 1</h2>\n",
+
+			"## Header 2\n",
+			"<h3>Header 2</h3>\n",
+
+			"### Header 3\n",
+			"<h4>Header 3</h4>\n",
+
+			"#### Header 4\n",
+			"<h5>Header 4</h5>\n",
+
+			"##### Header 5\n",
+			"<h6>Header 5</h6>\n",
+
+			"###### Header 6\n",
+			"<h6>Header 6</h6>\n",
+
+			"####### Header 7\n",
+			"<h6># Header 7</h6>\n",
+		},
+	}, {
+		offset: -1,
+		tests: []string{
+			"# Header 1\n",
+			"<h1>Header 1</h1>\n",
+
+			"## Header 2\n",
+			"<h1>Header 2</h1>\n",
+
+			"### Header 3\n",
+			"<h2>Header 3</h2>\n",
+
+			"#### Header 4\n",
+			"<h3>Header 4</h3>\n",
+
+			"##### Header 5\n",
+			"<h4>Header 5</h4>\n",
+
+			"###### Header 6\n",
+			"<h5>Header 6</h5>\n",
+
+			"####### Header 7\n",
+			"<h5># Header 7</h5>\n",
+		},
+	}}
+	for _, offsetTest := range offsetTests {
+		offset := offsetTest.offset
+		tests := offsetTest.tests
+		doTestsParam(t, tests, TestParams{
+			HTMLRendererParameters: HTMLRendererParameters{HeadingLevelOffset: offset},
+		})
+	}
+}
+
 func TestPrefixMultipleHeaderExtensions(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"# Header\n\n# Header {#header}\n\n# Header 1",
 		"<h1 id=\"header\">Header</h1>\n\n<h1 id=\"header-1\">Header</h1>\n\n<h1 id=\"header-1-1\">Header 1</h1>\n",
@@ -380,6 +474,7 @@ func TestPrefixMultipleHeaderExtensions(t *testing.T) {
 }
 
 func TestUnderlineHeaders(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"Header 1\n========\n",
 		"<h1>Header 1</h1>\n",
@@ -430,6 +525,7 @@ func TestUnderlineHeaders(t *testing.T) {
 }
 
 func TestUnderlineHeadersAutoIDs(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"Header 1\n========\n",
 		"<h1 id=\"header-1\">Header 1</h1>\n",
@@ -480,6 +576,7 @@ func TestUnderlineHeadersAutoIDs(t *testing.T) {
 }
 
 func TestHorizontalRule(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"-\n",
 		"<p>-</p>\n",
@@ -545,6 +642,7 @@ func TestHorizontalRule(t *testing.T) {
 }
 
 func TestUnorderedList(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"* Hello\n",
 		"<ul>\n<li>Hello</li>\n</ul>\n",
@@ -656,6 +754,7 @@ func TestUnorderedList(t *testing.T) {
 }
 
 func TestOrderedList(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"1. Hello\n",
 		"<ol>\n<li>Hello</li>\n</ol>\n",
@@ -752,6 +851,7 @@ func TestOrderedList(t *testing.T) {
 }
 
 func TestDefinitionList(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"Term 1\n:   Definition a\n",
 		"<dl>\n<dt>Term 1</dt>\n<dd>Definition a</dd>\n</dl>\n",
@@ -853,7 +953,20 @@ func TestDefinitionList(t *testing.T) {
 	doTestsBlock(t, tests, DefinitionLists)
 }
 
+func TestConsecutiveLists(t *testing.T) {
+	t.Parallel()
+	var tests = []string{
+		"1. Hello\n\n* Hello\n\nTerm 1\n:   Definition a\n",
+		"<ol>\n<li>Hello</li>\n</ol>\n\n<ul>\n<li>Hello</li>\n</ul>\n\n<dl>\n<dt>Term 1</dt>\n<dd>Definition a</dd>\n</dl>\n",
+
+		"1. Not nested\n2. ordered list\n\n\t1. nested\n\t2. ordered list\n\n\t* nested\n\t* unordered list\n* Not nested\n* unordered list",
+		"<ol>\n<li><p>Not nested</p></li>\n\n<li><p>ordered list</p>\n\n<ol>\n<li>nested</li>\n<li>ordered list</li>\n</ol>\n\n<ul>\n<li>nested</li>\n<li>unordered list</li>\n</ul></li>\n</ol>\n\n<ul>\n<li>Not nested</li>\n<li>unordered list</li>\n</ul>\n",
+	}
+	doTestsBlock(t, tests, DefinitionLists)
+}
+
 func TestPreformattedHtml(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"<div></div>\n",
 		"<div></div>\n",
@@ -907,6 +1020,7 @@ func TestPreformattedHtml(t *testing.T) {
 }
 
 func TestPreformattedHtmlLax(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"Paragraph\n<div>\nHere? >&<\n</div>\n",
 		"<p>Paragraph</p>\n\n<div>\nHere? >&<\n</div>\n",
@@ -930,8 +1044,12 @@ func TestPreformattedHtmlLax(t *testing.T) {
 }
 
 func TestFencedCodeBlock(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"``` go\nfunc foo() bool {\n\treturn true;\n}\n```\n",
+		"<pre><code class=\"language-go\">func foo() bool {\n\treturn true;\n}\n</code></pre>\n",
+
+		"``` go foo bar\nfunc foo() bool {\n\treturn true;\n}\n```\n",
 		"<pre><code class=\"language-go\">func foo() bool {\n\treturn true;\n}\n</code></pre>\n",
 
 		"``` c\n/* special & char < > \" escaping */\n```\n",
@@ -1022,6 +1140,7 @@ func TestFencedCodeBlock(t *testing.T) {
 }
 
 func TestFencedCodeInsideBlockquotes(t *testing.T) {
+	t.Parallel()
 	cat := func(s ...string) string { return strings.Join(s, "\n") }
 	var tests = []string{
 		cat("> ```go",
@@ -1134,6 +1253,7 @@ okay
 }
 
 func TestTable(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"a | b\n---|---\nc | d\n",
 		"<table>\n<thead>\n<tr>\n<th>a</th>\n<th>b</th>\n</tr>\n</thead>\n\n" +
@@ -1181,6 +1301,7 @@ func TestTable(t *testing.T) {
 }
 
 func TestUnorderedListWith_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"* Hello\n",
 		"<ul>\n<li>Hello</li>\n</ul>\n",
@@ -1292,6 +1413,7 @@ func TestUnorderedListWith_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
 }
 
 func TestOrderedList_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"1. Hello\n",
 		"<ol>\n<li>Hello</li>\n</ol>\n",
@@ -1388,8 +1510,12 @@ func TestOrderedList_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
 }
 
 func TestFencedCodeBlock_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"``` go\nfunc foo() bool {\n\treturn true;\n}\n```\n",
+		"<pre><code class=\"language-go\">func foo() bool {\n\treturn true;\n}\n</code></pre>\n",
+
+		"``` go foo bar\nfunc foo() bool {\n\treturn true;\n}\n```\n",
 		"<pre><code class=\"language-go\">func foo() bool {\n\treturn true;\n}\n</code></pre>\n",
 
 		"``` c\n/* special & char < > \" escaping */\n```\n",
@@ -1458,7 +1584,49 @@ func TestFencedCodeBlock_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
 	doTestsBlock(t, tests, FencedCode|NoEmptyLineBeforeBlock)
 }
 
+func TestListWithFencedCodeBlock(t *testing.T) {
+	t.Parallel()
+	var tests = []string{
+		"1. one\n\n    ```\n    code\n    ```\n\n2. two\n",
+		"<ol>\n<li><p>one</p>\n\n<pre><code>code\n</code></pre></li>\n\n<li><p>two</p></li>\n</ol>\n",
+		// https://github.com/russross/blackfriday/issues/239
+		"1. one\n\n    ```\n    - code\n    ```\n\n2. two\n",
+		"<ol>\n<li><p>one</p>\n\n<pre><code>- code\n</code></pre></li>\n\n<li><p>two</p></li>\n</ol>\n",
+	}
+	doTestsBlock(t, tests, FencedCode)
+}
+
+func TestListWithMalformedFencedCodeBlock(t *testing.T) {
+	t.Parallel()
+	// Ensure that in the case of an unclosed fenced code block in a list,
+	// no source gets ommitted (even if it is malformed).
+	// See russross/blackfriday#372 for context.
+	var tests = []string{
+		"1. one\n\n    ```\n    code\n\n2. two\n",
+		"<ol>\n<li>one\n```\ncode\n2. two</li>\n</ol>\n",
+
+		"1. one\n\n    ```\n    - code\n\n2. two\n",
+		"<ol>\n<li>one\n```\n- code\n2. two</li>\n</ol>\n",
+	}
+	doTestsBlock(t, tests, FencedCode)
+}
+
+func TestListWithFencedCodeBlockNoExtensions(t *testing.T) {
+	t.Parallel()
+	// If there is a fenced code block in a list, and FencedCode is not set,
+	// lists should be processed normally.
+	var tests = []string{
+		"1. one\n\n    ```\n    code\n    ```\n\n2. two\n",
+		"<ol>\n<li><p>one</p>\n\n<p><code>\ncode\n</code></p></li>\n\n<li><p>two</p></li>\n</ol>\n",
+
+		"1. one\n\n    ```\n    - code\n    ```\n\n2. two\n",
+		"<ol>\n<li><p>one</p>\n\n<p>```</p>\n\n<ul>\n<li>code\n```</li>\n</ul></li>\n\n<li><p>two</p></li>\n</ol>\n",
+	}
+	doTestsBlock(t, tests, 0)
+}
+
 func TestTitleBlock_EXTENSION_TITLEBLOCK(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"% Some title\n" +
 			"% Another title line\n" +
@@ -1473,6 +1641,7 @@ func TestTitleBlock_EXTENSION_TITLEBLOCK(t *testing.T) {
 }
 
 func TestBlockComments(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"Some text\n\n<!-- comment -->\n",
 		"<p>Some text</p>\n\n<!-- comment -->\n",
@@ -1487,6 +1656,7 @@ func TestBlockComments(t *testing.T) {
 }
 
 func TestTOC(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"# Title\n\n##Subtitle1\n\n##Subtitle2",
 		//"<nav>\n<ul>\n<li><a href=\"#toc_0\">Title</a>\n<ul>\n<li><a href=\"#toc_1\">Subtitle1</a></li>\n<li><a href=\"#toc_2\">Subtitle2</a></li>\n</ul></li>\n</ul>\n</nav>\n\n<h1 id=\"toc_0\">Title</h1>\n\n<h2 id=\"toc_1\">Subtitle1</h2>\n\n<h2 id=\"toc_2\">Subtitle2</h2>\n",
@@ -1607,6 +1777,7 @@ func TestTOC(t *testing.T) {
 }
 
 func TestCompletePage(t *testing.T) {
+	t.Parallel()
 	var tests = []string{
 		"*foo*",
 		`<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -1628,12 +1799,13 @@ func TestCompletePage(t *testing.T) {
 }
 
 func TestIsFenceLine(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
-		data            []byte
-		syntaxRequested bool
-		wantEnd         int
-		wantMarker      string
-		wantSyntax      string
+		data          []byte
+		infoRequested bool
+		wantEnd       int
+		wantMarker    string
+		wantInfo      string
 	}{
 		{
 			data:       []byte("```"),
@@ -1646,45 +1818,59 @@ func TestIsFenceLine(t *testing.T) {
 			wantMarker: "```",
 		},
 		{
-			data:            []byte("```\nstuff here\n"),
-			syntaxRequested: true,
-			wantEnd:         4,
-			wantMarker:      "```",
+			data:          []byte("```\nstuff here\n"),
+			infoRequested: true,
+			wantEnd:       4,
+			wantMarker:    "```",
 		},
 		{
 			data:    []byte("stuff here\n```\n"),
 			wantEnd: 0,
 		},
 		{
-			data:            []byte("```"),
-			syntaxRequested: true,
-			wantEnd:         3,
-			wantMarker:      "```",
+			data:          []byte("```"),
+			infoRequested: true,
+			wantEnd:       3,
+			wantMarker:    "```",
 		},
 		{
-			data:            []byte("``` go"),
-			syntaxRequested: true,
-			wantEnd:         6,
-			wantMarker:      "```",
-			wantSyntax:      "go",
+			data:          []byte("``` go"),
+			infoRequested: true,
+			wantEnd:       6,
+			wantMarker:    "```",
+			wantInfo:      "go",
+		},
+		{
+			data:          []byte("``` go foo bar"),
+			infoRequested: true,
+			wantEnd:       14,
+			wantMarker:    "```",
+			wantInfo:      "go foo bar",
+		},
+		{
+			data:          []byte("``` go foo bar  "),
+			infoRequested: true,
+			wantEnd:       16,
+			wantMarker:    "```",
+			wantInfo:      "go foo bar",
 		},
 	}
 
 	for _, test := range tests {
-		var syntax *string
-		if test.syntaxRequested {
-			syntax = new(string)
+		var info *string
+		if test.infoRequested {
+			info = new(string)
 		}
-		end, marker := isFenceLine(test.data, syntax, "```")
+		end, marker := isFenceLine(test.data, info, "```")
 		if got, want := end, test.wantEnd; got != want {
 			t.Errorf("got end %v, want %v", got, want)
 		}
 		if got, want := marker, test.wantMarker; got != want {
 			t.Errorf("got marker %q, want %q", got, want)
 		}
-		if test.syntaxRequested {
-			if got, want := *syntax, test.wantSyntax; got != want {
-				t.Errorf("got syntax %q, want %q", got, want)
+		if test.infoRequested {
+			if got, want := *info, test.wantInfo; got != want {
+				t.Errorf("got info string %q, want %q", got, want)
 			}
 		}
 	}

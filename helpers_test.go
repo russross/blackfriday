@@ -18,6 +18,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"testing"
+
+	"github.com/pmezard/go-difflib/difflib"
 )
 
 type TestParams struct {
@@ -168,8 +170,7 @@ func doTestsReference(t *testing.T, files []string, flag Extensions) {
 
 			actual := string(runMarkdown(input, params))
 			if actual != expected {
-				t.Errorf("\n    [%#v]\nExpected[%#v]\nActual  [%#v]",
-					basename+".text", expected, actual)
+				t.Errorf("\n" + doTestDiff(basename, expected, actual))
 			}
 
 			// now test every prefix of every input to check for
@@ -183,4 +184,15 @@ func doTestsReference(t *testing.T, files []string, flag Extensions) {
 			}
 		}
 	})
+}
+
+func doTestDiff(name, expected, actual string) string {
+	d, _ := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
+		A:        difflib.SplitLines(expected),
+		B:        difflib.SplitLines(actual),
+		FromFile: "expect: " + name,
+		ToFile:   "actual: " + name,
+		Context:  1,
+	})
+	return d
 }
