@@ -240,7 +240,7 @@ func (options *Html) Header(out *bytes.Buffer, text func() bool, level int, id s
 	}
 
 	if id != "" && options.flags&HTML_HEADER_LINKS != 0 {
-		out.WriteString(fmt.Sprintf(" <a class=\"heading\" href=\"#%s\">&para;</a>", id))
+		out.WriteString(fmt.Sprintf(" <a class=\"heading\" href=\"#%s\">#</a>", id))
 	}
 
 	out.WriteString(fmt.Sprintf("</h%d>\n", level))
