@@ -673,6 +673,7 @@ func (p *Markdown) fencedCodeBlock(data []byte, doRender bool) int {
 	if beg == 0 || beg >= len(data) {
 		return 0
 	}
+	fenceLength := beg - 1
 
 	var work bytes.Buffer
 	work.Write([]byte(info))
@@ -706,6 +707,7 @@ func (p *Markdown) fencedCodeBlock(data []byte, doRender bool) int {
 	if doRender {
 		block := p.addBlock(CodeBlock, work.Bytes()) // TODO: get rid of temp buffer
 		block.IsFenced = true
+		block.FenceLength = fenceLength
 		finalizeCodeBlock(block)
 	}
 
