@@ -18,8 +18,7 @@ import (
 	"html"
 	"regexp"
 	"strings"
-
-	"github.com/shurcooL/sanitized_anchor_name"
+	"unicode"
 )
 
 const (
@@ -259,7 +258,7 @@ func (p *Markdown) prefixHeading(data []byte) int {
 	}
 	if end > i {
 		if id == "" && p.extensions&AutoHeadingIDs != 0 {
-			id = sanitized_anchor_name.Create(string(data[i:end]))
+			id = SanitizedAnchorName(string(data[i:end]))
 		}
 		block := p.addBlock(Heading, data[i:end])
 		block.HeadingID = id
@@ -1503,7 +1502,7 @@ func (p *Markdown) paragraph(data []byte) int {
 
 				id := ""
 				if p.extensions&AutoHeadingIDs != 0 {
-					id = sanitized_anchor_name.Create(string(data[prev:eol]))
+					id = SanitizedAnchorName(string(data[prev:eol]))
 				}
 
 				block := p.addBlock(Heading, data[prev:eol])
@@ -1587,4 +1586,25 @@ func skipUntilChar(text []byte, start int, char byte) int {
 		i++
 	}
 	return i
+}
+
+// SanitizedAnchorName returns a sanitized anchor name for the given text.
+//
+// It implements the algorithm specified in the package comment.
+func SanitizedAnchorName(text string) string {
+	var anchorName []rune
+	futureDash := false
+	for _, r := range text {
+		switch {
+		case unicode.IsLetter(r) || unicode.IsNumber(r):
+			if futureDash && len(anchorName) > 0 {
+				anchorName = append(anchorName, '-')
+			}
+			futureDash = false
+			anchorName = append(anchorName, unicode.ToLower(r))
+		default:
+			futureDash = true
+		}
+	}
+	return string(anchorName)
 }
