@@ -836,6 +836,15 @@ func TestOrderedList(t *testing.T) {
 		"* Start with unordered\n    1. Ordered\n",
 		"<ul>\n<li>Start with unordered\n\n<ol>\n<li>Ordered</li>\n</ol></li>\n</ul>\n",
 
+		"random numbers:\n\n 3. Bird\n 1. McHale\n 8. Parish",
+		"<p>random numbers:</p>\n\n<ol>\n<li>Bird</li>\n<li>McHale</li>\n<li>Parish</li>\n</ol>\n",
+
+		"big numbers should be skipped:\n\n 3. Bird\n 1. McHale\n 8. Parish\n\n 999. last element",
+		"<p>big numbers should be skipped:</p>\n\n<ol>\n<li>Bird</li>\n<li>McHale</li>\n\n<li><p>Parish</p></li>\n\n<li><p>last element</p></li>\n</ol>\n",
+
+		"big numbers should be skipped:\n\n 3. Bird\n 1. McHale\n 8. Parish\n\n 2019. is the actual year",
+		"<p>big numbers should be skipped:</p>\n\n<ol>\n<li>Bird</li>\n<li>McHale</li>\n<li>Parish</li>\n</ol>\n\n<p>2019. is the actual year</p>\n",
+
 		"1. numbers\n1. are ignored\n",
 		"<ol>\n<li>numbers</li>\n<li>are ignored</li>\n</ol>\n",
 

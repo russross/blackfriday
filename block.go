@@ -1051,8 +1051,8 @@ func (p *parser) oliPrefix(data []byte) int {
 		i++
 	}
 
-	// we need >= 1 digits followed by a dot and a space
-	if start == i || data[i] != '.' || data[i+1] != ' ' {
+	// we need 1,2 or 3 digits followed by a dot and a space
+	if start == i || start < i-3 || data[i] != '.' || data[i+1] != ' ' {
 		return 0
 	}
 	return i + 2
