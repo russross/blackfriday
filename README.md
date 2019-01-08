@@ -86,12 +86,16 @@ Usage
 For basic usage, it is as simple as getting your input into a byte
 slice and calling:
 
-    output := blackfriday.MarkdownBasic(input)
+```go
+output := blackfriday.MarkdownBasic(input)
+```
 
 This renders it with no extensions enabled. To get a more useful
 feature set, use this instead:
 
-    output := blackfriday.MarkdownCommon(input)
+```go
+output := blackfriday.MarkdownCommon(input)
+```
 
 ### v2
 
