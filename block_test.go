@@ -697,8 +697,8 @@ func TestUnorderedList(t *testing.T) {
 		"* List\n        extra indent, same paragraph\n",
 		"<ul>\n<li>List\n    extra indent, same paragraph</li>\n</ul>\n",
 
-		"* List\n\n        code block\n",
-		"<ul>\n<li><p>List</p>\n\n<pre><code>code block\n</code></pre></li>\n</ul>\n",
+		"* List\n\n        code block\n\n* List continues",
+		"<ul>\n<li><p>List</p>\n\n<pre><code>code block\n</code></pre></li>\n\n<li><p>List continues</p></li>\n</ul>\n",
 
 		"* List\n\n          code block with spaces\n",
 		"<ul>\n<li><p>List</p>\n\n<pre><code>  code block with spaces\n</code></pre></li>\n</ul>\n",
@@ -1096,7 +1096,7 @@ func TestFencedCodeBlock(t *testing.T) {
 		"<p>``` lisp\nno ending</p>\n",
 
 		"~~~ lisp\nend with language\n~~~ lisp\n",
-		"<p>~~~ lisp\nend with language\n~~~ lisp</p>\n",
+		"<pre><code class=\"language-lisp\">end with language\n</code></pre>\n\n<p>lisp</p>\n",
 
 		"```\nmismatched begin and end\n~~~\n",
 		"<p>```\nmismatched begin and end\n~~~</p>\n",
@@ -1139,6 +1139,12 @@ func TestFencedCodeBlock(t *testing.T) {
 
 		"```\n[]:()\n[]:)\n[]:(\n[]:x\n[]:testing\n[:testing\n\n[]:\nlinebreak\n[]()\n\n[]:\n[]()\n```",
 		"<pre><code>[]:()\n[]:)\n[]:(\n[]:x\n[]:testing\n[:testing\n\n[]:\nlinebreak\n[]()\n\n[]:\n[]()\n</code></pre>\n",
+
+		"- test\n```\ncodeblock\n```\n\n- test 2\n",
+		"<ul>\n<li><p>test</p>\n\n<pre><code>codeblock\n</code></pre></li>\n\n<li><p>test 2</p></li>\n</ul>\n",
+
+		"- test\n```go\nfunc foo() bool {\n\treturn true;\n}\n```\n\n- test 2\n",
+		"<ul>\n<li><p>test</p>\n\n<pre><code class=\"language-go\">func foo() bool {\n\treturn true;\n}\n</code></pre></li>\n\n<li><p>test 2</p></li>\n</ul>\n",
 	}
 	doTestsBlock(t, tests, EXTENSION_FENCED_CODE)
 }
@@ -1557,7 +1563,7 @@ func TestFencedCodeBlock_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
 		"<p>``` lisp\nno ending</p>\n",
 
 		"~~~ lisp\nend with language\n~~~ lisp\n",
-		"<p>~~~ lisp\nend with language\n~~~ lisp</p>\n",
+		"<pre><code class=\"language-lisp\">end with language\n</code></pre>\n\n<p>lisp</p>\n",
 
 		"```\nmismatched begin and end\n~~~\n",
 		"<p>```\nmismatched begin and end\n~~~</p>\n",

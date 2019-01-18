@@ -649,8 +649,10 @@ func isFenceLine(data []byte, info *string, oldmarker string, newlineOptional bo
 	}
 
 	i = skipChar(data, i, ' ')
-	if i >= len(data) || data[i] != '\n' {
+	if l := len(data); i >= l || data[i] != '\n' {
 		if newlineOptional && i == len(data) {
+			return i, marker
+		} else if !newlineOptional && i < l && data[l-1] == '\n' {
 			return i, marker
 		}
 		return 0, ""
