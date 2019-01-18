@@ -1140,11 +1140,20 @@ func TestFencedCodeBlock(t *testing.T) {
 		"```\n[]:()\n[]:)\n[]:(\n[]:x\n[]:testing\n[:testing\n\n[]:\nlinebreak\n[]()\n\n[]:\n[]()\n```",
 		"<pre><code>[]:()\n[]:)\n[]:(\n[]:x\n[]:testing\n[:testing\n\n[]:\nlinebreak\n[]()\n\n[]:\n[]()\n</code></pre>\n",
 
-		"- test\n```\ncodeblock\n```\n\n- test 2\n",
-		"<ul>\n<li><p>test</p>\n\n<pre><code>codeblock\n</code></pre></li>\n\n<li><p>test 2</p></li>\n</ul>\n",
+		"- test\n\n```\n  codeblock\n  ```\ntest\n",
+		"<ul>\n<li><p>test</p>\n\n<pre><code>codeblock\n</code></pre></li>\n</ul>\n\n<p>test</p>\n",
 
-		"- test\n```go\nfunc foo() bool {\n\treturn true;\n}\n```\n\n- test 2\n",
-		"<ul>\n<li><p>test</p>\n\n<pre><code class=\"language-go\">func foo() bool {\n\treturn true;\n}\n</code></pre></li>\n\n<li><p>test 2</p></li>\n</ul>\n",
+		"- ```\n  codeblock\n  ```\n\n- test\n",
+		"<ul>\n<li><pre><code>codeblock\n</code></pre></li>\n\n<li><p>test</p></li>\n</ul>\n",
+
+		"- test\n- ```\n  codeblock\n  ```\n",
+		"<ul>\n<li>test</li>\n\n<li><pre><code>codeblock\n</code></pre></li>\n</ul>\n",
+
+		"- test\n```\ncodeblock\n```\n\n- test\n",
+		"<ul>\n<li><p>test</p>\n\n<pre><code>codeblock\n</code></pre></li>\n\n<li><p>test</p></li>\n</ul>\n",
+
+		"- test\n```go\nfunc foo() bool {\n\treturn true;\n}\n```\n\n- test\n",
+		"<ul>\n<li><p>test</p>\n\n<pre><code class=\"language-go\">func foo() bool {\n\treturn true;\n}\n</code></pre></li>\n\n<li><p>test</p></li>\n</ul>\n",
 	}
 	doTestsBlock(t, tests, EXTENSION_FENCED_CODE)
 }

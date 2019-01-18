@@ -1135,17 +1135,21 @@ func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *int) int {
 		i++
 	}
 
+	// process the following lines
+	containsBlankLine := false
+	sublist := 0
+	codeBlockMarker := ""
+	if p.flags&EXTENSION_FENCED_CODE != 0 && i > line {
+		// determine if codeblock starts on the first line
+		_, codeBlockMarker = isFenceLine(data[line:i], nil, "", false)
+	}
+
 	// get working buffer
 	var raw bytes.Buffer
 
 	// put the first line into the working buffer
 	raw.Write(data[line:i])
 	line = i
-
-	// process the following lines
-	containsBlankLine := false
-	sublist := 0
-	codeBlockMarker := ""
 
 gatherlines:
 	for line < len(data) {
@@ -1155,7 +1159,6 @@ gatherlines:
 		for data[i-1] != '\n' {
 			i++
 		}
-
 		// if it is an empty line, guess that it is part of this item
 		// and move on to the next line
 		if p.isEmpty(data[line:i]) > 0 {
