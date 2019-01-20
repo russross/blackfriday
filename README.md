@@ -266,6 +266,7 @@ are a few of note:
 
 *   [Blackfriday-Confluence](https://github.com/kentaro-m/blackfriday-confluence): provides a [Confluence Wiki Markup](https://confluence.atlassian.com/doc/confluence-wiki-markup-251003035.html) renderer.
 
+*   [Blackfriday-Slack](https://github.com/karriereat/blackfriday-slack): converts markdown to slack message style
 
 Todo
 ----
