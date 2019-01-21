@@ -14,12 +14,12 @@
 package blackfriday
 
 import (
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"testing"
-
-	"github.com/pmezard/go-difflib/difflib"
 )
 
 type TestParams struct {
@@ -187,12 +187,22 @@ func doTestsReference(t *testing.T, files []string, flag Extensions) {
 }
 
 func doTestDiff(name, expected, actual string) string {
-	d, _ := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
-		A:        difflib.SplitLines(expected),
-		B:        difflib.SplitLines(actual),
-		FromFile: "expect: " + name,
-		ToFile:   "actual: " + name,
-		Context:  1,
-	})
+	expectedLines := strings.Split(expected, "\n")
+	actualLines := strings.Split(actual, "\n")
+	d := "file: " + name + "\n"
+	for i, line := range expectedLines {
+		// Allow the actualLines indexing to panic because we're in tests where
+		// that's okay and we probably want to know about it if this input is wrong
+		// somehow.
+		if line != actualLines[i] {
+			d += fmt.Sprintf(`
+line: %d
+
+-%s
++%s
+`, i, line, actualLines[i])
+		}
+	}
+
 	return d
 }
