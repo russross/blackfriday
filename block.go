@@ -649,16 +649,17 @@ func isFenceLine(data []byte, info *string, oldmarker string, newlineOptional bo
 	}
 
 	i = skipChar(data, i, ' ')
-	if l := len(data); i >= l || data[i] != '\n' {
-		if newlineOptional && i == len(data) {
-			return i, marker
-		} else if !newlineOptional && i < l && data[l-1] == '\n' {
+	if i >= len(data) {
+		if newlineOptional {
 			return i, marker
 		}
 		return 0, ""
 	}
+	if data[i] == '\n' {
+		i++ // Take newline into account
+	}
 
-	return i + 1, marker // Take newline into account.
+	return i, marker
 }
 
 // fencedCodeBlock returns the end index if data contains a fenced code block at the beginning,
