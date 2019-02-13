@@ -39,7 +39,7 @@ func (options *Latex) GetFlags() int {
 	return 0
 }
 
-// render code chunks using verbatim, or listings if we have a language
+// BlockCode renders code chunks using verbatim, or listings if we have a language
 func (options *Latex) BlockCode(out *bytes.Buffer, text []byte, info string) {
 	if info == "" {
 		out.WriteString("\n\\begin{verbatim}\n")
@@ -299,7 +299,7 @@ func (options *Latex) NormalText(out *bytes.Buffer, text []byte) {
 	escapeSpecialChars(out, text)
 }
 
-// header and footer
+// DocumentHeader: header and footer
 func (options *Latex) DocumentHeader(out *bytes.Buffer) {
 	out.WriteString("\\documentclass{article}\n")
 	out.WriteString("\n")
