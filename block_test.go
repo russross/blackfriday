@@ -1092,7 +1092,7 @@ func TestFencedCodeBlock(t *testing.T) {
 		"<p>``` lisp\nno ending</p>\n",
 
 		"~~~ lisp\nend with language\n~~~ lisp\n",
-		"<p>~~~ lisp\nend with language\n~~~ lisp</p>\n",
+		"<pre><code class=\"language-lisp\">end with language\n</code></pre>\n",
 
 		"```\nmismatched begin and end\n~~~\n",
 		"<p>```\nmismatched begin and end\n~~~</p>\n",
@@ -1558,7 +1558,7 @@ func TestFencedCodeBlock_EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK(t *testing.T) {
 		"<p>``` lisp\nno ending</p>\n",
 
 		"~~~ lisp\nend with language\n~~~ lisp\n",
-		"<p>~~~ lisp\nend with language\n~~~ lisp</p>\n",
+		"<pre><code class=\"language-lisp\">end with language\n</code></pre>\n",
 
 		"```\nmismatched begin and end\n~~~\n",
 		"<p>```\nmismatched begin and end\n~~~</p>\n",
