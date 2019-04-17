@@ -158,7 +158,7 @@ markdown file using a standalone program.  You can also browse the
 source directly on github if you are just looking for some example
 code:
 
-* <http://github.com/russross/blackfriday-tool>
+* <https://github.com/russross/blackfriday-tool>
 
 Note that if you have not already done so, installing
 `blackfriday-tool` will be sufficient to download and install
