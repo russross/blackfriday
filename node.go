@@ -199,7 +199,8 @@ func (n *Node) InsertBefore(sibling *Node) {
 	}
 }
 
-func (n *Node) isContainer() bool {
+// IsContainer returns true if 'n' can contain children.
+func (n *Node) IsContainer() bool {
 	switch n.Type {
 	case Document:
 		fallthrough
@@ -309,11 +310,11 @@ func newNodeWalker(root *Node) *nodeWalker {
 }
 
 func (nw *nodeWalker) next() {
-	if (!nw.current.isContainer() || !nw.entering) && nw.current == nw.root {
+	if (!nw.current.IsContainer() || !nw.entering) && nw.current == nw.root {
 		nw.current = nil
 		return
 	}
-	if nw.entering && nw.current.isContainer() {
+	if nw.entering && nw.current.IsContainer() {
 		if nw.current.FirstChild != nil {
 			nw.current = nw.current.FirstChild
 			nw.entering = true
