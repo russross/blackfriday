@@ -239,6 +239,11 @@ func (n *Node) IsContainer() bool {
 	}
 }
 
+// IsLeaf returns true if 'n' is a leaf node.
+func (n *Node) IsLeaf() bool {
+	return !n.IsContainer()
+}
+
 func (n *Node) canContain(t NodeType) bool {
 	if n.Type == List {
 		return t == Item
