@@ -82,6 +82,13 @@ type Html struct {
 	title    string // document title
 	css      string // optional css file url (used with HTML_COMPLETE_PAGE)
 
+	// The optional 'meta' map holds additional meta tags to
+	//	place into the final document's header.
+	// Format:
+	//		key: name="author"
+	//		val: foo barrington
+	meta map[string]string
+
 	parameters HtmlRendererParameters
 
 	// table of contents data
@@ -130,6 +137,8 @@ func HtmlRendererWithParameters(flags int, title string,
 		title:      title,
 		css:        css,
 		parameters: renderParameters,
+
+		meta: make(map[string]string),
 
 		headerCount:  0,
 		currentLevel: 0,
@@ -685,6 +694,14 @@ func (options *Html) DocumentHeader(out *bytes.Buffer) {
 	out.WriteString("  <meta charset=\"utf-8\"")
 	out.WriteString(ending)
 	out.WriteString(">\n")
+	// plug the user-specified <meta.../> tags
+	if options.meta != nil {
+		for k, v := range options.meta {
+			out.WriteString("  <meta " + k + " content=\"" + v + "\"")
+			out.WriteString(ending)
+			out.WriteString(">\n")
+		}
+	}
 	if options.css != "" {
 		out.WriteString("  <link rel=\"stylesheet\" type=\"text/css\" href=\"")
 		attrEscape(out, []byte(options.css))
