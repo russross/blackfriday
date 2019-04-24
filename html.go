@@ -695,7 +695,7 @@ func (options *Html) DocumentHeader(out *bytes.Buffer) {
 	out.WriteString(ending)
 	out.WriteString(">\n")
 	// plug the user-specified <meta.../> tags
-	if options.meta != nil {
+	if len(options.meta) > 0 {
 		for k, v := range options.meta {
 			out.WriteString("  <meta " + k + " content=\"" + v + "\"")
 			out.WriteString(ending)
