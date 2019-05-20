@@ -260,9 +260,19 @@ func (p *Markdown) prefixHeading(data []byte) int {
 		if id == "" && p.extensions&AutoHeadingIDs != 0 {
 			id = SanitizedAnchorName(string(data[i:end]))
 		}
+
 		block := p.addBlock(Heading, data[i:end])
 		block.HeadingID = id
 		block.Level = level
+
+		if p.extensions&AutoHeadingAnchorLinks != 0 {
+			link := NewNode(Link)
+			link.Destination = []byte("#" + id)
+			linkText := NewNode(Text)
+			linkText.Literal = []byte("#")
+			link.AppendChild(linkText)
+			block.AppendChild(link)
+		}
 	}
 	return skip
 }

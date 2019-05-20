@@ -1916,3 +1916,36 @@ func TestSanitizedAnchorName(t *testing.T) {
 		}
 	}
 }
+
+func TestPrefixHeaderAnchorLinksExtension(t *testing.T) {
+	t.Parallel()
+	var tests = []string{
+		"# Header 1\n",
+		"<h1 id=\"header-1\"><a href=\"#header-1\">#</a>Header 1</h1>\n",
+
+		"# Header 1   \n",
+		"<h1 id=\"header-1\"><a href=\"#header-1\">#</a>Header 1</h1>\n",
+
+		"## Header 2\n",
+		"<h2 id=\"header-2\"><a href=\"#header-2\">#</a>Header 2</h2>\n",
+
+		"### Header 3\n",
+		"<h3 id=\"header-3\"><a href=\"#header-3\">#</a>Header 3</h3>\n",
+
+		"#### Header 4\n",
+		"<h4 id=\"header-4\"><a href=\"#header-4\">#</a>Header 4</h4>\n",
+
+		"##### Header 5\n",
+		"<h5 id=\"header-5\"><a href=\"#header-5\">#</a>Header 5</h5>\n",
+
+		"###### Header 6\n",
+		"<h6 id=\"header-6\"><a href=\"#header-6\">#</a>Header 6</h6>\n",
+
+		"####### Header 7\n",
+		"<h6 id=\"header-7\"><a href=\"#header-7\">#</a># Header 7</h6>\n",
+
+		"Hello\n# Header 1\nGoodbye\n",
+		"<p>Hello</p>\n\n<h1 id=\"header-1\"><a href=\"#header-1\">#</a>Header 1</h1>\n\n<p>Goodbye</p>\n",
+	}
+	doTestsBlock(t, tests, AutoHeadingIDs|AutoHeadingAnchorLinks)
+}
