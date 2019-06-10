@@ -132,7 +132,10 @@ func NewHTMLRenderer(params HTMLRendererParameters) *HTMLRenderer {
 	}
 
 	if params.FootnoteReturnLinkContents == "" {
-		params.FootnoteReturnLinkContents = `<sup>[return]</sup>`
+		// U+FE0E is VARIATION SELECTOR-15.
+		// It suppresses automatic emoji presentation of the preceding
+		// U+21A9 LEFTWARDS ARROW WITH HOOK on iOS and iPadOS.
+		params.FootnoteReturnLinkContents = "<span aria-label='Return'>↩\ufe0e</span>"
 	}
 
 	return &HTMLRenderer{
