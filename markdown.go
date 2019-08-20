@@ -143,6 +143,7 @@ var blockTags = map[string]struct{}{
 	"output":     {},
 	"progress":   {},
 	"section":    {},
+	"summary":    {},
 	"video":      {},
 }
 
