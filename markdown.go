@@ -132,6 +132,7 @@ var blockTags = map[string]struct{}{
 	"article":    {},
 	"aside":      {},
 	"canvas":     {},
+	"details":    {},
 	"figcaption": {},
 	"figure":     {},
 	"footer":     {},
