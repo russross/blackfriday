@@ -213,6 +213,18 @@ func (options *Latex) Emphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("}")
 }
 
+func (options *Latex) Furigana(out *bytes.Buffer, kanji []byte, furigana []byte) {
+	if len(kanji) == 0 {
+		return
+	}
+	out.WriteString("<ruby><rb>")
+	out.Write(kanji)
+	out.WriteString("</rb><rp>（</rp><rt>")
+	out.Write(furigana)
+	out.WriteString("</rt><rp>）</rp></ruby>")
+}
+
+
 func (options *Latex) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
 	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
 		// treat it like a link

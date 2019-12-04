@@ -344,6 +344,29 @@ func TestEmphasisLink(t *testing.T) {
 	doTestsInline(t, tests)
 }
 
+func TestFurigana(t *testing.T) {
+	var tests = []string{
+		"（漢字）（かんじ）\n",
+		"<p><ruby lang=\"ja\"><rb>漢字</rb><rp>（</rp><rt>かんじ</rt><rp>）</rp></ruby></p>\n",
+
+		"漢字（かんじ）\n",
+		"<p><ruby lang=\"ja\"><rb>漢字</rb><rp>（</rp><rt>かんじ</rt><rp>）</rp></ruby></p>\n",
+
+		"Reading Japanese text is easier with （ふりがな）（furigana）\n",
+		"<p>Reading Japanese text is easier with <ruby lang=\"ja\"><rb>ふりがな</rb><rp>（</rp><rt>furigana</rt><rp>）</rp></ruby></p>\n",
+
+		"（）（）\n",
+		"<p>（）（）</p>\n",
+
+		"（すごい）ですね？\n",
+		"<p>（すごい）ですね？</p>\n",
+
+		"エリア（eria）\n",
+		"<p>エリア（eria）</p>\n",
+	}
+	doTestsInline(t, tests)
+}
+
 func TestStrikeThrough(t *testing.T) {
 	var tests = []string{
 		"nothing inline\n",

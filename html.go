@@ -492,6 +492,18 @@ func (options *Html) Emphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("</em>")
 }
 
+func (options *Html) Furigana(out *bytes.Buffer, kanji []byte, furigana []byte) {
+	if len(kanji) == 0 {
+		return
+	}
+	out.WriteString("<ruby lang=\"ja\"><rb>")
+	out.Write(kanji)
+	out.WriteString("</rb><rp>（</rp><rt>")
+	out.Write(furigana)
+	out.WriteString("</rt><rp>）</rp></ruby>")
+}
+
+
 func (options *Html) maybeWriteAbsolutePrefix(out *bytes.Buffer, link []byte) {
 	if options.parameters.AbsolutePrefix != "" && isRelativeLink(link) && link[0] != '.' {
 		out.WriteString(options.parameters.AbsolutePrefix)

@@ -17,6 +17,7 @@ import (
 	"bytes"
 	"regexp"
 	"strconv"
+	"unicode/utf8"
 )
 
 var (
@@ -107,6 +108,99 @@ func emphasis(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	}
 
 	return 0
+}
+
+// '（': furigana parsing
+func paren_furigana(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+	data = data[offset:]
+
+	parenthesis, kanjiStart := utf8.DecodeRune(data)
+	kanjiEnd := kanjiStart
+	ret := kanjiStart
+
+	for kanjiEnd < len(data) {
+		runeValue, width := utf8.DecodeRune(data[kanjiEnd:])
+		ret += width
+		if parenthesis == '（' && runeValue == '）' {
+			break
+		}
+		kanjiEnd += width
+	}
+
+	if kanjiEnd <= kanjiStart || ret >= len(data) {
+		return 0
+	}
+
+	parenthesis, width := utf8.DecodeRune(data[ret:])
+	ret += width
+	furiganaStart := ret
+	furiganaEnd := furiganaStart
+
+	for furiganaEnd < len(data) {
+		runeValue, width := utf8.DecodeRune(data[furiganaEnd:])
+		ret += width
+		if parenthesis == '（' && runeValue == '）' {
+			break
+		}
+		furiganaEnd += width
+	}
+
+	if furiganaEnd <= furiganaStart || furiganaEnd >= len(data) {
+		return 0
+	}
+
+	p.r.Furigana(out, data[kanjiStart:kanjiEnd], data[furiganaStart:furiganaEnd])
+
+	return ret
+}
+
+// kanji furigana parsing
+func kanji_furigana(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+	data = data[offset:]
+	kanjiEnd := 0
+	furiganaStart := 0
+	furiganaEnd := 0
+	ret := 0
+	for ret < len(data) {
+		runeValue, width := utf8.DecodeRune(data[ret:])
+		ret += width
+		if runeValue == '（' {
+			furiganaStart = ret
+			break
+		} else if (runeValue < 0x4E00 || 0x9FEF < runeValue) {
+			return 0
+		}
+		kanjiEnd += width
+	}
+	if furiganaStart == 0 {
+		return 0
+	}
+	for ret < len(data) {
+		runeValue, width := utf8.DecodeRune(data[ret:])
+		if runeValue == '）' {
+			furiganaEnd = ret
+			ret += width
+			break
+		}
+		ret += width
+	}
+	if furiganaEnd == 0 {
+		return 0
+	}
+	p.r.Furigana(out, data[0:kanjiEnd], data[furiganaStart:furiganaEnd])
+	return ret
+}
+
+func handle_multi_byte_utf8(p *parser, out *bytes.Buffer, data []byte, offset int) int {
+	runeValue, _ := utf8.DecodeRune(data[offset:])
+	if (runeValue == '（') {
+		return paren_furigana(p, out, data, offset)
+	} else if (0x4E00 <= runeValue && runeValue <= 0x9FEF) {
+		// Kanji character
+		return kanji_furigana(p, out, data, offset)
+	} else {
+		return 0
+	}
 }
 
 func codeSpan(p *parser, out *bytes.Buffer, data []byte, offset int) int {

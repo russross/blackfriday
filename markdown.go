@@ -44,6 +44,7 @@ const (
 	EXTENSION_BACKSLASH_LINE_BREAK                   // translate trailing backslashes into line breaks
 	EXTENSION_DEFINITION_LISTS                       // render definition lists
 	EXTENSION_JOIN_LINES                             // delete newline and join lines
+	EXTENSION_FURIGANA                               // render furigana using html's <ruby> tag
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML |
@@ -61,7 +62,8 @@ const (
 		EXTENSION_SPACE_HEADERS |
 		EXTENSION_HEADER_IDS |
 		EXTENSION_BACKSLASH_LINE_BREAK |
-		EXTENSION_DEFINITION_LISTS
+		EXTENSION_DEFINITION_LISTS |
+		EXTENSION_FURIGANA
 )
 
 // These are the possible flag values for the link renderer.
@@ -180,6 +182,7 @@ type Renderer interface {
 	CodeSpan(out *bytes.Buffer, text []byte)
 	DoubleEmphasis(out *bytes.Buffer, text []byte)
 	Emphasis(out *bytes.Buffer, text []byte)
+	Furigana(out *bytes.Buffer, kanji []byte, furigana []byte)
 	Image(out *bytes.Buffer, link []byte, title []byte, alt []byte)
 	LineBreak(out *bytes.Buffer)
 	Link(out *bytes.Buffer, link []byte, title []byte, content []byte)
@@ -384,6 +387,12 @@ func MarkdownOptions(input []byte, renderer Renderer, opts Options) []byte {
 		p.notes = make([]*reference, 0)
 		p.notesRecord = make(map[string]struct{})
 	}
+
+	//if extensions&EXTENSION_FURIGANA != 0 {
+	for i := 128; i < 256; i++ {
+		p.inlineCallback[i] = handle_multi_byte_utf8
+	}
+	//}
 
 	first := firstPass(p, input)
 	second := secondPass(p, first)
