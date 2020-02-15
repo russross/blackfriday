@@ -538,9 +538,12 @@ func link(p *Markdown, data []byte, offset int) (int, *Node) {
 			unescapeText(&uLinkBuf, link)
 			uLink = uLinkBuf.Bytes()
 		}
-
-		// links need something to click on and somewhere to go
-		if len(uLink) == 0 || (t == linkNormal && txtE <= 1) {
+		// links need somewhere to go
+		if len(uLink) == 0 {
+			return 0, nil
+		}
+		// links usually need something to click on
+		if t == linkNormal && txtE <= 1 && p.extensions&AllowLinksWithoutText == 0 {
 			return 0, nil
 		}
 	}

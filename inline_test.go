@@ -466,8 +466,19 @@ func TestInlineLink(t *testing.T) {
 
 		"[link](<../>)\n",
 		"<p><a href=\"../\">link</a></p>\n",
+
+		"[](./dummy.md)\n",
+		"<p>[](./dummy.md)</p>\n",
 	}
 	doLinkTestsInline(t, tests)
+
+	var testsAllowLinksWithoutText = []string{
+		"[](./dummy.md)\n",
+		"<p><a href=\"./dummy.md\"></a></p>\n",
+	}
+	doTestsInlineParam(t, testsAllowLinksWithoutText, TestParams{
+		extensions: AllowLinksWithoutText,
+	})
 
 }
 
