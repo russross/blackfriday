@@ -908,7 +908,10 @@ func (r *HTMLRenderer) writeTOC(w io.Writer, ast *Node) {
 		if node.Type == Heading && !node.HeadingData.IsTitleblock {
 			inHeading = entering
 			if entering {
-				node.HeadingID = fmt.Sprintf("toc_%d", headingCount)
+				if node.HeadingID == "" {
+					node.HeadingID = fmt.Sprintf("toc_%d", headingCount)
+					headingCount++
+				}
 				if node.Level == tocLevel {
 					buf.WriteString("</li>\n\n<li>")
 				} else if node.Level < tocLevel {
@@ -924,8 +927,7 @@ func (r *HTMLRenderer) writeTOC(w io.Writer, ast *Node) {
 					}
 				}
 
-				fmt.Fprintf(&buf, `<a href="#toc_%d">`, headingCount)
-				headingCount++
+				fmt.Fprintf(&buf, `<a href="#%s">`, node.HeadingID)
 			} else {
 				buf.WriteString("</a>")
 			}
