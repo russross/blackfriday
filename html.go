@@ -619,7 +619,7 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 		}
 	case Code:
 		r.out(w, codeTag)
-		escapeHTML(w, node.Literal)
+		escapeAllHTML(w, node.Literal)
 		r.out(w, codeCloseTag)
 	case Document:
 		break
@@ -765,7 +765,7 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 		r.cr(w)
 		r.out(w, preTag)
 		r.tag(w, codeTag[:len(codeTag)-1], attrs)
-		escapeHTML(w, node.Literal)
+		escapeAllHTML(w, node.Literal)
 		r.out(w, codeCloseTag)
 		r.out(w, preCloseTag)
 		if node.Parent.Type != Item {
