@@ -541,7 +541,9 @@ func link(p *Markdown, data []byte, offset int) (int, *Node) {
 
 		// links need something to click on and somewhere to go
 		if len(uLink) == 0 || (t == linkNormal && txtE <= 1) {
-			return 0, nil
+                        if txtE == 1 && p.extensions&EmptyLink == 0 {
+                                return 0, nil
+                        }
 		}
 	}
 
