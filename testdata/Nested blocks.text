@@ -1,0 +1,9 @@
+1.  a thing
+
+    ```build {.line-numbers}
+    code_fenced_code(line_numbers=true)
+    ```
+
+    again
+
+2.  Another

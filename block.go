@@ -604,53 +604,51 @@ func isFenceLine(data []byte, info *string, oldmarker string) (end int, marker s
 		return 0, ""
 	}
 
-	// TODO(shurcooL): It's probably a good idea to simplify the 2 code paths here
-	// into one, always get the info string, and discard it if the caller doesn't care.
-	if info != nil {
-		infoLength := 0
-		i = skipChar(data, i, ' ')
+	// Look for info on the code block.
+	infoLength := 0
+	i = skipChar(data, i, ' ')
 
-		if i >= len(data) {
-			if i == len(data) {
-				return i, marker
-			}
+	if i >= len(data) {
+		if i == len(data) {
+			return i, marker
+		}
+		return 0, ""
+	}
+
+	infoStart := i
+
+	if data[i] == '{' {
+		i++
+		infoStart++
+
+		for i < len(data) && data[i] != '}' && data[i] != '\n' {
+			infoLength++
+			i++
+		}
+
+		if i >= len(data) || data[i] != '}' {
 			return 0, ""
 		}
 
-		infoStart := i
-
-		if data[i] == '{' {
-			i++
+		// strip all whitespace at the beginning and the end
+		// of the {} block
+		for infoLength > 0 && isspace(data[infoStart]) {
 			infoStart++
-
-			for i < len(data) && data[i] != '}' && data[i] != '\n' {
-				infoLength++
-				i++
-			}
-
-			if i >= len(data) || data[i] != '}' {
-				return 0, ""
-			}
-
-			// strip all whitespace at the beginning and the end
-			// of the {} block
-			for infoLength > 0 && isspace(data[infoStart]) {
-				infoStart++
-				infoLength--
-			}
-
-			for infoLength > 0 && isspace(data[infoStart+infoLength-1]) {
-				infoLength--
-			}
-			i++
-			i = skipChar(data, i, ' ')
-		} else {
-			for i < len(data) && !isverticalspace(data[i]) {
-				infoLength++
-				i++
-			}
+			infoLength--
 		}
 
+		for infoLength > 0 && isspace(data[infoStart+infoLength-1]) {
+			infoLength--
+		}
+		i++
+		i = skipChar(data, i, ' ')
+	} else {
+		for i < len(data) && !isverticalspace(data[i]) {
+			infoLength++
+			i++
+		}
+	}
+	if info != nil {
 		*info = strings.TrimSpace(string(data[infoStart : infoStart+infoLength]))
 	}
 
