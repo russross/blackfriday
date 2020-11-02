@@ -47,6 +47,7 @@ const (
 	AutoHeadingIDs                                // Create the heading ID from the text
 	BackslashLineBreak                            // Translate trailing backslashes into line breaks
 	DefinitionLists                               // Render definition lists
+	AutoHeadingAnchorLinks                        // Create anchor links for headings
 
 	CommonHTMLFlags HTMLFlags = UseXHTML | Smartypants |
 		SmartypantsFractions | SmartypantsDashes | SmartypantsLatexDashes
