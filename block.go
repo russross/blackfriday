@@ -973,17 +973,8 @@ func (p *Markdown) quote(data []byte) int {
 	beg, end := 0, 0
 	for beg < len(data) {
 		end = beg
-		// Step over whole lines, collecting them. While doing that, check for
-		// fenced code and if one's found, incorporate it altogether,
-		// irregardless of any contents inside it
+		// Step over whole lines, collecting them.
 		for end < len(data) && data[end] != '\n' {
-			if p.extensions&FencedCode != 0 {
-				if i := p.fencedCodeBlock(data[end:], false); i > 0 {
-					// -1 to compensate for the extra end++ after the loop:
-					end += i - 1
-					break
-				}
-			}
 			end++
 		}
 		if end < len(data) && data[end] == '\n' {
