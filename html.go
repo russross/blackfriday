@@ -789,7 +789,7 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 		if entering {
 			align := cellAlignment(node.Align)
 			if align != "" {
-				attrs = append(attrs, fmt.Sprintf(`align="%s"`, align))
+				attrs = append(attrs, fmt.Sprintf(`style="text-align: %s;"`, align))
 			}
 			if node.Prev == nil {
 				r.cr(w)
