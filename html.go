@@ -240,6 +240,10 @@ func (options *Html) Header(out *bytes.Buffer, text func() bool, level int, id s
 }
 
 func (options *Html) BlockHtml(out *bytes.Buffer, text []byte) {
+	options.BlockHTML(out, text)
+}
+
+func (options *Html) BlockHTML(out *bytes.Buffer, text []byte) {
 	if options.flags&HTML_SKIP_HTML != 0 {
 		return
 	}
@@ -582,6 +586,10 @@ func (options *Html) Link(out *bytes.Buffer, link []byte, title []byte, content 
 }
 
 func (options *Html) RawHtmlTag(out *bytes.Buffer, text []byte) {
+	options.RawHTMLTag(out, text)
+}
+
+func (options *Html) RawHTMLTag(out *bytes.Buffer, text []byte) {
 	if options.flags&HTML_SKIP_HTML != 0 {
 		return
 	}
