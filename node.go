@@ -85,6 +85,8 @@ type LinkData struct {
 	Title       []byte // Title is the tooltip thing that goes in a title attribute
 	NoteID      int    // NoteID contains a serial number of a footnote, zero if it's not a footnote
 	Footnote    *Node  // If it's a footnote, this is a direct link to the footnote Node. Otherwise nil.
+	IsRefLink   bool   // True if this is a reference style link.
+	RefID       []byte // The ID used for looking up the reference in ref style links.
 }
 
 // CodeBlockData contains fields relevant to a CodeBlock node type.
