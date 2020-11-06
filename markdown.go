@@ -308,7 +308,7 @@ func MarkdownBasic(input []byte) []byte {
 	return MarkdownOptions(input, renderer, Options{Extensions: 0})
 }
 
-// Call Markdown with most useful extensions enabled
+// MarkdownCommon: Call Markdown with most useful extensions enabled
 // MarkdownCommon is a convenience function for simple rendering.
 // It processes markdown input with common extensions enabled, including:
 //
