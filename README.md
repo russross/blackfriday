@@ -43,7 +43,7 @@ developed on its own branch: https://github.com/russross/blackfriday/tree/v2 and
 documentation is available at
 https://pkg.go.dev/github.com/russross/blackfriday/v2.
 
-It is `go get`-able in module mode at `github.com/russross/blackfriday/v2`.
+It is `go get`-able in module mode at `gopkg.in/russross/blackfriday.v2`.
 
 Version 2 offers a number of improvements over v1:
 
