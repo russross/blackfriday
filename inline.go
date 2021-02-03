@@ -319,13 +319,25 @@ func link(p *Markdown, data []byte, offset int) (int, *Node) {
 		linkB := i
 
 		// look for link end: ' " )
+		brace := 0
 	findlinkend:
 		for i < len(data) {
 			switch {
 			case data[i] == '\\':
 				i += 2
 
-			case data[i] == ')' || data[i] == '\'' || data[i] == '"':
+			case data[i] == '(':
+				brace++
+				i++
+
+			case data[i] == ')':
+				if brace <= 0 {
+					break findlinkend
+				}
+				i++
+				brace--
+
+			case data[i] == '\'' || data[i] == '"':
 				break findlinkend
 
 			default:
