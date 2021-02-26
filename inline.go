@@ -865,7 +865,7 @@ func tagLength(data []byte, autolink *int) int {
 		i = 1
 	}
 
-	if !isalnum(data[i]) {
+	if !isalnum(data[i]) && data[i] != '#' {
 		return 0
 	}
 
@@ -873,7 +873,7 @@ func tagLength(data []byte, autolink *int) int {
 	*autolink = LINK_TYPE_NOT_AUTOLINK
 
 	// try to find the beginning of an URI
-	for i < len(data) && (isalnum(data[i]) || data[i] == '.' || data[i] == '+' || data[i] == '-') {
+	for i < len(data) && data[i] != '#' && (isalnum(data[i]) || data[i] == '.' || data[i] == '+' || data[i] == '-') {
 		i++
 	}
 
@@ -887,6 +887,8 @@ func tagLength(data []byte, autolink *int) int {
 	if i > 2 && i < len(data) && data[i] == ':' {
 		*autolink = LINK_TYPE_NORMAL
 		i++
+	} else if i < len(data) && data[i] == '#' {
+		*autolink = LINK_TYPE_NORMAL
 	}
 
 	// complete autolink test: no whitespace or ' or "
