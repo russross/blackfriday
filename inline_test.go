@@ -624,6 +624,25 @@ func TestRelAttrLink(t *testing.T) {
 	}
 	doTestsInlineParam(t, nofollownoreferrerTests, Options{}, HTML_SAFELINK|HTML_NOFOLLOW_LINKS|HTML_NOREFERRER_LINKS,
 		HtmlRendererParameters{})
+
+	var noopenerTests = []string{
+		"[foo](http://bar.com/foo/)\n",
+		"<p><a href=\"http://bar.com/foo/\" rel=\"noopener\">foo</a></p>\n",
+
+		"[foo](/bar/)\n",
+		"<p><a href=\"/bar/\">foo</a></p>\n",
+	}
+	doTestsInlineParam(t, noopenerTests, Options{}, HTML_SAFELINK|HTML_NOOPENER_LINKS, HtmlRendererParameters{})
+
+	var nofollownoreferrernoopenerTests = []string{
+		"[foo](http://bar.com/foo/)\n",
+		"<p><a href=\"http://bar.com/foo/\" rel=\"nofollow noreferrer noopener\">foo</a></p>\n",
+
+		"[foo](/bar/)\n",
+		"<p><a href=\"/bar/\">foo</a></p>\n",
+	}
+	doTestsInlineParam(t, nofollownoreferrernoopenerTests, Options{},
+		HTML_SAFELINK|HTML_NOOPENER_LINKS|HTML_NOFOLLOW_LINKS|HTML_NOREFERRER_LINKS, HtmlRendererParameters{})
 }
 
 func TestHrefTargetBlank(t *testing.T) {
