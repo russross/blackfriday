@@ -275,6 +275,9 @@ implements the following extensions:
     becomes `<sup>4</sup>&frasl;<sub>5</sub>`, which renders as
     <sup>4</sup>&frasl;<sub>5</sub>.
 
+*   **Ignore Underscore** is similar to intra-word emphasis supression. However, 
+    it goes to the next level and ignores underscores completely. 
+    Underscores will not be processed, wherever they may occur.   
 
 Other renderers
 ---------------
