@@ -47,6 +47,7 @@ const (
 	AutoHeadingIDs                                // Create the heading ID from the text
 	BackslashLineBreak                            // Translate trailing backslashes into line breaks
 	DefinitionLists                               // Render definition lists
+	IgnoreUnderscore                              // Ignore all underscores
 
 	CommonHTMLFlags HTMLFlags = UseXHTML | Smartypants |
 		SmartypantsFractions | SmartypantsDashes | SmartypantsLatexDashes
@@ -285,7 +286,9 @@ func New(opts ...Option) *Markdown {
 	// register inline parsers
 	p.inlineCallback[' '] = maybeLineBreak
 	p.inlineCallback['*'] = emphasis
-	p.inlineCallback['_'] = emphasis
+	if p.extensions&IgnoreUnderscore == 0 {
+		p.inlineCallback['_'] = emphasis
+	}
 	if p.extensions&Strikethrough != 0 {
 		p.inlineCallback['~'] = emphasis
 	}
