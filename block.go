@@ -1305,9 +1305,29 @@ gatherlines:
 	cookedBytes := cooked.Bytes()
 	parsedEnd := len(cookedBytes)
 
-	// strip trailing newlines
-	for parsedEnd > 0 && cookedBytes[parsedEnd-1] == '\n' {
-		parsedEnd--
+	if p.flags&EXTENSION_HARD_LINE_BREAK != 0 {
+		// strip trailing newlines and extra hard line breaks
+		const brLen = len("<br />")
+		for parsedEnd > 0 &&
+			(cookedBytes[parsedEnd-1] == '\n' ||
+				(parsedEnd >= brLen &&
+					cookedBytes[parsedEnd-brLen] == '<' &&
+					cookedBytes[parsedEnd-brLen+1] == 'b' &&
+					cookedBytes[parsedEnd-brLen+2] == 'r' &&
+					cookedBytes[parsedEnd-brLen+3] == ' ' &&
+					cookedBytes[parsedEnd-brLen+4] == '/' &&
+					cookedBytes[parsedEnd-brLen+5] == '>')) {
+			if cookedBytes[parsedEnd-1] == '\n' {
+				parsedEnd--
+			} else {
+				parsedEnd -= brLen
+			}
+		}
+	} else {
+		// strip trailing newlines
+		for parsedEnd > 0 && cookedBytes[parsedEnd-1] == '\n' {
+			parsedEnd--
+		}
 	}
 	p.r.ListItem(out, cookedBytes[:parsedEnd], *flags)
 

@@ -1636,6 +1636,51 @@ func TestListWithFencedCodeBlockNoExtensions(t *testing.T) {
 	doTestsBlock(t, tests, 0)
 }
 
+func TestListEXTENSION_HARD_LINE_BREAK(t *testing.T) {
+	// If there is a fenced code block in a list, and FencedCode is not set,
+	// lists should be processed normally.
+	var tests = []string{
+		`* One
+* Two
+
+Text`,
+		`<ul>
+<li>One</li>
+<li>Two</li>
+</ul>
+
+<p>Text</p>
+`,
+
+		`* Double
+line
+* Single line
+
+Text`,
+		`<ul>
+<li>Double<br />
+line</li>
+<li>Single line</li>
+</ul>
+
+<p>Text</p>
+`,
+
+		`1. One
+2. Two
+
+Text`,
+		`<ol>
+<li>One</li>
+<li>Two</li>
+</ol>
+
+<p>Text</p>
+`,
+	}
+	doTestsBlock(t, tests, EXTENSION_HARD_LINE_BREAK)
+}
+
 func TestTitleBlock_EXTENSION_TITLEBLOCK(t *testing.T) {
 	var tests = []string{
 		"% Some title\n" +
