@@ -411,7 +411,9 @@ func NewSmartypantsRenderer(flags HTMLFlags) *SPRenderer {
 		}
 	}
 	r.callbacks['\''] = r.smartSingleQuote
-	r.callbacks['('] = r.smartParens
+	if flags&SmartypantsParens != 0 {
+		r.callbacks['('] = r.smartParens
+	}
 	if flags&SmartypantsDashes != 0 {
 		if flags&SmartypantsLatexDashes == 0 {
 			r.callbacks['-'] = r.smartDash

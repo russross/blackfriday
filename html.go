@@ -46,6 +46,7 @@ const (
 	SmartypantsLatexDashes                        // Enable LaTeX-style dashes (with Smartypants)
 	SmartypantsAngledQuotes                       // Enable angled double quotes (with Smartypants) for double quotes rendering
 	SmartypantsQuotesNBSP                         // Enable « French guillemets » (with Smartypants)
+	SmartypantsParens                             // Enable smart parens (with Smartypants)
 	TOC                                           // Generate a table of contents
 )
 
