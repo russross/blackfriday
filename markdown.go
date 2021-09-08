@@ -49,7 +49,7 @@ const (
 	DefinitionLists                               // Render definition lists
 
 	CommonHTMLFlags HTMLFlags = UseXHTML | Smartypants |
-		SmartypantsFractions | SmartypantsDashes | SmartypantsLatexDashes
+		SmartypantsFractions | SmartypantsDashes | SmartypantsLatexDashes | SmartypantsParens
 
 	CommonExtensions Extensions = NoIntraEmphasis | Tables | FencedCode |
 		Autolink | Strikethrough | SpaceHeadings | HeadingIDs |
