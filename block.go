@@ -1360,7 +1360,7 @@ gatherlines:
 			if *flags&ListTypeDefinition != 0 && i < len(data)-1 {
 				// is the next item still a part of this list?
 				next := i
-				for next < len(data) && data[next] != '\n' {
+				for next < len(data)-1 && data[next] != '\n' {
 					next++
 				}
 				for next < len(data)-1 && data[next] == '\n' {
