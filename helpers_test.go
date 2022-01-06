@@ -1,6 +1,6 @@
 //
 // Blackfriday Markdown Processor
-// Available at http://github.com/russross/blackfriday
+// Available at http://github.com/danog/blackfriday
 //
 // Copyright © 2011 Russ Ross <russ@russross.com>.
 // Distributed under the Simplified BSD License.

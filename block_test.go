@@ -1,6 +1,6 @@
 //
 // Blackfriday Markdown Processor
-// Available at http://github.com/russross/blackfriday
+// Available at http://github.com/danog/blackfriday
 //
 // Copyright © 2011 Russ Ross <russ@russross.com>.
 // Distributed under the Simplified BSD License.
@@ -1589,7 +1589,7 @@ func TestListWithFencedCodeBlock(t *testing.T) {
 	var tests = []string{
 		"1. one\n\n    ```\n    code\n    ```\n\n2. two\n",
 		"<ol>\n<li><p>one</p>\n\n<pre><code>code\n</code></pre></li>\n\n<li><p>two</p></li>\n</ol>\n",
-		// https://github.com/russross/blackfriday/issues/239
+		// https://github.com/danog/blackfriday/issues/239
 		"1. one\n\n    ```\n    - code\n    ```\n\n2. two\n",
 		"<ol>\n<li><p>one</p>\n\n<pre><code>- code\n</code></pre></li>\n\n<li><p>two</p></li>\n</ol>\n",
 	}
@@ -1600,7 +1600,7 @@ func TestListWithMalformedFencedCodeBlock(t *testing.T) {
 	t.Parallel()
 	// Ensure that in the case of an unclosed fenced code block in a list,
 	// no source gets ommitted (even if it is malformed).
-	// See russross/blackfriday#372 for context.
+	// See danog/blackfriday#372 for context.
 	var tests = []string{
 		"1. one\n\n    ```\n    code\n\n2. two\n",
 		"<ol>\n<li>one\n```\ncode\n2. two</li>\n</ol>\n",

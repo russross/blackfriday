@@ -14,7 +14,7 @@
 // to the Markdown processor.
 //
 // If you're interested in calling Blackfriday from command line, see
-// https://github.com/russross/blackfriday-tool.
+// https://github.com/danog/blackfriday-tool.
 //
 // Sanitized Anchor Names
 //
