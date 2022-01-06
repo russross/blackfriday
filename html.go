@@ -420,6 +420,9 @@ var (
 	aTag               = []byte("<a")
 	aCloseTag          = []byte("</a>")
 	preTag             = []byte("<pre>")
+	preHighlightTag    = []byte(`<pre class="highlight">`)
+	divHighlightTag    = []byte(`<div class="highlight">`)
+	divCloseTag        = []byte("</div>")
 	preCloseTag        = []byte("</pre>")
 	codeTag            = []byte("<code>")
 	codeCloseTag       = []byte("</code>")
@@ -763,11 +766,13 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 	case CodeBlock:
 		attrs = appendLanguageAttr(attrs, node.Info)
 		r.cr(w)
-		r.out(w, preTag)
+		r.out(w, divHighlightTag)
+		r.out(w, preHighlightTag)
 		r.tag(w, codeTag[:len(codeTag)-1], attrs)
 		escapeAllHTML(w, node.Literal)
 		r.out(w, codeCloseTag)
 		r.out(w, preCloseTag)
+		r.out(w, divCloseTag)
 		if node.Parent.Type != Item {
 			r.cr(w)
 		}
