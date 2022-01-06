@@ -329,7 +329,7 @@ func appendLanguageAttr(attrs []string, info []byte) ([]string, string) {
 	if endOfLang < 0 {
 		endOfLang = len(info)
 	}
-	return append(attrs, fmt.Sprintf("class=\"language-%s\"", info[:endOfLang])), string(info[:endOfLang])
+	return append(attrs, fmt.Sprintf("class=\"language-%s highlighter-rouge\"", info[:endOfLang])), string(info[:endOfLang])
 }
 
 func (r *HTMLRenderer) tag(w io.Writer, name []byte, attrs []string) {
@@ -422,8 +422,7 @@ var (
 	aTag               = []byte("<a")
 	aCloseTag          = []byte("</a>")
 	preTag             = []byte("<pre>")
-	preHighlightTag    = []byte(`<pre class="highlight">`)
-	divHighlightTag    = []byte(`<div class="highlight">`)
+	divTag             = []byte(`<div>`)
 	divCloseTag        = []byte("</div>")
 	preCloseTag        = []byte("</pre>")
 	codeTag            = []byte("<code>")
@@ -768,16 +767,17 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 	case CodeBlock:
 		attrs, lang := appendLanguageAttr(attrs, node.Info)
 		r.cr(w)
-		r.out(w, divHighlightTag)
-		r.out(w, preHighlightTag)
-		r.tag(w, codeTag[:len(codeTag)-1], attrs)
+		r.tag(w, divTag[:len(divTag)-1], attrs)
+		r.tag(w, divTag[:len(divTag)-1], []string{`class="highlight"`})
+		r.tag(w, preTag[:len(preTag)-1], []string{`class="highlight"`})
+		r.out(w, codeTag)
 
 		buf := new(bytes.Buffer)
-		args := []string{"-f", "html"}
+		args := []string{"highlight", "-f", "html"}
 		if lang != "" {
 			args = append(args, "-l", lang)
 		}
-		cmd := exec.Command("pygmentize", args...) // nolint: gas
+		cmd := exec.Command("rougify", args...) // nolint: gas
 		cmd.Stdin = strings.NewReader(string(node.Literal))
 		cmd.Stdout = buf
 		cmd.Stderr = os.Stderr
@@ -785,9 +785,12 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 			panic(e)
 		}
 		r.out(w, buf.Bytes())
+
 		r.out(w, codeCloseTag)
 		r.out(w, preCloseTag)
 		r.out(w, divCloseTag)
+		r.out(w, divCloseTag)
+
 		if node.Parent.Type != Item {
 			r.cr(w)
 		}
