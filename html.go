@@ -19,6 +19,8 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"os"
+	"os/exec"
 	"regexp"
 	"strings"
 )
@@ -319,15 +321,15 @@ func isSmartypantable(node *Node) bool {
 	return pt != Link && pt != CodeBlock && pt != Code
 }
 
-func appendLanguageAttr(attrs []string, info []byte) []string {
+func appendLanguageAttr(attrs []string, info []byte) ([]string, string) {
 	if len(info) == 0 {
-		return attrs
+		return attrs, ""
 	}
 	endOfLang := bytes.IndexAny(info, "\t ")
 	if endOfLang < 0 {
 		endOfLang = len(info)
 	}
-	return append(attrs, fmt.Sprintf("class=\"language-%s\"", info[:endOfLang]))
+	return append(attrs, fmt.Sprintf("class=\"language-%s\"", info[:endOfLang])), string(info[:endOfLang])
 }
 
 func (r *HTMLRenderer) tag(w io.Writer, name []byte, attrs []string) {
@@ -764,12 +766,25 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 			r.cr(w)
 		}
 	case CodeBlock:
-		attrs = appendLanguageAttr(attrs, node.Info)
+		attrs, lang := appendLanguageAttr(attrs, node.Info)
 		r.cr(w)
 		r.out(w, divHighlightTag)
 		r.out(w, preHighlightTag)
 		r.tag(w, codeTag[:len(codeTag)-1], attrs)
-		escapeAllHTML(w, node.Literal)
+
+		buf := new(bytes.Buffer)
+		args := []string{"-f", "html"}
+		if lang != "" {
+			args = append(args, "-l", lang)
+		}
+		cmd := exec.Command("pygmentize", args...) // nolint: gas
+		cmd.Stdin = strings.NewReader(string(node.Literal))
+		cmd.Stdout = buf
+		cmd.Stderr = os.Stderr
+		if e := cmd.Run(); e != nil {
+			panic(e)
+		}
+		r.out(w, buf.Bytes())
 		r.out(w, codeCloseTag)
 		r.out(w, preCloseTag)
 		r.out(w, divCloseTag)
