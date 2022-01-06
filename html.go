@@ -19,10 +19,13 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"os"
-	"os/exec"
 	"regexp"
 	"strings"
+
+	"github.com/alecthomas/chroma"
+	"github.com/alecthomas/chroma/formatters/html"
+	"github.com/alecthomas/chroma/lexers"
+	"github.com/alecthomas/chroma/styles"
 )
 
 // HTMLFlags control optional behavior of HTML renderer.
@@ -769,25 +772,37 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 		r.cr(w)
 		r.tag(w, divTag[:len(divTag)-1], attrs)
 		r.tag(w, divTag[:len(divTag)-1], []string{`class="highlight"`})
-		r.tag(w, preTag[:len(preTag)-1], []string{`class="highlight"`})
-		r.out(w, codeTag)
 
-		buf := new(bytes.Buffer)
-		args := []string{"highlight", "-f", "html"}
-		if lang != "" {
-			args = append(args, "-l", lang)
-		}
-		cmd := exec.Command("rougify", args...) // nolint: gas
-		cmd.Stdin = strings.NewReader(string(node.Literal))
-		cmd.Stdout = buf
-		cmd.Stderr = os.Stderr
-		if e := cmd.Run(); e != nil {
-			panic(e)
-		}
-		r.out(w, buf.Bytes())
+		source := string(node.Literal)
 
-		r.out(w, codeCloseTag)
-		r.out(w, preCloseTag)
+		// Determine lexer.
+		l := lexers.Get(lang)
+		if l == nil {
+			l = lexers.Analyse(source)
+		}
+		if l == nil {
+			l = lexers.Fallback
+		}
+		l = chroma.Coalesce(l)
+
+		// Determine formatter.
+		f := html.New(html.WithClasses(true))
+
+		// Determine style.
+		s := styles.Get("")
+		if s == nil {
+			s = styles.Fallback
+		}
+
+		it, err := l.Tokenise(nil, source)
+		if err != nil {
+			panic(err)
+		}
+
+		if err = f.Format(w, s, it); err != nil {
+			panic(err)
+		}
+
 		r.out(w, divCloseTag)
 		r.out(w, divCloseTag)
 
