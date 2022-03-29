@@ -1216,6 +1216,31 @@ continues
 <p>woo.</p>
 </blockquote>
 `,
+		// -------------------------------------------
+		cat("> foo",
+			"> ",
+			"> quote",
+			"",
+			"> foo2",
+			"> ",
+			"> quote2",
+			"",
+			"continues",
+			""),
+		`<blockquote>
+<p>foo</p>
+
+<p>quote</p>
+</blockquote>
+
+<blockquote>
+<p>foo2</p>
+
+<p>quote2</p>
+</blockquote>
+
+<p>continues</p>
+`,
 	}
 
 	// These 2 alternative forms of blockquoted fenced code blocks should produce same output.

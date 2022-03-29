@@ -987,7 +987,13 @@ func (p *Markdown) quote(data []byte) int {
 			end++
 		}
 		if end < len(data) && data[end] == '\n' {
-			end++
+			if end+1 < len(data) && data[end+1] == '\n' {
+				beg += p.quotePrefix(data[beg:])
+				raw.Write(data[beg:end])
+				break
+			} else {
+				end++
+			}
 		}
 		if pre := p.quotePrefix(data[beg:]); pre > 0 {
 			// skip the prefix
@@ -1166,9 +1172,9 @@ func (p *Markdown) listTypeChanged(data []byte, flags *ListType) bool {
 func endsWithBlankLine(block *Node) bool {
 	// TODO: figure this out. Always false now.
 	for block != nil {
-		//if block.lastLineBlank {
-		//return true
-		//}
+		// if block.lastLineBlank {
+		// return true
+		// }
 		t := block.Type
 		if t == List || t == Item {
 			block = block.LastChild
