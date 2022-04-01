@@ -1214,3 +1214,33 @@ func BenchmarkSmartDoubleQuotes(b *testing.B) {
 		runMarkdown("this should be normal \"quoted\" text.\n", params)
 	}
 }
+
+func TestIgnoreUnderscore(t *testing.T) {
+	t.Parallel()
+	var tests = []string{
+		"simple _inline_ test\n",
+		"<p>simple _inline_ test</p>\n",
+
+		"_at the_ beginning\n",
+		"<p>_at the_ beginning</p>\n",
+
+		"at the _end_\n",
+		"<p>at the _end_</p>\n",
+
+		"_try two_ in _one line_\n",
+		"<p>_try two_ in _one line_</p>\n",
+
+		"over _two\nlines_ test\n",
+		"<p>over _two\nlines_ test</p>\n",
+
+		"odd _number of_ markers_ here\n",
+		"<p>odd _number of_ markers_ here</p>\n",
+
+		"odd _number\nof_ markers_ here\n",
+		"<p>odd _number\nof_ markers_ here</p>\n",
+
+		"mix of *markers_\n",
+		"<p>mix of *markers_</p>\n",
+	}
+	doTestsInlineParam(t, tests, TestParams{extensions: IgnoreUnderscore})
+}
