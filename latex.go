@@ -41,20 +41,16 @@ func (options *Latex) GetFlags() int {
 
 // render code chunks using verbatim, or listings if we have a language
 func (options *Latex) BlockCode(out *bytes.Buffer, text []byte, info string) {
-	if info == "" {
-		out.WriteString("\n\\begin{verbatim}\n")
-	} else {
+	out.WriteString("\n\\begin{lstlisting}")
+	if info != "" {
 		lang := strings.Fields(info)[0]
-		out.WriteString("\n\\begin{lstlisting}[language=")
+		out.WriteString("[language=")
 		out.WriteString(lang)
-		out.WriteString("]\n")
+		out.WriteByte(']')
 	}
+	out.WriteString("\n")
 	out.Write(text)
-	if info == "" {
-		out.WriteString("\n\\end{verbatim}\n")
-	} else {
-		out.WriteString("\n\\end{lstlisting}\n")
-	}
+	out.WriteString("\n\\end{lstlisting}\n")
 }
 
 func (options *Latex) TitleBlock(out *bytes.Buffer, text []byte) {
@@ -304,9 +300,11 @@ func (options *Latex) DocumentHeader(out *bytes.Buffer) {
 	out.WriteString("\\documentclass{article}\n")
 	out.WriteString("\n")
 	out.WriteString("\\usepackage{graphicx}\n")
+	out.WriteString("\\usepackage[dvipsnames]{xcolor}\n")
 	out.WriteString("\\usepackage{listings}\n")
 	out.WriteString("\\usepackage[margin=1in]{geometry}\n")
 	out.WriteString("\\usepackage[utf8]{inputenc}\n")
+	out.WriteString("\\usepackage[T1]{fontenc}\n")
 	out.WriteString("\\usepackage{verbatim}\n")
 	out.WriteString("\\usepackage[normalem]{ulem}\n")
 	out.WriteString("\\usepackage{hyperref}\n")
@@ -326,6 +324,16 @@ func (options *Latex) DocumentHeader(out *bytes.Buffer) {
 	out.WriteString("\\addtolength{\\parskip}{0.5\\baselineskip}\n")
 	out.WriteString("\\parindent=0pt\n")
 	out.WriteString("\n")
+	// lstset with most settings taken from https://tex.stackexchange.com/questions/24528/having-problems-with-listings-and-utf-8-can-it-be-fixed
+	out.WriteString("\n\\lstset{\n")
+	out.WriteString("  numberstyle=\\tiny, stepnumber=2, numbersep=5pt,\n")
+	out.WriteString("  keywordstyle=\\color{blue}\\bfseries, stringstyle=\\color{OliveGreen}, frame=single,\n")
+	out.WriteString("  backgroundcolor=\\color{gray!10},\n")
+	out.WriteString("  inputencoding=utf8,\n")
+	out.WriteString("  extendedchars=true,\n")
+	out.WriteString("  literate={-}{-}1 {*}{*}1 {'}{'}1 {á}{{\\'a}}1 {é}{{\\'e}}1 {í}{{\\'i}}1 {ó}{{\\'o}}1 {ú}{{\\'u}}1 {ü}{{\\:u}}1,\n") // Copy pasteable code and accents
+	out.WriteString("  breaklines=true, basicstyle=\\ttfamily, columns=fullflexible, keepspaces=true, showstringspaces=false,\n")          // Copy pasteable code
+	out.WriteString("}\n")
 	out.WriteString("\\begin{document}\n")
 }
 
