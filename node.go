@@ -36,6 +36,7 @@ const (
 	TableHead
 	TableBody
 	TableRow
+	Math
 )
 
 var nodeTypeNames = []string{
@@ -63,6 +64,7 @@ var nodeTypeNames = []string{
 	TableHead:      "TableHead",
 	TableBody:      "TableBody",
 	TableRow:       "TableRow",
+	Math:           "Math",
 }
 
 func (t NodeType) String() string {

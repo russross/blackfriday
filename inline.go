@@ -735,7 +735,9 @@ func linkEndsWithEntity(data []byte, linkEnd int) bool {
 }
 
 // hasPrefixCaseInsensitive is a custom implementation of
-//     strings.HasPrefix(strings.ToLower(s), prefix)
+//
+//	strings.HasPrefix(strings.ToLower(s), prefix)
+//
 // we rolled our own because ToLower pulls in a huge machinery of lowercasing
 // anything from Unicode and that's very slow. Since this func will only be
 // used on ASCII protocol prefixes, we can take shortcuts.
@@ -1225,4 +1227,26 @@ func text(s []byte) *Node {
 
 func normalizeURI(s []byte) []byte {
 	return s // TODO: implement
+}
+
+func math(p *Markdown, data []byte, offset int) (int, *Node) {
+	if offset > 0 && data[offset-1] == '\\' {
+		return 0, nil // Dollar sign has been escaped.
+	}
+	data = data[offset:]
+	isInline := len(data) > 2 && data[1] != '$'
+	if isInline {
+		data = data[1:]
+		nl := bytes.IndexByte(data, '\n')
+		dolla := bytes.IndexByte(data, '$')
+		if dolla < 0 || (nl >= 0 && nl < dolla) {
+			return 0, nil // No end to math node or newline before dollar.
+		}
+		math := NewNode(Math)
+		math.Literal = data[:dolla]
+		return dolla + 2, math
+	}
+	// Block math unsupported.
+	// isBlock := len(data) > 4 && data[1] == '$' && data[2] != '$'
+	return 0, nil
 }
