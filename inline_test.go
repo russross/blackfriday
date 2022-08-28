@@ -1214,3 +1214,15 @@ func BenchmarkSmartDoubleQuotes(b *testing.B) {
 		runMarkdown("this should be normal \"quoted\" text.\n", params)
 	}
 }
+
+func TestMath(t *testing.T) {
+	doTestsParam(t, []string{
+		"In class we saw $a$ is a length.",
+		"<p>In class we saw <math>a</math> is a length.</p>\n",
+
+		"What we see is that following $a+b <three> four$. Right?",
+		"<p>What we see is that following <math>a+b &lt;three&gt; four</math>. Right?</p>\n",
+	}, TestParams{
+		extensions: DollarMath,
+	})
+}
