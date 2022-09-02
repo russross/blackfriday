@@ -1296,7 +1296,7 @@ gatherlines:
 		if p.extensions&FencedCode != 0 {
 			// determine if in or out of codeblock
 			// if in codeblock, ignore normal list processing
-			_, marker := isFenceLine(chunk, nil, codeBlockMarker)
+			_, marker := isFenceLine(chunk, new(string), codeBlockMarker)
 			if marker != "" {
 				if codeBlockMarker == "" {
 					// start of codeblock
