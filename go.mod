@@ -1,4 +1,4 @@
-module github.com/danog/blackfriday/v2
+module github.com/russross/blackfriday/v2
 
 go 1.17
 

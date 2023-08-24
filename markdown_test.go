@@ -1,6 +1,6 @@
 //
 // Blackfriday Markdown Processor
-// Available at http://github.com/danog/blackfriday
+// Available at http://github.com/russross/blackfriday
 //
 // Copyright © 2011 Russ Ross <russ@russross.com>.
 // Distributed under the Simplified BSD License.
@@ -26,12 +26,12 @@ func TestDocument(t *testing.T) {
 		"",
 
 		// This shouldn't panic.
-		// https://github.com/danog/blackfriday/issues/172
+		// https://github.com/russross/blackfriday/issues/172
 		"[]:<",
 		"<p>[]:&lt;</p>\n",
 
 		// This shouldn't panic.
-		// https://github.com/danog/blackfriday/issues/173
+		// https://github.com/russross/blackfriday/issues/173
 		"   [",
 		"<p>[</p>\n",
 	}

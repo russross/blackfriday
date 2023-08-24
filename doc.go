@@ -14,9 +14,9 @@
 // to the Markdown processor.
 //
 // If you're interested in calling Blackfriday from command line, see
-// https://github.com/danog/blackfriday-tool.
+// https://github.com/russross/blackfriday-tool.
 //
-// Sanitized Anchor Names
+// # Sanitized Anchor Names
 //
 // Blackfriday includes an algorithm for creating sanitized anchor names
 // corresponding to a given input text. This algorithm is used to create
