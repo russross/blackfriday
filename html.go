@@ -21,6 +21,11 @@ import (
 	"io"
 	"regexp"
 	"strings"
+
+	"github.com/alecthomas/chroma"
+	"github.com/alecthomas/chroma/formatters/html"
+	"github.com/alecthomas/chroma/lexers"
+	"github.com/alecthomas/chroma/styles"
 )
 
 // HTMLFlags control optional behavior of HTML renderer.
@@ -319,15 +324,15 @@ func isSmartypantable(node *Node) bool {
 	return pt != Link && pt != CodeBlock && pt != Code
 }
 
-func appendLanguageAttr(attrs []string, info []byte) []string {
+func appendLanguageAttr(attrs []string, info []byte) ([]string, string) {
 	if len(info) == 0 {
-		return attrs
+		return attrs, ""
 	}
 	endOfLang := bytes.IndexAny(info, "\t ")
 	if endOfLang < 0 {
 		endOfLang = len(info)
 	}
-	return append(attrs, fmt.Sprintf("class=\"language-%s\"", info[:endOfLang]))
+	return append(attrs, fmt.Sprintf("class=\"language-%s highlighter-rouge\"", info[:endOfLang])), string(info[:endOfLang])
 }
 
 func (r *HTMLRenderer) tag(w io.Writer, name []byte, attrs []string) {
@@ -420,6 +425,8 @@ var (
 	aTag               = []byte("<a")
 	aCloseTag          = []byte("</a>")
 	preTag             = []byte("<pre>")
+	divTag             = []byte(`<div>`)
+	divCloseTag        = []byte("</div>")
 	preCloseTag        = []byte("</pre>")
 	codeTag            = []byte("<code>")
 	codeCloseTag       = []byte("</code>")
@@ -761,13 +768,44 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 			r.cr(w)
 		}
 	case CodeBlock:
-		attrs = appendLanguageAttr(attrs, node.Info)
+		attrs, lang := appendLanguageAttr(attrs, node.Info)
 		r.cr(w)
-		r.out(w, preTag)
-		r.tag(w, codeTag[:len(codeTag)-1], attrs)
-		escapeAllHTML(w, node.Literal)
-		r.out(w, codeCloseTag)
-		r.out(w, preCloseTag)
+		r.tag(w, divTag[:len(divTag)-1], attrs)
+		r.tag(w, divTag[:len(divTag)-1], []string{`class="highlight"`})
+
+		source := string(node.Literal)
+
+		// Determine lexer.
+		l := lexers.Get(lang)
+		if l == nil {
+			l = lexers.Analyse(source)
+		}
+		if l == nil {
+			l = lexers.Fallback
+		}
+		l = chroma.Coalesce(l)
+
+		// Determine formatter.
+		f := html.New(html.WithClasses(true))
+
+		// Determine style.
+		s := styles.Get("")
+		if s == nil {
+			s = styles.Fallback
+		}
+
+		it, err := l.Tokenise(nil, source)
+		if err != nil {
+			panic(err)
+		}
+
+		if err = f.Format(w, s, it); err != nil {
+			panic(err)
+		}
+
+		r.out(w, divCloseTag)
+		r.out(w, divCloseTag)
+
 		if node.Parent.Type != Item {
 			r.cr(w)
 		}
