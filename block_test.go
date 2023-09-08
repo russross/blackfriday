@@ -1299,10 +1299,10 @@ func TestTable(t *testing.T) {
 			"<tbody>\n<tr>\n<td><em>d</em></td>\n<td><strong>e</strong></td>\n<td>f</td>\n</tr>\n</tbody>\n</table>\n",
 
 		"a|b|c|d\n:--|--:|:-:|---\ne|f|g|h\n",
-		"<table>\n<thead>\n<tr>\n<th align=\"left\">a</th>\n<th align=\"right\">b</th>\n" +
-			"<th align=\"center\">c</th>\n<th>d</th>\n</tr>\n</thead>\n\n" +
-			"<tbody>\n<tr>\n<td align=\"left\">e</td>\n<td align=\"right\">f</td>\n" +
-			"<td align=\"center\">g</td>\n<td>h</td>\n</tr>\n</tbody>\n</table>\n",
+		"<table>\n<thead>\n<tr>\n<th align=\"left\" style=\"text-align: left\">a</th>\n<th align=\"right\" style=\"text-align: right\">b</th>\n" +
+			"<th align=\"center\" style=\"text-align: center\">c</th>\n<th>d</th>\n</tr>\n</thead>\n\n" +
+			"<tbody>\n<tr>\n<td align=\"left\" style=\"text-align: left\">e</td>\n<td align=\"right\" style=\"text-align: right\">f</td>\n" +
+			"<td align=\"center\" style=\"text-align: center\">g</td>\n<td>h</td>\n</tr>\n</tbody>\n</table>\n",
 
 		"a|b|c\n---|---|---\n",
 		"<table>\n<thead>\n<tr>\n<th>a</th>\n<th>b</th>\n<th>c</th>\n</tr>\n</thead>\n\n<tbody>\n</tbody>\n</table>\n",
