@@ -72,6 +72,8 @@ type HtmlRendererParameters struct {
 	HeaderIDPrefix string
 	// If set, add this text to the back of each Header ID, to ensure uniqueness.
 	HeaderIDSuffix string
+	// If set, add this style to each image.
+	ImageStyleTag string
 }
 
 // Html is a type that implements the Renderer interface for HTML output.
@@ -520,6 +522,10 @@ func (options *Html) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 	if len(title) > 0 {
 		out.WriteString("\" title=\"")
 		attrEscape(out, title)
+	}
+	if options.parameters.ImageStyleTag != "" {
+		out.WriteString("\" style=\"")
+		attrEscape(out, []byte(options.parameters.ImageStyleTag))
 	}
 
 	out.WriteByte('"')
