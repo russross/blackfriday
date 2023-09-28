@@ -430,7 +430,7 @@ func (p *Markdown) htmlComment(data []byte, doRender bool) int {
 			for end > 0 && data[end-1] == '\n' {
 				end--
 			}
-			block := p.addBlock(HTMLBlock, data[:end])
+			block := p.addBlock(HTMLComment, data[:end])
 			finalizeHTMLBlock(block)
 		}
 		return size
