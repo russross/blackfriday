@@ -26,6 +26,7 @@ const (
 	Image
 	Text
 	HTMLBlock
+	HTMLComment
 	CodeBlock
 	Softbreak
 	Hardbreak
@@ -53,6 +54,7 @@ var nodeTypeNames = []string{
 	Image:          "Image",
 	Text:           "Text",
 	HTMLBlock:      "HTMLBlock",
+	HTMLComment:    "HTMLComment",
 	CodeBlock:      "CodeBlock",
 	Softbreak:      "Softbreak",
 	Hardbreak:      "Hardbreak",

@@ -632,7 +632,7 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 			// to be added and when not.
 			if node.Prev != nil {
 				switch node.Prev.Type {
-				case HTMLBlock, List, Paragraph, Heading, CodeBlock, BlockQuote, HorizontalRule:
+				case HTMLBlock, HTMLComment, List, Paragraph, Heading, CodeBlock, BlockQuote, HorizontalRule:
 					r.cr(w)
 				}
 			}
@@ -654,7 +654,7 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 			r.out(w, blockquoteCloseTag)
 			r.cr(w)
 		}
-	case HTMLBlock:
+	case HTMLBlock, HTMLComment:
 		if r.Flags&SkipHTML != 0 {
 			break
 		}
