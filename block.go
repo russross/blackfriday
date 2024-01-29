@@ -1295,7 +1295,7 @@ gatherlines:
 		// intermediate render of inline item
 		if sublist > 0 {
 			p.inline(&cooked, rawBytes[:sublist])
-			p.block(&cooked, rawBytes[sublist:])
+			p.inline(&cooked, rawBytes[sublist:])
 		} else {
 			p.inline(&cooked, rawBytes)
 		}
