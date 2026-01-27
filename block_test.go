@@ -1854,3 +1854,72 @@ func TestSanitizedAnchorName(t *testing.T) {
 		}
 	}
 }
+
+// TestListItemBoundsCheck tests that list items without trailing newlines
+// don't cause index out of range panics.
+// See: https://github.com/russross/blackfriday/issues/xxx
+func TestListItemBoundsCheck(t *testing.T) {
+	// These test cases should not panic
+	testCases := []struct {
+		name  string
+		input string
+	}{
+		{
+			name:  "unordered list without trailing newline",
+			input: "* item",
+		},
+		{
+			name:  "ordered list without trailing newline",
+			input: "1. item",
+		},
+		{
+			name:  "unordered list with spaces no newline",
+			input: "*    item with spaces",
+		},
+		{
+			name:  "ordered list with spaces no newline",
+			input: "1.    item with spaces",
+		},
+		{
+			name:  "nested list without trailing newline",
+			input: "* item\n  * nested",
+		},
+		{
+			name:  "list with multiple items no trailing newline",
+			input: "* item1\n* item2",
+		},
+		{
+			name:  "definition list without trailing newline",
+			input: "Term\n: Definition",
+		},
+		{
+			name:  "empty list marker",
+			input: "* ",
+		},
+		{
+			name:  "list with only spaces after marker",
+			input: "*   ",
+		},
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Errorf("listItem caused panic: %v", r)
+		}
+	}()
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("Test %q panicked: %v", tc.name, r)
+				}
+			}()
+			// Just ensure it doesn't panic - output correctness is secondary
+			_ = runMarkdownBlock(tc.input, 0)
+			_ = runMarkdownBlock(tc.input, EXTENSION_DEFINITION_LISTS)
+			_ = runMarkdownBlock(tc.input, EXTENSION_FENCED_CODE)
+			_ = runMarkdownBlock(tc.input, EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK)
+		})
+	}
+}

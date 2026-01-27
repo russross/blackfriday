@@ -1066,10 +1066,10 @@ func (p *parser) dliPrefix(data []byte) int {
 	i := 0
 
 	// need a : followed by a spaces
-	if data[i] != ':' || data[i+1] != ' ' {
+	if len(data) < 2 || data[i] != ':' || data[i+1] != ' ' {
 		return 0
 	}
-	for data[i] == ' ' {
+	for i < len(data) && data[i] == ' ' {
 		i++
 	}
 	return i + 2
@@ -1126,13 +1126,13 @@ func (p *parser) listItem(out *bytes.Buffer, data []byte, flags *int) int {
 	}
 
 	// skip leading whitespace on first line
-	for data[i] == ' ' {
+	for i < len(data) && data[i] == ' ' {
 		i++
 	}
 
 	// find the end of the line
 	line := i
-	for i > 0 && data[i-1] != '\n' {
+	for i < len(data) && (i == 0 || data[i-1] != '\n') {
 		i++
 	}
 
@@ -1157,8 +1157,12 @@ gatherlines:
 		i++
 
 		// find the end of this line
-		for data[i-1] != '\n' {
+		for i < len(data) && data[i-1] != '\n' {
 			i++
+		}
+		// if we reached end of data without newline, treat as end of line
+		if i > len(data) {
+			i = len(data)
 		}
 		// if it is an empty line, guess that it is part of this item
 		// and move on to the next line
@@ -1246,13 +1250,13 @@ gatherlines:
 			if *flags&LIST_TYPE_DEFINITION != 0 && i < len(data)-1 {
 				// is the next item still a part of this list?
 				next := i
-				for data[next] != '\n' {
+				for next < len(data) && data[next] != '\n' {
 					next++
 				}
 				for next < len(data)-1 && data[next] == '\n' {
 					next++
 				}
-				if i < len(data)-1 && data[i] != ':' && data[next] != ':' {
+				if i < len(data)-1 && data[i] != ':' && next < len(data) && data[next] != ':' {
 					*flags |= LIST_ITEM_END_OF_LIST
 				}
 			} else {
