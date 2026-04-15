@@ -18,6 +18,7 @@ package blackfriday
 import (
 	"bytes"
 	"fmt"
+	"html"
 	"io"
 	"regexp"
 	"strings"
@@ -327,7 +328,7 @@ func appendLanguageAttr(attrs []string, info []byte) []string {
 	if endOfLang < 0 {
 		endOfLang = len(info)
 	}
-	return append(attrs, fmt.Sprintf("class=\"language-%s\"", info[:endOfLang]))
+	return append(attrs, fmt.Sprintf("class=\"language-%s\"", html.EscapeString(string(info[:endOfLang]))))
 }
 
 func (r *HTMLRenderer) tag(w io.Writer, name []byte, attrs []string) {
@@ -676,7 +677,7 @@ func (r *HTMLRenderer) RenderNode(w io.Writer, node *Node, entering bool) WalkSt
 				if r.HeadingIDSuffix != "" {
 					id = id + r.HeadingIDSuffix
 				}
-				attrs = append(attrs, fmt.Sprintf(`id="%s"`, id))
+				attrs = append(attrs, fmt.Sprintf(`id="%s"`, html.EscapeString(id)))
 			}
 			r.cr(w)
 			r.tag(w, openTag, attrs)
