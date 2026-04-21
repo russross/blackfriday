@@ -1916,3 +1916,18 @@ func TestSanitizedAnchorName(t *testing.T) {
 		}
 	}
 }
+
+// TestIssue696DefinitionListTailOfInput is a regression for #696.
+// Fuzz-generated input like ": \n\n0\n00" drove listItem through the
+// definition-list continuation check while the inner scan walked to
+// len(data), which used to index data[len(data)] and panic with
+// 'index out of range'. Parser must now treat the past-the-end case
+// as 'next line cannot continue the definition list'.
+func TestIssue696DefinitionListTailOfInput(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("Run panicked on fuzz input: %v", r)
+		}
+	}()
+	_ = Run([]byte(": \n\n0\n00"))
+}

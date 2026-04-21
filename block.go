@@ -1366,7 +1366,13 @@ gatherlines:
 				for next < len(data)-1 && data[next] == '\n' {
 					next++
 				}
-				if i < len(data)-1 && data[i] != ':' && data[next] != ':' {
+				// If the first loop walked off the end without finding a
+				// newline (input ends mid-line with no terminator), next
+				// equals len(data) here and data[next] would index out
+				// of range. Treat that tail-of-input case the same as
+				// 'next line does not start with :' - it cannot extend
+				// a definition list either way (#696).
+				if i < len(data)-1 && data[i] != ':' && (next >= len(data) || data[next] != ':') {
 					*flags |= ListItemEndOfList
 				}
 			} else {
