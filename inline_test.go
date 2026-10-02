@@ -427,6 +427,9 @@ func TestLineBreak(t *testing.T) {
 
 		"this has an   \nextra space\n",
 		"<p>this has an<br />\nextra space</p>\n",
+
+		"this line  \r\nhas a break\r\n",
+		"<p>this line<br />\nhas a break</p>\n",
 	}
 	doTestsInline(t, tests)
 

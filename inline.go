@@ -161,13 +161,17 @@ func lineBreak(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	outBytes := out.Bytes()
 	end := len(outBytes)
 	eol := end
-	for eol > 0 && outBytes[eol-1] == ' ' {
+	for eol > 0 && (outBytes[eol-1] == ' ' || outBytes[eol-1] == '\r') {
 		eol--
 	}
 	out.Truncate(eol)
 
-	precededByTwoSpaces := offset >= 2 && data[offset-2] == ' ' && data[offset-1] == ' '
-	precededByBackslash := offset >= 1 && data[offset-1] == '\\' // see http://spec.commonmark.org/0.18/#example-527
+	checkOffset := offset
+	if checkOffset >= 1 && data[checkOffset-1] == '\r' {
+		checkOffset--
+	}
+	precededByTwoSpaces := checkOffset >= 2 && data[checkOffset-2] == ' ' && data[checkOffset-1] == ' '
+	precededByBackslash := checkOffset >= 1 && data[checkOffset-1] == '\\' // see http://spec.commonmark.org/0.18/#example-527
 	precededByBackslash = precededByBackslash && p.flags&EXTENSION_BACKSLASH_LINE_BREAK != 0
 
 	if p.flags&EXTENSION_JOIN_LINES != 0 {
