@@ -1596,6 +1596,24 @@ func TestListWithFencedCodeBlock(t *testing.T) {
 	doTestsBlock(t, tests, FencedCode)
 }
 
+func TestListWithFencedCodeLanguage(t *testing.T) {
+	t.Parallel()
+	// A language tag on the opening fence must not swallow the next item.
+	// https://github.com/russross/blackfriday/issues/715
+	var tests = []string{
+		"1. one\n\n    ```go\n    code\n    ```\n\n2. two\n",
+		"<ol>\n<li><p>one</p>\n\n<pre><code class=\"language-go\">code\n</code></pre></li>\n\n<li><p>two</p></li>\n</ol>\n",
+
+		"1. one\n\n    ~~~go\n    code\n    ~~~\n\n2. two\n",
+		"<ol>\n<li><p>one</p>\n\n<pre><code class=\"language-go\">code\n</code></pre></li>\n\n<li><p>two</p></li>\n</ol>\n",
+
+		// A language-looking line inside the block is still code.
+		"1. one\n\n    ```\n    ```go\n    code\n    ```\n\n2. two\n",
+		"<ol>\n<li><p>one</p>\n\n<pre><code>```go\ncode\n</code></pre></li>\n\n<li><p>two</p></li>\n</ol>\n",
+	}
+	doTestsBlock(t, tests, FencedCode)
+}
+
 func TestListWithMalformedFencedCodeBlock(t *testing.T) {
 	t.Parallel()
 	// Ensure that in the case of an unclosed fenced code block in a list,

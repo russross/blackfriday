@@ -1296,7 +1296,15 @@ gatherlines:
 		if p.extensions&FencedCode != 0 {
 			// determine if in or out of codeblock
 			// if in codeblock, ignore normal list processing
-			_, marker := isFenceLine(chunk, nil, codeBlockMarker)
+			// An opening fence may name a language. A closing fence may not,
+			// so a line like ```go inside the block stays part of the code.
+			var marker string
+			if codeBlockMarker == "" {
+				var info string
+				_, marker = isFenceLine(chunk, &info, "")
+			} else {
+				_, marker = isFenceLine(chunk, nil, codeBlockMarker)
+			}
 			if marker != "" {
 				if codeBlockMarker == "" {
 					// start of codeblock
