@@ -1,6 +1,9 @@
 package blackfriday
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestDefinitionListAfterParagraphLines(t *testing.T) {
 	for _, tc := range []struct{ name, input, want string }{
@@ -22,5 +25,17 @@ func TestDefinitionListAfterParagraphLines(t *testing.T) {
 				t.Errorf("got %q, want %q", got, tc.want)
 			}
 		})
+	}
+}
+
+func TestDefinitionListAfterUnicodePrefix(t *testing.T) {
+	for _, newline := range []string{"\n", "\r\n"} {
+		input := "é🙂" + newline + "TERM\n: DEFINITION\n\nTAIL\n"
+		got := string(Run([]byte(input), WithExtensions(DefinitionLists)))
+		for _, word := range []string{"é🙂", "TERM", "DEFINITION", "TAIL"} {
+			if n := strings.Count(got, word); n != 1 {
+				t.Errorf("newline %q: %q occurs %d times in %q", newline, word, n, got)
+			}
+		}
 	}
 }
