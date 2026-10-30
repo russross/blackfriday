@@ -1479,7 +1479,8 @@ func (p *Markdown) paragraph(data []byte) int {
 			// did this blank line followed by a definition list item?
 			if p.extensions&DefinitionLists != 0 {
 				if i < len(data)-1 && data[i+1] == ':' {
-					return p.list(data[prev:], ListTypeDefinition)
+					p.renderParagraph(data[:prev])
+					return prev + p.list(data[prev:], ListTypeDefinition)
 				}
 			}
 
@@ -1545,8 +1546,8 @@ func (p *Markdown) paragraph(data []byte) int {
 		// if there's a definition list item, prev line is a definition term
 		if p.extensions&DefinitionLists != 0 {
 			if p.dliPrefix(current) != 0 {
-				ret := p.list(data[prev:], ListTypeDefinition)
-				return ret
+				p.renderParagraph(data[:prev])
+				return prev + p.list(data[prev:], ListTypeDefinition)
 			}
 		}
 
